@@ -502,18 +502,8 @@ function initLightbox() {
 
 /* Navbar */
 function initDetailNavbar() {
-  const menuToggle = document.querySelector('.menu-toggle');
-  const mobileMenu = document.querySelector('.mobile-menu');
-
-  if (menuToggle && mobileMenu) {
-    menuToggle.addEventListener('click', () => {
-      const isOpen = mobileMenu.classList.toggle('open');
-      menuToggle.setAttribute('aria-expanded', isOpen);
-      const icon = menuToggle.querySelector('i');
-      if (icon) {
-        icon.className = isOpen ? 'fa-solid fa-xmark' : 'fa-solid fa-bars-staggered';
-      }
-    });
+  if (typeof window.initNavbar === 'function') {
+    window.initNavbar();
   }
 }
 

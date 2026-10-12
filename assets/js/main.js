@@ -2,7 +2,7 @@
  * The NEW GEN Tutoring Institute - Main Interactive Scripts
  */
 
-document.addEventListener('DOMContentLoaded', () => {
+function bootstrapApp() {
   initNavbar();
   initHeroTutors();
   initWhyUs();
@@ -10,7 +10,13 @@ document.addEventListener('DOMContentLoaded', () => {
   initHomeReviews();
   initBackToTop();
   initSmoothScroll();
-});
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', bootstrapApp);
+} else {
+  bootstrapApp();
+}
 
 document.addEventListener('newgen:synced', () => {
   renderHeroContent();
@@ -24,6 +30,7 @@ if (typeof window !== 'undefined') {
   window.initCourseSlider = initCourseSlider;
   window.initHomeReviews = initHomeReviews;
   window.initWhyUs = initWhyUs;
+  window.initNavbar = initNavbar;
 }
 
 /* ----------------------------------------------------
@@ -36,31 +43,75 @@ function initNavbar() {
   const mobileLinks = document.querySelectorAll('.mobile-nav-link');
 
   // Sticky header background transition
-  window.addEventListener('scroll', () => {
-    if (window.scrollY > 40) {
-      header?.classList.add('scrolled');
-    } else {
-      header?.classList.remove('scrolled');
-    }
-  });
-
-  // Mobile menu toggle
-  if (menuToggle && mobileMenu) {
-    menuToggle.addEventListener('click', () => {
-      const isOpen = mobileMenu.classList.toggle('open');
-      menuToggle.setAttribute('aria-expanded', isOpen);
-      const icon = menuToggle.querySelector('i');
-      if (icon) {
-        icon.className = isOpen ? 'fa-solid fa-xmark' : 'fa-solid fa-bars-staggered';
+  if (header && !header.dataset.scrollBound) {
+    header.dataset.scrollBound = 'true';
+    const handleScroll = () => {
+      if (window.scrollY > 30) {
+        header.classList.add('scrolled');
+      } else {
+        header.classList.remove('scrolled');
       }
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
+  }
+
+  // Guard against duplicate binding on menuToggle
+  if (menuToggle && mobileMenu) {
+    if (menuToggle.dataset.navBound === 'true') {
+      return;
+    }
+    menuToggle.dataset.navBound = 'true';
+
+    const setMenuState = (open) => {
+      if (open) {
+        mobileMenu.classList.add('open');
+        menuToggle.setAttribute('aria-expanded', 'true');
+        menuToggle.classList.add('active');
+        const icon = menuToggle.querySelector('i');
+        if (icon) icon.className = 'fa-solid fa-xmark';
+      } else {
+        mobileMenu.classList.remove('open');
+        menuToggle.setAttribute('aria-expanded', 'false');
+        menuToggle.classList.remove('active');
+        const icon = menuToggle.querySelector('i');
+        if (icon) icon.className = 'fa-solid fa-bars-staggered';
+      }
+    };
+
+    menuToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const willOpen = !mobileMenu.classList.contains('open');
+      setMenuState(willOpen);
     });
 
     mobileLinks.forEach(link => {
       link.addEventListener('click', () => {
-        mobileMenu.classList.remove('open');
-        const icon = menuToggle.querySelector('i');
-        if (icon) icon.className = 'fa-solid fa-bars-staggered';
+        setMenuState(false);
       });
+    });
+
+    // Close when tapping outside header/menu
+    document.addEventListener('click', (e) => {
+      if (mobileMenu.classList.contains('open')) {
+        if (!mobileMenu.contains(e.target) && !menuToggle.contains(e.target)) {
+          setMenuState(false);
+        }
+      }
+    });
+
+    // Close on Escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && mobileMenu.classList.contains('open')) {
+        setMenuState(false);
+      }
+    });
+
+    // Close when resized back to desktop view
+    window.addEventListener('resize', () => {
+      if (window.innerWidth > 992 && mobileMenu.classList.contains('open')) {
+        setMenuState(false);
+      }
     });
   }
 }
