@@ -28,6 +28,7 @@ function initAdminDashboard() {
   loadAdminVideos();
   loadAdminContact();
   loadAdminWhyUs();
+  checkSupabaseConnection(false);
 }
 
 function escapeHtml(str) {
@@ -50,13 +51,98 @@ function logoutAdmin() {
   }
 }
 
-function showToast(msg) {
+function showToast(msg, type = 'success') {
   const toast = document.getElementById('adminToast');
   const toastMsg = document.getElementById('toastMsg');
   if (toastMsg) toastMsg.textContent = msg;
   if (toast) {
+    toast.className = 'admin-toast-alert';
+    if (type === 'warning') toast.classList.add('warning');
+    if (type === 'error') toast.classList.add('error');
+
+    const icon = toast.querySelector('i');
+    if (icon) {
+      if (type === 'warning') {
+        icon.className = 'fa-solid fa-triangle-exclamation';
+      } else if (type === 'error') {
+        icon.className = 'fa-solid fa-circle-xmark';
+      } else {
+        icon.className = 'fa-solid fa-circle-check';
+      }
+    }
+
     toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), 3000);
+    clearTimeout(window._toastTimeout);
+    window._toastTimeout = setTimeout(() => toast.classList.remove('show'), type === 'warning' ? 5000 : 3500);
+  }
+}
+
+async function checkSupabaseConnection(isUserClick = false) {
+  const badge = document.getElementById('supabaseStatusBadge');
+  const textEl = document.getElementById('supabaseStatusText');
+  if (!badge || !textEl) return;
+
+  if (isUserClick) {
+    textEl.textContent = 'กำลังทดสอบเชื่อมต่อ...';
+    badge.className = 'supabase-status-pill';
+  }
+
+  try {
+    const config = window.SUPABASE_CONFIG;
+    if (!config || !config.url) {
+      badge.className = 'supabase-status-pill offline';
+      textEl.textContent = 'ไม่พบคอนฟิก Supabase';
+      return;
+    }
+
+    // 1. ทดสอบอ่าน (GET)
+    const getRes = await fetch(`${config.url}/rest/v1/app_data?select=key&limit=1`, {
+      headers: {
+        'apikey': config.anonKey,
+        'Authorization': `Bearer ${config.anonKey}`
+      }
+    });
+
+    if (!getRes.ok) {
+      badge.className = 'supabase-status-pill offline';
+      textEl.textContent = `Supabase ออฟไลน์ (${getRes.status})`;
+      if (isUserClick) alert(`ไม่สามารถเชื่อมต่อ Supabase ได้ (HTTP ${getRes.status}) กรุณาตรวจสอบ Network หรือ API Key`);
+      return;
+    }
+
+    // 2. ทดสอบเขียน (POST ping)
+    const pingRes = await fetch(`${config.url}/rest/v1/app_data?on_conflict=key`, {
+      method: 'POST',
+      headers: {
+        'apikey': config.anonKey,
+        'Authorization': `Bearer ${config.anonKey}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'resolution=merge-duplicates'
+      },
+      body: JSON.stringify({ key: 'admin_ping', data: { ping: true, time: new Date().toISOString() } })
+    });
+
+    if (pingRes.ok) {
+      badge.className = 'supabase-status-pill online';
+      textEl.textContent = 'Supabase Cloud: เชื่อมต่อสมบูรณ์';
+      if (isUserClick) showToast('✅ Supabase Cloud: อ่าน-เขียนข้อมูลออนไลน์สำเร็จสมบูรณ์!', 'success');
+    } else {
+      const errText = await pingRes.text();
+      badge.className = 'supabase-status-pill warning';
+      if (errText.includes('row-level security') || pingRes.status === 401) {
+        textEl.textContent = 'Supabase: อ่านได้ (รอปลดล็อก RLS)';
+        if (isUserClick) {
+          alert('⚠️ Supabase Cloud อ่านข้อมูลได้ แต่ติดระบบ Row-Level Security (RLS)\n\n👉 วิธีแก้ไขง่ายๆ ใน 10 วินาที:\n1. ไปที่ Supabase Dashboard -> เมนู SQL Editor\n2. วางคำสั่งนี้แล้วกด RUN:\n\nALTER TABLE public.app_data DISABLE ROW LEVEL SECURITY;\n\nเมื่อรันเสร็จแล้ว จะสามารถบันทึกออนไลน์ได้ทันทีจากทุกเครื่องครับ!');
+        }
+      } else {
+        textEl.textContent = 'Supabase: เขียนไม่ได้';
+        if (isUserClick) alert(`Supabase แจ้งเตือน: ${errText}`);
+      }
+    }
+  } catch (err) {
+    badge.className = 'supabase-status-pill offline';
+    textEl.textContent = 'Supabase: เครือข่ายขัดข้อง';
+    if (isUserClick) showToast('⚠️ เครือข่ายขัดข้อง ไม่สามารถติดต่อ Supabase ได้', 'warning');
   }
 }
 
@@ -656,7 +742,7 @@ function openEditCourseModal(id) {
   document.getElementById('modalCourse').classList.add('active');
 }
 
-function handleSaveCourse(e) {
+async function handleSaveCourse(e) {
   e.preventDefault();
   const id = document.getElementById('courseEditId').value.trim();
   const statusSplit = document.getElementById('cStatus').value.split('|');
@@ -700,13 +786,9 @@ function handleSaveCourse(e) {
     courses.push(courseObj);
   }
 
-  try {
-    window.NewGenDB.saveCourses(courses);
-  } catch (err) {
-    console.warn('LocalStorage save error:', err);
-  }
+  const cloudRes = await window.NewGenDB.saveCourses(courses);
 
-  // ซิงค์กับ Server API
+  // ซิงค์กับ Server API (ถ้ามี)
   fetch('/api/courses', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -715,26 +797,30 @@ function handleSaveCourse(e) {
 
   loadAdminCourses();
   closeModal('modalCourse');
-  showToast('บันทึกรายละเอียดคอร์สเรียนสำเร็จแล้ว!');
+  if (cloudRes && cloudRes.success) {
+    showToast('✅ บันทึกรายละเอียดคอร์สเรียนและซิงค์ Cloud สำเร็จแล้ว!', 'success');
+  } else {
+    showToast(`⚠️ บันทึกคอร์สในเครื่องแล้ว (${cloudRes && cloudRes.error ? cloudRes.error : 'รอปลดล็อก Supabase RLS'})`, 'warning');
+  }
 }
 
-function deleteCourse(id) {
+async function deleteCourse(id) {
   if (confirm('ยืนยันที่จะลบคอร์สเรียนนี้หรือไม่?')) {
     let courses = window.NewGenDB.getCourses();
     courses = courses.filter(c => c.id !== id);
-    try {
-      window.NewGenDB.saveCourses(courses);
-    } catch (err) {
-      console.warn('LocalStorage save error:', err);
-    }
+    const cloudRes = await window.NewGenDB.saveCourses(courses);
 
-    // ซิงค์ลบกับ Server API
+    // ซิงค์ลบกับ Server API (ถ้ามี)
     fetch(`/api/courses/${id}`, {
       method: 'DELETE'
     }).catch(() => {});
 
     loadAdminCourses();
-    showToast('ลบคอร์สเรียนเรียบร้อยแล้ว');
+    if (cloudRes && cloudRes.success) {
+      showToast('✅ ลบคอร์สเรียนและอัปเดต Cloud เรียบร้อยแล้ว', 'success');
+    } else {
+      showToast('⚠️ ลบคอร์สในเครื่องแล้ว (รอซิงค์ Cloud)', 'warning');
+    }
   }
 }
 
@@ -749,15 +835,14 @@ function loadPrivilegeBanner() {
   if (textInput) textInput.value = (priv && priv.text) ? priv.text : 'ทุกคอร์สสามารถแบ่งชำระได้ พร้อมรับฟรี! เอกสารชุดติวและแนวข้อสอบจริงตลอดคอร์ส';
 }
 
-function savePrivilegeForm() {
+async function savePrivilegeForm() {
   const badge = document.getElementById('editPrivilegeBadge')?.value.trim() || 'สิทธิพิเศษ:';
   const text = document.getElementById('editPrivilegeText')?.value.trim() || '';
   const privObj = { badge, text };
 
-  try {
-    if (window.NewGenDB) window.NewGenDB.savePrivilege(privObj);
-  } catch (err) {
-    console.warn('LocalStorage save error:', err);
+  let cloudRes = null;
+  if (window.NewGenDB) {
+    cloudRes = await window.NewGenDB.savePrivilege(privObj);
   }
 
   fetch('/api/privilege', {
@@ -766,7 +851,11 @@ function savePrivilegeForm() {
     body: JSON.stringify(privObj)
   }).catch(() => {});
 
-  showToast('บันทึกแถบสิทธิพิเศษเรียบร้อยแล้ว!');
+  if (cloudRes && cloudRes.success) {
+    showToast('✅ บันทึกแถบสิทธิพิเศษและซิงค์ Cloud เรียบร้อยแล้ว!', 'success');
+  } else {
+    showToast(`⚠️ บันทึกสิทธิพิเศษในเครื่องแล้ว (${cloudRes && cloudRes.error ? cloudRes.error : 'รอปลดล็อก Supabase RLS'})`, 'warning');
+  }
 }
 
 // -------------------------------------------------------------
@@ -795,7 +884,7 @@ function renderAdminCategories() {
   `).join('');
 }
 
-function handleAddNewCategory() {
+async function handleAddNewCategory() {
   const idInput = document.getElementById('newCatId');
   const nameInput = document.getElementById('newCatName');
   const id = idInput ? idInput.value.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '') : '';
@@ -813,7 +902,7 @@ function handleAddNewCategory() {
   }
 
   categories.push({ id, name, icon: 'fa-solid fa-graduation-cap' });
-  window.NewGenDB.saveCategories(categories);
+  const cloudRes = await window.NewGenDB.saveCategories(categories);
 
   // Sync to server
   fetch('/api/categories', {
@@ -827,10 +916,14 @@ function handleAddNewCategory() {
 
   renderAdminCategories();
   populateCategoryDropdown();
-  showToast('เพิ่มระดับชั้นใหม่เรียบร้อยแล้ว!');
+  if (cloudRes && cloudRes.success) {
+    showToast('✅ เพิ่มระดับชั้นใหม่และซิงค์ Cloud เรียบร้อยแล้ว!', 'success');
+  } else {
+    showToast('⚠️ เพิ่มระดับชั้นในเครื่องแล้ว (รอปลดล็อก Supabase RLS)', 'warning');
+  }
 }
 
-function deleteCategory(id) {
+async function deleteCategory(id) {
   if (id === 'primary' || id === 'secondary') {
     if (!confirm(`ระดับชั้น "${id}" เป็นระดับชั้นหลักของระบบ ยืนยันที่จะลบหรือไม่?`)) return;
   } else {
@@ -839,7 +932,7 @@ function deleteCategory(id) {
 
   let categories = window.NewGenDB ? window.NewGenDB.getCategories() : [];
   categories = categories.filter(c => c.id !== id);
-  window.NewGenDB.saveCategories(categories);
+  const cloudRes = await window.NewGenDB.saveCategories(categories);
 
   // Sync to server
   fetch('/api/categories', {
@@ -850,7 +943,11 @@ function deleteCategory(id) {
 
   renderAdminCategories();
   populateCategoryDropdown();
-  showToast('ลบระดับชั้นเรียบร้อยแล้ว');
+  if (cloudRes && cloudRes.success) {
+    showToast('✅ ลบระดับชั้นและซิงค์ Cloud เรียบร้อยแล้ว', 'success');
+  } else {
+    showToast('⚠️ ลบระดับชั้นในเครื่องแล้ว (รอปลดล็อก Supabase RLS)', 'warning');
+  }
 }
 
 /* ===================================================================
@@ -924,7 +1021,7 @@ function updateHeroTutorPreview(pos, tutorId) {
   `;
 }
 
-function saveHomeSettingsForm() {
+async function saveHomeSettingsForm() {
   const home = window.NewGenDB.getHome();
 
   home.heroBadge = document.getElementById('homeHeroBadge')?.value.trim() || '';
@@ -941,7 +1038,7 @@ function saveHomeSettingsForm() {
   home.heroTutorCenterId = document.getElementById('homeTutorCenter')?.value || '';
   home.heroTutorRightId = document.getElementById('homeTutorRight')?.value || '';
 
-  window.NewGenDB.saveHome(home);
+  const cloudRes = await window.NewGenDB.saveHome(home);
 
   fetch('/api/home', {
     method: 'POST',
@@ -949,7 +1046,11 @@ function saveHomeSettingsForm() {
     body: JSON.stringify(home)
   }).catch(() => {});
 
-  showToast('บันทึกการตั้งค่าหน้าแรก & ตำแหน่งติวเตอร์เรียบร้อยแล้ว!');
+  if (cloudRes && cloudRes.success) {
+    showToast('✅ บันทึกการตั้งค่าหน้าแรก & ตำแหน่งติวเตอร์ และซิงค์ Cloud เรียบร้อยแล้ว!', 'success');
+  } else {
+    showToast(`⚠️ บันทึกหน้าแรกในเครื่องแล้ว (${cloudRes && cloudRes.error ? cloudRes.error : 'รอปลดล็อก Supabase RLS'})`, 'warning');
+  }
 }
 
 /* ===================================================================
@@ -1014,16 +1115,35 @@ function moveTutorDown(idx) {
   saveAndSyncTutorsOrder(tutors, `เลื่อน "${temp.name}" ลงเป็นลำดับที่ ${idx + 2} สำเร็จแล้ว!`);
 }
 
-function saveAndSyncTutorsOrder(tutors, successMsg) {
-  window.NewGenDB.saveTutors(tutors);
+async function saveAndSyncTutorsOrder(tutors, successMsg) {
+  // 1. บันทึกลำดับติวเตอร์ขึ้น Cloud
+  const resTutors = await window.NewGenDB.saveTutors(tutors);
+
+  // 2. ซิงค์ตำแหน่งติวเตอร์ 3 คนแรกในหน้าแรกให้ตรงตามลำดับทันที
+  const home = window.NewGenDB.getHome();
+  if (tutors[0]) home.heroTutorLeftId = tutors[0].id;
+  if (tutors[1]) home.heroTutorCenterId = tutors[1].id;
+  if (tutors[2]) home.heroTutorRightId = tutors[2].id;
+  window.NewGenDB.saveHome(home);
+  const resHome = await window.NewGenDB.saveToSupabase('home', home);
+
+  // 3. ซิงค์กับ Backend API (ถ้ามีรัน server.js)
   const baseUrl = (window.getApiBaseUrl ? window.getApiBaseUrl() : '');
   fetch(baseUrl + '/api/tutors/reorder', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(tutors)
   }).catch(() => {});
+
+  // 4. รีเฟรชตารางและ Dropdown ในหน้า Admin
   loadAdminTutors();
-  showToast(successMsg || 'บันทึกลำดับติวเตอร์เรียบร้อยแล้ว!');
+  populateHeroTutorDropdowns();
+
+  if (resTutors && resTutors.success && resHome && resHome.success) {
+    showToast(`✅ ${successMsg || 'บันทึกลำดับติวเตอร์และซิงค์ Cloud สำเร็จ!'} (หน้าแรกและหน้าทีมติวเตอร์อัปเดตตรงกันแล้ว)`, 'success');
+  } else {
+    showToast(`⚠️ บันทึกในเครื่องแล้ว (${resTutors && resTutors.error ? resTutors.error : 'รอปลดล็อก Supabase RLS'})`, 'warning');
+  }
 }
 
 function openAddTutorModal() {
@@ -1060,7 +1180,7 @@ function openEditTutorModal(id) {
   document.getElementById('modalTutor').classList.add('active');
 }
 
-function handleSaveTutor(e) {
+async function handleSaveTutor(e) {
   e.preventDefault();
   const id = document.getElementById('tutorEditId').value.trim();
   const tutors = window.NewGenDB.getTutors();
@@ -1084,7 +1204,7 @@ function handleSaveTutor(e) {
     tutors.push(tutorObj);
   }
 
-  window.NewGenDB.saveTutors(tutors);
+  const cloudRes = await window.NewGenDB.saveTutors(tutors);
 
   // Sync with Server
   const baseUrl = (window.getApiBaseUrl ? window.getApiBaseUrl() : '');
@@ -1107,18 +1227,26 @@ function handleSaveTutor(e) {
 
   loadAdminTutors();
   closeModal('modalTutor');
-  showToast('บันทึกข้อมูลติวเตอร์สำเร็จแล้ว! (หน้าแรกจะอัปเดตทันที)');
+  if (cloudRes && cloudRes.success) {
+    showToast('✅ บันทึกข้อมูลติวเตอร์และซิงค์ Cloud สำเร็จแล้ว!', 'success');
+  } else {
+    showToast(`⚠️ บันทึกในเครื่องแล้ว (${cloudRes && cloudRes.error ? cloudRes.error : 'รอปลดล็อก Supabase RLS'})`, 'warning');
+  }
 }
 
-function deleteTutor(id) {
+async function deleteTutor(id) {
   if (confirm('ยืนยันที่จะลบข้อมูลติวเตอร์ท่านนี้หรือไม่?')) {
     let tutors = window.NewGenDB.getTutors();
     tutors = tutors.filter(t => t.id !== id);
-    window.NewGenDB.saveTutors(tutors);
+    const cloudRes = await window.NewGenDB.saveTutors(tutors);
     const baseUrl = (window.getApiBaseUrl ? window.getApiBaseUrl() : '');
     fetch(baseUrl + `/api/tutors/${id}`, { method: 'DELETE' }).catch(() => {});
     loadAdminTutors();
-    showToast('ลบติวเตอร์เรียบร้อยแล้ว');
+    if (cloudRes && cloudRes.success) {
+      showToast('✅ ลบติวเตอร์และซิงค์ Cloud เรียบร้อยแล้ว', 'success');
+    } else {
+      showToast('⚠️ ลบติวเตอร์ในเครื่องแล้ว (รอซิงค์ Cloud)', 'warning');
+    }
   }
 }
 
@@ -1130,7 +1258,7 @@ function loadTutorsQuote() {
   if (authorInput) authorInput.value = quoteData.author || '— ทีมติวเตอร์ The NEW GEN';
 }
 
-function saveTutorsQuoteForm() {
+async function saveTutorsQuoteForm() {
   const quoteText = document.getElementById('editTutorQuoteText')?.value.trim() || '';
   const authorText = document.getElementById('editTutorQuoteAuthor')?.value.trim() || '— ทีมติวเตอร์ The NEW GEN';
 
@@ -1139,11 +1267,7 @@ function saveTutorsQuoteForm() {
     author: authorText
   };
 
-  try {
-    window.NewGenDB.saveTutorsQuote(quoteData);
-  } catch (err) {
-    console.warn('LocalStorage error:', err);
-  }
+  const cloudRes = await window.NewGenDB.saveTutorsQuote(quoteData);
 
   fetch('/api/tutors-quote', {
     method: 'POST',
@@ -1151,7 +1275,11 @@ function saveTutorsQuoteForm() {
     body: JSON.stringify(quoteData)
   }).catch(() => {});
 
-  showToast('บันทึกคำคมทีมติวเตอร์เรียบร้อยแล้ว!');
+  if (cloudRes && cloudRes.success) {
+    showToast('✅ บันทึกคำคมทีมติวเตอร์และซิงค์ Cloud สำเร็จแล้ว!', 'success');
+  } else {
+    showToast(`⚠️ บันทึกในเครื่องแล้ว (${cloudRes && cloudRes.error ? cloudRes.error : 'รอปลดล็อก Supabase RLS'})`, 'warning');
+  }
 }
 
 /* ===================================================================
@@ -1280,10 +1408,10 @@ async function saveAboutSettingsForm() {
     galleryImages: getAboutGalleryFromBuilder()
   };
 
-  // 1. บันทึกลง LocalStorage
-  window.NewGenDB.saveAbout(about);
+  // 1. บันทึกลง LocalStorage & Supabase Cloud
+  const cloudRes = await window.NewGenDB.saveAbout(about);
 
-  // 2. บันทึกขึ้น Backend API (ซึ่งจะแปลง base64 เป็นไฟล์รูปจริงใน uploads/ ให้ทันที)
+  // 2. บันทึกขึ้น Backend API (ซึ่งจะแปลง base64 เป็นไฟล์รูปจริงใน uploads/ ให้ทันทีถ้ามีเซิร์ฟเวอร์)
   try {
     const apiUrl = (window.getApiBaseUrl ? window.getApiBaseUrl() : '') + '/api/about';
     const res = await fetch(apiUrl, {
@@ -1312,7 +1440,11 @@ async function saveAboutSettingsForm() {
     }
   }
 
-  showToast('✅ บันทึกข้อมูลเกี่ยวกับเรา & อัปเดตรูปภาพเรียบร้อยแล้ว!');
+  if (cloudRes && cloudRes.success) {
+    showToast('✅ บันทึกข้อมูลเกี่ยวกับเรา & ซิงค์ Cloud เรียบร้อยแล้ว!', 'success');
+  } else {
+    showToast(`⚠️ บันทึกข้อมูลในเครื่องแล้ว (${cloudRes && cloudRes.error ? cloudRes.error : 'รอปลดล็อก Supabase RLS'})`, 'warning');
+  }
 }
 
 /* ===================================================================
@@ -1351,17 +1483,13 @@ function loadAdminReviews() {
   `).join('');
 }
 
-function toggleReviewFeatured(id) {
+async function toggleReviewFeatured(id) {
   const reviews = window.NewGenDB.getReviews();
   const r = reviews.find(item => item.id === id);
   if (!r) return;
 
   r.isFeatured = !(r.isFeatured !== false);
-  try {
-    window.NewGenDB.saveReviews(reviews);
-  } catch (err) {
-    console.warn('LocalStorage save error:', err);
-  }
+  const cloudRes = await window.NewGenDB.saveReviews(reviews);
 
   fetch('/api/reviews', {
     method: 'POST',
@@ -1370,7 +1498,11 @@ function toggleReviewFeatured(id) {
   }).catch(() => {});
 
   loadAdminReviews();
-  showToast(r.isFeatured ? `แสดงรีวิว "${r.studentName || 'นี'}" ในหน้าแรกแล้ว` : `ซ่อนรีวิว "${r.studentName || 'นี'}" จากหน้าแรกแล้ว`);
+  if (cloudRes && cloudRes.success) {
+    showToast(r.isFeatured ? `✅ แสดงรีวิว "${r.studentName || ''}" ในหน้าแรกและซิงค์ Cloud แล้ว` : `✅ ซ่อนรีวิว "${r.studentName || ''}" จากหน้าแรกแล้ว`, 'success');
+  } else {
+    showToast(`⚠️ อัปเดตในเครื่องแล้ว (${cloudRes && cloudRes.error ? cloudRes.error : 'รอปลดล็อก Supabase RLS'})`, 'warning');
+  }
 }
 
 function openAddReviewModal() {
@@ -1403,7 +1535,7 @@ function openEditReviewModal(id) {
   document.getElementById('modalReview').classList.add('active');
 }
 
-function handleSaveReview(e) {
+async function handleSaveReview(e) {
   e.preventDefault();
   const id = document.getElementById('reviewEditId').value.trim();
   const reviews = window.NewGenDB.getReviews();
@@ -1425,7 +1557,7 @@ function handleSaveReview(e) {
     reviews.push(revObj);
   }
 
-  window.NewGenDB.saveReviews(reviews);
+  const cloudRes = await window.NewGenDB.saveReviews(reviews);
 
   fetch('/api/reviews', {
     method: 'POST',
@@ -1435,21 +1567,29 @@ function handleSaveReview(e) {
 
   loadAdminReviews();
   closeModal('modalReview');
-  showToast('บันทึกรีวิวจริงเรียบร้อยแล้ว!');
+  if (cloudRes && cloudRes.success) {
+    showToast('✅ บันทึกรีวิวจริงและซิงค์ Cloud สำเร็จแล้ว!', 'success');
+  } else {
+    showToast(`⚠️ บันทึกในเครื่องแล้ว (${cloudRes && cloudRes.error ? cloudRes.error : 'รอปลดล็อก Supabase RLS'})`, 'warning');
+  }
 }
 
-function deleteReview(id) {
+async function deleteReview(id) {
   if (confirm('ยืนยันที่จะลบข้อมูลผลงานนี้หรือไม่?')) {
     let reviews = window.NewGenDB.getReviews();
     reviews = reviews.filter(r => r.id !== id);
-    window.NewGenDB.saveReviews(reviews);
+    const cloudRes = await window.NewGenDB.saveReviews(reviews);
 
     fetch(`/api/reviews/${id}`, {
       method: 'DELETE'
     }).catch(() => {});
 
     loadAdminReviews();
-    showToast('ลบผลงานรุ่นพี่เรียบร้อยแล้ว');
+    if (cloudRes && cloudRes.success) {
+      showToast('✅ ลบผลงานรุ่นพี่และซิงค์ Cloud เรียบร้อยแล้ว', 'success');
+    } else {
+      showToast('⚠️ ลบในเครื่องแล้ว (รอซิงค์ Cloud)', 'warning');
+    }
   }
 }
 
@@ -1507,7 +1647,7 @@ function openEditAchievementModal(id) {
   document.getElementById('modalAchievement').classList.add('active');
 }
 
-function handleSaveAchievement(e) {
+async function handleSaveAchievement(e) {
   e.preventDefault();
   const id = document.getElementById('achEditId').value.trim();
   const achievements = window.NewGenDB.getAchievements();
@@ -1527,7 +1667,7 @@ function handleSaveAchievement(e) {
     achievements.push(achObj);
   }
 
-  window.NewGenDB.saveAchievements(achievements);
+  const cloudRes = await window.NewGenDB.saveAchievements(achievements);
 
   fetch('/api/achievements', {
     method: 'POST',
@@ -1537,21 +1677,29 @@ function handleSaveAchievement(e) {
 
   loadAdminAchievements();
   closeModal('modalAchievement');
-  showToast('บันทึกโปสเตอร์ความสำเร็จเรียบร้อยแล้ว!');
+  if (cloudRes && cloudRes.success) {
+    showToast('✅ บันทึกโปสเตอร์ความสำเร็จและซิงค์ Cloud สำเร็จแล้ว!', 'success');
+  } else {
+    showToast(`⚠️ บันทึกในเครื่องแล้ว (${cloudRes && cloudRes.error ? cloudRes.error : 'รอปลดล็อก Supabase RLS'})`, 'warning');
+  }
 }
 
-function deleteAchievement(id) {
+async function deleteAchievement(id) {
   if (confirm('ยืนยันที่จะลบโปสเตอร์ความสำเร็จนี้หรือไม่?')) {
     let achievements = window.NewGenDB.getAchievements();
     achievements = achievements.filter(a => a.id !== id);
-    window.NewGenDB.saveAchievements(achievements);
+    const cloudRes = await window.NewGenDB.saveAchievements(achievements);
 
     fetch(`/api/achievements/${id}`, {
       method: 'DELETE'
     }).catch(() => {});
 
     loadAdminAchievements();
-    showToast('ลบโปสเตอร์ความสำเร็จเรียบร้อยแล้ว');
+    if (cloudRes && cloudRes.success) {
+      showToast('✅ ลบโปสเตอร์ความสำเร็จและซิงค์ Cloud เรียบร้อยแล้ว', 'success');
+    } else {
+      showToast('⚠️ ลบในเครื่องแล้ว (รอซิงค์ Cloud)', 'warning');
+    }
   }
 }
 
@@ -1642,7 +1790,7 @@ function openEditVideoModal(id) {
   document.getElementById('modalVideo').classList.add('active');
 }
 
-function handleSaveVideo(e) {
+async function handleSaveVideo(e) {
   e.preventDefault();
   const id = document.getElementById('videoEditId').value.trim();
   const videos = window.NewGenDB.getVideos();
@@ -1671,7 +1819,7 @@ function handleSaveVideo(e) {
     videos.push(vidObj);
   }
 
-  window.NewGenDB.saveVideos(videos);
+  const cloudRes = await window.NewGenDB.saveVideos(videos);
 
   // Sync to Backend Server API
   fetch('/api/videos', {
@@ -1682,14 +1830,18 @@ function handleSaveVideo(e) {
 
   loadAdminVideos();
   closeModal('modalVideo');
-  showToast('บันทึกวิดีโอสำเร็จแล้ว!');
+  if (cloudRes && cloudRes.success) {
+    showToast('✅ บันทึกวิดีโอและซิงค์ Cloud สำเร็จแล้ว!', 'success');
+  } else {
+    showToast(`⚠️ บันทึกในเครื่องแล้ว (${cloudRes && cloudRes.error ? cloudRes.error : 'รอปลดล็อก Supabase RLS'})`, 'warning');
+  }
 }
 
-function deleteVideo(id) {
+async function deleteVideo(id) {
   if (confirm('ยืนยันที่จะลบวิดีโอนี้หรือไม่?')) {
     let videos = window.NewGenDB.getVideos();
     videos = videos.filter(v => v.id !== id);
-    window.NewGenDB.saveVideos(videos);
+    const cloudRes = await window.NewGenDB.saveVideos(videos);
 
     // Sync DELETE to Backend Server API
     fetch(`/api/videos/${id}`, {
@@ -1697,7 +1849,11 @@ function deleteVideo(id) {
     }).catch(() => {});
 
     loadAdminVideos();
-    showToast('ลบวิดีโอเรียบร้อยแล้ว');
+    if (cloudRes && cloudRes.success) {
+      showToast('✅ ลบวิดีโอและซิงค์ Cloud เรียบร้อยแล้ว', 'success');
+    } else {
+      showToast('⚠️ ลบในเครื่องแล้ว (รอซิงค์ Cloud)', 'warning');
+    }
   }
 }
 
@@ -1766,7 +1922,7 @@ function removePhoneRow(btn) {
   btn.closest('.phone-builder-row')?.remove();
 }
 
-function saveContactForm() {
+async function saveContactForm() {
   const phoneRows = document.querySelectorAll('.phone-builder-row');
   const phones = [];
   phoneRows.forEach(row => {
@@ -1804,11 +1960,7 @@ function saveContactForm() {
     mapAppUrl: mapAppUrlVal || 'https://maps.app.goo.gl/dJzT3uWkE7bZzP6V7'
   };
 
-  try {
-    window.NewGenDB.saveContact(contact);
-  } catch (err) {
-    console.warn('LocalStorage save error:', err);
-  }
+  const cloudRes = await window.NewGenDB.saveContact(contact);
 
   // ซิงค์กับ Server API
   fetch('/api/contact', {
@@ -1817,7 +1969,11 @@ function saveContactForm() {
     body: JSON.stringify(contact)
   }).catch(() => {});
 
-  showToast('บันทึกข้อมูลติดต่อทั้งหมดเรียบร้อยแล้ว!');
+  if (cloudRes && cloudRes.success) {
+    showToast('✅ บันทึกข้อมูลติดต่อและซิงค์ Cloud เรียบร้อยแล้ว!', 'success');
+  } else {
+    showToast(`⚠️ บันทึกในเครื่องแล้ว (${cloudRes && cloudRes.error ? cloudRes.error : 'รอปลดล็อก Supabase RLS'})`, 'warning');
+  }
 }
 
 /* ===================================================================
@@ -1866,13 +2022,13 @@ function loadAdminWhyUs() {
   `).join('');
 }
 
-function saveWhyUsHeader() {
+async function saveWhyUsHeader() {
   const whyData = window.NewGenDB.getWhyUs();
   whyData.subtitle = document.getElementById('whySubtitleInput').value.trim() || 'WHY CHOOSE US';
   whyData.title = document.getElementById('whyTitleInput').value.trim() || 'ทำไมต้องเลือก The NEW GEN';
   whyData.desc = document.getElementById('whyDescInput').value.trim() || '';
 
-  window.NewGenDB.saveWhyUs(whyData);
+  const cloudRes = await window.NewGenDB.saveWhyUs(whyData);
 
   // Sync to server
   fetch('/api/whyus', {
@@ -1881,7 +2037,11 @@ function saveWhyUsHeader() {
     body: JSON.stringify(whyData)
   }).catch(() => {});
 
-  showToast('บันทึกข้อความส่วนหัวเรียบร้อยแล้ว!');
+  if (cloudRes && cloudRes.success) {
+    showToast('✅ บันทึกข้อความส่วนหัวและซิงค์ Cloud เรียบร้อยแล้ว!', 'success');
+  } else {
+    showToast(`⚠️ บันทึกในเครื่องแล้ว (${cloudRes && cloudRes.error ? cloudRes.error : 'รอปลดล็อก Supabase RLS'})`, 'warning');
+  }
 }
 
 function openAddWhyUsModal() {
@@ -1921,7 +2081,7 @@ function selectPresetIcon(iconCls) {
   updateWhyUsIconPreview(iconCls);
 }
 
-function handleSaveWhyUsFeature(e) {
+async function handleSaveWhyUsFeature(e) {
   e.preventDefault();
   const id = document.getElementById('whyUsEditId').value.trim();
   const whyData = window.NewGenDB.getWhyUs();
@@ -1941,7 +2101,7 @@ function handleSaveWhyUsFeature(e) {
     whyData.features.push(featureObj);
   }
 
-  window.NewGenDB.saveWhyUs(whyData);
+  const cloudRes = await window.NewGenDB.saveWhyUs(whyData);
 
   // Sync to server
   fetch('/api/whyus', {
@@ -1952,14 +2112,18 @@ function handleSaveWhyUsFeature(e) {
 
   loadAdminWhyUs();
   closeModal('modalWhyUs');
-  showToast('บันทึกจุดเด่นเรียบร้อยแล้ว!');
+  if (cloudRes && cloudRes.success) {
+    showToast('✅ บันทึกจุดเด่นและซิงค์ Cloud เรียบร้อยแล้ว!', 'success');
+  } else {
+    showToast(`⚠️ บันทึกในเครื่องแล้ว (${cloudRes && cloudRes.error ? cloudRes.error : 'รอปลดล็อก Supabase RLS'})`, 'warning');
+  }
 }
 
-function deleteWhyUsFeature(id) {
+async function deleteWhyUsFeature(id) {
   if (confirm('คุณต้องการลบจุดเด่นข้อนี้ใช่หรือไม่?')) {
     const whyData = window.NewGenDB.getWhyUs();
     whyData.features = (whyData.features || []).filter(f => f.id !== id);
-    window.NewGenDB.saveWhyUs(whyData);
+    const cloudRes = await window.NewGenDB.saveWhyUs(whyData);
 
     // Sync to server
     fetch('/api/whyus', {
@@ -1969,7 +2133,11 @@ function deleteWhyUsFeature(id) {
     }).catch(() => {});
 
     loadAdminWhyUs();
-    showToast('ลบจุดเด่นเรียบร้อยแล้ว');
+    if (cloudRes && cloudRes.success) {
+      showToast('✅ ลบจุดเด่นและซิงค์ Cloud เรียบร้อยแล้ว', 'success');
+    } else {
+      showToast('⚠️ ลบในเครื่องแล้ว (รอซิงค์ Cloud)', 'warning');
+    }
   }
 }
 
@@ -2006,22 +2174,22 @@ function importDataFromJson(event) {
   if (!file) return;
 
   const reader = new FileReader();
-  reader.onload = function(e) {
+  reader.onload = async function(e) {
     try {
       const data = JSON.parse(e.target.result);
-      if (data.courses) window.NewGenDB.saveCourses(data.courses);
-      if (data.home) window.NewGenDB.saveHome(data.home);
-      if (data.about) window.NewGenDB.saveAbout(data.about);
-      if (data.tutors) window.NewGenDB.saveTutors(data.tutors);
-      if (data.tutorsQuote) window.NewGenDB.saveTutorsQuote(data.tutorsQuote);
-      if (data.reviews) window.NewGenDB.saveReviews(data.reviews);
-      if (data.achievements) window.NewGenDB.saveAchievements(data.achievements);
-      if (data.videos) window.NewGenDB.saveVideos(data.videos);
-      if (data.contact) window.NewGenDB.saveContact(data.contact);
-      if (data.whyus) window.NewGenDB.saveWhyUs(data.whyus);
+      if (data.courses) await window.NewGenDB.saveCourses(data.courses);
+      if (data.home) await window.NewGenDB.saveHome(data.home);
+      if (data.about) await window.NewGenDB.saveAbout(data.about);
+      if (data.tutors) await window.NewGenDB.saveTutors(data.tutors);
+      if (data.tutorsQuote) await window.NewGenDB.saveTutorsQuote(data.tutorsQuote);
+      if (data.reviews) await window.NewGenDB.saveReviews(data.reviews);
+      if (data.achievements) await window.NewGenDB.saveAchievements(data.achievements);
+      if (data.videos) await window.NewGenDB.saveVideos(data.videos);
+      if (data.contact) await window.NewGenDB.saveContact(data.contact);
+      if (data.whyus) await window.NewGenDB.saveWhyUs(data.whyus);
 
       initAdminDashboard();
-      showToast('นำเข้าข้อมูลเรียบร้อยแล้ว!');
+      showToast('✅ นำเข้าข้อมูลและซิงค์ขึ้น Supabase Cloud เรียบร้อยแล้ว!', 'success');
     } catch (err) {
       alert('ไฟล์ JSON ไม่ถูกต้อง หรือเกิดข้อผิดพลาดในการอ่านไฟล์');
     }
