@@ -137,16 +137,31 @@ const server = http.createServer(async (req, res) => {
   if (pathname.startsWith('/api/')) {
     const db = readDatabase();
 
-    // 1. Auth Login
+    // 1. Auth Login & Admin Settings
     if (pathname === '/api/login' && method === 'POST') {
       const { username, password } = await parseRequestBody(req);
       if (
-        (username === db.admin.username || username === 'thenewgen') &&
-        password === db.admin.password
+        (username === db.admin?.username || username === 'admin' || username === 'thenewgen') &&
+        password === (db.admin?.password || 'NewGen@2026')
       ) {
         return sendJson(res, 200, { success: true, token: 'newgen_admin_token_2026' });
       }
       return sendJson(res, 401, { success: false, message: 'Invalid credentials' });
+    }
+
+    if (pathname === '/api/admin') {
+      if (method === 'GET') {
+        return sendJson(res, 200, { username: db.admin?.username || 'admin' });
+      }
+      if (method === 'POST') {
+        const cred = await parseRequestBody(req);
+        if (cred && cred.username && cred.password) {
+          db.admin = { username: cred.username, password: cred.password };
+          writeDatabase(db);
+          return sendJson(res, 200, { success: true });
+        }
+        return sendJson(res, 400, { error: 'Invalid admin data' });
+      }
     }
 
     // 2. Upload Base64 Image
@@ -425,6 +440,5 @@ server.listen(PORT, () => {
   console.log(`🚀 The NEW GEN Tutoring Server is running!`);
   console.log(`👉 Website: http://localhost:${PORT}`);
   console.log(`👉 Admin Panel: http://localhost:${PORT}/admin-login.html`);
-  console.log(`🔑 Admin Credentials: admin / NewGen@2026`);
   console.log(`=======================================================`);
 });
