@@ -47,20 +47,10 @@
           <i class="fa-solid fa-triangle-exclamation"></i> ชื่อผู้ใช้งานหรือรหัสผ่านไม่ถูกต้อง
         </div>
 
-        <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; padding: 13px; font-size: 1rem; margin-top: 10px;">
+        <button type="submit" id="btnLoginSubmit" class="btn-primary" style="width: 100%; justify-content: center; padding: 13px; font-size: 1rem; margin-top: 10px;">
           <i class="fa-solid fa-right-to-bracket"></i> เข้าสู่ระบบหลังบ้าน
         </button>
       </form>
-
-      <!-- Account Info Hint -->
-      <div class="admin-cred-hint">
-        <i class="fa-solid fa-circle-info"></i>
-        <div>
-          <strong>ข้อมูลเข้าสู่ระบบเริ่มต้น:</strong><br>
-          Username: <code style="color: var(--color-navy); font-weight: 700;">admin</code><br>
-          Password: <code style="color: var(--color-red-brand); font-weight: 700;">NewGen@2026</code>
-        </div>
-      </div>
 
       <div class="admin-login-footer">
         <a href="index.html"><i class="fa-solid fa-arrow-left"></i> กลับสู่หน้าแรกเว็บไซต์</a>
@@ -69,6 +59,7 @@
     </div>
   </div>
 
+  <script src="assets/js/courses-data.js"></script>
   <script>
     // ถ้าเคยเข้าสู่ระบบแล้ว ให้จำไว้และไปหน้า admin ทันที
     if (localStorage.getItem('newgen_admin_auth') === 'true' || sessionStorage.getItem('newgen_admin_auth') === 'true') {
@@ -87,20 +78,58 @@
       }
     }
 
-    function handleAdminLogin(e) {
+    async function handleAdminLogin(e) {
       e.preventDefault();
       const user = document.getElementById('adminUser').value.trim();
       const pass = document.getElementById('adminPass').value.trim();
       const errBox = document.getElementById('loginErrorMsg');
+      const submitBtn = document.getElementById('btnLoginSubmit');
 
-      // ตรวจสอบรหัสผ่านที่ตั้งไว้
-      if ((user === 'admin' || user === 'thenewgen') && pass === 'NewGen@2026') {
+      if (errBox) errBox.style.display = 'none';
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังตรวจสอบ...';
+      }
+
+      // ดึงข้อมูลรหัสผ่านที่ตั้งไว้ (จาก LocalStorage / ค่าเริ่มต้น)
+      let cred = window.NewGenDB ? window.NewGenDB.getAdminAuth() : { username: 'admin', password: 'NewGen@2026' };
+
+      // พยายามดึงรหัสผ่านล่าสุดจาก Supabase เพื่อให้แม่นยำ 100% แม้เปลี่ยนจากเครื่องอื่น
+      try {
+        if (window.SUPABASE_CONFIG && window.SUPABASE_CONFIG.url) {
+          const res = await fetch(`${window.SUPABASE_CONFIG.url}/rest/v1/app_data?key=eq.admin&select=data`, {
+            headers: {
+              'apikey': window.SUPABASE_CONFIG.anonKey,
+              'Authorization': `Bearer ${window.SUPABASE_CONFIG.anonKey}`
+            }
+          });
+          if (res.ok) {
+            const rows = await res.json();
+            if (rows && rows.length > 0 && rows[0].data) {
+              cred = rows[0].data;
+              localStorage.setItem('newgen_admin_cred', JSON.stringify(cred));
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('Network auth fallback to local credentials:', err);
+      }
+
+      // ตรวจสอบชื่อผู้ใช้งานและรหัสผ่าน
+      const validUser = (user === cred.username || (cred.username === 'admin' && user === 'thenewgen'));
+      const validPass = (pass === cred.password);
+
+      if (validUser && validPass) {
         localStorage.setItem('newgen_admin_auth', 'true');
         localStorage.setItem('newgen_admin_user', user);
         sessionStorage.setItem('newgen_admin_auth', 'true');
         sessionStorage.setItem('newgen_admin_user', user);
         window.location.href = 'admin.html';
       } else {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> เข้าสู่ระบบหลังบ้าน';
+        }
         if (errBox) errBox.style.display = 'flex';
       }
     }
