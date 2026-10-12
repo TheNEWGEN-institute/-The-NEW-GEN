@@ -384,7 +384,11 @@ function initCourseDetailPage() {
   if (pricePromo) pricePromo.textContent = course.pricePromo;
 
   const priceUnit = document.getElementById('cdPriceUnit');
-  if (priceUnit) priceUnit.textContent = course.priceUnit;
+  if (priceUnit) {
+    const rawU = course.priceUnit || 'บาท / เทอม';
+    const cleanU = rawU.replace(/\(?\s*แบ่งชำระ(ได้)?\s*\)?/gi, '').replace(/[()]/g, '').trim();
+    priceUnit.textContent = cleanU || 'บาท / เทอม';
+  }
 
   const monthlyPrice = document.getElementById('cdMonthlyPrice');
   if (monthlyPrice) monthlyPrice.textContent = course.monthlyPrice || 'แบ่งชำระได้ หรือเลือกเรียนแบบรายเดือน';
@@ -448,10 +452,15 @@ function renderRelatedCourses(currentCourseId) {
           </div>
         </div>
         <div class="course-footer">
-          <div class="course-price-wrap">
-            <span class="course-price-old">จาก ${c.priceOriginal}</span>
-            <span class="course-price-now">${c.pricePromo}.- <span>${c.priceUnit}</span></span>
-          </div>
+          ${(window.formatCoursePriceHtml ? window.formatCoursePriceHtml(c) : `
+            <div class="course-price-wrap">
+              <span class="course-price-old">จาก ${c.priceOriginal || ''}</span>
+              <div class="course-price-now">
+                <span class="course-price-amount">${c.pricePromo}</span><span class="course-price-dash">.-</span>
+                <span class="course-price-unit-tag">${c.priceUnit || 'บาท / เทอม'}</span>
+              </div>
+            </div>
+          `)}
           <a href="course-detail.html?id=${c.id}" class="btn-detail-link">
             รายละเอียด <i class="fa-solid fa-arrow-right"></i>
           </a>
