@@ -398,10 +398,15 @@
               </div>
             </div>
             <div class="course-footer">
-              <div class="course-price-wrap">
-                <span class="course-price-old">จาก ${c.priceOriginal}</span>
-                <span class="course-price-now">${c.pricePromo}.- <span>${c.priceUnit}</span></span>
-              </div>
+              ${(window.formatCoursePriceHtml ? window.formatCoursePriceHtml(c) : `
+                <div class="course-price-wrap">
+                  <span class="course-price-old">จาก ${c.priceOriginal || ''}</span>
+                  <div class="course-price-now">
+                    <span class="course-price-amount">${c.pricePromo}</span><span class="course-price-dash">.-</span>
+                    <span class="course-price-unit-tag">${c.priceUnit || 'บาท / เทอม'}</span>
+                  </div>
+                </div>
+              `)}
               <a href="course-detail.html?id=${c.id}" class="btn-detail-link">
                 รายละเอียด <i class="fa-solid fa-arrow-right"></i>
               </a>

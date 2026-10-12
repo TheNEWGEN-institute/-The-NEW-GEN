@@ -909,6 +909,48 @@ function formatExternalUrl(url) {
 }
 
 /**
+ * Elegant Course Price & Unit Formatter for Course Cards:
+ * Separates numerical price, unit (e.g. บาท / เทอม), and installment note (แบ่งชำระได้)
+ * into a modern, beautifully proportioned hierarchy.
+ */
+function formatCoursePriceHtml(c) {
+  if (!c) return '';
+  const priceOriginal = c.priceOriginal ? `<span class="course-price-old">จาก ${escapeHtml(c.priceOriginal)}</span>` : '';
+  const pricePromo = escapeHtml(c.pricePromo || '0');
+  const rawUnit = c.priceUnit || 'บาท / เทอม';
+  
+  let unitText = rawUnit;
+  let hasInstallment = false;
+  
+  if (/แบ่งชำระ/i.test(rawUnit)) {
+    hasInstallment = true;
+    unitText = rawUnit.replace(/\(?\s*แบ่งชำระ(ได้)?\s*\)?/gi, '').replace(/[()]/g, '').trim();
+    if (!unitText) unitText = 'บาท / เทอม';
+  }
+
+  const installmentBadge = hasInstallment ? `
+    <span class="course-installment-pill">
+      <i class="fa-solid fa-circle-check"></i> แบ่งชำระได้
+    </span>
+  ` : '';
+
+  return `
+    <div class="course-price-wrap">
+      ${priceOriginal}
+      <div class="course-price-now">
+        <span class="course-price-amount">${pricePromo}</span><span class="course-price-dash">.-</span>
+        <span class="course-price-unit-tag">${escapeHtml(unitText)}</span>
+      </div>
+      ${installmentBadge}
+    </div>
+  `;
+}
+
+if (typeof window !== 'undefined') {
+  window.formatCoursePriceHtml = formatCoursePriceHtml;
+}
+
+/**
  * Universal Footer and Contact Synchronization across all pages
  */
 function renderFooterContactInfo() {
