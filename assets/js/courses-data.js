@@ -797,6 +797,16 @@ const NewGenDB = {
     } catch (e) {
       console.warn('LocalStorage save error:', e);
     }
+    try {
+      const base = typeof getApiBaseUrl === 'function' ? getApiBaseUrl() : '';
+      if (base) {
+        fetch(`${base}/api/admin`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(authObj)
+        }).catch(() => {});
+      }
+    } catch (err) {}
     return NewGenDB.saveToSupabase('admin', authObj);
   },
 
