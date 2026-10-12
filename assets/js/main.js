@@ -12,6 +12,20 @@ document.addEventListener('DOMContentLoaded', () => {
   initSmoothScroll();
 });
 
+document.addEventListener('newgen:synced', () => {
+  renderHeroContent();
+  initWhyUs();
+  initCourseSlider();
+  initHomeReviews();
+});
+
+if (typeof window !== 'undefined') {
+  window.renderHeroContent = renderHeroContent;
+  window.initCourseSlider = initCourseSlider;
+  window.initHomeReviews = initHomeReviews;
+  window.initWhyUs = initWhyUs;
+}
+
 /* ----------------------------------------------------
    1. Navbar Scroll & Mobile Menu
    ---------------------------------------------------- */

@@ -240,6 +240,11 @@
       });
     });
 
+    document.addEventListener('newgen:synced', () => {
+      renderTutors();
+      renderQuote();
+    });
+
     function renderTutors(customTutors) {
       const tutors = customTutors || (window.NewGenDB ? window.NewGenDB.getTutors() : (window.tutorsData || []));
       const grid = document.getElementById('tutorsFullGrid');

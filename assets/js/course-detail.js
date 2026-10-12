@@ -10,6 +10,10 @@ document.addEventListener('DOMContentLoaded', () => {
   initShareButton();
 });
 
+document.addEventListener('newgen:synced', () => {
+  initCourseDetailPage();
+});
+
 function renderCourseTutors(course) {
   const grid = document.getElementById('cdTutorsGrid');
   const card = document.querySelector('.cd-tutors-card');

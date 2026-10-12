@@ -12,6 +12,10 @@ document.addEventListener('DOMContentLoaded', () => {
   initAdminDashboard();
 });
 
+document.addEventListener('newgen:synced', () => {
+  initAdminDashboard();
+});
+
 function initAdminDashboard() {
   loadAdminCourses();
   loadPrivilegeBanner();
@@ -118,42 +122,69 @@ function previewUploadImage(event, previewId, inputTargetId, statusId) {
 
       const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.82);
 
-      // ตั้งค่ารูปในฟอร์มทันที
+      // ตั้งค่ารูปในฟอร์มทันทีเพื่อความรวดเร็ว
       if (preview) preview.src = compressedDataUrl;
       if (targetInput) targetInput.value = compressedDataUrl;
+      if (statusEl) {
+        statusEl.style.display = 'block';
+        statusEl.style.color = '#0284c7';
+        statusEl.innerHTML = '<i class="fa-solid fa-cloud-arrow-up fa-spin"></i> กำลังอัปโหลดขึ้น Supabase Cloud Storage...';
+      }
 
-      // ส่งอัปโหลดขึ้น Server API ถ้ามี Server กำลังรันอยู่
-      const uploadApi = (window.getApiBaseUrl ? window.getApiBaseUrl() : '') + '/api/upload';
-      fetch(uploadApi, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ base64Data: compressedDataUrl, filename: file.name })
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success && data.url) {
-          if (targetInput) targetInput.value = data.url;
-          if (preview) {
-            preview.src = window.resolveMediaUrl ? window.resolveMediaUrl(data.url) : data.url;
+      const tryLocalUpload = () => {
+        const uploadApi = (window.getApiBaseUrl ? window.getApiBaseUrl() : '') + '/api/upload';
+        fetch(uploadApi, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ base64Data: compressedDataUrl, filename: file.name })
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success && data.url) {
+            if (targetInput) targetInput.value = data.url;
+            if (preview) preview.src = window.resolveMediaUrl ? window.resolveMediaUrl(data.url) : data.url;
+            if (statusEl) {
+              statusEl.style.color = '#16a34a';
+              statusEl.innerHTML = '<i class="fa-solid fa-circle-check"></i> อัปโหลดรูปภาพสำเร็จ';
+              setTimeout(() => { if (statusEl) statusEl.style.display = 'none'; }, 4000);
+            }
+          } else {
+            if (statusEl) {
+              statusEl.style.color = '#16a34a';
+              statusEl.innerHTML = '<i class="fa-solid fa-circle-check"></i> พร้อมบันทึกภาพในระบบ';
+            }
           }
+        })
+        .catch(() => {
           if (statusEl) {
             statusEl.style.color = '#16a34a';
-            statusEl.innerHTML = '<i class="fa-solid fa-circle-check"></i> อัปโหลดรูปภาพสำเร็จ';
-            setTimeout(() => { if (statusEl) statusEl.style.display = 'none'; }, 4000);
+            statusEl.innerHTML = '<i class="fa-solid fa-circle-check"></i> พร้อมบันทึกภาพในระบบ';
           }
-        } else {
-          if (statusEl) {
-            statusEl.style.color = '#d97706';
-            statusEl.innerHTML = '<i class="fa-solid fa-bolt"></i> พร้อมบันทึกภาพในระบบ';
-          }
-        }
-      })
-      .catch(() => {
-        if (statusEl) {
-          statusEl.style.color = '#d97706';
-          statusEl.innerHTML = '<i class="fa-solid fa-bolt"></i> พร้อมบันทึกภาพในระบบ (โหมดออฟไลน์)';
-        }
-      });
+        });
+      };
+
+      // 1. ลองอัปโหลดขึ้น Supabase Cloud Storage ก่อนเสมอ
+      if (window.NewGenDB && typeof window.NewGenDB.uploadImageToSupabase === 'function') {
+        canvas.toBlob(async (blob) => {
+          if (!blob) { tryLocalUpload(); return; }
+          try {
+            const publicUrl = await window.NewGenDB.uploadImageToSupabase(blob, file.name);
+            if (publicUrl) {
+              if (targetInput) targetInput.value = publicUrl;
+              if (preview) preview.src = publicUrl;
+              if (statusEl) {
+                statusEl.style.color = '#16a34a';
+                statusEl.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> อัปโหลดขึ้น Supabase Storage สำเร็จ';
+                setTimeout(() => { if (statusEl) statusEl.style.display = 'none'; }, 4000);
+              }
+              return;
+            }
+          } catch (e) {}
+          tryLocalUpload();
+        }, 'image/jpeg', 0.85);
+      } else {
+        tryLocalUpload();
+      }
     };
     img.src = rawDataUrl;
   };
