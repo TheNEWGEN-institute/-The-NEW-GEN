@@ -392,14 +392,26 @@ function initCourseDetailPage() {
   const sidebarHours = document.getElementById('cdSidebarHours');
   if (sidebarHours) sidebarHours.textContent = course.totalHours;
 
-  // ปรับลิงก์ LINE ให้มีข้อความระบุชื่อคอร์ส และพร้อมทักหาได้ทันที
+  // ปรับลิงก์ LINE และเบอร์โทรสำหรับสมัครเรียน
   const lineEnrollBtn = document.getElementById('btnLineEnroll');
+  const contact = window.NewGenDB ? window.NewGenDB.getContact() : (window.DEFAULT_CONTACT || null);
+  const fmt = window.formatExternalUrl || ((u) => u);
+
   if (lineEnrollBtn) {
-    const contact = window.NewGenDB ? window.NewGenDB.getContact() : null;
-    const baseLineUrl = (contact && contact.lineUrl) ? contact.lineUrl : 'https://line.me/R/ti/p/~thenewgen';
-    lineEnrollBtn.href = baseLineUrl;
+    const baseLineUrl = (contact && contact.lineUrl) ? contact.lineUrl : 'https://lin.ee/RXrzi1G';
+    lineEnrollBtn.href = fmt(baseLineUrl);
     lineEnrollBtn.target = '_blank';
     lineEnrollBtn.rel = 'noopener noreferrer';
+  }
+
+  const phoneBtnsWrap = document.querySelector('.cd-phone-buttons');
+  if (phoneBtnsWrap && contact && Array.isArray(contact.phones) && contact.phones.length > 0) {
+    const esc = window.escapeHtml || ((s) => s);
+    phoneBtnsWrap.innerHTML = contact.phones.map(p => `
+      <a href="${p.telLink || 'tel:' + p.number.replace(/[^0-9]/g, '')}" class="btn-cd-phone">
+        <i class="fa-solid fa-phone"></i> โทร ${esc(p.number)} (${esc(p.name)})
+      </a>
+    `).join('');
   }
 
   // แสดงคอร์สที่เกี่ยวข้อง (Related Courses)

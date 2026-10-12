@@ -1869,25 +1869,25 @@ async function deleteVideo(id) {
 function loadAdminContact() {
   const contact = window.NewGenDB.getContact();
 
-  document.getElementById('editContactLineId').value = contact.lineId || '';
-  document.getElementById('editContactLineUrl').value = contact.lineUrl || 'https://line.me/R/ti/p/~thenewgen';
-  document.getElementById('editContactFbName').value = contact.facebookName || '';
-  document.getElementById('editContactFbUrl').value = contact.facebookUrl || 'https://www.facebook.com';
-  document.getElementById('editContactTiktok').value = contact.tiktok || '';
+  document.getElementById('editContactLineId').value = contact.lineId || '@390gussc';
+  document.getElementById('editContactLineUrl').value = contact.lineUrl || 'https://lin.ee/RXrzi1G';
+  document.getElementById('editContactFbName').value = contact.facebookName || 'สถาบันกวดวิชา The NEW GEN';
+  document.getElementById('editContactFbUrl').value = contact.facebookUrl || 'https://www.facebook.com/thenewgen2';
+  document.getElementById('editContactTiktok').value = contact.tiktok || '@thenewgen89';
   if (document.getElementById('editContactTiktokUrl')) {
-    document.getElementById('editContactTiktokUrl').value = contact.tiktokUrl || (contact.tiktok ? `https://www.tiktok.com/${contact.tiktok}` : 'https://www.tiktok.com/@thenewgen');
+    document.getElementById('editContactTiktokUrl').value = contact.tiktokUrl || 'https://www.tiktok.com/@thenewgen89?_r=1&_t=ZS-9AUULZATQT2';
   }
-  document.getElementById('editContactIg').value = contact.instagram || '';
+  document.getElementById('editContactIg').value = contact.instagram || 'the.newgen (@the._newgen)';
   if (document.getElementById('editContactIgUrl')) {
-    document.getElementById('editContactIgUrl').value = contact.instagramUrl || 'https://www.instagram.com';
+    document.getElementById('editContactIgUrl').value = contact.instagramUrl || 'https://www.instagram.com/the_.newgen?psln=MXRhdW56ZnRqajFkaw==';
   }
   if (document.getElementById('editContactYtUrl')) {
-    document.getElementById('editContactYtUrl').value = contact.youtubeUrl || 'https://www.youtube.com';
+    document.getElementById('editContactYtUrl').value = contact.youtubeUrl || 'https://www.youtube.com/@macthenewgen';
   }
-  document.getElementById('editContactAddress').value = contact.address || '';
-  document.getElementById('editContactMapUrl').value = contact.mapEmbedUrl || '';
+  document.getElementById('editContactAddress').value = contact.address || '480/3 หมู่ 13 นวนคร ตำบลคลองหนึ่ง อำเภอคลองหลวง จังหวัดปทุมธานี 12120';
+  document.getElementById('editContactMapUrl').value = contact.mapEmbedUrl || 'https://maps.app.goo.gl/NSR8rtGecvjyE1KL8?g_st=ic';
   if (document.getElementById('editContactMapAppUrl')) {
-    document.getElementById('editContactMapAppUrl').value = contact.mapAppUrl || '';
+    document.getElementById('editContactMapAppUrl').value = contact.mapAppUrl || 'https://maps.app.goo.gl/NSR8rtGecvjyE1KL8?g_st=ic';
   }
 
   renderPhonesBuilder(contact.phones || []);
@@ -1940,6 +1940,16 @@ async function saveContactForm() {
     }
   });
 
+  const fmt = typeof formatExternalUrl === 'function' ? formatExternalUrl : (u => {
+    if (!u) return '';
+    const trimmed = String(u).trim();
+    if (!trimmed) return '';
+    if (/^(https?:\/\/|tel:|mailto:)/i.test(trimmed)) return trimmed;
+    return `https://${trimmed}`;
+  });
+
+  const fbUrlVal = document.getElementById('editContactFbUrl').value.trim();
+  const lineUrlVal = document.getElementById('editContactLineUrl').value.trim();
   const tiktokVal = document.getElementById('editContactTiktok').value.trim();
   const tiktokUrlVal = document.getElementById('editContactTiktokUrl') ? document.getElementById('editContactTiktokUrl').value.trim() : '';
   const igVal = document.getElementById('editContactIg').value.trim();
@@ -1952,18 +1962,18 @@ async function saveContactForm() {
       { name: 'พี่อู๋', number: '095-4721072', telLink: 'tel:0954721072' },
       { name: 'พี่นนท์', number: '098-5322791', telLink: 'tel:0985322791' }
     ],
-    lineId: document.getElementById('editContactLineId').value.trim() || '@thenewgen',
-    lineUrl: document.getElementById('editContactLineUrl').value.trim() || 'https://line.me/R/ti/p/~thenewgen',
+    lineId: document.getElementById('editContactLineId').value.trim() || '@390gussc',
+    lineUrl: fmt(lineUrlVal || 'https://lin.ee/RXrzi1G'),
     facebookName: document.getElementById('editContactFbName').value.trim() || 'สถาบันกวดวิชา The NEW GEN',
-    facebookUrl: document.getElementById('editContactFbUrl').value.trim() || 'https://www.facebook.com',
-    tiktok: tiktokVal || '@thenewgen (thenewgen)',
-    tiktokUrl: tiktokUrlVal || (tiktokVal ? (tiktokVal.startsWith('http') ? tiktokVal : `https://www.tiktok.com/${tiktokVal.startsWith('@') ? tiktokVal : '@' + tiktokVal}`) : 'https://www.tiktok.com/@thenewgen'),
+    facebookUrl: fmt(fbUrlVal || 'https://www.facebook.com/thenewgen2'),
+    tiktok: tiktokVal || '@thenewgen89',
+    tiktokUrl: fmt(tiktokUrlVal || (tiktokVal ? (tiktokVal.startsWith('http') ? tiktokVal : `https://www.tiktok.com/${tiktokVal.startsWith('@') ? tiktokVal : '@' + tiktokVal}`) : 'https://www.tiktok.com/@thenewgen89')),
     instagram: igVal || 'the.newgen (@the._newgen)',
-    instagramUrl: igUrlVal || (igVal ? (igVal.startsWith('http') ? igVal : `https://www.instagram.com/${igVal.replace(/[@()]/g, '').trim().split(' ')[0]}`) : 'https://www.instagram.com'),
-    youtubeUrl: ytUrlVal || 'https://www.youtube.com',
+    instagramUrl: fmt(igUrlVal || (igVal ? (igVal.startsWith('http') ? igVal : `https://www.instagram.com/${igVal.replace(/[@()]/g, '').trim().split(' ')[0]}`) : 'https://www.instagram.com/the_.newgen')),
+    youtubeUrl: fmt(ytUrlVal || 'https://www.youtube.com/@macthenewgen'),
     address: document.getElementById('editContactAddress').value.trim() || '480/3 หมู่ 13 นวนคร ตำบลคลองหนึ่ง อำเภอคลองหลวง จังหวัดปทุมธานี 12120',
     mapEmbedUrl: document.getElementById('editContactMapUrl').value.trim(),
-    mapAppUrl: mapAppUrlVal || 'https://maps.app.goo.gl/dJzT3uWkE7bZzP6V7'
+    mapAppUrl: fmt(mapAppUrlVal || 'https://maps.app.goo.gl/NSR8rtGecvjyE1KL8?g_st=ic')
   };
 
   const cloudRes = await window.NewGenDB.saveContact(contact);

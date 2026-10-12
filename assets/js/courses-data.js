@@ -273,18 +273,18 @@ const DEFAULT_CONTACT = {
     { name: 'พี่อู๋', number: '095-4721072', telLink: 'tel:0954721072' },
     { name: 'พี่นนท์', number: '098-5322791', telLink: 'tel:0985322791' }
   ],
-  lineId: '@thenewgen',
-  lineUrl: 'https://line.me/R/ti/p/~thenewgen',
+  lineId: '@390gussc',
+  lineUrl: 'https://lin.ee/RXrzi1G',
   facebookName: 'สถาบันกวดวิชา The NEW GEN',
-  facebookUrl: 'https://www.facebook.com',
+  facebookUrl: 'https://www.facebook.com/thenewgen2',
   instagram: 'the.newgen (@the._newgen)',
-  instagramUrl: 'https://www.instagram.com',
-  tiktok: '@thenewgen (thenewgen)',
-  tiktokUrl: 'https://www.tiktok.com/@thenewgen',
-  youtubeUrl: 'https://www.youtube.com',
+  instagramUrl: 'https://www.instagram.com/the_.newgen?psln=MXRhdW56ZnRqajFkaw==',
+  tiktok: '@thenewgen89',
+  tiktokUrl: 'https://www.tiktok.com/@thenewgen89?_r=1&_t=ZS-9AUULZATQT2',
+  youtubeUrl: 'https://www.youtube.com/@macthenewgen',
   address: '480/3 หมู่ 13 นวนคร ตำบลคลองหนึ่ง อำเภอคลองหลวง จังหวัดปทุมธานี 12120',
-  mapAppUrl: 'https://maps.google.com/?q=480/3+หมู่+13+นวนคร+ตำบลคลองหนึ่ง+อำเภอคลองหลวง+จังหวัดปทุมธานี+12120',
-  mapEmbedUrl: 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3869.873204987!2d100.6015!3d14.1205!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMTTCsDA3JzEzLjgiTiAxMDDCsDM2JzA1LjQiRQ!5e0!3m2!1sth!2sth!4v1700000000000!5m2!1sth!2sth'
+  mapAppUrl: 'https://maps.app.goo.gl/NSR8rtGecvjyE1KL8?g_st=ic',
+  mapEmbedUrl: 'https://maps.app.goo.gl/NSR8rtGecvjyE1KL8?g_st=ic'
 };
 
 const DEFAULT_PRIVILEGE = {
@@ -449,6 +449,7 @@ const NewGenDB = {
         if (typeof window.initCourseDetailPage === 'function') window.initCourseDetailPage();
         if (typeof window.renderTrialVideos === 'function') window.renderTrialVideos();
         if (typeof window.renderAboutInspiration === 'function') window.renderAboutInspiration();
+        if (typeof window.renderContactChannels === 'function') window.renderContactChannels();
       }
 
       if (typeof document !== 'undefined') {
@@ -863,6 +864,8 @@ if (typeof window !== 'undefined') {
   window.SUPABASE_CONFIG = SUPABASE_CONFIG;
   window.getApiBaseUrl = getApiBaseUrl;
   window.resolveMediaUrl = resolveMediaUrl;
+  window.formatExternalUrl = formatExternalUrl;
+  window.escapeHtml = escapeHtml;
   window.NewGenDB = NewGenDB;
   window.courseData = NewGenDB.getCourses();
   window.categoriesData = NewGenDB.getCategories();
@@ -881,6 +884,30 @@ if (typeof window !== 'undefined') {
   NewGenDB.syncFromSupabase();
 }
 
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+/**
+ * Universal external URL formatter:
+ * Ensures full https:// protocol so relative path confusion never occurs.
+ */
+function formatExternalUrl(url) {
+  if (!url) return '';
+  const trimmed = String(url).trim();
+  if (!trimmed) return '';
+  if (/^(https?:\/\/|tel:|mailto:)/i.test(trimmed)) {
+    return trimmed;
+  }
+  return `https://${trimmed}`;
+}
+
 /**
  * Universal Footer and Contact Synchronization across all pages
  */
@@ -888,52 +915,230 @@ function renderFooterContactInfo() {
   const contact = window.NewGenDB ? window.NewGenDB.getContact() : DEFAULT_CONTACT;
   if (!contact) return;
 
-  // 1. LINE URLs and ID across all buttons and icons
-  const lineUrl = contact.lineUrl || 'https://line.me/R/ti/p/~thenewgen';
-  document.querySelectorAll('a.floating-btn.line-btn, a.btn-luxury-line, a.btn-cd-line, a.social-icon-btn.line, #contactLineLink, #footerLineLink').forEach(el => {
+  // 1. Resolve sanitized URLs
+  const lineUrl = formatExternalUrl(contact.lineUrl || (contact.lineId ? `https://line.me/R/ti/p/~${encodeURIComponent(contact.lineId)}` : 'https://lin.ee/RXrzi1G'));
+  const lineId = contact.lineId || '@390gussc';
+
+  const fbUrl = formatExternalUrl(contact.facebookUrl || 'https://www.facebook.com/thenewgen2');
+  const fbName = contact.facebookName || 'สถาบันกวดวิชา The NEW GEN';
+
+  let tiktokUrl = formatExternalUrl(contact.tiktokUrl || '');
+  if (!tiktokUrl && contact.tiktok) {
+    const handle = contact.tiktok.startsWith('@') ? contact.tiktok : `@${contact.tiktok}`;
+    tiktokUrl = `https://www.tiktok.com/${handle}`;
+  }
+  if (!tiktokUrl) tiktokUrl = 'https://www.tiktok.com/@thenewgen89?_r=1&_t=ZS-9AUULZATQT2';
+  const tiktokHandle = contact.tiktok || '@thenewgen89';
+
+  let igUrl = formatExternalUrl(contact.instagramUrl || '');
+  if (!igUrl && contact.instagram) {
+    const handle = contact.instagram.replace(/[@()]/g, '').trim().split(' ')[0];
+    igUrl = `https://www.instagram.com/${handle}`;
+  }
+  if (!igUrl) igUrl = 'https://www.instagram.com/the_.newgen?psln=MXRhdW56ZnRqajFkaw==';
+  const igHandle = contact.instagram || 'the.newgen (@the._newgen)';
+
+  const ytUrl = formatExternalUrl(contact.youtubeUrl || 'https://www.youtube.com/@macthenewgen');
+  const mapAppUrl = formatExternalUrl(contact.mapAppUrl || 'https://maps.app.goo.gl/NSR8rtGecvjyE1KL8?g_st=ic');
+
+  // 2. LINE URLs and ID across all buttons, icons, and text
+  const lineSelectors = [
+    'a.floating-btn.line-btn',
+    'a.btn-luxury-line',
+    'a.btn-cd-line',
+    'a.btn-sb-line',
+    'a.btn-xs-table-line',
+    'a.social-icon-btn.line',
+    'a.social-pill-card.line',
+    '#contactLineLink',
+    '#footerLineLink',
+    '#btnLineEnroll',
+    'a.footer-line-link',
+    '.footer-social-links a.line',
+    '.footer-social-links a[href*="line.me"]',
+    '.footer-social-links a[href*="lin.ee"]',
+    '.footer-contact-list a[href*="line.me"]',
+    '.footer-contact-list a[href*="lin.ee"]'
+  ].join(', ');
+
+  document.querySelectorAll(lineSelectors).forEach(el => {
     el.href = lineUrl;
     el.target = '_blank';
     el.rel = 'noopener noreferrer';
   });
+
   document.querySelectorAll('#contactLineId, #footerLineText, .footer-line-id').forEach(el => {
-    el.textContent = contact.lineId || '@thenewgen';
+    el.textContent = lineId;
   });
 
-  // 2. Footer and Contact Addresses
+  // Specifically check .contact-card-item for LINE in footer
+  document.querySelectorAll('.footer-contact-list .contact-card-item, .contact-card-item').forEach(card => {
+    if (card.querySelector('.fa-line')) {
+      const a = card.querySelector('a');
+      if (a) {
+        a.href = lineUrl;
+        a.textContent = lineId;
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+      }
+    }
+  });
+
+  // 3. Facebook Links across icons, footer cards, and pills
+  const fbSelectors = [
+    'a.social-icon-btn.fb',
+    'a.social-icon-btn.facebook',
+    'a.footer-fb-link',
+    'a.social-pill-card.fb',
+    '.footer-social-links a.fb',
+    '.footer-social-links a[href*="facebook.com"]'
+  ].join(', ');
+
+  document.querySelectorAll(fbSelectors).forEach(el => {
+    el.href = fbUrl;
+    el.target = '_blank';
+    el.rel = 'noopener noreferrer';
+    if (fbName) el.title = `Facebook Page: ${fbName}`;
+  });
+
+  // Update text and link in .contact-card-item for Facebook
+  document.querySelectorAll('.footer-contact-list .contact-card-item, .contact-card-item').forEach(card => {
+    if (card.querySelector('.fa-facebook, .fa-facebook-f')) {
+      const a = card.querySelector('a');
+      if (a) {
+        a.href = fbUrl;
+        a.textContent = fbName;
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+      }
+    }
+  });
+
+  // 4. TikTok Links across icons, footer cards, and pills
+  const tiktokSelectors = [
+    'a.social-icon-btn.tiktok',
+    'a.footer-tiktok-link',
+    'a.social-pill-card.tiktok',
+    '.footer-social-links a.tiktok',
+    '.footer-social-links a[href*="tiktok.com"]'
+  ].join(', ');
+
+  document.querySelectorAll(tiktokSelectors).forEach(el => {
+    el.href = tiktokUrl;
+    el.target = '_blank';
+    el.rel = 'noopener noreferrer';
+    if (tiktokHandle) el.title = `TikTok: ${tiktokHandle}`;
+  });
+
+  // Update text and link in .contact-card-item for TikTok
+  document.querySelectorAll('.footer-contact-list .contact-card-item, .contact-card-item').forEach(card => {
+    if (card.querySelector('.fa-tiktok')) {
+      const a = card.querySelector('a');
+      if (a) {
+        a.href = tiktokUrl;
+        a.textContent = tiktokHandle.startsWith('@') ? tiktokHandle : `@${tiktokHandle}`;
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+      }
+    }
+  });
+
+  // 5. Instagram Links across icons, footer cards, and pills
+  const igSelectors = [
+    'a.social-icon-btn.ig',
+    'a.social-icon-btn.instagram',
+    'a.footer-ig-link',
+    'a.social-pill-card.ig',
+    '.footer-social-links a.ig',
+    '.footer-social-links a[href*="instagram.com"]'
+  ].join(', ');
+
+  document.querySelectorAll(igSelectors).forEach(el => {
+    el.href = igUrl;
+    el.target = '_blank';
+    el.rel = 'noopener noreferrer';
+    if (igHandle) el.title = `Instagram: ${igHandle}`;
+  });
+
+  // Update text and link in .contact-card-item for Instagram
+  document.querySelectorAll('.footer-contact-list .contact-card-item, .contact-card-item').forEach(card => {
+    if (card.querySelector('.fa-instagram')) {
+      const a = card.querySelector('a');
+      if (a) {
+        a.href = igUrl;
+        a.textContent = igHandle;
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+      }
+    }
+  });
+
+  // 6. YouTube Links across icons, footer cards, and pills
+  const ytSelectors = [
+    'a.social-icon-btn.yt',
+    'a.social-icon-btn.youtube',
+    'a.footer-yt-link',
+    'a.social-pill-card.yt',
+    '.footer-social-links a.yt',
+    '.footer-social-links a[href*="youtube.com"]'
+  ].join(', ');
+
+  document.querySelectorAll(ytSelectors).forEach(el => {
+    el.href = ytUrl;
+    el.target = '_blank';
+    el.rel = 'noopener noreferrer';
+  });
+
+  // 7. Footer Phones
+  if (contact.phones && contact.phones.length > 0) {
+    document.querySelectorAll('#footerPhonesList, .footer-phones-wrap').forEach(el => {
+      el.innerHTML = contact.phones.map(p => `
+        <a href="${p.telLink || 'tel:' + p.number.replace(/[^0-9]/g, '')}" class="footer-phone-link" style="color: #38bdf8; text-decoration: none; margin-right: 12px; display: inline-flex; align-items: center; gap: 5px; font-weight: 700;">
+          <i class="fa-solid fa-phone" style="color: #38bdf8;"></i> ${escapeHtml(p.name)}: <strong style="color: #ffffff;">${escapeHtml(p.number)}</strong>
+        </a>
+      `).join('');
+    });
+
+    document.querySelectorAll('.footer-contact-list .contact-card-item, .contact-card-item').forEach(card => {
+      if (card.querySelector('.fa-phone') && !card.classList.contains('phone-builder-row')) {
+        const textWrap = card.querySelector('div');
+        if (textWrap) {
+          textWrap.innerHTML = `
+            <span class="contact-highlight">เบอร์โทรศัพท์:</span><br>
+            ${contact.phones.map(p => `
+              <a href="${p.telLink || 'tel:' + p.number.replace(/[^0-9]/g, '')}" class="phone-number-link" style="color: #38bdf8; font-weight: 700; text-decoration: none;">${escapeHtml(p.number)}</a>
+              <span class="phone-owner-text" style="color: #f1f5f9; font-weight: 600;">(${escapeHtml(p.name)})</span>
+            `).join('<br>')}
+          `;
+        }
+      }
+    });
+
+    const firstPhone = contact.phones[0];
+    if (firstPhone) {
+      document.querySelectorAll('a.floating-btn.phone-btn, .footer-social-links a.phone').forEach(el => {
+        el.href = firstPhone.telLink || `tel:${firstPhone.number.replace(/[^0-9]/g, '')}`;
+        el.title = `โทรติดต่อ ${firstPhone.name} (${firstPhone.number})`;
+      });
+    }
+  }
+
+  // 8. Footer & Contact Addresses
   document.querySelectorAll('#footerAddress, #contactAddress, .footer-address-text').forEach(el => {
     if (contact.address) el.textContent = contact.address;
   });
 
-  // 3. Footer Phones
-  const phoneEls = document.querySelectorAll('#footerPhonesList, .footer-phones-wrap');
-  if (contact.phones && contact.phones.length > 0) {
-    phoneEls.forEach(el => {
-      el.innerHTML = contact.phones.map(p => `
-        <a href="${p.telLink || 'tel:' + p.number.replace(/[^0-9]/g, '')}" class="footer-phone-link" style="color: inherit; text-decoration: none; margin-right: 12px; display: inline-flex; align-items: center; gap: 5px;">
-          <i class="fa-solid fa-phone" style="color: var(--color-cyan);"></i> ${p.name}: <strong style="color: #ffffff;">${p.number}</strong>
-        </a>
-      `).join('');
-    });
+  // 9. Maps navigation
+  document.querySelectorAll('#btnOpenGoogleMapApp, .btn-open-maps-app, a[href*="maps.google.com"], a[href*="maps.app.goo.gl"]').forEach(el => {
+    if (mapAppUrl) el.href = mapAppUrl;
+    el.target = '_blank';
+    el.rel = 'noopener noreferrer';
+  });
+
+  const mapIframe = document.getElementById('contactGoogleMap');
+  if (mapIframe && contact.mapEmbedUrl) {
+    mapIframe.src = contact.mapEmbedUrl;
   }
-
-  // 4. Social Links
-  document.querySelectorAll('a.social-icon-btn.facebook, a.footer-fb-link').forEach(el => {
-    if (contact.facebookUrl) el.href = contact.facebookUrl;
-  });
-  document.querySelectorAll('a.social-icon-btn.tiktok, a.footer-tiktok-link').forEach(el => {
-    if (contact.tiktokUrl) el.href = contact.tiktokUrl;
-  });
-  document.querySelectorAll('a.social-icon-btn.instagram, a.footer-ig-link').forEach(el => {
-    if (contact.instagramUrl) el.href = contact.instagramUrl;
-  });
-  document.querySelectorAll('a.social-icon-btn.youtube, a.footer-yt-link').forEach(el => {
-    if (contact.youtubeUrl) el.href = contact.youtubeUrl;
-  });
-
-  // 5. Maps navigation
-  document.querySelectorAll('#btnOpenGoogleMapApp, .btn-open-maps-app').forEach(el => {
-    if (contact.mapAppUrl) el.href = contact.mapAppUrl;
-  });
 }
 
 function renderPrivilegeNote() {
