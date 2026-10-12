@@ -28,6 +28,7 @@ function initAdminDashboard() {
   loadAdminVideos();
   loadAdminContact();
   loadAdminWhyUs();
+  loadSecuritySettings();
   checkSupabaseConnection(false);
 }
 
@@ -152,7 +153,12 @@ function switchAdminTab(tabKey, btn) {
   
   const pane = document.getElementById(`tab-${tabKey}`);
   if (pane) pane.classList.add('active');
-  if (btn) btn.classList.add('active');
+  if (btn) {
+    btn.classList.add('active');
+  } else {
+    const navBtn = document.querySelector(`.admin-nav-item[onclick*="'${tabKey}'"]`);
+    if (navBtn) navBtn.classList.add('active');
+  }
 }
 
 function closeModal(modalId) {
@@ -2204,4 +2210,124 @@ function resetToSystemDefaults() {
     showToast('รีเซ็ตข้อมูลสู่ค่าเริ่มต้นเรียบร้อยแล้ว');
   }
 }
+
+// ===================================================================
+// 10. SECURITY / ADMIN CREDENTIALS MANAGEMENT
+// ===================================================================
+function loadSecuritySettings() {
+  const userEl = document.getElementById('secUsername');
+  if (!userEl) return;
+  const cred = window.NewGenDB ? window.NewGenDB.getAdminAuth() : { username: 'admin', password: 'NewGen@2026' };
+  userEl.value = cred.username || 'admin';
+}
+
+function toggleSecPass(inputId, btn) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  const icon = btn.querySelector('i');
+  if (input.type === 'password') {
+    input.type = 'text';
+    if (icon) icon.className = 'fa-solid fa-eye-slash';
+  } else {
+    input.type = 'password';
+    if (icon) icon.className = 'fa-solid fa-eye';
+  }
+}
+
+async function handleChangePasswordSubmit(e) {
+  e.preventDefault();
+  const username = (document.getElementById('secUsername').value || '').trim();
+  const currentPass = (document.getElementById('secCurrentPassword').value || '').trim();
+  const newPass = (document.getElementById('secNewPassword').value || '').trim();
+  const confirmPass = (document.getElementById('secConfirmPassword').value || '').trim();
+  const submitBtn = document.getElementById('btnSaveAdminPassword');
+  const statusEl = document.getElementById('secStatusText');
+
+  if (!username) {
+    showToast('⚠️ กรุณาระบุชื่อผู้ใช้งาน (Username)', 'warning');
+    return;
+  }
+  if (!currentPass) {
+    showToast('⚠️ กรุณาระบุรหัสผ่านปัจจุบันเพื่อยืนยันตัวตน', 'warning');
+    return;
+  }
+  if (newPass.length < 4) {
+    showToast('⚠️ รหัสผ่านใหม่ต้องมีความยาวอย่างน้อย 4 ตัวอักษร', 'warning');
+    return;
+  }
+  if (newPass !== confirmPass) {
+    showToast('⚠️ รหัสผ่านใหม่และการยืนยันรหัสผ่านไม่ตรงกัน', 'warning');
+    return;
+  }
+
+  // Verify current password against local & Supabase
+  let currentCred = window.NewGenDB ? window.NewGenDB.getAdminAuth() : { username: 'admin', password: 'NewGen@2026' };
+  try {
+    if (window.SUPABASE_CONFIG && window.SUPABASE_CONFIG.url) {
+      const res = await fetch(`${window.SUPABASE_CONFIG.url}/rest/v1/app_data?key=eq.admin&select=data`, {
+        headers: {
+          'apikey': window.SUPABASE_CONFIG.anonKey,
+          'Authorization': `Bearer ${window.SUPABASE_CONFIG.anonKey}`
+        }
+      });
+      if (res.ok) {
+        const rows = await res.json();
+        if (rows && rows.length > 0 && rows[0].data) {
+          currentCred = rows[0].data;
+          localStorage.setItem('newgen_admin_cred', JSON.stringify(currentCred));
+        }
+      }
+    }
+  } catch (err) {
+    console.warn('Network auth verify fallback to local credentials:', err);
+  }
+
+  if (currentPass !== currentCred.password) {
+    showToast('❌ รหัสผ่านปัจจุบันไม่ถูกต้อง กรุณาตรวจสอบอีกครั้ง', 'error');
+    if (statusEl) {
+      statusEl.style.color = '#ef4444';
+      statusEl.textContent = '❌ รหัสผ่านปัจจุบันไม่ถูกต้อง';
+    }
+    return;
+  }
+
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังบันทึกขึ้น Supabase Cloud...';
+  }
+
+  try {
+    const newCred = { username, password: newPass };
+    const res = await window.NewGenDB.saveAdminAuth(newCred);
+    localStorage.setItem('newgen_admin_user', username);
+    sessionStorage.setItem('newgen_admin_user', username);
+
+    // Clear password inputs
+    document.getElementById('secCurrentPassword').value = '';
+    document.getElementById('secNewPassword').value = '';
+    document.getElementById('secConfirmPassword').value = '';
+
+    if (res && res.success === false) {
+      showToast(`⚠️ บันทึกในเบราว์เซอร์แล้ว แต่ Supabase แจ้งเตือน: ${res.error || 'บันทึกไม่สำเร็จ'}`, 'warning');
+      if (statusEl) {
+        statusEl.style.color = '#f59e0b';
+        statusEl.textContent = '⚠️ บันทึกในเครื่องแล้ว (Supabase แจ้งเตือน)';
+      }
+    } else {
+      showToast('✅ เปลี่ยนชื่อผู้ใช้และรหัสผ่านเรียบร้อย พร้อมซิงค์ขึ้น Supabase Cloud สำเร็จ!', 'success');
+      if (statusEl) {
+        statusEl.style.color = '#16a34a';
+        statusEl.textContent = '✅ บันทึกรหัสผ่านใหม่และซิงค์ขึ้น Cloud เรียบร้อย';
+      }
+    }
+  } catch (err) {
+    showToast('❌ เกิดข้อผิดพลาดในการบันทึกรหัสผ่าน: ' + err.message, 'error');
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> บันทึกรหัสผ่านใหม่';
+    }
+  }
+}
+
 

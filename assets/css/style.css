@@ -5722,5 +5722,28 @@ button {
   box-shadow: 0 0 10px #ef4444;
 }
 
+/* Discreet Bottom Footer Admin Link */
+.footer-admin-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #64748b;
+  font-size: 0.76rem;
+  font-weight: 500;
+  text-decoration: none;
+  opacity: 0.5;
+  transition: all 0.25s ease;
+  padding: 3px 8px;
+  border-radius: 4px;
+  letter-spacing: 0.2px;
+}
+
+.footer-admin-link:hover {
+  opacity: 0.95;
+  color: #94a3b8;
+  background: rgba(255, 255, 255, 0.06);
+  transform: translateY(-1px);
+}
+
 
 

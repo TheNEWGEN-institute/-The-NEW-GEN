@@ -332,6 +332,12 @@ const DEFAULT_ABOUT = {
   ]
 };
 
+// Default Admin Credentials
+const DEFAULT_ADMIN = {
+  username: 'admin',
+  password: 'NewGen@2026'
+};
+
 // Supabase Cloud Configuration for The NEW GEN (Serverless Architecture)
 const SUPABASE_CONFIG = {
   url: 'https://wdazilhmlttnurpfewlk.supabase.co',
@@ -352,7 +358,8 @@ const SUPABASE_KEY_MAPPING = {
   categories: 'newgen_categories',
   privilege: 'newgen_privilege',
   home: 'newgen_home',
-  about: 'newgen_about'
+  about: 'newgen_about',
+  admin: 'newgen_admin_cred'
 };
 
 // Global Store Helper with Integrated Supabase Cloud Sync
@@ -774,6 +781,23 @@ const NewGenDB = {
     }
     if (typeof window !== 'undefined') window.aboutData = aboutObj;
     return NewGenDB.saveToSupabase('about', aboutObj);
+  },
+
+  // Admin Credentials & Authentication
+  getAdminAuth: () => {
+    try {
+      const data = localStorage.getItem('newgen_admin_cred');
+      if (data) return { ...DEFAULT_ADMIN, ...JSON.parse(data) };
+    } catch (e) {}
+    return DEFAULT_ADMIN;
+  },
+  saveAdminAuth: (authObj) => {
+    try {
+      localStorage.setItem('newgen_admin_cred', JSON.stringify(authObj));
+    } catch (e) {
+      console.warn('LocalStorage save error:', e);
+    }
+    return NewGenDB.saveToSupabase('admin', authObj);
   },
 
   // Reset to default

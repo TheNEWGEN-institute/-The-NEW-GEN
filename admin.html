@@ -33,6 +33,9 @@
         <span class="status-dot"></span>
         <span id="supabaseStatusText">ตรวจสอบ Supabase Cloud...</span>
       </div>
+      <button type="button" class="btn-admin-preview" onclick="switchAdminTab('security')" title="เปลี่ยนรหัสผ่าน">
+        <i class="fa-solid fa-key"></i> เปลี่ยนรหัสผ่าน
+      </button>
       <a href="index.html" class="btn-admin-preview">
         <i class="fa-solid fa-arrow-up-right-from-square"></i> ดูหน้าเว็บจริง
       </a>
@@ -84,6 +87,9 @@
         </button>
         <button type="button" class="admin-nav-item" onclick="switchAdminTab('backup', this)">
           <i class="fa-solid fa-database"></i> 9. สำรอง & กู้คืนข้อมูล
+        </button>
+        <button type="button" class="admin-nav-item" onclick="switchAdminTab('security', this)">
+          <i class="fa-solid fa-key"></i> 10. เปลี่ยนรหัสผ่านผู้ดูแลระบบ
         </button>
       </nav>
     </aside>
@@ -669,6 +675,65 @@
               <i class="fa-solid fa-triangle-exclamation"></i> รีเซ็ตค่าเริ่มต้น
             </button>
           </div>
+        </div>
+      </section>
+
+      <!-- ================= 10. SECURITY & PASSWORD TAB ================= -->
+      <section id="tab-security" class="admin-tab-pane">
+        <div class="admin-pane-header">
+          <div>
+            <h2><i class="fa-solid fa-shield-halved" style="color: var(--color-navy);"></i> จัดการรหัสผ่านผู้ดูแลระบบ (Security & Password)</h2>
+            <p>เปลี่ยนชื่อผู้ใช้งานและรหัสผ่านสำหรับเข้าสู่ระบบหลังบ้าน ข้อมูลจะถูกบันทึกและซิงค์ขึ้น Supabase Cloud ทันที</p>
+          </div>
+        </div>
+
+        <div class="admin-editor-card" style="max-width: 650px;">
+          <form id="adminChangePasswordForm" onsubmit="handleChangePasswordSubmit(event)">
+            <div class="form-group-luxury" style="margin-bottom: 20px;">
+              <label><i class="fa-solid fa-user"></i> ชื่อผู้ใช้งาน (Username) *</label>
+              <input type="text" id="secUsername" placeholder="admin" required autocomplete="username">
+              <small style="color: #64748b; font-size: 0.8rem; margin-top: 4px; display: block;">ชื่อผู้ใช้งานที่ใช้เข้าสู่ระบบ (ค่าเริ่มต้นคือ admin)</small>
+            </div>
+
+            <div class="form-group-luxury" style="margin-bottom: 20px;">
+              <label><i class="fa-solid fa-lock"></i> รหัสผ่านปัจจุบัน (Current Password) *</label>
+              <div class="password-input-wrap">
+                <input type="password" id="secCurrentPassword" placeholder="••••••••••••" required autocomplete="current-password">
+                <button type="button" class="btn-toggle-eye" onclick="toggleSecPass('secCurrentPassword', this)" aria-label="แสดงรหัสผ่าน">
+                  <i class="fa-solid fa-eye"></i>
+                </button>
+              </div>
+              <small style="color: #64748b; font-size: 0.8rem; margin-top: 4px; display: block;">ใส่รหัสผ่านปัจจุบันเพื่อยืนยันสิทธิ์ในการแก้ไข</small>
+            </div>
+
+            <div class="form-group-luxury" style="margin-bottom: 20px;">
+              <label><i class="fa-solid fa-key"></i> รหัสผ่านใหม่ (New Password) *</label>
+              <div class="password-input-wrap">
+                <input type="password" id="secNewPassword" placeholder="••••••••••••" required autocomplete="new-password" minlength="4">
+                <button type="button" class="btn-toggle-eye" onclick="toggleSecPass('secNewPassword', this)" aria-label="แสดงรหัสผ่าน">
+                  <i class="fa-solid fa-eye"></i>
+                </button>
+              </div>
+              <small style="color: #64748b; font-size: 0.8rem; margin-top: 4px; display: block;">ความยาวอย่างน้อย 4 ตัวอักษรขึ้นไป</small>
+            </div>
+
+            <div class="form-group-luxury" style="margin-bottom: 24px;">
+              <label><i class="fa-solid fa-circle-check"></i> ยืนยันรหัสผ่านใหม่ (Confirm New Password) *</label>
+              <div class="password-input-wrap">
+                <input type="password" id="secConfirmPassword" placeholder="••••••••••••" required autocomplete="new-password" minlength="4">
+                <button type="button" class="btn-toggle-eye" onclick="toggleSecPass('secConfirmPassword', this)" aria-label="แสดงรหัสผ่าน">
+                  <i class="fa-solid fa-eye"></i>
+                </button>
+              </div>
+            </div>
+
+            <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+              <button type="submit" id="btnSaveAdminPassword" class="btn-primary" style="padding: 12px 28px; font-size: 0.95rem;">
+                <i class="fa-solid fa-floppy-disk"></i> บันทึกรหัสผ่านใหม่
+              </button>
+              <span id="secStatusText" style="font-size: 0.88rem; font-weight: 600;"></span>
+            </div>
+          </form>
         </div>
       </section>
 
