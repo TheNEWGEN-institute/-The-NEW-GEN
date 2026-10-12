@@ -336,7 +336,7 @@ const DEFAULT_ABOUT = {
 const SUPABASE_CONFIG = {
   url: 'https://wdazilhmlttnurpfewlk.supabase.co',
   anonKey: 'sb_publishable_JEhUerLycZxgOmYstFD4aw_nFT3ifYp',
-  serviceKey: 'sb_secret_q3YyoxfR1fJY3NC4V3YkZA_9J1A-B3v',
+  serviceKey: 'sb_publishable_JEhUerLycZxgOmYstFD4aw_nFT3ifYp', // Fallback to anonKey to prevent unregistered key failures
   bucket: 'uploads'
 };
 
@@ -361,20 +361,31 @@ const NewGenDB = {
   saveToSupabase: async (key, data) => {
     try {
       const endpoint = `${SUPABASE_CONFIG.url}/rest/v1/app_data?on_conflict=key`;
+      const apiKey = SUPABASE_CONFIG.anonKey;
       const res = await fetch(endpoint, {
         method: 'POST',
         headers: {
-          'apikey': SUPABASE_CONFIG.serviceKey,
-          'Authorization': `Bearer ${SUPABASE_CONFIG.serviceKey}`,
+          'apikey': apiKey,
+          'Authorization': `Bearer ${apiKey}`,
           'Content-Type': 'application/json',
           'Prefer': 'resolution=merge-duplicates'
         },
-        body: JSON.stringify({ key, data })
+        body: JSON.stringify({ key, data, updated_at: new Date().toISOString() })
       });
-      return res.ok;
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.warn(`[Supabase] Cloud save error for [${key}] (HTTP ${res.status}):`, errorText);
+        let reason = errorText;
+        if (errorText.includes('row-level security') || res.status === 401) {
+          reason = 'ติดสิทธิ์ Row-Level Security (RLS) ใน Supabase';
+        }
+        return { success: false, status: res.status, error: reason, rawError: errorText };
+      }
+      console.log(`[Supabase] Cloud save SUCCESS for [${key}]`);
+      return { success: true };
     } catch (err) {
       console.warn(`[Supabase] Network save warning for [${key}]:`, err);
-      return false;
+      return { success: false, error: err.message };
     }
   },
 
@@ -447,11 +458,12 @@ const NewGenDB = {
     try {
       const ext = (filename || 'image.jpg').split('.').pop() || 'jpg';
       const safeName = `img-${Date.now()}-${Math.random().toString(36).substring(2, 6)}.${ext}`;
+      const apiKey = SUPABASE_CONFIG.anonKey;
       const res = await fetch(`${SUPABASE_CONFIG.url}/storage/v1/object/uploads/${safeName}`, {
         method: 'POST',
         headers: {
-          'apikey': SUPABASE_CONFIG.serviceKey,
-          'Authorization': `Bearer ${SUPABASE_CONFIG.serviceKey}`,
+          'apikey': apiKey,
+          'Authorization': `Bearer ${apiKey}`,
           'Content-Type': blob.type || 'image/jpeg'
         },
         body: blob
@@ -497,7 +509,7 @@ const NewGenDB = {
       console.warn('LocalStorage save error:', e);
     }
     window.courseData = courses;
-    NewGenDB.saveToSupabase('courses', courses);
+    return NewGenDB.saveToSupabase('courses', courses);
   },
 
   // Tutors
@@ -549,7 +561,7 @@ const NewGenDB = {
       console.warn('LocalStorage save error:', e);
     }
     if (typeof window !== 'undefined') window.tutorsData = tutors;
-    NewGenDB.saveToSupabase('tutors', tutors);
+    return NewGenDB.saveToSupabase('tutors', tutors);
   },
 
   // Tutors Quote Banner
@@ -567,7 +579,7 @@ const NewGenDB = {
       console.warn('LocalStorage save error:', e);
     }
     if (typeof window !== 'undefined') window.tutorsQuoteData = quoteObj;
-    NewGenDB.saveToSupabase('tutorsQuote', quoteObj);
+    return NewGenDB.saveToSupabase('tutorsQuote', quoteObj);
   },
 
   // Reviews
@@ -594,7 +606,7 @@ const NewGenDB = {
       console.warn('LocalStorage save error:', e);
     }
     if (typeof window !== 'undefined') window.reviewsData = reviews;
-    NewGenDB.saveToSupabase('reviews', reviews);
+    return NewGenDB.saveToSupabase('reviews', reviews);
   },
 
   // Achievements / Hall of Fame Banners
@@ -612,7 +624,7 @@ const NewGenDB = {
       console.warn('LocalStorage save error:', e);
     }
     if (typeof window !== 'undefined') window.achievementsData = achievements;
-    NewGenDB.saveToSupabase('achievements', achievements);
+    return NewGenDB.saveToSupabase('achievements', achievements);
   },
 
   // Videos
@@ -633,7 +645,7 @@ const NewGenDB = {
       console.warn('LocalStorage save error:', e);
     }
     if (typeof window !== 'undefined') window.videosData = videos;
-    NewGenDB.saveToSupabase('videos', videos);
+    return NewGenDB.saveToSupabase('videos', videos);
   },
 
   // Contact
@@ -663,7 +675,7 @@ const NewGenDB = {
       console.warn('LocalStorage save error:', e);
     }
     if (typeof window !== 'undefined') window.contactData = contact;
-    NewGenDB.saveToSupabase('contact', contact);
+    return NewGenDB.saveToSupabase('contact', contact);
   },
 
   // Why Us (ทำไมต้องเลือก The NEW GEN)
@@ -681,7 +693,7 @@ const NewGenDB = {
       console.warn('LocalStorage save error:', e);
     }
     if (typeof window !== 'undefined') window.whyUsData = whyus;
-    NewGenDB.saveToSupabase('whyus', whyus);
+    return NewGenDB.saveToSupabase('whyus', whyus);
   },
 
   // Categories (ระดับชั้น)
@@ -699,7 +711,7 @@ const NewGenDB = {
       console.warn('LocalStorage save error:', e);
     }
     if (typeof window !== 'undefined') window.categoriesData = categories;
-    NewGenDB.saveToSupabase('categories', categories);
+    return NewGenDB.saveToSupabase('categories', categories);
   },
 
   // Privilege Banner (Item 3)
@@ -717,7 +729,7 @@ const NewGenDB = {
       console.warn('LocalStorage save error:', e);
     }
     if (typeof window !== 'undefined') window.privilegeData = privilege;
-    NewGenDB.saveToSupabase('privilege', privilege);
+    return NewGenDB.saveToSupabase('privilege', privilege);
   },
 
   // Home Page Settings & Tutor Placement
@@ -735,7 +747,7 @@ const NewGenDB = {
       console.warn('LocalStorage save error:', e);
     }
     if (typeof window !== 'undefined') window.homeData = homeObj;
-    NewGenDB.saveToSupabase('home', homeObj);
+    return NewGenDB.saveToSupabase('home', homeObj);
   },
 
   // About Us & Inspiration
@@ -761,7 +773,7 @@ const NewGenDB = {
       } catch (err2) {}
     }
     if (typeof window !== 'undefined') window.aboutData = aboutObj;
-    NewGenDB.saveToSupabase('about', aboutObj);
+    return NewGenDB.saveToSupabase('about', aboutObj);
   },
 
   // Reset to default
@@ -807,8 +819,7 @@ function resolveMediaUrl(url) {
     const cleanPath = url.startsWith('/') ? url.slice(1) : url;
     const base = getApiBaseUrl();
     if (base) return `${base}/${cleanPath}`;
-    // Fallback to Supabase Storage public URL when running in serverless mode
-    return `${SUPABASE_CONFIG.url}/storage/v1/object/public/${cleanPath}`;
+    return cleanPath;
   }
   return url;
 }
