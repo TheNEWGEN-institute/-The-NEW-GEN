@@ -345,6 +345,11 @@
       });
     });
 
+    document.addEventListener('newgen:synced', () => {
+      renderAboutInspiration();
+      renderContactChannels();
+    });
+
     function renderAboutInspiration(customData) {
       const about = customData || (window.NewGenDB ? window.NewGenDB.getAbout() : DEFAULT_ABOUT);
       if (!about) return;

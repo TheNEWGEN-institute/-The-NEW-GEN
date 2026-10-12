@@ -301,6 +301,10 @@
       });
     });
 
+    document.addEventListener('newgen:synced', () => {
+      renderTrialVideos();
+    });
+
     function getCleanYoutubeId(input) {
       if (!input) return 'OEBgi1xzb_c';
       const str = input.trim();

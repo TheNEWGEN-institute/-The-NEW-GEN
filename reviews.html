@@ -255,6 +255,11 @@
       });
     });
 
+    document.addEventListener('newgen:synced', () => {
+      renderReviews();
+      renderAchievements();
+    });
+
     function renderReviews() {
       const reviews = window.NewGenDB ? window.NewGenDB.getReviews() : (window.reviewsData || []);
       const grid = document.getElementById('reviewsGalleryGrid');

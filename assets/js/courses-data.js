@@ -332,8 +332,139 @@ const DEFAULT_ABOUT = {
   ]
 };
 
-// Global Store Helper
+// Supabase Cloud Configuration for The NEW GEN (Serverless Architecture)
+const SUPABASE_CONFIG = {
+  url: 'https://wdazilhmlttnurpfewlk.supabase.co',
+  anonKey: 'sb_publishable_JEhUerLycZxgOmYstFD4aw_nFT3ifYp',
+  serviceKey: 'sb_secret_q3YyoxfR1fJY3NC4V3YkZA_9J1A-B3v',
+  bucket: 'uploads'
+};
+
+const SUPABASE_KEY_MAPPING = {
+  courses: 'newgen_courses',
+  tutors: 'newgen_tutors',
+  tutorsQuote: 'newgen_tutors_quote',
+  reviews: 'newgen_reviews',
+  achievements: 'newgen_achievements',
+  videos: 'newgen_videos',
+  contact: 'newgen_contact',
+  whyus: 'newgen_whyus',
+  categories: 'newgen_categories',
+  privilege: 'newgen_privilege',
+  home: 'newgen_home',
+  about: 'newgen_about'
+};
+
+// Global Store Helper with Integrated Supabase Cloud Sync
 const NewGenDB = {
+  // Cloud Sync Helpers
+  saveToSupabase: async (key, data) => {
+    try {
+      const endpoint = `${SUPABASE_CONFIG.url}/rest/v1/app_data?on_conflict=key`;
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_CONFIG.serviceKey,
+          'Authorization': `Bearer ${SUPABASE_CONFIG.serviceKey}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'resolution=merge-duplicates'
+        },
+        body: JSON.stringify({ key, data })
+      });
+      return res.ok;
+    } catch (err) {
+      console.warn(`[Supabase] Network save warning for [${key}]:`, err);
+      return false;
+    }
+  },
+
+  syncFromSupabase: async () => {
+    try {
+      const endpoint = `${SUPABASE_CONFIG.url}/rest/v1/app_data?select=key,data`;
+      const res = await fetch(endpoint, {
+        headers: {
+          'apikey': SUPABASE_CONFIG.anonKey,
+          'Authorization': `Bearer ${SUPABASE_CONFIG.anonKey}`
+        }
+      });
+      if (!res.ok) return false;
+      const rows = await res.json();
+      if (!Array.isArray(rows) || rows.length === 0) return false;
+
+      rows.forEach(item => {
+        const key = item.key;
+        const val = item.data;
+        if (!key || val === undefined) return;
+        const localKey = SUPABASE_KEY_MAPPING[key];
+        if (localKey) {
+          try {
+            localStorage.setItem(localKey, JSON.stringify(val));
+          } catch (e) {}
+        }
+        if (key === 'courses' && typeof window !== 'undefined') window.courseData = NewGenDB.getCourses();
+        if (key === 'tutors' && typeof window !== 'undefined') window.tutorsData = NewGenDB.getTutors();
+        if (key === 'tutorsQuote' && typeof window !== 'undefined') window.tutorsQuoteData = val;
+        if (key === 'reviews' && typeof window !== 'undefined') window.reviewsData = NewGenDB.getReviews();
+        if (key === 'achievements' && typeof window !== 'undefined') window.achievementsData = val;
+        if (key === 'videos' && typeof window !== 'undefined') window.videosData = val;
+        if (key === 'contact' && typeof window !== 'undefined') window.contactData = val;
+        if (key === 'whyus' && typeof window !== 'undefined') window.whyUsData = val;
+        if (key === 'categories' && typeof window !== 'undefined') window.categoriesData = val;
+        if (key === 'privilege' && typeof window !== 'undefined') window.privilegeData = val;
+        if (key === 'home' && typeof window !== 'undefined') window.homeData = val;
+        if (key === 'about' && typeof window !== 'undefined') window.aboutData = val;
+      });
+
+      // Update UI components across all active pages
+      if (typeof renderFooterContactInfo === 'function') renderFooterContactInfo();
+      if (typeof renderPrivilegeNote === 'function') renderPrivilegeNote();
+      if (typeof window !== 'undefined') {
+        if (typeof window.renderHeroContent === 'function') window.renderHeroContent();
+        if (typeof window.renderTutors === 'function') window.renderTutors();
+        if (typeof window.renderCourses === 'function') window.renderCourses();
+        if (typeof window.renderReviews === 'function') window.renderReviews();
+        if (typeof window.renderAchievements === 'function') window.renderAchievements();
+        if (typeof window.renderWhyUs === 'function') window.renderWhyUs();
+        if (typeof window.renderQuote === 'function') window.renderQuote();
+        if (typeof window.renderCategoryFilterTabs === 'function') window.renderCategoryFilterTabs();
+        if (typeof window.initAdminDashboard === 'function') window.initAdminDashboard();
+        if (typeof window.initCourseDetailPage === 'function') window.initCourseDetailPage();
+        if (typeof window.renderTrialVideos === 'function') window.renderTrialVideos();
+        if (typeof window.renderAboutInspiration === 'function') window.renderAboutInspiration();
+      }
+
+      if (typeof document !== 'undefined') {
+        document.dispatchEvent(new CustomEvent('newgen:synced', { detail: rows }));
+      }
+      return true;
+    } catch (err) {
+      console.warn('[Supabase] Sync from cloud error:', err);
+      return false;
+    }
+  },
+
+  uploadImageToSupabase: async (blob, filename) => {
+    try {
+      const ext = (filename || 'image.jpg').split('.').pop() || 'jpg';
+      const safeName = `img-${Date.now()}-${Math.random().toString(36).substring(2, 6)}.${ext}`;
+      const res = await fetch(`${SUPABASE_CONFIG.url}/storage/v1/object/uploads/${safeName}`, {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_CONFIG.serviceKey,
+          'Authorization': `Bearer ${SUPABASE_CONFIG.serviceKey}`,
+          'Content-Type': blob.type || 'image/jpeg'
+        },
+        body: blob
+      });
+      if (res.ok) {
+        return `${SUPABASE_CONFIG.url}/storage/v1/object/public/uploads/${safeName}`;
+      }
+    } catch (err) {
+      console.warn('[Supabase] Storage upload error:', err);
+    }
+    return null;
+  },
+
   // Courses
   getCourses: () => {
     const enrichCourse = (c) => ({
@@ -366,6 +497,7 @@ const NewGenDB = {
       console.warn('LocalStorage save error:', e);
     }
     window.courseData = courses;
+    NewGenDB.saveToSupabase('courses', courses);
   },
 
   // Tutors
@@ -417,6 +549,7 @@ const NewGenDB = {
       console.warn('LocalStorage save error:', e);
     }
     if (typeof window !== 'undefined') window.tutorsData = tutors;
+    NewGenDB.saveToSupabase('tutors', tutors);
   },
 
   // Tutors Quote Banner
@@ -434,6 +567,7 @@ const NewGenDB = {
       console.warn('LocalStorage save error:', e);
     }
     if (typeof window !== 'undefined') window.tutorsQuoteData = quoteObj;
+    NewGenDB.saveToSupabase('tutorsQuote', quoteObj);
   },
 
   // Reviews
@@ -459,6 +593,8 @@ const NewGenDB = {
     } catch(e) {
       console.warn('LocalStorage save error:', e);
     }
+    if (typeof window !== 'undefined') window.reviewsData = reviews;
+    NewGenDB.saveToSupabase('reviews', reviews);
   },
 
   // Achievements / Hall of Fame Banners
@@ -476,6 +612,7 @@ const NewGenDB = {
       console.warn('LocalStorage save error:', e);
     }
     if (typeof window !== 'undefined') window.achievementsData = achievements;
+    NewGenDB.saveToSupabase('achievements', achievements);
   },
 
   // Videos
@@ -495,6 +632,8 @@ const NewGenDB = {
     } catch(e) {
       console.warn('LocalStorage save error:', e);
     }
+    if (typeof window !== 'undefined') window.videosData = videos;
+    NewGenDB.saveToSupabase('videos', videos);
   },
 
   // Contact
@@ -524,6 +663,7 @@ const NewGenDB = {
       console.warn('LocalStorage save error:', e);
     }
     if (typeof window !== 'undefined') window.contactData = contact;
+    NewGenDB.saveToSupabase('contact', contact);
   },
 
   // Why Us (ทำไมต้องเลือก The NEW GEN)
@@ -541,6 +681,7 @@ const NewGenDB = {
       console.warn('LocalStorage save error:', e);
     }
     if (typeof window !== 'undefined') window.whyUsData = whyus;
+    NewGenDB.saveToSupabase('whyus', whyus);
   },
 
   // Categories (ระดับชั้น)
@@ -558,6 +699,7 @@ const NewGenDB = {
       console.warn('LocalStorage save error:', e);
     }
     if (typeof window !== 'undefined') window.categoriesData = categories;
+    NewGenDB.saveToSupabase('categories', categories);
   },
 
   // Privilege Banner (Item 3)
@@ -575,6 +717,7 @@ const NewGenDB = {
       console.warn('LocalStorage save error:', e);
     }
     if (typeof window !== 'undefined') window.privilegeData = privilege;
+    NewGenDB.saveToSupabase('privilege', privilege);
   },
 
   // Home Page Settings & Tutor Placement
@@ -592,6 +735,7 @@ const NewGenDB = {
       console.warn('LocalStorage save error:', e);
     }
     if (typeof window !== 'undefined') window.homeData = homeObj;
+    NewGenDB.saveToSupabase('home', homeObj);
   },
 
   // About Us & Inspiration
@@ -617,6 +761,7 @@ const NewGenDB = {
       } catch (err2) {}
     }
     if (typeof window !== 'undefined') window.aboutData = aboutObj;
+    NewGenDB.saveToSupabase('about', aboutObj);
   },
 
   // Reset to default
@@ -661,13 +806,16 @@ function resolveMediaUrl(url) {
   if (url.startsWith('uploads/') || url.startsWith('/uploads/')) {
     const cleanPath = url.startsWith('/') ? url.slice(1) : url;
     const base = getApiBaseUrl();
-    return base ? `${base}/${cleanPath}` : cleanPath;
+    if (base) return `${base}/${cleanPath}`;
+    // Fallback to Supabase Storage public URL when running in serverless mode
+    return `${SUPABASE_CONFIG.url}/storage/v1/object/public/${cleanPath}`;
   }
   return url;
 }
 
 // Initialize window variables
 if (typeof window !== 'undefined') {
+  window.SUPABASE_CONFIG = SUPABASE_CONFIG;
   window.getApiBaseUrl = getApiBaseUrl;
   window.resolveMediaUrl = resolveMediaUrl;
   window.NewGenDB = NewGenDB;
@@ -683,6 +831,9 @@ if (typeof window !== 'undefined') {
   window.whyUsData = NewGenDB.getWhyUs();
   window.homeData = NewGenDB.getHome();
   window.aboutData = NewGenDB.getAbout();
+
+  // Run cloud sync in background immediately
+  NewGenDB.syncFromSupabase();
 }
 
 /**

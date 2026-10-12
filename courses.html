@@ -261,6 +261,11 @@
       initAllCoursesPage();
     });
 
+    document.addEventListener('newgen:synced', () => {
+      renderCategoryFilterTabs();
+      renderCourses();
+    });
+
     let currentFilter = 'all';
     let searchQuery = '';
 
