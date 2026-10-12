@@ -1,0 +1,17 @@
+{
+  "name": "the-new-gen-web",
+  "version": "2.0.0",
+  "description": "The NEW GEN Tutoring Institute Official Website & Admin System",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [
+    "tutoring",
+    "education",
+    "the-new-gen",
+    "genz"
+  ],
+  "author": "The NEW GEN",
+  "license": "ISC"
+}

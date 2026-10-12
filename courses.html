@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>คอร์สเรียน Onsite ทั้งหมด | สถาบันกวดวิชา The NEW GEN</title>
+  <meta name="description" content="รวมคอร์สเรียน Onsite ทั้งหมดของสถาบันกวดวิชา The NEW GEN ประถมศึกษาและมัธยมศึกษาตอนต้น ติวสอบเข้า ม.1 และ ม.4">
+  
+  <link rel="icon" type="image/png" href="assets/images/tutor-au.jpg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Prompt:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body class="page-luxury">
+
+  <!-- ===================================================================
+       Navbar (Pure White with Deep Navy Links)
+       =================================================================== -->
+  <header class="site-header navbar-white scrolled" id="topHeader">
+    <div class="container navbar">
+      <a href="index.html" class="brand-logo" aria-label="หน้าแรก The NEW GEN">
+        <div class="brand-logo-badge">
+          <i class="fa-solid fa-bolt-lightning" style="color: var(--color-red-brand); font-size: 1.15rem;"></i>
+        </div>
+        <div>
+          <div class="brand-logo-text">
+            <span>The</span> <span class="new">NEW</span> <span class="gen">GEN</span>
+          </div>
+          <span class="brand-subtext">TUTORING INSTITUTE</span>
+        </div>
+      </a>
+
+      <nav class="nav-links">
+        <a href="index.html" class="nav-link">หน้าแรก</a>
+        <a href="tutors.html" class="nav-link">ทีมติวเตอร์</a>
+        <a href="courses.html" class="nav-link active">คอร์สเรียน onsite ทั้งหมด</a>
+        <a href="reviews.html" class="nav-link">ความสำเร็จของรุ่นพี่</a>
+        <a href="free-trial.html" class="nav-link">ทดลองเรียนฟรี</a>
+        <a href="about.html" class="nav-link">เกี่ยวกับเรา</a>
+        <a href="admin-login.html" class="btn-admin-nav" title="ระบบหลังบ้าน">
+          <i class="fa-solid fa-lock"></i> จัดการระบบ
+        </a>
+      </nav>
+
+      <button type="button" class="menu-toggle" aria-label="เปิดเมนูหลัก">
+        <i class="fa-solid fa-bars-staggered"></i>
+      </button>
+    </div>
+
+    <div class="mobile-menu">
+      <a href="index.html" class="mobile-nav-link">หน้าแรก</a>
+      <a href="tutors.html" class="mobile-nav-link">ทีมติวเตอร์</a>
+      <a href="courses.html" class="mobile-nav-link active">คอร์สเรียน onsite ทั้งหมด</a>
+      <a href="reviews.html" class="mobile-nav-link">ความสำเร็จของรุ่นพี่</a>
+      <a href="free-trial.html" class="mobile-nav-link">ทดลองเรียนฟรี</a>
+      <a href="about.html" class="mobile-nav-link">เกี่ยวกับเรา</a>
+      <a href="admin-login.html" class="mobile-nav-link" style="color: var(--color-red-brand);"><i class="fa-solid fa-lock"></i> จัดการระบบ (Admin)</a>
+    </div>
+  </header>
+
+  <!-- ===================================================================
+       Hero Banner
+       =================================================================== -->
+  <section class="subpage-hero">
+    <div class="container">
+      <div class="subpage-hero-badge">
+        <i class="fa-solid fa-graduation-cap"></i> Onsite Tutoring Curriculum
+      </div>
+      <h1 class="subpage-hero-title">
+        คอร์สเรียน Onsite <span class="text-navy">ทั้งหมด</span>
+      </h1>
+      <p class="subpage-hero-desc">
+        หลักสูตรเรียนสด Onsite กลุ่มเล็ก ดูแลใกล้ชิดโดยทีมติวเตอร์ The NEW GEN ปูพื้นฐานเข้มข้น ตะลุยโจทย์สอบแข่งขันและสอบเข้าโรงเรียนชั้นนำ
+      </p>
+    </div>
+  </section>
+
+  <!-- ===================================================================
+       Courses Content & Filters
+       =================================================================== -->
+  <main class="page-content-wrapper">
+    <div class="container">
+      
+      <!-- Filter and Search Toolbar -->
+      <div class="courses-toolbar">
+        <div class="filter-pill-group" id="courseFilterGroup">
+          <button type="button" class="filter-pill active" data-filter="all">
+            <i class="fa-solid fa-layer-group"></i> ทั้งหมด (<span id="countAll">0</span>)
+          </button>
+        </div>
+
+        <div class="search-box-wrap">
+          <i class="fa-solid fa-magnifying-glass search-icon"></i>
+          <input type="text" id="courseSearchInput" placeholder="ค้นหาชื่อคอร์ส หรือวิชาที่เปิดสอน..." class="search-input">
+        </div>
+      </div>
+
+      <!-- Courses Grid -->
+      <div class="all-courses-grid" id="allCoursesGrid">
+        <!-- Dynamically injected via JS -->
+      </div>
+
+      <!-- Empty State -->
+      <div class="courses-empty" id="coursesEmpty" style="display: none;">
+        <i class="fa-solid fa-circle-exclamation empty-icon"></i>
+        <h3>ไม่พบคอร์สเรียนที่ตรงกับคำค้นหา</h3>
+        <p>ลองค้นหาด้วยคำอื่น หรือกดดูทุกระดับชั้น</p>
+        <button type="button" class="btn-primary" onclick="resetFilters()">แสดงคอร์สทั้งหมด</button>
+      </div>
+
+      <!-- Feature Highlight Banner -->
+      <div class="luxury-info-banner">
+        <div class="banner-icon-box">
+          <i class="fa-solid fa-shield-halved"></i>
+        </div>
+        <div class="banner-text">
+          <h4>ทุกคอร์สสามารถแบ่งชำระได้ตามความสะดวกของผู้ปกครอง</h4>
+          <p>เรียนสด Onsite ห้องแอร์กลุ่มเล็ก บรรยากาศเป็นกันเอง พร้อมรับฟรีชุดเอกสารและแนวข้อสอบจริงตลอดภาคเรียน</p>
+        </div>
+        <div class="banner-action">
+          <a href="https://line.me/R/ti/p/~thenewgen" target="_blank" rel="noopener noreferrer" class="btn-luxury-line">
+            <i class="fa-brands fa-line"></i> สอบถามแอดมินทาง LINE
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- ===================================================================
+       Footer
+       =================================================================== -->
+  <footer class="site-footer" id="contact">
+    <div class="container">
+      <div class="footer-top">
+        <!-- Col 1: Brand Info -->
+        <div class="footer-brand">
+          <a href="#hero" class="brand-logo">
+            <div class="brand-logo-badge">
+              <i class="fa-solid fa-bolt-lightning" style="color: var(--color-cyan);"></i>
+            </div>
+            <div>
+              <div class="brand-logo-text">
+                <span>The</span> <span class="new">NEW</span> <span class="gen">GEN</span>
+              </div>
+              <span class="brand-subtext">TUTORING INSTITUTE</span>
+            </div>
+          </a>
+          <p class="footer-desc">
+            สถาบันกวดวิชา The NEW GEN กวดวิชาของเด็ก GENZ เรียนสนุก ครบทุกเนื้อหา จบที่ The NEW GEN 
+            พัฒนาทักษะวิชาการและความมั่นใจสู่อนาคตที่สดใส
+          </p>
+          <div class="footer-social-links">
+            <a href="https://www.facebook.com" target="_blank" rel="noopener noreferrer" class="social-icon-btn fb" title="Facebook Page: สถาบันกวดวิชา The NEW GEN">
+              <i class="fa-brands fa-facebook-f"></i>
+            </a>
+            <a href="https://line.me/R/ti/p/~thenewgen" target="_blank" rel="noopener noreferrer" class="social-icon-btn line" title="LINE: @thenewgen">
+              <i class="fa-brands fa-line"></i>
+            </a>
+            <a href="https://www.tiktok.com/@thenewgen" target="_blank" rel="noopener noreferrer" class="social-icon-btn tiktok" title="TikTok: @thenewgen">
+              <i class="fa-brands fa-tiktok"></i>
+            </a>
+            <a href="https://www.instagram.com/the._newgen" target="_blank" rel="noopener noreferrer" class="social-icon-btn ig" title="Instagram: the._newgen">
+              <i class="fa-brands fa-instagram"></i>
+            </a>
+            <a href="https://www.youtube.com/watch?v=OEBgi1xzb_c&t=4307s" target="_blank" rel="noopener noreferrer" class="social-icon-btn yt" title="YouTube Channel">
+              <i class="fa-brands fa-youtube"></i>
+            </a>
+            <a href="tel:0954721072" class="social-icon-btn phone" title="โทรติดต่อสอบถาม">
+              <i class="fa-solid fa-phone"></i>
+            </a>
+          </div>
+        </div>
+
+        <!-- Col 2: Navigation Links -->
+        <div class="footer-col">
+          <h3 class="footer-col-title">เมนูหลัก</h3>
+          <ul class="footer-nav-list">
+            <li><a href="index.html"><i class="fa-solid fa-angle-right"></i> หน้าแรก</a></li>
+            <li><a href="tutors.html"><i class="fa-solid fa-angle-right"></i> ทีมติวเตอร์</a></li>
+            <li><a href="courses.html"><i class="fa-solid fa-angle-right"></i> คอร์สเรียน onsite ทั้งหมด</a></li>
+            <li><a href="reviews.html"><i class="fa-solid fa-angle-right"></i> ความสำเร็จของรุ่นพี่</a></li>
+            <li><a href="free-trial.html"><i class="fa-solid fa-angle-right"></i> ทดลองเรียนฟรี</a></li>
+            <li><a href="about.html"><i class="fa-solid fa-angle-right"></i> เกี่ยวกับเรา</a></li>
+          </ul>
+        </div>
+
+        <!-- Col 3: Courses List -->
+        <div class="footer-col">
+          <h3 class="footer-col-title">คอร์สยอดนิยม</h3>
+          <ul class="footer-nav-list">
+            <li><a href="#courses"><i class="fa-solid fa-angle-right"></i> คอร์ส ป.4 - ป.5 (วิทย์-คณิต-อังกฤษ)</a></li>
+            <li><a href="#courses"><i class="fa-solid fa-angle-right"></i> ติวสอบเข้า ม.1 (ป.6 เข้มข้น)</a></li>
+            <li><a href="#courses"><i class="fa-solid fa-angle-right"></i> คอร์สปรับเกรด ม.1 - ม.2</a></li>
+            <li><a href="#courses"><i class="fa-solid fa-angle-right"></i> ติวสอบเข้า ม.4 (ม.3 โค้งสุดท้าย)</a></li>
+            <li><a href="#free-trial"><i class="fa-solid fa-angle-right"></i> วิดีโอทดลองเรียนฟรี</a></li>
+          </ul>
+        </div>
+
+        <!-- Col 4: Contact Info (ครบทุกช่องทาง พร้อม TikTok และ LINE) -->
+        <div class="footer-col">
+          <h3 class="footer-col-title">ช่องทางการติดต่อ</h3>
+          <div class="footer-contact-list">
+            <div class="contact-card-item">
+              <i class="fa-brands fa-line" style="color: #06c755; font-size: 1.35rem;"></i>
+              <div>
+                <span class="contact-highlight">LINE Official:</span><br>
+                <a href="https://line.me/R/ti/p/~thenewgen" target="_blank" rel="noopener noreferrer" style="color: #4ade80; font-weight: 700;">@thenewgen</a> <span style="color: #cbd5e1;">(ID: thenewgen)</span>
+              </div>
+            </div>
+            <div class="contact-card-item">
+              <i class="fa-brands fa-tiktok" style="color: #ffffff; font-size: 1.25rem;"></i>
+              <div>
+                <span class="contact-highlight">TikTok:</span><br>
+                <a href="https://www.tiktok.com/@thenewgen" target="_blank" rel="noopener noreferrer" style="color: #38bdf8; font-weight: 700;">@thenewgen</a> <span style="color: #cbd5e1;">(thenewgen)</span>
+              </div>
+            </div>
+            <div class="contact-card-item">
+              <i class="fa-brands fa-facebook" style="color: #60a5fa; font-size: 1.25rem;"></i>
+              <div>
+                <span class="contact-highlight">Facebook Page:</span><br>
+                <a href="https://www.facebook.com" target="_blank" rel="noopener noreferrer" style="color: #38bdf8; font-weight: 700;">สถาบันกวดวิชา The NEW GEN</a>
+              </div>
+            </div>
+            <div class="contact-card-item">
+              <i class="fa-brands fa-instagram" style="color: #f472b6; font-size: 1.25rem;"></i>
+              <div>
+                <span class="contact-highlight">Instagram:</span><br>
+                <a href="https://www.instagram.com" target="_blank" rel="noopener noreferrer" style="color: #38bdf8; font-weight: 700;">the.newgen (@the._newgen)</a>
+              </div>
+            </div>
+            <div class="contact-card-item">
+              <i class="fa-solid fa-phone" style="color: #38bdf8; font-size: 1.25rem;"></i>
+              <div>
+                <span class="contact-highlight">เบอร์โทรศัพท์:</span><br>
+                <a href="tel:0954721072" class="phone-number-link" style="color: #38bdf8; font-weight: 700; text-decoration: none;">095-4721072</a> <span class="phone-owner-text" style="color: #f1f5f9; font-weight: 600;">(พี่อู๋)</span><br>
+                <a href="tel:0985322791" class="phone-number-link" style="color: #38bdf8; font-weight: 700; text-decoration: none;">098-5322791</a> <span class="phone-owner-text" style="color: #f1f5f9; font-weight: 600;">(พี่นนท์)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer Bottom -->
+      <div class="footer-bottom">
+        <div>
+          © 2026 สถาบันกวดวิชา The NEW GEN. All Rights Reserved.
+        </div>
+        <div>
+          ออกแบบเพื่อเด็ก GEN Z โดยเฉพาะ • Onsite Tutoring Excellence
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="assets/js/courses-data.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      initAllCoursesPage();
+    });
+
+    let currentFilter = 'all';
+    let searchQuery = '';
+
+    function initAllCoursesPage() {
+      renderCategoryFilterTabs();
+      renderCourses();
+
+      const searchInput = document.getElementById('courseSearchInput');
+      searchInput?.addEventListener('input', (e) => {
+        searchQuery = e.target.value.toLowerCase().trim();
+        renderCourses();
+      });
+
+      // Mobile menu
+      const menuToggle = document.querySelector('.menu-toggle');
+      const mobileMenu = document.querySelector('.mobile-menu');
+      menuToggle?.addEventListener('click', () => {
+        mobileMenu?.classList.toggle('open');
+      });
+    }
+
+    function renderCategoryFilterTabs() {
+      const container = document.getElementById('courseFilterGroup');
+      if (!container) return;
+
+      const courses = window.NewGenDB ? window.NewGenDB.getCourses() : (window.courseData || []);
+      const categories = window.NewGenDB ? window.NewGenDB.getCategories() : (window.categoriesData || []);
+
+      let html = `
+        <button type="button" class="filter-pill ${currentFilter === 'all' ? 'active' : ''}" data-filter="all">
+          <i class="fa-solid fa-layer-group"></i> ทั้งหมด (<span id="countAll">${courses.length}</span>)
+        </button>
+      `;
+
+      categories.forEach(cat => {
+        const count = courses.filter(c => c.category === cat.id).length;
+        html += `
+          <button type="button" class="filter-pill ${currentFilter === cat.id ? 'active' : ''}" data-filter="${cat.id}">
+            <i class="${cat.icon || 'fa-solid fa-graduation-cap'}"></i> ${cat.name} (<span id="count_${cat.id}">${count}</span>)
+          </button>
+        `;
+      });
+
+      container.innerHTML = html;
+
+      // Re-attach click events
+      const filterBtns = container.querySelectorAll('.filter-pill');
+      filterBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          filterBtns.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          currentFilter = btn.getAttribute('data-filter');
+          renderCourses();
+        });
+      });
+    }
+
+    function renderCourses() {
+      const courses = window.NewGenDB ? window.NewGenDB.getCourses() : (window.courseData || []);
+      const categories = window.NewGenDB ? window.NewGenDB.getCategories() : (window.categoriesData || []);
+      const grid = document.getElementById('allCoursesGrid');
+      const emptyBox = document.getElementById('coursesEmpty');
+      if (!grid) return;
+
+      // Update counters
+      const countAll = document.getElementById('countAll');
+      if (countAll) countAll.textContent = courses.length;
+      categories.forEach(cat => {
+        const cEl = document.getElementById(`count_${cat.id}`);
+        if (cEl) cEl.textContent = courses.filter(c => c.category === cat.id).length;
+      });
+
+      let filtered = courses.filter(c => {
+        const matchesCategory = currentFilter === 'all' || c.category === currentFilter;
+        const matchesSearch = !searchQuery || 
+          c.title.toLowerCase().includes(searchQuery) || 
+          c.subjects.toLowerCase().includes(searchQuery) || 
+          (c.shortDesc && c.shortDesc.toLowerCase().includes(searchQuery));
+        return matchesCategory && matchesSearch;
+      });
+
+      if (filtered.length === 0) {
+        grid.innerHTML = '';
+        if (emptyBox) emptyBox.style.display = 'block';
+        return;
+      }
+
+      if (emptyBox) emptyBox.style.display = 'none';
+
+      grid.innerHTML = filtered.map(c => {
+        const matchedCat = categories.find(cat => cat.id === c.category);
+        const levelBadgeText = matchedCat ? matchedCat.name : (c.categoryLabel || (c.category === 'primary' ? 'ระดับประถมศึกษา' : 'ระดับมัธยมศึกษา'));
+
+        return `
+        <div class="course-card">
+          <a href="course-detail.html?id=${c.id}" class="course-thumbnail" aria-label="ดูรายละเอียด ${c.title}">
+            <img src="${c.cover || c.poster}" alt="${c.title}" loading="lazy">
+            <span class="course-badge-level">${levelBadgeText}</span>
+            <span class="badge ${c.statusClass} course-badge-status">${c.statusBadge}</span>
+          </a>
+          <div class="course-body">
+            <h3 class="course-title">
+              <a href="course-detail.html?id=${c.id}">${c.title}</a>
+            </h3>
+            <div class="course-subjects"><i class="fa-solid fa-graduation-cap"></i> ${c.subjects}</div>
+            <div class="course-meta-list">
+              <div class="course-meta-item">
+                <i class="fa-regular fa-clock"></i>
+                <span>เวลาเรียน: ${c.totalHours}</span>
+              </div>
+              <div class="course-meta-item">
+                <i class="fa-solid fa-chalkboard-user"></i>
+                <span>เรียนสด Onsite ได้ความรู้เต็มเปี่ยม</span>
+              </div>
+            </div>
+            <div class="course-footer">
+              <div class="course-price-wrap">
+                <span class="course-price-old">จาก ${c.priceOriginal}</span>
+                <span class="course-price-now">${c.pricePromo}.- <span>${c.priceUnit}</span></span>
+              </div>
+              <a href="course-detail.html?id=${c.id}" class="btn-detail-link">
+                รายละเอียด <i class="fa-solid fa-arrow-right"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+      `;
+      }).join('');
+    }
+
+    function resetFilters() {
+      currentFilter = 'all';
+      searchQuery = '';
+      const searchInput = document.getElementById('courseSearchInput');
+      if (searchInput) searchInput.value = '';
+      document.querySelectorAll('.filter-pill').forEach(b => {
+        b.classList.toggle('active', b.getAttribute('data-filter') === 'all');
+      });
+      renderCourses();
+    }
+  </script>
+  <script src="assets/js/main.js"></script>
+</body>
+</html>

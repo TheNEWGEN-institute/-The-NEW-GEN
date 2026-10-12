@@ -1,0 +1,1250 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ระบบจัดการหลังบ้าน (Admin Dashboard) | The NEW GEN</title>
+  
+  <link rel="icon" type="image/png" href="assets/images/tutor-au.jpg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Prompt:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body class="page-admin-body">
+
+  <!-- Admin Top Bar -->
+  <header class="admin-topbar">
+    <div class="admin-topbar-left">
+      <div class="brand-logo-badge" style="width: 38px; height: 38px;">
+        <i class="fa-solid fa-bolt-lightning" style="color: var(--color-red-brand); font-size: 1.1rem;"></i>
+      </div>
+      <div>
+        <div class="brand-logo-text" style="font-size: 1.15rem; color: #ffffff;">
+          <span>The</span> <span class="new">NEW</span> <span class="gen">GEN</span>
+        </div>
+        <span style="font-size: 0.72rem; color: rgba(255,255,255,0.7); font-weight: 600; letter-spacing: 1px;">ADMIN PANEL</span>
+      </div>
+    </div>
+
+    <div class="admin-topbar-right">
+      <a href="index.html" class="btn-admin-preview">
+        <i class="fa-solid fa-arrow-up-right-from-square"></i> ดูหน้าเว็บจริง
+      </a>
+      <button type="button" class="btn-admin-logout" onclick="logoutAdmin()">
+        <i class="fa-solid fa-right-from-bracket"></i> ออกจากระบบ
+      </button>
+    </div>
+  </header>
+
+  <!-- Admin Main Layout -->
+  <div class="admin-layout">
+    
+    <!-- Left Navigation Tabs -->
+    <aside class="admin-sidebar">
+      <div class="admin-user-pill">
+        <div class="admin-avatar">
+          <i class="fa-solid fa-user-shield"></i>
+        </div>
+        <div>
+          <div style="font-weight: 700; color: var(--color-navy); font-size: 0.95rem;">ผู้ดูแลระบบ (Admin)</div>
+          <span style="font-size: 0.78rem; color: #16a34a; font-weight: 600;"><i class="fa-solid fa-circle" style="font-size: 0.55rem;"></i> ออนไลน์</span>
+        </div>
+      </div>
+
+      <nav class="admin-nav-menu">
+        <button type="button" class="admin-nav-item active" onclick="switchAdminTab('courses', this)">
+          <i class="fa-solid fa-graduation-cap"></i> 1. จัดการคอร์สเรียน
+        </button>
+        <button type="button" class="admin-nav-item" onclick="switchAdminTab('home', this)">
+          <i class="fa-solid fa-house"></i> 2. จัดการหน้าแรก & ตำแหน่งติวเตอร์
+        </button>
+        <button type="button" class="admin-nav-item" onclick="switchAdminTab('tutors', this)">
+          <i class="fa-solid fa-user-tie"></i> 3. จัดการทีมติวเตอร์ (เรียงลำดับ)
+        </button>
+        <button type="button" class="admin-nav-item" onclick="switchAdminTab('about', this)">
+          <i class="fa-solid fa-heart-pulse"></i> 4. เกี่ยวกับเรา & แรงบันดาลใจ
+        </button>
+        <button type="button" class="admin-nav-item" onclick="switchAdminTab('reviews', this)">
+          <i class="fa-solid fa-comments"></i> 5. จัดการรีวิวจริงจากนักเรียน
+        </button>
+        <button type="button" class="admin-nav-item" onclick="switchAdminTab('videos', this)">
+          <i class="fa-brands fa-youtube"></i> 6. จัดการวิดีโอทดลองเรียนฟรี
+        </button>
+        <button type="button" class="admin-nav-item" onclick="switchAdminTab('contact', this)">
+          <i class="fa-solid fa-address-book"></i> 7. จัดการข้อมูลติดต่อ & แผนที่
+        </button>
+        <button type="button" class="admin-nav-item" onclick="switchAdminTab('whyus', this)">
+          <i class="fa-solid fa-star"></i> 8. ทำไมต้องเลือก The NEW GEN
+        </button>
+        <button type="button" class="admin-nav-item" onclick="switchAdminTab('backup', this)">
+          <i class="fa-solid fa-database"></i> 9. สำรอง & กู้คืนข้อมูล
+        </button>
+      </nav>
+    </aside>
+
+    <!-- Main Content Work Area -->
+    <main class="admin-main-area">
+      
+      <!-- ================= 1. COURSES TAB ================= -->
+      <section id="tab-courses" class="admin-tab-pane active">
+        <div class="admin-pane-header">
+          <div>
+            <h2><i class="fa-solid fa-graduation-cap" style="color: var(--color-navy);"></i> จัดการคอร์สเรียน (Courses Management)</h2>
+            <p>เพิ่มคอร์สใหม่ แก้ไขรูปภาพปก/โปสเตอร์ ราคา รายละเอียด และตารางเรียน</p>
+          </div>
+          <div style="display: flex; gap: 10px; align-items: center;">
+            <button type="button" class="btn-secondary" onclick="openCategoriesModal()">
+              <i class="fa-solid fa-tags"></i> จัดการระดับชั้นเรียน
+            </button>
+            <button type="button" class="btn-primary" onclick="openAddCourseModal()">
+              <i class="fa-solid fa-plus"></i> เพิ่มคอร์สเรียนใหม่
+            </button>
+          </div>
+        </div>
+
+        <div class="admin-table-card">
+          <table class="admin-data-table">
+            <thead>
+              <tr>
+                <th style="width: 80px;">รูปภาพ</th>
+                <th>ชื่อคอร์ส</th>
+                <th>ระดับชั้น</th>
+                <th>วิชาที่สอน</th>
+                <th>ราคาโปรโมชั่น</th>
+                <th>แนะนำหน้าแรก</th>
+                <th>สถานะ</th>
+                <th style="text-align: right;">จัดการ</th>
+              </tr>
+            </thead>
+            <tbody id="adminCoursesTableBody">
+              <!-- Dynamically populated via JS -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Privilege Banner Editor (Item 3: Editable from Admin) -->
+        <div class="admin-editor-card" style="margin-top: 24px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+            <h3 class="editor-section-title" style="margin: 0;"><i class="fa-solid fa-tags" style="color: var(--color-gold);"></i> ข้อความแถบสิทธิพิเศษหน้าแรก (Privilege Banner)</h3>
+            <button type="button" class="btn-primary" style="padding: 7px 18px; font-size: 0.85rem;" onclick="savePrivilegeForm()">
+              <i class="fa-solid fa-floppy-disk"></i> บันทึกสิทธิพิเศษ
+            </button>
+          </div>
+          <div class="form-row-2col">
+            <div class="form-group-luxury" style="flex: 1;">
+              <label>คำนำหน้า / ป้ายสิทธิพิเศษ *</label>
+              <input type="text" id="editPrivilegeBadge" placeholder="เช่น สิทธิพิเศษ:">
+            </div>
+            <div class="form-group-luxury" style="flex: 3;">
+              <label>ข้อความรายละเอียดสิทธิพิเศษ *</label>
+              <input type="text" id="editPrivilegeText" placeholder="เช่น ทุกคอร์สสามารถแบ่งชำระได้ พร้อมรับฟรี! เอกสารชุดติวและแนวข้อสอบจริงตลอดคอร์ส">
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 2. HOME TAB (คำพูดหน้าแรก & ตำแหน่งติวเตอร์) ================= -->
+      <section id="tab-home" class="admin-tab-pane">
+        <div class="admin-pane-header">
+          <div>
+            <h2><i class="fa-solid fa-house" style="color: var(--color-navy);"></i> จัดการหน้าแรก & ตำแหน่งติวเตอร์ (Home Page & Hero Showcase)</h2>
+            <p>ปรับแก้คำพูด/ข้อความต่าง ๆ ที่แสดงบนหน้าแรก และกำหนดตำแหน่งยืนของติวเตอร์ว่าใครยืนซ้าย กลาง หรือขวา</p>
+          </div>
+          <button type="button" class="btn-primary" onclick="saveHomeSettingsForm()">
+            <i class="fa-solid fa-floppy-disk"></i> บันทึกการตั้งค่าหน้าแรก
+          </button>
+        </div>
+
+        <!-- Section 1: Hero Tutor Placement -->
+        <div class="admin-editor-card" style="margin-bottom: 24px;">
+          <h3 class="editor-section-title">
+            <i class="fa-solid fa-people-group" style="color: var(--color-red-brand);"></i> กำหนดตำแหน่งติวเตอร์ประจำสถาบันบนหน้าแรก (Hero 3 Tutors Showcase)
+          </h3>
+          <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 16px;">
+            เลือกติวเตอร์ที่ต้องการให้ยืนในแต่ละตำแหน่งบนหน้าแรก โดยตำแหน่งตรงกลางจะยืนเด่นเป็นพิเศษ (Featured):
+          </p>
+          
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 16px;">
+            <!-- Left Tutor -->
+            <div style="background: #f8fafc; border: 1.5px solid #cbd5e1; border-radius: var(--radius-md); padding: 16px;">
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+                <span class="badge" style="background: #e0f2fe; color: #0369a1; font-weight: 700;">ตำแหน่งที่ 1 (ซ้าย)</span>
+              </div>
+              <label style="font-size: 0.88rem; font-weight: 700; color: var(--color-navy); margin-bottom: 6px; display: block;">เลือกติวเตอร์ยืนซ้าย *</label>
+              <select id="homeTutorLeft" onchange="updateHeroTutorPreview('left', this.value)" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.95rem; font-weight: 600;">
+                <!-- Populated dynamically -->
+              </select>
+              <div id="previewTutorLeft" style="margin-top: 12px; display: flex; align-items: center; gap: 12px; background: white; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0;"></div>
+            </div>
+
+            <!-- Center Tutor (Featured) -->
+            <div style="background: #fff7ed; border: 2px solid #f97316; border-radius: var(--radius-md); padding: 16px; box-shadow: 0 4px 12px rgba(249, 115, 22, 0.1);">
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+                <span class="badge" style="background: #ffedd5; color: #c2410c; font-weight: 800;">⭐ ตำแหน่งที่ 2 (ตรงกลาง - เด่นพิเศษ)</span>
+              </div>
+              <label style="font-size: 0.88rem; font-weight: 700; color: #9a3412; margin-bottom: 6px; display: block;">เลือกติวเตอร์ยืนกลาง *</label>
+              <select id="homeTutorCenter" onchange="updateHeroTutorPreview('center', this.value)" style="width: 100%; padding: 10px; border-radius: 8px; border: 1.5px solid #f97316; font-size: 0.95rem; font-weight: 700; background: #fff;">
+                <!-- Populated dynamically -->
+              </select>
+              <div id="previewTutorCenter" style="margin-top: 12px; display: flex; align-items: center; gap: 12px; background: white; padding: 10px; border-radius: 8px; border: 1px solid #fed7aa;"></div>
+            </div>
+
+            <!-- Right Tutor -->
+            <div style="background: #f8fafc; border: 1.5px solid #cbd5e1; border-radius: var(--radius-md); padding: 16px;">
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+                <span class="badge" style="background: #e0f2fe; color: #0369a1; font-weight: 700;">ตำแหน่งที่ 3 (ขวา)</span>
+              </div>
+              <label style="font-size: 0.88rem; font-weight: 700; color: var(--color-navy); margin-bottom: 6px; display: block;">เลือกติวเตอร์ยืนขวา *</label>
+              <select id="homeTutorRight" onchange="updateHeroTutorPreview('right', this.value)" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.95rem; font-weight: 600;">
+                <!-- Populated dynamically -->
+              </select>
+              <div id="previewTutorRight" style="margin-top: 12px; display: flex; align-items: center; gap: 12px; background: white; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0;"></div>
+            </div>
+          </div>
+
+          <div class="form-group-luxury" style="margin-bottom: 0;">
+            <label>ป้ายหัวข้อกล่องติวเตอร์ประจำสถาบัน (Tutors Header Pill)</label>
+            <input type="text" id="homeTutorsHeaderPill" placeholder="เช่น ทีมติวเตอร์ The NEW GEN ประจำสถาบัน">
+          </div>
+        </div>
+
+        <!-- Section 2: Home Page Texts -->
+        <div class="admin-editor-card">
+          <h3 class="editor-section-title">
+            <i class="fa-solid fa-pen-nib" style="color: var(--color-cyan);"></i> ปรับแก้คำพูด & ข้อความในหน้าแรก (Hero Section Texts)
+          </h3>
+          
+          <div class="form-row-2col">
+            <div class="form-group-luxury">
+              <label>ป้ายหัวข้อบนสุด (Hero Badge) *</label>
+              <input type="text" id="homeHeroBadge" placeholder="เช่น สถาบันกวดวิชาของเด็ก GEN Z ยุคใหม่ 🚀">
+            </div>
+            <div class="form-group-luxury">
+              <label>สโลแกน / หัวข้อย่อย (Hero Subtitle) *</label>
+              <input type="text" id="homeHeroSubtitle" placeholder="เช่น เรียนสนุก ครบทุกเนื้อหา จบที่ The NEW GEN">
+            </div>
+          </div>
+
+          <div class="form-group-luxury">
+            <label>ข้อความบรรยายแนะนำสถาบัน (Hero Lead Text) *</label>
+            <textarea id="homeHeroLeadText" rows="4" placeholder="เปิดสอนระดับชั้น ป.4 – ม.6 เน้นการเรียนการสอนแบบกลุ่มเล็ก..."></textarea>
+          </div>
+
+          <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 16px; border-radius: var(--radius-md); margin-top: 16px;">
+            <label style="color: #166534; font-weight: 800; font-size: 0.95rem; margin-bottom: 8px; display: block;">
+              <i class="fa-solid fa-circle-check"></i> จุดเด่น 3 ข้อ ใต้ปุ่ม (Trust Badges)
+            </label>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px;">
+              <input type="text" id="homeTrustBadge1" placeholder="เช่น 100% ทีมติวเตอร์ The NEW GEN">
+              <input type="text" id="homeTrustBadge2" placeholder="เช่น Onsite กลุ่มเล็กดูแลทั่วถึง">
+              <input type="text" id="homeTrustBadge3" placeholder="เช่น แบ่งชำระค่าเรียนได้">
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 3. TUTORS TAB (เรียงลำดับติวเตอร์ได้) ================= -->
+      <section id="tab-tutors" class="admin-tab-pane">
+        <div class="admin-pane-header">
+          <div>
+            <h2><i class="fa-solid fa-user-tie" style="color: var(--color-navy);"></i> จัดการทีมติวเตอร์ & เรียงลำดับ (Tutors Management)</h2>
+            <p>เพิ่มติวเตอร์ใหม่ เรียงลำดับว่าเอาใครขึ้นก่อน-หลังในหน้าทีมติวเตอร์ อัปโหลดรูปภาพ และแก้ไขประวัติ</p>
+          </div>
+          <button type="button" class="btn-primary" onclick="openAddTutorModal()">
+            <i class="fa-solid fa-plus"></i> เพิ่มติวเตอร์ใหม่
+          </button>
+        </div>
+
+        <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: var(--radius-md); padding: 12px 18px; margin-bottom: 16px; display: flex; align-items: center; gap: 12px; color: #1e40af; font-size: 0.9rem;">
+          <i class="fa-solid fa-circle-info" style="font-size: 1.2rem; color: #2563eb;"></i>
+          <div>
+            <strong>การเรียงลำดับติวเตอร์:</strong> สามารถกดปุ่ม <span style="background: #dbeafe; padding: 2px 6px; border-radius: 4px; font-weight: 700;">▲ เลื่อนขึ้น</span> หรือ <span style="background: #dbeafe; padding: 2px 6px; border-radius: 4px; font-weight: 700;">▼ เลื่อนลง</span> ในตาราง เพื่อจัดลำดับว่าใครจะแสดงก่อน-หลังในหน้าทีมติวเตอร์ (tutors.html) ได้ทันที!
+          </div>
+        </div>
+
+        <div class="admin-table-card">
+          <table class="admin-data-table">
+            <thead>
+              <tr>
+                <th style="width: 60px; text-align: center;">ลำดับ</th>
+                <th style="width: 100px; text-align: center;">เลื่อนตำแหน่ง</th>
+                <th style="width: 70px;">รูปภาพ</th>
+                <th>ชื่อติวเตอร์</th>
+                <th>เกียรตินิยม / วุฒิการศึกษา</th>
+                <th>วิชาที่สอน</th>
+                <th style="text-align: right;">จัดการ</th>
+              </tr>
+            </thead>
+            <tbody id="adminTutorsTableBody">
+              <!-- Dynamically populated via JS -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Quote Banner Editor for Tutors Page -->
+        <div class="admin-editor-card" style="margin-top: 24px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+            <h3 class="editor-section-title" style="margin: 0;"><i class="fa-solid fa-quote-left" style="color: var(--color-gold);"></i> ข้อความคำคม / วิสัยทัศน์ในหน้าทีมติวเตอร์ (Quote Banner)</h3>
+            <button type="button" class="btn-primary" style="padding: 7px 18px; font-size: 0.85rem;" onclick="saveTutorsQuoteForm()">
+              <i class="fa-solid fa-floppy-disk"></i> บันทึกคำคม
+            </button>
+          </div>
+          <div class="form-group-luxury">
+            <label>ข้อความคำคม / วิสัยทัศน์ *</label>
+            <textarea id="editTutorQuoteText" rows="3" placeholder="เป้าหมายของเราไม่ใช่แค่การติวให้ผ่านข้อสอบ แต่คือการสร้างทัศนคติที่ดีต่อการเรียนรู้..."></textarea>
+          </div>
+          <div class="form-group-luxury">
+            <label>ผู้กล่าว / สถาบัน</label>
+            <input type="text" id="editTutorQuoteAuthor" placeholder="— ทีมติวเตอร์ The NEW GEN">
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 4. ABOUT TAB (แรงบันดาลใจในการเป็น The NEW GEN) ================= -->
+      <section id="tab-about" class="admin-tab-pane">
+        <div class="admin-pane-header">
+          <div>
+            <h2><i class="fa-solid fa-heart-pulse" style="color: var(--color-red-brand);"></i> จัดการเกี่ยวกับเรา & แรงบันดาลใจ (About Us & Inspiration)</h2>
+            <p>แก้ไขเนื้อหาเรื่องราว "แรงบันดาลใจในการเป็น The NEW GEN", อัปโหลดรูปภาพเด่น, เพิ่มรูปภาพบรรยากาศ และข้อความบรรยาย</p>
+          </div>
+          <button type="button" class="btn-primary" id="btnSaveAbout" onclick="saveAboutSettingsForm()">
+            <i class="fa-solid fa-floppy-disk"></i> บันทึกข้อมูลเกี่ยวกับเรา
+          </button>
+        </div>
+
+        <div class="admin-editor-card" style="margin-bottom: 24px;">
+          <h3 class="editor-section-title">
+            <i class="fa-solid fa-lightbulb" style="color: var(--color-gold);"></i> ข้อมูลหลัก & เรื่องเล่าแรงบันดาลใจ
+          </h3>
+          
+          <div class="form-row-2col">
+            <div class="form-group-luxury">
+              <label>ป้ายหัวข้อย่อย (Badge) *</label>
+              <input type="text" id="aboutBadge" placeholder="เช่น OUR INSPIRATION & STORY">
+            </div>
+            <div class="form-group-luxury">
+              <label>หัวข้อหลัก (Title) *</label>
+              <input type="text" id="aboutTitle" placeholder="เช่น แรงบันดาลใจในการเป็น The NEW GEN">
+            </div>
+          </div>
+
+          <div class="form-group-luxury">
+            <label>คำโปรยย่อย / สโลแกน (Subtitle) *</label>
+            <input type="text" id="aboutSubtitle" placeholder="เช่น กวดวิชาที่ไม่ใช่แค่ติวให้สอบผ่าน แต่คือพื้นที่สร้างอนาคตและจุดประกายความฝันของเด็ก GEN Z">
+          </div>
+
+          <!-- Main Story Image -->
+          <div class="form-group-luxury" style="background: #f0f7ff; border: 1.5px solid #bfdbfe; padding: 16px; border-radius: var(--radius-md);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; flex-wrap: wrap; gap: 6px;">
+              <label style="color: #1e40af; font-weight: 800; font-size: 0.95rem; margin: 0;">
+                <i class="fa-solid fa-image"></i> รูปภาพเด่นหลักของเรื่องราว (Main Story Image) *
+              </label>
+              <span id="aboutMainImgStatus" style="font-size: 0.82rem; font-weight: 700; color: #16a34a; display: none;"></span>
+            </div>
+            <p style="font-size: 0.82rem; color: #3b82f6; margin: 2px 0 8px 0;">
+              รูปภาพนี้จะแสดงเด่นอยู่ข้างเรื่องเล่าแรงบันดาลใจ สามารถอัปโหลดรูปภาพบรรยากาศการสอน หรือรูปทีมงานได้
+            </p>
+            <div class="img-upload-field-row">
+              <input type="file" id="aboutMainImgFile" accept="image/*" onchange="previewUploadImage(event, 'aboutMainImgPreview', 'aboutMainImgUrl', 'aboutMainImgStatus')">
+              <input type="text" id="aboutMainImgUrl" placeholder="assets/images/course-poster-primary.jpg">
+            </div>
+            <div class="upload-preview-box" style="height: 180px; margin-top: 8px;">
+              <img id="aboutMainImgPreview" src="assets/images/course-poster-primary.jpg" alt="Preview" style="max-height: 100%; object-fit: contain;">
+            </div>
+          </div>
+
+          <div class="form-group-luxury">
+            <label>เนื้อหาเรื่องราว / ข้อความแรงบันดาลใจ (Paragraphs) *</label>
+            <textarea id="aboutParagraphs" rows="6" placeholder="พิมพ์เรื่องเล่าแรงบันดาลใจที่นี่ สามารถเว้นวรรคขึ้นย่อหน้าใหม่ได้อิสระ..."></textarea>
+            <small style="color: var(--text-muted); display: block; margin-top: 4px;">ระบบจะจัดย่อหน้าให้อัตโนมัติเมื่อกดเว้นวรรคบรรทัดใหม่</small>
+          </div>
+        </div>
+
+        <!-- Extra Gallery Photos -->
+        <div class="admin-editor-card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+            <div>
+              <h3 class="editor-section-title" style="margin: 0;">
+                <i class="fa-solid fa-images" style="color: var(--color-red-brand);"></i> รูปภาพบรรยากาศ & ภาพกิจกรรมประกอบ (Atmosphere Gallery)
+              </h3>
+              <p style="font-size: 0.82rem; color: var(--text-muted); margin: 2px 0 0 0;">
+                กดเพิ่มรูปภาพได้ตามต้องการ พร้อมใส่คำบรรยายใต้รูปภาพ
+              </p>
+            </div>
+            <button type="button" class="btn-secondary" style="padding: 7px 16px; font-size: 0.85rem;" onclick="addAboutGalleryRow('', '')">
+              <i class="fa-solid fa-plus"></i> เพิ่มรูปภาพประกอบ
+            </button>
+          </div>
+
+          <div id="aboutGalleryContainer" class="admin-builder-container"></div>
+        </div>
+      </section>
+
+      <!-- ================= 3. REVIEWS TAB ================= -->
+      <section id="tab-reviews" class="admin-tab-pane">
+        <div class="admin-pane-header">
+          <div>
+            <h2><i class="fa-solid fa-comments" style="color: var(--color-cyan);"></i> จัดการรีวิวจริงจากนักเรียน The NEW GEN</h2>
+            <p>อัปโหลดรูปภาพรีวิวจริงของเด็กๆ (ภาพแชตไลน์ / ผลคะแนน / ใบประกาศ) พร้อมชื่อและโรงเรียนใต้รูป</p>
+          </div>
+          <button type="button" class="btn-primary" onclick="openAddReviewModal()">
+            <i class="fa-solid fa-plus"></i> เพิ่มรีวิวนักเรียนใหม่
+          </button>
+        </div>
+
+        <div class="admin-table-card">
+          <table class="admin-data-table">
+            <thead>
+              <tr>
+                <th style="width: 90px;">รูปภาพรีวิว</th>
+                <th>ชื่อนักเรียน / ผู้ปกครอง</th>
+                <th>โรงเรียน / ระดับชั้น</th>
+                <th>ผลคะแนน / ความสำเร็จ</th>
+                <th style="width: 110px; text-align: center;">โชว์หน้าแรก</th>
+                <th style="text-align: right;">จัดการ</th>
+              </tr>
+            </thead>
+            <tbody id="adminReviewsTableBody">
+              <!-- Dynamically populated via JS -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Hall of Fame / Achievement Posters Section -->
+        <div class="admin-pane-header" style="margin-top: 40px; padding-top: 24px; border-top: 2px dashed #e2e8f0;">
+          <div>
+            <h2 style="font-size: 1.3rem;"><i class="fa-solid fa-award" style="color: var(--color-gold);"></i> โปสเตอร์ความสำเร็จ & แกลเลอรีผลงาน (Hall of Fame Gallery)</h2>
+            <p>จัดการโปสเตอร์ประกาศผลสอบติด ภาพกิจกรรม และผลงานความสำเร็จขนาดใหญ่ที่โชว์ในหน้ารีวิว</p>
+          </div>
+          <button type="button" class="btn-primary" onclick="openAddAchievementModal()">
+            <i class="fa-solid fa-plus"></i> เพิ่มโปสเตอร์ความสำเร็จ
+          </button>
+        </div>
+
+        <div class="admin-table-card">
+          <table class="admin-data-table">
+            <thead>
+              <tr>
+                <th style="width: 100px;">รูปโปสเตอร์</th>
+                <th>ชื่อหัวข้อ / ความสำเร็จ</th>
+                <th>ปีการศึกษา / วันที่</th>
+                <th>รายละเอียดสั้นๆ</th>
+                <th style="text-align: right;">จัดการ</th>
+              </tr>
+            </thead>
+            <tbody id="adminAchievementsTableBody">
+              <!-- Dynamically populated via JS -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ================= 4. VIDEOS TAB ================= -->
+      <section id="tab-videos" class="admin-tab-pane">
+        <div class="admin-pane-header">
+          <div>
+            <h2><i class="fa-brands fa-youtube" style="color: var(--color-red-brand);"></i> จัดการวิดีโอทดลองเรียนฟรี (Free Trial Videos)</h2>
+            <p>เพิ่มหัวข้อบทเรียน ใส่ลิงก์ YouTube เพื่อดึงวิดีโอมาโชว์บนหน้าเว็บ</p>
+          </div>
+          <button type="button" class="btn-primary" onclick="openAddVideoModal()">
+            <i class="fa-solid fa-plus"></i> เพิ่มวิดีโอใหม่
+          </button>
+        </div>
+
+        <div class="admin-table-card">
+          <table class="admin-data-table">
+            <thead>
+              <tr>
+                <th style="width: 100px;">ภาพตัวอย่าง</th>
+                <th>ชื่อหัวข้อวิดีโอ</th>
+                <th>หมวดวิชา</th>
+                <th>ติวเตอร์ผู้สอน</th>
+                <th>YouTube Video ID</th>
+                <th style="text-align: right;">จัดการ</th>
+              </tr>
+            </thead>
+            <tbody id="adminVideosTableBody">
+              <!-- Dynamically populated via JS -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ================= 5. CONTACT TAB ================= -->
+      <section id="tab-contact" class="admin-tab-pane">
+        <div class="admin-pane-header">
+          <div>
+            <h2><i class="fa-solid fa-address-book" style="color: var(--color-navy);"></i> จัดการข้อมูลติดต่อ & แผนที่ (Contact Info Management)</h2>
+            <p>แก้ไขเบอร์โทร (เพิ่ม/ลบเบอร์ได้), LINE, Facebook, TikTok, Instagram, และลิงก์ Google Maps</p>
+          </div>
+          <button type="button" class="btn-primary" onclick="saveContactForm()">
+            <i class="fa-solid fa-floppy-disk"></i> บันทึกข้อมูลติดต่อทั้งหมด
+          </button>
+        </div>
+
+        <div class="admin-contact-editor-grid">
+          <!-- Left: Social & General -->
+          <div class="admin-editor-card">
+            <h3 class="editor-section-title"><i class="fa-solid fa-share-nodes"></i> ช่องทางโซเชียลมีเดีย & LINE</h3>
+            
+            <div class="form-group-luxury">
+              <label>LINE ID (เช่น @thenewgen)</label>
+              <input type="text" id="editContactLineId">
+            </div>
+
+            <div class="form-group-luxury">
+              <label>ลิงก์ LINE Official (เช่น https://line.me/R/ti/p/~thenewgen)</label>
+              <input type="text" id="editContactLineUrl">
+            </div>
+
+            <div class="form-group-luxury">
+              <label>ชื่อเพจ Facebook</label>
+              <input type="text" id="editContactFbName">
+            </div>
+
+            <div class="form-group-luxury">
+              <label>ลิงก์เพจ Facebook (เช่น https://www.facebook.com/thenewgen)</label>
+              <input type="text" id="editContactFbUrl" placeholder="https://www.facebook.com/...">
+            </div>
+
+            <div class="form-row-2col">
+              <div class="form-group-luxury">
+                <label>ชื่อบัญชี TikTok (เช่น @thenewgen)</label>
+                <input type="text" id="editContactTiktok" placeholder="@thenewgen">
+              </div>
+              <div class="form-group-luxury">
+                <label>ลิงก์ TikTok (เช่น https://www.tiktok.com/@thenewgen)</label>
+                <input type="text" id="editContactTiktokUrl" placeholder="https://www.tiktok.com/@...">
+              </div>
+            </div>
+
+            <div class="form-row-2col">
+              <div class="form-group-luxury">
+                <label>ชื่อบัญชี Instagram (เช่น the.newgen)</label>
+                <input type="text" id="editContactIg" placeholder="the.newgen">
+              </div>
+              <div class="form-group-luxury">
+                <label>ลิงก์ Instagram (เช่น https://www.instagram.com/the._newgen)</label>
+                <input type="text" id="editContactIgUrl" placeholder="https://www.instagram.com/...">
+              </div>
+            </div>
+
+            <div class="form-group-luxury">
+              <label>ลิงก์ช่อง YouTube (เช่น https://www.youtube.com/...)</label>
+              <input type="text" id="editContactYtUrl" placeholder="https://www.youtube.com/...">
+            </div>
+
+            <div class="form-group-luxury">
+              <label>ที่อยู่สถาบัน (เรียนสด Onsite)</label>
+              <textarea id="editContactAddress" rows="3" placeholder="480/3 หมู่ 13 นวนคร ตำบลคลองหนึ่ง อำเภอคลองหลวง จังหวัดปทุมธานี 12120"></textarea>
+            </div>
+          </div>
+
+          <!-- Right: Phones & Google Map -->
+          <div class="admin-editor-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+              <h3 class="editor-section-title" style="margin: 0;"><i class="fa-solid fa-phone"></i> เบอร์โทรศัพท์ติดต่อ</h3>
+              <button type="button" class="btn-secondary" style="padding: 6px 14px; font-size: 0.82rem;" onclick="addPhoneRow()">
+                <i class="fa-solid fa-plus"></i> เพิ่มเบอร์โทร
+              </button>
+            </div>
+            
+            <div id="adminPhonesContainer" class="admin-phones-builder">
+              <!-- Dynamically populated via JS -->
+            </div>
+
+            <h3 class="editor-section-title" style="margin-top: 28px;"><i class="fa-solid fa-map-location-dot"></i> ลิงก์แผนที่ Google Maps & แอปนำทาง</h3>
+            
+            <div class="form-group-luxury">
+              <label>ลิงก์เปิดใน Google Maps แอปพลิเคชัน (URL นำทาง เช่น https://maps.app.goo.gl/...)</label>
+              <input type="text" id="editContactMapAppUrl" placeholder="https://maps.app.goo.gl/..." style="width: 100%;">
+              <small style="color: var(--text-muted); display: block; margin-top: 4px;">ใช้สำหรับปุ่ม "เปิดใน Google Maps แอปพลิเคชัน (นำทาง)" เพื่อให้กดแล้วเด้งเปิดแอป Maps ทันที</small>
+            </div>
+
+            <div class="form-group-luxury">
+              <label>ลิงก์ฝังแผนที่แสดงบนเว็บ (src จากแท็ก iframe ของ Google Maps)</label>
+              <textarea id="editContactMapUrl" rows="3" placeholder="https://www.google.com/maps/embed?..."></textarea>
+            </div>
+          </div>
+
+          <!-- Bottom Save Action Bar -->
+          <div style="grid-column: 1 / -1; display: flex; justify-content: flex-end; padding-top: 10px;">
+            <button type="button" class="btn-primary" onclick="saveContactForm()" style="padding: 13px 32px; font-size: 1rem; box-shadow: 0 4px 15px rgba(11,30,63,0.25);">
+              <i class="fa-solid fa-floppy-disk"></i> บันทึกข้อมูลติดต่อทั้งหมด
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 6. WHY US TAB ================= -->
+      <section id="tab-whyus" class="admin-tab-pane">
+        <div class="admin-pane-header">
+          <div>
+            <h2><i class="fa-solid fa-star" style="color: var(--color-gold);"></i> จัดการ "ทำไมต้องเลือก The NEW GEN"</h2>
+            <p>แก้ไขข้อความหัวข้อ คำบรรยาย และการ์ดจุดเด่น 4 กล่อง (หรือเพิ่ม/ลบจุดเด่นใหม่ได้ตามต้องการ)</p>
+          </div>
+          <button type="button" class="btn-primary" onclick="openAddWhyUsModal()">
+            <i class="fa-solid fa-plus"></i> เพิ่มจุดเด่นใหม่
+          </button>
+        </div>
+
+        <!-- Section Header Settings -->
+        <div class="admin-whyus-header-card">
+          <h3 class="editor-section-title"><i class="fa-solid fa-pen-nib"></i> ข้อความส่วนหัวของหัวข้อ (Header Text)</h3>
+          <div class="form-row-2col">
+            <div class="form-group-luxury">
+              <label>หัวข้อย่อยด้านบน (เช่น WHY CHOOSE US)</label>
+              <input type="text" id="whySubtitleInput" placeholder="WHY CHOOSE US">
+            </div>
+            <div class="form-group-luxury">
+              <label>หัวข้อหลัก (เช่น ทำไมต้องเลือก The NEW GEN)</label>
+              <input type="text" id="whyTitleInput" placeholder="ทำไมต้องเลือก The NEW GEN">
+            </div>
+          </div>
+          <div class="form-group-luxury">
+            <label>คำอธิบายใต้หัวข้อหลัก</label>
+            <input type="text" id="whyDescInput" placeholder="เราไม่ได้แค่สอนให้จำ แต่เราสอนให้เข้าใจและนำไปใช้ทำข้อสอบได้จริง">
+          </div>
+          <div style="display: flex; justify-content: flex-end; margin-top: 12px;">
+            <button type="button" class="btn-primary" onclick="saveWhyUsHeader()"><i class="fa-solid fa-floppy-disk"></i> บันทึกข้อความส่วนหัว</button>
+          </div>
+        </div>
+
+        <!-- Feature Cards List -->
+        <div style="margin-top: 24px;">
+          <h3 class="editor-section-title"><i class="fa-solid fa-boxes-stacked"></i> การ์ดจุดเด่นที่แสดงบนหน้าเว็บ</h3>
+          <div id="adminWhyUsGrid" class="admin-whyus-items-grid">
+            <!-- Dynamically populated via JS -->
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 7. BACKUP & RESET TAB ================= -->
+      <section id="tab-backup" class="admin-tab-pane">
+        <div class="admin-pane-header">
+          <div>
+            <h2><i class="fa-solid fa-database" style="color: var(--color-navy);"></i> สำรองและกู้คืนข้อมูล (Backup & Restore)</h2>
+            <p>บันทึกข้อมูลทั้งหมดเก็บไว้ในเครื่อง หรือนำเข้าข้อมูลเดิมได้ตลอดเวลา</p>
+          </div>
+        </div>
+
+        <div class="admin-editor-card" style="max-width: 700px;">
+          <div class="backup-action-row">
+            <div>
+              <h4><i class="fa-solid fa-download"></i> ดาวน์โหลดไฟล์ข้อมูลสำรอง (Export JSON)</h4>
+              <p>ดาวน์โหลดข้อมูลคอร์ส ติวเตอร์ รีวิว วิดีโอ และข้อมูลติดต่อทั้งหมดเก็บไว้เป็นไฟล์ JSON ในคอมพิวเตอร์</p>
+            </div>
+            <button type="button" class="btn-primary" onclick="exportDataToJson()">
+              <i class="fa-solid fa-download"></i> ดาวน์โหลด JSON
+            </button>
+          </div>
+
+          <hr style="margin: 20px 0; border: none; border-top: 1px solid var(--border-light);">
+
+          <div class="backup-action-row">
+            <div>
+              <h4><i class="fa-solid fa-upload"></i> นำเข้าข้อมูลจากไฟล์สำรอง (Import JSON)</h4>
+              <p>เลือกไฟล์ JSON ที่เคยบันทึกไว้เพื่อนำข้อมูลกลับมาใช้งาน</p>
+            </div>
+            <input type="file" id="importJsonFileInput" accept=".json" style="display: none;" onchange="importDataFromJson(event)">
+            <button type="button" class="btn-secondary" onclick="document.getElementById('importJsonFileInput').click()">
+              <i class="fa-solid fa-upload"></i> เลือกไฟล์ JSON
+            </button>
+          </div>
+
+          <hr style="margin: 20px 0; border: none; border-top: 1px solid var(--border-light);">
+
+          <div class="backup-action-row">
+            <div>
+              <h4 style="color: var(--color-red-brand);"><i class="fa-solid fa-rotate-left"></i> รีเซ็ตข้อมูลกลับสู่ค่าเริ่มต้นสถาบัน</h4>
+              <p>ล้างการแก้ไขทั้งหมด และนำข้อมูลคอร์สและติวเตอร์ตั้งต้น 100% กลับมา</p>
+            </div>
+            <button type="button" class="btn-danger-outline" onclick="resetToSystemDefaults()">
+              <i class="fa-solid fa-triangle-exclamation"></i> รีเซ็ตค่าเริ่มต้น
+            </button>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ================= MODALS ================= -->
+  
+  <!-- Course Edit/Add Modal -->
+  <div class="admin-modal-backdrop" id="modalCourse">
+    <div class="admin-modal-card modal-card-wide">
+      <div class="admin-modal-header">
+        <h3 id="modalCourseTitle">เพิ่มคอร์สเรียนใหม่</h3>
+        <button type="button" class="admin-modal-close" onclick="closeModal('modalCourse')"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form id="formCourse" onsubmit="handleSaveCourse(event)">
+        <input type="hidden" id="courseEditId">
+        <div class="admin-modal-body">
+          <div class="form-row-2col">
+            <div class="form-group-luxury">
+              <label>ชื่อคอร์สเรียน *</label>
+              <input type="text" id="cTitle" required placeholder="เช่น คอร์สเปิดเทอม 2/69 (ป.4 - ป.5)">
+            </div>
+            <div class="form-group-luxury">
+              <label>ระดับชั้น *</label>
+              <select id="cCategory" required>
+                <!-- Dynamically populated from NewGenDB.getCategories() -->
+                <option value="primary">ประถมศึกษา (ป.4 - ป.6)</option>
+                <option value="secondary">มัธยมศึกษาตอนต้น (ม.1 - ม.3)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row-2col">
+            <div class="form-group-luxury">
+              <label>วิชาที่เปิดสอน *</label>
+              <input type="text" id="cSubjects" required placeholder="เช่น วิทยาศาสตร์ • คณิตศาสตร์ • ภาษาอังกฤษ">
+            </div>
+            <div class="form-group-luxury">
+              <label>สถานะคอร์ส</label>
+              <select id="cStatus">
+                <option value="เปิดรับสมัคร|badge-emerald">เปิดรับสมัคร</option>
+                <option value="🔥 โควตาใกล้เต็ม|badge-red">🔥 โควตาใกล้เต็ม</option>
+                <option value="🛑 เต็มแล้ว|badge-red">🛑 เต็มแล้ว</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row-2col">
+            <div class="form-group-luxury">
+              <label>ราคาเต็ม (เดิม)</label>
+              <input type="text" id="cPriceOld" placeholder="เช่น 5,900 บ.">
+            </div>
+            <div class="form-group-luxury">
+              <label>ราคาโปรโมชั่น *</label>
+              <input type="text" id="cPricePromo" required placeholder="เช่น 4,500">
+            </div>
+          </div>
+
+          <div class="form-row-2col">
+            <div class="form-group-luxury">
+              <label>หน่วยราคา / การแบ่งชำระ</label>
+              <input type="text" id="cPriceUnit" placeholder="เช่น บาท / เทอม (แบ่งชำระได้)">
+            </div>
+            <div class="form-group-luxury">
+              <label>จำนวนชั่วโมงเรียน</label>
+              <input type="text" id="cTotalHours" placeholder="เช่น 42 ชั่วโมง (รายเทอม) / 20 ชม. (รายเดือน)">
+            </div>
+          </div>
+
+          <!-- Image Upload & Preview -->
+          <div class="form-group-luxury">
+            <label>รูปภาพปก / โปสเตอร์คอร์สหลัก (อัปโหลดรูปภาพ หรือใส่ URL)</label>
+            <div class="img-upload-field-row">
+              <input type="file" id="cImgFile" accept="image/*" onchange="previewUploadImage(event, 'cImgPreview', 'cImgUrl')">
+              <input type="text" id="cImgUrl" placeholder="assets/images/course-poster-primary.jpg">
+            </div>
+            <div class="upload-preview-box">
+              <img id="cImgPreview" src="assets/images/course-poster-primary.jpg" alt="Preview">
+            </div>
+          </div>
+
+          <!-- Extra Large Images / Gallery Builder (Item 4) -->
+          <div class="form-group-luxury" style="background: #f8fafc; border: 1.5px solid #cbd5e1; padding: 16px; border-radius: var(--radius-md);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
+              <div>
+                <label style="margin: 0; color: var(--color-navy); font-weight: 800; font-size: 0.95rem;">
+                  <i class="fa-solid fa-images" style="color: var(--color-cyan);"></i> เพิ่มรูปภาพขนาดใหญ่เพิ่มเติม (Gallery Posters)
+                </label>
+                <small style="color: var(--text-muted); display: block;">กดเพิ่มรูปภาพขนาดใหญ่ได้ตามต้องการ เพื่อแสดงไว้ด้านบนของหน้ารายละเอียดคอร์ส</small>
+              </div>
+              <button type="button" class="btn-xs-action" style="background: #0284c7; color: white;" onclick="addCourseGalleryRow('')">
+                <i class="fa-solid fa-plus"></i> เพิ่มรูปภาพเพิ่มเติม
+              </button>
+            </div>
+            <div id="courseGalleryContainer" class="admin-builder-container"></div>
+          </div>
+
+          <div class="form-group-luxury">
+            <label>คำอธิบายสั้นๆ ของคอร์ส</label>
+            <textarea id="cShortDesc" rows="2" placeholder="ปูพื้นฐาน 3 วิชาหลักให้แน่น เข้าใจหลักการคิด ไม่เน้นท่องจำ..."></textarea>
+          </div>
+
+          <!-- Highlights Builder -->
+          <div class="form-group-luxury" style="background: #fdfcf7; border: 1px solid #fef3c7; padding: 16px; border-radius: var(--radius-md);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+              <div>
+                <label style="margin: 0; color: #92400e; font-weight: 800; font-size: 0.95rem;">
+                  <i class="fa-solid fa-star" style="color: var(--color-gold);"></i> จุดเด่นและสิทธิประโยชน์ของคอร์สนี้ (Highlights)
+                </label>
+                <small style="color: #b45309; display: block;">แสดงเป็นข้อๆ ในหน้าดูรายละเอียดคอร์ส</small>
+              </div>
+              <button type="button" class="btn-xs-action" onclick="addHighlightInputRow('')">
+                <i class="fa-solid fa-plus"></i> เพิ่มจุดเด่น
+              </button>
+            </div>
+            <div id="courseHighlightsContainer" class="admin-builder-container"></div>
+          </div>
+
+          <!-- Target Audience (Item 4) -->
+          <div class="form-group-luxury" style="background: #eff6ff; border: 1.5px solid #bfdbfe; padding: 16px; border-radius: var(--radius-md);">
+            <label style="color: #1e40af; font-weight: 800; font-size: 0.95rem; margin-bottom: 6px; display: block;">
+              <i class="fa-solid fa-bullseye" style="color: #2563eb;"></i> คอร์สนี้เหมาะกับใคร ? (Target Audience)
+            </label>
+            <textarea id="cTargetAudience" rows="3" placeholder="เช่น - นักเรียนระดับชั้น ป.4 - ป.6 ที่ต้องการปูพื้นฐานเข้มข้น&#10;- น้องๆ ที่ต้องการเตรียมตัวสอบเข้า ม.1 ห้อง Gifted / ห้องเรียนพิเศษ&#10;- ผู้ที่ต้องการเทคนิคคิดลัดและตะลุยโจทย์จริง"></textarea>
+            <small style="color: #3b82f6; display: block; margin-top: 4px;">ใส่เครื่องหมาย - หรือ • ด้านหน้าแต่ละบรรทัดเพื่อแสดงเป็นข้อๆ ในหน้าดูรายละเอียดคอร์ส</small>
+          </div>
+
+          <!-- Benefits (Item 4) -->
+          <div class="form-group-luxury" style="background: #fdf4ff; border: 1.5px solid #f0abfc; padding: 16px; border-radius: var(--radius-md);">
+            <label style="color: #86198f; font-weight: 800; font-size: 0.95rem; margin-bottom: 6px; display: block;">
+              <i class="fa-solid fa-gift" style="color: #c026d3;"></i> สิ่งที่จะได้รับจากคอร์สนี้ (Benefits)
+            </label>
+            <textarea id="cBenefits" rows="3" placeholder="เช่น - ฟรี! เอกสารและแบบฝึกหัดเก็งแนวข้อสอบตลอดคอร์ส&#10;- วิดีโอดูทบทวนย้อนหลังได้ตลอดเวลา&#10;- ทีมติวเตอร์ดูแลใกล้ชิด ซักถามข้อสงสัยได้ทันที"></textarea>
+            <small style="color: #a21caf; display: block; margin-top: 4px;">ใส่เครื่องหมาย - หรือ • ด้านหน้าแต่ละบรรทัดเพื่อแสดงเป็นข้อๆ ในหน้าดูรายละเอียดคอร์ส</small>
+          </div>
+
+          <!-- Schedules Builder -->
+          <div class="form-group-luxury" style="background: #f0f9ff; border: 1px solid #bae6fd; padding: 16px; border-radius: var(--radius-md);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+              <div>
+                <label style="margin: 0; color: #075985; font-weight: 800; font-size: 0.95rem;">
+                  <i class="fa-solid fa-calendar-days" style="color: #0284c7;"></i> ตารางเรียนและรอบเวลา (Schedule Table)
+                </label>
+                <small style="color: #0369a1; display: block;">กำหนดกลุ่มเรียน เวลาเรียน และวันที่เริ่ม-สิ้นสุด</small>
+              </div>
+              <button type="button" class="btn-xs-action" onclick="addScheduleInputRow('', '', '')">
+                <i class="fa-solid fa-plus"></i> เพิ่มรอบเวลา
+              </button>
+            </div>
+            <div id="courseSchedulesContainer" class="admin-builder-container"></div>
+          </div>
+
+          <!-- Subject Breakdown Builder (Item 5: Separate Subjects Pricing & Details) -->
+          <div class="form-group-luxury" style="background: #fffbeb; border: 1.5px solid #fde68a; padding: 18px; border-radius: var(--radius-md);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
+              <div>
+                <label style="margin: 0; color: #92400e; font-weight: 800; font-size: 1rem;">
+                  <i class="fa-solid fa-list-check" style="color: #d97706;"></i> การแบ่งวิชาและค่าเรียนแยกรายวิชา (Subject Breakdown: คณิต / ฟิสิกส์ / เคมี)
+                </label>
+                <small style="color: #b45309; display: block;">กดเพิ่มวิชาแยกได้ สามารถกำหนดราคา/ชั่วโมง และติวเตอร์แยกแต่ละวิชาได้</small>
+              </div>
+              <button type="button" class="btn-xs-action" style="background: #f59e0b; color: white;" onclick="addSubjectBreakdownRow({})">
+                <i class="fa-solid fa-plus"></i> เพิ่มวิชาแยก
+              </button>
+            </div>
+            <div id="courseSubjectBreakdownContainer" class="admin-builder-container"></div>
+          </div>
+
+          <!-- Course Tutors Selection (Item 3) -->
+          <div class="form-group-luxury" style="background: #f0fdf4; border: 1.5px solid #86efac; padding: 18px; border-radius: var(--radius-md);">
+            <div>
+              <label style="margin: 0; color: #166534; font-weight: 800; font-size: 1rem;">
+                <i class="fa-solid fa-user-tie" style="color: #16a34a;"></i> เลือกติวเตอร์ที่สอนในคอร์สนี้ (Select Tutors Teaching This Course) *
+              </label>
+              <small style="color: #15803d; display: block; margin-top: 4px; margin-bottom: 12px;">
+                ติ๊กเลือกเฉพาะติวเตอร์ผู้สอนในคอร์สนี้ ระบบจะดึงเฉพาะติวเตอร์ที่เลือกไปแสดงในหน้ารายละเอียดคอร์สเรียน (ไม่ขึ้นทุกคน)
+              </small>
+            </div>
+            <div id="courseTutorsCheckboxContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px;">
+              <!-- Dynamically populated via JS -->
+            </div>
+          </div>
+
+          <!-- Custom Extensible Topics Builder (Item 3) -->
+          <div class="form-group-luxury" style="background: #f8fafc; border: 1.5px dashed #94a3b8; padding: 18px; border-radius: var(--radius-md);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+              <div>
+                <label style="margin: 0; font-size: 1rem; color: var(--color-navy); font-weight: 800;">
+                  <i class="fa-solid fa-layer-group" style="color: var(--color-cyan);"></i> หัวข้อเพิ่มเติมที่ต้องการอธิบาย (Custom Sections Builder)
+                </label>
+                <p style="font-size: 0.82rem; color: var(--text-muted); margin: 2px 0 0 0;">
+                  กดเพิ่มหัวข้อได้อิสระ เช่น ข้อมูลเตรียมตัวสอบ, โครงสร้างเนื้อหา, หรือระเบียบการเรียน เมื่อลูกค้ากดดูรายละเอียดคอร์สจะขึ้นแสดงทันที
+                </p>
+              </div>
+              <button type="button" class="btn-secondary" style="padding: 7px 16px; font-size: 0.85rem;" onclick="addCustomSectionCard('', '')">
+                <i class="fa-solid fa-plus"></i> เพิ่มหัวข้อใหม่
+              </button>
+            </div>
+            <div id="courseCustomSectionsContainer" class="admin-builder-container"></div>
+          </div>
+
+          <!-- Course Parent Info & FAQ Builder (Item 4) -->
+          <div class="form-group-luxury" style="background: #fefce8; border: 1.5px solid #fde047; padding: 18px; border-radius: var(--radius-md);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
+              <div>
+                <label style="margin: 0; color: #854d0e; font-weight: 800; font-size: 1rem;">
+                  <i class="fa-solid fa-circle-question" style="color: var(--color-gold);"></i> ข้อมูลเพิ่มเติม &amp; สิ่งที่ผู้ปกครองควรรู้ (Parent Info &amp; FAQ สำหรับคอร์สนี้)
+                </label>
+                <small style="color: #a16207; display: block; margin-top: 2px;">
+                  สามารถเพิ่ม/แก้ไขหรือลบคำถาม-ข้อควรรู้ได้ หากลบออกทั้งหมด ระบบจะซ่อนส่วนนี้ในหน้ารายละเอียดคอร์สโดยอัตโนมัติ
+                </small>
+              </div>
+              <button type="button" class="btn-xs-action" style="background: #eab308; color: #713f12; font-weight: 700;" onclick="addCourseFaqRow('', '')">
+                <i class="fa-solid fa-plus"></i> เพิ่มข้อควรรู้ / คำถาม
+              </button>
+            </div>
+            <div id="courseParentFaqContainer" class="admin-builder-container"></div>
+          </div>
+
+          <!-- Featured On Home Page Toggle -->
+          <div class="form-group-luxury" style="background: #f0fdf4; border: 1.5px solid #86efac; padding: 14px 16px; border-radius: var(--radius-sm); margin-top: 10px;">
+            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin: 0; color: #166534; font-weight: 700; font-size: 1rem;">
+              <input type="checkbox" id="cIsFeatured" checked style="width: 20px; height: 20px; cursor: pointer; accent-color: #16a34a;">
+              <span>⭐ แสดงในส่วน "คอร์สเรียน Onsite แนะนำ" บนหน้าแรก</span>
+            </label>
+            <small style="color: #15803d; display: block; margin-top: 5px; padding-left: 30px; font-size: 0.82rem;">
+              ทำเครื่องหมายถูก หากต้องการให้คอร์สนี้แสดงในสไลเดอร์คอร์สแนะนำบนหน้าแรกของเว็บไซต์
+            </small>
+          </div>
+        </div>
+        <div class="admin-modal-footer">
+          <button type="button" class="btn-secondary" onclick="closeModal('modalCourse')">ยกเลิก</button>
+          <button type="submit" class="btn-primary"><i class="fa-solid fa-floppy-disk"></i> บันทึกคอร์สเรียน</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Categories (Grade Levels) Management Modal (Item 5) -->
+  <div class="admin-modal-backdrop" id="modalCategories">
+    <div class="admin-modal-card" style="max-width: 650px;">
+      <div class="admin-modal-header">
+        <h3><i class="fa-solid fa-tags" style="color: var(--color-navy);"></i> จัดการระดับชั้นเรียน (Grade Levels)</h3>
+        <button type="button" class="admin-modal-close" onclick="closeModal('modalCategories')"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="admin-modal-body">
+        <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 16px;">
+          เพิ่ม แก้ไข หรือลบระดับชั้นเรียนในระบบ เมื่อเพิ่มระดับชั้นใหม่แล้ว ปุ่มตัวกรองในหน้าคอร์สเรียนทั้งหมดและตัวเลือกในฟอร์มคอร์สจะอัปเดตให้อัตโนมัติ
+        </p>
+
+        <!-- Existing Categories Table -->
+        <table class="admin-data-table" style="margin-bottom: 24px;">
+          <thead>
+            <tr>
+              <th style="width: 140px;">รหัส (ID)</th>
+              <th>ชื่อระดับชั้น</th>
+              <th style="text-align: right; width: 90px;">จัดการ</th>
+            </tr>
+          </thead>
+          <tbody id="adminCategoriesTableBody">
+            <!-- Dynamically populated -->
+          </tbody>
+        </table>
+
+        <!-- Add Category Form -->
+        <div style="background: #f8fafc; padding: 18px; border-radius: var(--radius-md); border: 1px solid var(--border-light);">
+          <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--color-navy); margin-bottom: 12px;">
+            <i class="fa-solid fa-plus-circle" style="color: var(--color-cyan);"></i> เพิ่มระดับชั้นใหม่
+          </h4>
+          <div class="form-row-2col">
+            <div class="form-group-luxury">
+              <label>รหัสระดับชั้น (ภาษาอังกฤษ) *</label>
+              <input type="text" id="newCatId" placeholder="เช่น highschool หรือ kindergarten">
+            </div>
+            <div class="form-group-luxury">
+              <label>ชื่อระดับชั้นที่แสดงบนหน้าเว็บ *</label>
+              <input type="text" id="newCatName" placeholder="เช่น มัธยมศึกษาตอนปลาย (ม.4 - ม.6)">
+            </div>
+          </div>
+          <button type="button" class="btn-primary" style="margin-top: 8px;" onclick="handleAddNewCategory()">
+            <i class="fa-solid fa-plus"></i> บันทึกระดับชั้นใหม่
+          </button>
+        </div>
+      </div>
+      <div class="admin-modal-footer">
+        <button type="button" class="btn-secondary" onclick="closeModal('modalCategories')">ปิดหน้าต่าง</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tutor Edit/Add Modal -->
+  <div class="admin-modal-backdrop" id="modalTutor">
+    <div class="admin-modal-card">
+      <div class="admin-modal-header">
+        <h3 id="modalTutorTitle">เพิ่มติวเตอร์ใหม่</h3>
+        <button type="button" class="admin-modal-close" onclick="closeModal('modalTutor')"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form id="formTutor" onsubmit="handleSaveTutor(event)">
+        <input type="hidden" id="tutorEditId">
+        <div class="admin-modal-body">
+          <div class="form-row-2col">
+            <div class="form-group-luxury">
+              <label>ชื่อติวเตอร์ (ชื่อเล่น/ชื่อเรียก) *</label>
+              <input type="text" id="tName" required placeholder="เช่น พี่นนท์">
+            </div>
+            <div class="form-group-luxury">
+              <label>เกียรตินิยม / ดีกรีเด่น *</label>
+              <input type="text" id="tHonor" required placeholder="เช่น เกียรตินิยมอันดับ 1 เคมี มศว">
+            </div>
+          </div>
+
+          <div class="form-group-luxury">
+            <label>วุฒิการศึกษาเต็ม</label>
+            <input type="text" id="tDegree" placeholder="เช่น วท.บ. เคมี (เกียรตินิยมอันดับ 1) มหาวิทยาลัยศรีนครินทรวิโรฒ">
+          </div>
+
+          <div class="form-row-2col">
+            <div class="form-group-luxury">
+              <label>วิชาที่รับผิดชอบสอน</label>
+              <input type="text" id="tSubjects" placeholder="เช่น เคมี&วิทยาศาสตร์">
+            </div>
+            <div class="form-group-luxury">
+              <label>วิชาที่แสดงบนการ์ดหน้าแรก (Hero Badge)</label>
+              <input type="text" id="tHeroBadge" placeholder="เช่น เคมี&วิทยาศาสตร์">
+            </div>
+          </div>
+
+          <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: var(--radius-sm); padding: 10px 14px; margin-bottom: 14px; font-size: 0.84rem; color: #1e40af;">
+            <i class="fa-solid fa-circle-info"></i> รูปภาพและข้อมูลของติวเตอร์ 3 คนแรกนี้ จะแสดงในหน้าแรกของเว็บไซต์ (Hero Section) โดยอัตโนมัติ
+          </div>
+
+          <!-- Tutor Photo Upload -->
+          <div class="form-group-luxury">
+            <label>รูปภาพติวเตอร์ (อัปโหลดรูปภาพ หรือใส่ URL)</label>
+            <div class="img-upload-field-row">
+              <input type="file" id="tImgFile" accept="image/*" onchange="previewUploadImage(event, 'tImgPreview', 'tImgUrl')">
+              <input type="text" id="tImgUrl" placeholder="assets/images/tutor-non.jpg">
+            </div>
+            <div class="upload-preview-box" style="height: 100px;">
+              <img id="tImgPreview" src="assets/images/tutor-non.jpg" alt="Preview">
+            </div>
+          </div>
+
+          <div class="form-group-luxury">
+            <label>ประวัติย่อและสไตล์การสอน</label>
+            <textarea id="tBio" rows="3" placeholder="ติวเตอร์เคมีและวิทยาศาสตร์ประจำสถาบัน..."></textarea>
+          </div>
+
+          <div class="form-group-luxury">
+            <label>สโลแกน / คำคมประจำตัว</label>
+            <input type="text" id="tTagline" placeholder="เช่น เข้าใจเคมีอย่างเป็นระบบ ไม่เน้นท่องจำ">
+          </div>
+        </div>
+        <div class="admin-modal-footer">
+          <button type="button" class="btn-secondary" onclick="closeModal('modalTutor')">ยกเลิก</button>
+          <button type="submit" class="btn-primary"><i class="fa-solid fa-floppy-disk"></i> บันทึกข้อมูลติวเตอร์</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Review Edit/Add Modal (Item 1: Real Student Reviews) -->
+  <div class="admin-modal-backdrop" id="modalReview">
+    <div class="admin-modal-card">
+      <div class="admin-modal-header">
+        <h3 id="modalReviewTitle"><i class="fa-solid fa-comments" style="color: var(--color-cyan);"></i> เพิ่ม/แก้ไข รีวิวจริงจากนักเรียน The NEW GEN</h3>
+        <button type="button" class="admin-modal-close" onclick="closeModal('modalReview')"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form id="formReview" onsubmit="handleSaveReview(event)">
+        <input type="hidden" id="reviewEditId">
+        <div class="admin-modal-body">
+
+          <!-- Prominent Review Photo Upload -->
+          <div class="form-group-luxury" style="background: #f0fdf4; border: 1.5px solid #86efac; padding: 14px; border-radius: var(--radius-md);">
+            <label style="color: #166534; font-weight: 800; font-size: 0.95rem;">
+              <i class="fa-solid fa-image"></i> รูปภาพรีวิวจริง (รูปแชตไลน์ / คะแนนสอบ / ใบประกาศ / รูปคู่) *
+            </label>
+            <p style="font-size: 0.82rem; color: #15803d; margin: 2px 0 8px 0;">
+              รูปนี้จะแสดงเป็นรูปเด่นขนาดใหญ่บนหน้าเว็บ สามารถคลิกเพื่อซูมดูรูปจริงได้
+            </p>
+            <div class="img-upload-field-row">
+              <input type="file" id="rImgFile" accept="image/*" onchange="previewUploadImage(event, 'rImgPreview', 'rImgUrl')">
+              <input type="text" id="rImgUrl" placeholder="assets/images/course-poster-primary.jpg">
+            </div>
+            <div class="upload-preview-box" style="height: 180px; margin-top: 8px;">
+              <img id="rImgPreview" src="assets/images/course-poster-primary.jpg" alt="Review Preview" style="max-height: 100%; object-fit: contain;">
+            </div>
+          </div>
+
+          <div class="form-row-2col">
+            <div class="form-group-luxury">
+              <label>ชื่อนักเรียน / ผู้ปกครอง (ไม่ใส่ก็ได้)</label>
+              <input type="text" id="rName" placeholder="เช่น น้องแพรวา หรือ คุณแม่น้องกานต์">
+            </div>
+            <div class="form-group-luxury">
+              <label>โรงเรียน / ความสำเร็จ / ระดับชั้น (ไม่ใส่ก็ได้)</label>
+              <input type="text" id="rSchool" placeholder="เช่น สอบติด ม.4 เตรียมอุดมฯ หรือ รร.สาธิตฯ">
+            </div>
+          </div>
+
+          <div class="form-group-luxury">
+            <label>ผลคะแนน / ป้ายข้อความเด่น (ไม่ใส่ก็ได้)</label>
+            <input type="text" id="rScore" placeholder="เช่น คะแนนวิทยาศาสตร์ 92/100 หรือ เกรด 4">
+          </div>
+
+          <div class="form-group-luxury">
+            <label>คำบอกเล่า / ข้อความความประทับใจใต้รูป (ไม่ใส่ก็ได้)</label>
+            <textarea id="rQuote" rows="2" placeholder="เช่น ขอบคุณพี่ๆ ติวเตอร์ The NEW GEN มากๆ ค่ะ..."></textarea>
+          </div>
+
+          <div class="form-group-luxury" style="display: flex; align-items: center; gap: 10px; background: #f8fafc; padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); margin-bottom: 0;">
+            <input type="checkbox" id="rIsFeatured" checked style="width: 18px; height: 18px; cursor: pointer; accent-color: #0284c7;">
+            <label for="rIsFeatured" style="margin: 0; cursor: pointer; font-weight: 600; color: var(--color-navy);">⭐ แสดงในส่วน "รีวิวจริงจากนักเรียน The NEW GEN" บนหน้าแรก</label>
+          </div>
+        </div>
+        <div class="admin-modal-footer">
+          <button type="button" class="btn-secondary" onclick="closeModal('modalReview')">ยกเลิก</button>
+          <button type="submit" class="btn-primary"><i class="fa-solid fa-floppy-disk"></i> บันทึกรีวิวจริง</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Achievement / Hall of Fame Modal -->
+  <div class="admin-modal-backdrop" id="modalAchievement">
+    <div class="admin-modal-card">
+      <div class="admin-modal-header">
+        <h3 id="modalAchievementTitle">เพิ่มโปสเตอร์ความสำเร็จ</h3>
+        <button type="button" class="admin-modal-close" onclick="closeModal('modalAchievement')"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form id="formAchievement" onsubmit="handleSaveAchievement(event)">
+        <input type="hidden" id="achEditId">
+        <div class="admin-modal-body">
+          <div class="form-row-2col">
+            <div class="form-group-luxury">
+              <label>ชื่อหัวข้อ / รางวัลความสำเร็จ *</label>
+              <input type="text" id="achTitle" required placeholder="เช่น สรุปผลสอบติด ม.1 รร.สวนกุหลาบวิทยาลัย">
+            </div>
+            <div class="form-group-luxury">
+              <label>ปีการศึกษา / ช่วงเวลา</label>
+              <input type="text" id="achDate" placeholder="เช่น ปีการศึกษา 2568 หรือ มีนาคม 2568">
+            </div>
+          </div>
+
+          <div class="form-group-luxury">
+            <label>รูปภาพโปสเตอร์ (อัปโหลดรูปภาพ หรือใส่ URL) *</label>
+            <div class="img-upload-field-row">
+              <input type="file" id="achImgFile" accept="image/*" onchange="previewUploadImage(event, 'achImgPreview', 'achImgUrl')">
+              <input type="text" id="achImgUrl" required placeholder="assets/images/course-poster-exam.jpg">
+            </div>
+            <div class="upload-preview-box" style="height: 140px;">
+              <img id="achImgPreview" src="assets/images/course-poster-exam.jpg" alt="Preview">
+            </div>
+          </div>
+
+          <div class="form-group-luxury">
+            <label>คำอธิบายประกอบโปสเตอร์</label>
+            <textarea id="achDesc" rows="3" placeholder="อธิบายรายละเอียดผลสอบ สถิติ หรือแสดงความยินดีกับน้องๆ..."></textarea>
+          </div>
+        </div>
+        <div class="admin-modal-footer">
+          <button type="button" class="btn-secondary" onclick="closeModal('modalAchievement')">ยกเลิก</button>
+          <button type="submit" class="btn-primary"><i class="fa-solid fa-floppy-disk"></i> บันทึกโปสเตอร์ความสำเร็จ</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Video Edit/Add Modal -->
+  <div class="admin-modal-backdrop" id="modalVideo">
+    <div class="admin-modal-card">
+      <div class="admin-modal-header">
+        <h3 id="modalVideoTitle">เพิ่มวิดีโอทดลองเรียนฟรี</h3>
+        <button type="button" class="admin-modal-close" onclick="closeModal('modalVideo')"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form id="formVideo" onsubmit="handleSaveVideo(event)">
+        <input type="hidden" id="videoEditId">
+        <div class="admin-modal-body">
+          <div class="form-group-luxury">
+            <label>ชื่อหัวข้อวิดีโอ *</label>
+            <input type="text" id="vTitle" required placeholder="เช่น ติวเข้มเคมี ม.ต้น โดย พี่นนท์ เกียรตินิยม มศว">
+          </div>
+
+          <div class="form-row-2col">
+            <div class="form-group-luxury">
+              <label>หมวดหมู่วิชา *</label>
+              <input type="text" id="vSubject" required placeholder="เช่น วิทยาศาสตร์ / เคมี">
+            </div>
+            <div class="form-group-luxury">
+              <label>ติวเตอร์ผู้สอน</label>
+              <input type="text" id="vTutor" placeholder="เช่น พี่นนท์ (เกียรตินิยม มศว)">
+            </div>
+          </div>
+
+          <div class="form-group-luxury">
+            <label>ลิงก์ YouTube (ระบบจะดึง Video ID ให้อัตโนมัติ) *</label>
+            <input type="text" id="vUrl" required placeholder="เช่น https://www.youtube.com/watch?v=OEBgi1xzb_c" oninput="extractYoutubeIdFromInput()">
+            <small style="color: var(--text-muted); display: block; margin-top: 4px;">รองรับทั้งลิงก์เต็ม, ลิงก์สั้น youtu.be หรือรหัส Video ID</small>
+          </div>
+
+          <div class="form-row-2col">
+            <div class="form-group-luxury">
+              <label>YouTube Video ID</label>
+              <input type="text" id="vId" required placeholder="OEBgi1xzb_c">
+            </div>
+            <div class="form-group-luxury">
+              <label>ความยาววิดีโอ</label>
+              <input type="text" id="vDuration" placeholder="เช่น 1 ชั่วโมง 30 นาที">
+            </div>
+          </div>
+
+          <div class="form-group-luxury">
+            <label>คำอธิบายสั้นๆ ของบทเรียน</label>
+            <textarea id="vDesc" rows="2" placeholder="คลิปติวฟรีปูพื้นฐานวิทยาศาสตร์ ม.ต้น..."></textarea>
+          </div>
+        </div>
+        <div class="admin-modal-footer">
+          <button type="button" class="btn-secondary" onclick="closeModal('modalVideo')">ยกเลิก</button>
+          <button type="submit" class="btn-primary"><i class="fa-solid fa-floppy-disk"></i> บันทึกวิดีโอ</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- WhyUs Item Edit/Add Modal -->
+  <div class="admin-modal-backdrop" id="modalWhyUs">
+    <div class="admin-modal-card">
+      <div class="admin-modal-header">
+        <h3 id="modalWhyUsTitle">เพิ่มจุดเด่น "ทำไมต้องเลือกเรา"</h3>
+        <button type="button" class="admin-modal-close" onclick="closeModal('modalWhyUs')"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form id="formWhyUs" onsubmit="handleSaveWhyUsFeature(event)">
+        <input type="hidden" id="whyUsEditId">
+        <div class="admin-modal-body">
+          <div class="form-group-luxury">
+            <label>หัวข้อจุดเด่น *</label>
+            <input type="text" id="wTitle" required placeholder="เช่น ติวเตอร์เกียรตินิยม หรือ เรียนสด Onsite กลุ่มเล็ก">
+          </div>
+
+          <div class="form-group-luxury">
+            <label>ไอคอน FontAwesome (เช่น fa-solid fa-award)</label>
+            <div style="display: flex; gap: 10px; align-items: center;">
+              <div id="wIconPreview" class="admin-feature-icon-badge" style="width: 42px; height: 42px; font-size: 1.15rem;">
+                <i class="fa-solid fa-award"></i>
+              </div>
+              <input type="text" id="wIcon" value="fa-solid fa-award" oninput="updateWhyUsIconPreview(this.value)" placeholder="fa-solid fa-award" style="flex: 1;">
+            </div>
+            <div class="icon-preset-wrap" style="margin-top: 10px;">
+              <span style="font-size: 0.78rem; color: var(--text-muted); width: 100%; display: block;">หรือคลิกเลือกไอคอนแนะนำ:</span>
+              <button type="button" class="icon-preset-chip" onclick="selectPresetIcon('fa-solid fa-award')"><i class="fa-solid fa-award"></i> เกียรตินิยม</button>
+              <button type="button" class="icon-preset-chip" onclick="selectPresetIcon('fa-solid fa-users-viewfinder')"><i class="fa-solid fa-users-viewfinder"></i> กลุ่มเล็ก</button>
+              <button type="button" class="icon-preset-chip" onclick="selectPresetIcon('fa-solid fa-bullseye')"><i class="fa-solid fa-bullseye"></i> เก็งตรงจุด</button>
+              <button type="button" class="icon-preset-chip" onclick="selectPresetIcon('fa-solid fa-wallet')"><i class="fa-solid fa-wallet"></i> แบ่งชำระได้</button>
+              <button type="button" class="icon-preset-chip" onclick="selectPresetIcon('fa-solid fa-chalkboard-user')"><i class="fa-solid fa-chalkboard-user"></i> ติวสด</button>
+              <button type="button" class="icon-preset-chip" onclick="selectPresetIcon('fa-solid fa-star')"><i class="fa-solid fa-star"></i> ดาวเด่น</button>
+              <button type="button" class="icon-preset-chip" onclick="selectPresetIcon('fa-solid fa-graduation-cap')"><i class="fa-solid fa-graduation-cap"></i> สอบติด</button>
+              <button type="button" class="icon-preset-chip" onclick="selectPresetIcon('fa-solid fa-bolt-lightning')"><i class="fa-solid fa-bolt-lightning"></i> NEW GEN</button>
+            </div>
+          </div>
+
+          <div class="form-group-luxury">
+            <label>คำอธิบายรายละเอียดจุดเด่น *</label>
+            <textarea id="wDesc" rows="3" required placeholder="อธิบายจุดเด่นข้อนี้ให้ผู้ปกครองและนักเรียนเข้าใจ..."></textarea>
+          </div>
+        </div>
+        <div class="admin-modal-footer">
+          <button type="button" class="btn-secondary" onclick="closeModal('modalWhyUs')">ยกเลิก</button>
+          <button type="submit" class="btn-primary"><i class="fa-solid fa-floppy-disk"></i> บันทึกจุดเด่น</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Notification Toast -->
+  <div id="adminToast" class="admin-toast-alert">
+    <i class="fa-solid fa-circle-check"></i> <span id="toastMsg">บันทึกข้อมูลเรียบร้อยแล้ว</span>
+  </div>
+
+  <script src="assets/js/courses-data.js"></script>
+  <script src="assets/js/admin.js"></script>
+</body>
+</html>
