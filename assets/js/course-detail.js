@@ -223,10 +223,6 @@ function initCourseDetailPage() {
                 <p><i class="fa-solid fa-circle-info"></i> ${escapeHtml(sb.details)}</p>
               </div>
             ` : ''}
-
-            <a href="${baseLineUrl}" target="_blank" rel="noopener noreferrer" class="btn-sb-line">
-              <i class="fa-brands fa-line"></i> สอบถาม / สมัครวิชานี้
-            </a>
           </div>
         `;
       }).join('');
@@ -243,12 +239,7 @@ function initCourseDetailPage() {
             </td>
             <td><span style="color: #475569;"><i class="fa-solid fa-user-tie"></i> ${escapeHtml(sb.tutor || 'ทีมติวเตอร์')}</span></td>
             <td><span class="badge badge-emerald" style="font-weight: 600;"><i class="fa-regular fa-clock"></i> ${escapeHtml(sb.hours || '—')}</span></td>
-            <td><strong style="color: #dc2626; font-size: 1.05rem;">${escapeHtml(sb.price || '—')}</strong></td>
-            <td style="text-align: right;">
-              <a href="${baseLineUrl}" target="_blank" rel="noopener noreferrer" class="btn-xs-table-line">
-                <i class="fa-brands fa-line"></i> ทักแอดมิน
-              </a>
-            </td>
+            <td style="text-align: right;"><strong style="color: #dc2626; font-size: 1.05rem;">${escapeHtml(sb.price || '—')}</strong></td>
           </tr>
         `;
       }).join('');
@@ -257,8 +248,8 @@ function initCourseDetailPage() {
       if (summaryFoot) {
         summaryFoot.innerHTML = `
           <tr class="cd-summary-bundle-row">
-            <td colspan="3">
-              <div style="display: flex; align-items: center; gap: 10px;">
+            <td colspan="2">
+              <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
                 <span class="badge badge-red" style="padding: 5px 12px; font-size: 0.82rem;"><i class="fa-solid fa-fire"></i> PACKAGE สุดคุ้ม</span>
                 <strong style="color: var(--color-navy); font-size: 1rem;">สมัครเหมาครบทุกวิชาในคอร์สนี้</strong>
               </div>
@@ -269,7 +260,7 @@ function initCourseDetailPage() {
               <div style="font-size: 1.25rem; font-weight: 800; color: #16a34a;">${escapeHtml(course.pricePromo)} <span style="font-size: 0.82rem; font-weight: normal; color: #475569;">${escapeHtml(course.priceUnit || 'บาท')}</span></div>
             </td>
             <td style="text-align: right;">
-              <a href="${baseLineUrl}" target="_blank" rel="noopener noreferrer" class="btn-primary" style="padding: 8px 16px; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px;">
+              <a href="${baseLineUrl}" target="_blank" rel="noopener noreferrer" class="btn-primary" style="padding: 8px 16px; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px; border-radius: var(--radius-full); box-shadow: 0 4px 14px rgba(225, 29, 72, 0.25);">
                 <i class="fa-brands fa-line"></i> จองแพ็กเกจรวม
               </a>
             </td>
@@ -416,6 +407,24 @@ function initCourseDetailPage() {
         <i class="fa-solid fa-phone"></i> โทร ${esc(p.number)} (${esc(p.name)})
       </a>
     `).join('');
+  }
+  // ปรับ Mobile Sticky Action Bar
+  const msbPricePromo = document.getElementById('cdMsbPricePromo');
+  if (msbPricePromo) msbPricePromo.textContent = course.pricePromo;
+  const msbPriceUnit = document.getElementById('cdMsbPriceUnit');
+  if (msbPriceUnit) {
+    const rawU = course.priceUnit || 'บาท / เทอม';
+    const cleanU = rawU.replace(/\(?\s*แบ่งชำระ(ได้)?\s*\)?/gi, '').replace(/[()]/g, '').trim();
+    msbPriceUnit.textContent = cleanU || 'บาท / เทอม';
+  }
+  const msbLineBtn = document.getElementById('btnMsbLine');
+  if (msbLineBtn) {
+    const baseLineUrl = (contact && contact.lineUrl) ? contact.lineUrl : 'https://lin.ee/RXrzi1G';
+    msbLineBtn.href = fmt(baseLineUrl);
+  }
+  const msbPhoneBtn = document.getElementById('btnMsbPhone');
+  if (msbPhoneBtn && contact && Array.isArray(contact.phones) && contact.phones.length > 0) {
+    msbPhoneBtn.href = contact.phones[0].telLink || ('tel:' + contact.phones[0].number.replace(/[^0-9]/g, ''));
   }
 
   // แสดงคอร์สที่เกี่ยวข้อง (Related Courses)

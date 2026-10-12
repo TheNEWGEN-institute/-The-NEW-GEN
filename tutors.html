@@ -7,6 +7,8 @@
   <meta name="description" content="ทำความรู้จักทีมติวเตอร์ The NEW GEN สถาบันกวดวิชา The NEW GEN ผู้เชี่ยวชาญการสอนสด Onsite ประสบการณ์ติวเข้มเข้มข้น ดูแลใกล้ชิด">
   
   <link rel="icon" type="image/png" href="assets/images/tutor-au.jpg">
+  <link rel="preload" as="image" href="assets/images/tutor-ou-opt.jpg" fetchpriority="high">
+  <link rel="preload" as="image" href="assets/images/tutor-mac-opt.jpg" fetchpriority="high">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Prompt:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -260,12 +262,13 @@
       const grid = document.getElementById('tutorsFullGrid');
       if (!grid) return;
 
-      grid.innerHTML = tutors.map(t => {
+      grid.innerHTML = tutors.map((t, idx) => {
         const tImg = window.resolveMediaUrl ? window.resolveMediaUrl(t.image) : t.image;
+        const isPriority = idx < 2;
         return `
         <div class="tutor-profile-card">
           <div class="tutor-card-img-wrap">
-            <img src="${tImg}" alt="${t.name} ${t.honor}" loading="lazy">
+            <img src="${tImg}" alt="${t.name} ${t.honor}" ${isPriority ? 'loading="eager" fetchpriority="high"' : 'loading="lazy"'} decoding="async" width="400" height="520">
             <div class="tutor-card-honor-pill">
               <i class="fa-solid fa-award"></i> ${t.honor}
             </div>
