@@ -3676,30 +3676,26 @@ button {
   text-shadow: 0 0 24px rgba(244, 63, 94, 0.35);
 }
 
-/* Mobile adjustments for Subpage Hero Titles */
+/* Mobile adjustments for Subpage Hero Titles: แสดงผลในบรรทัดเดียว ไม่ตัดตกบรรทัด */
 @media (max-width: 767px) {
-  /* 1. Tutors Page Title: แยกบรรทัด "ทีมติวเตอร์" กับ "The NEW GEN" เฉพาะบนมือถือ */
-  .tutors-hero-title .tutor-title-prefix {
-    display: block;
-    margin-bottom: 2px;
-    white-space: nowrap;
-  }
-  .tutors-hero-title .tutor-title-brand {
-    display: block;
-    white-space: nowrap;
-  }
-
-  /* 2. About Page Title: ข้อความ "เกี่ยวกับเรา & แรงบันดาลใจ" อยู่ในบรรทัดเดียว ไม่ตกบรรทัด */
+  .tutors-hero-title,
   .about-hero-title {
-    font-size: clamp(1.4rem, 6.5vw, 1.95rem) !important;
-    white-space: nowrap;
+    font-size: clamp(1.28rem, 5.8vw, 1.95rem) !important;
+    white-space: nowrap !important;
     letter-spacing: -0.3px;
+    line-height: 1.25;
+  }
+  .tutors-hero-title .tutor-title-prefix,
+  .tutors-hero-title .tutor-title-brand {
+    display: inline !important;
+    white-space: nowrap !important;
   }
 }
 
 @media (max-width: 380px) {
+  .tutors-hero-title,
   .about-hero-title {
-    font-size: clamp(1.22rem, 6.2vw, 1.45rem) !important;
+    font-size: clamp(1.1rem, 5.2vw, 1.35rem) !important;
   }
 }
 
@@ -4011,7 +4007,14 @@ button {
   min-height: 340px;
 }
 
-.tutor-card-img-wrap img {
+.tutor-avatar-circle {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.tutor-card-img-wrap img,
+.tutor-avatar-circle img {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -4021,7 +4024,8 @@ button {
   transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.tutor-profile-card:hover .tutor-card-img-wrap img {
+.tutor-profile-card:hover .tutor-card-img-wrap img,
+.tutor-profile-card:hover .tutor-avatar-circle img {
   transform: scale(1.04);
 }
 
@@ -4182,35 +4186,231 @@ button {
 @media (max-width: 860px) {
   .tutor-profile-card {
     grid-template-columns: 1fr;
-    border-radius: 22px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 30px 20px 24px;
+    border-radius: 28px;
+    background: linear-gradient(160deg, #0b1f42 0%, #061124 100%);
+    border: 1.5px solid rgba(56, 189, 248, 0.28);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6), 0 0 25px rgba(14, 165, 233, 0.12);
   }
+
+  .tutor-profile-card::before {
+    display: none;
+  }
+
   .tutor-card-img-wrap {
-    height: 340px;
+    background: transparent;
+    border: none;
+    min-height: unset;
+    height: auto;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 8px;
+    position: static;
+    overflow: visible;
   }
-  .tutor-card-img-wrap img {
-    object-position: center 8%;
+
+  /* รูปติวเตอร์เป็นวงกลม กรอบไฟนีออนพรีเมียม */
+  .tutor-avatar-circle {
+    width: 148px;
+    height: 148px;
+    border-radius: 50%;
+    overflow: hidden;
+    padding: 3.5px;
+    background: linear-gradient(135deg, #38bdf8 0%, #e11d48 50%, #fbbf24 100%);
+    box-shadow: 0 0 25px rgba(56, 189, 248, 0.35), 0 10px 25px rgba(0, 0, 0, 0.55);
+    margin: 0 auto 14px auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
   }
+
+  /* การปรับภาพแบบอัจฉริยะ (Smart Face Focal Tuning): ซูมใบหน้าพอร์ตเทรตสายตาเดียวกันทุกคน */
+  .tutor-avatar-circle img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    object-position: center 12%;
+    transform: scale(1.18);
+    transform-origin: center 16%;
+    display: block;
+    transition: transform 0.4s ease;
+  }
+
+  /* ปรับโฟกัสเฉพาะบุคคลให้ระดับสายตาและใบหน้าสมดุลกัน */
+  [data-tutor-id="tutor-au"] .tutor-avatar-circle img,
+  [data-tutor-id*="au"] .tutor-avatar-circle img,
+  [data-tutor-id*="ou"] .tutor-avatar-circle img {
+    object-position: center 14%;
+    transform: scale(1.22);
+    transform-origin: center 16%;
+  }
+
+  [data-tutor-id="tutor-mac"] .tutor-avatar-circle img,
+  [data-tutor-id*="mac"] .tutor-avatar-circle img {
+    object-position: center 12%;
+    transform: scale(1.16);
+    transform-origin: center 14%;
+  }
+
+  [data-tutor-id="tutor-non"] .tutor-avatar-circle img,
+  [data-tutor-id*="non"] .tutor-avatar-circle img {
+    object-position: center 10%;
+    transform: scale(1.18);
+    transform-origin: center 12%;
+  }
+
+  [data-tutor-id="tutor-anont"] .tutor-avatar-circle img,
+  [data-tutor-id*="anont"] .tutor-avatar-circle img {
+    object-position: center 12%;
+    transform: scale(1.18);
+    transform-origin: center 14%;
+  }
+
+  /* ป้ายเกียรตินิยม/ความเชี่ยวชาญ (Honor Pill) กึ่งกลาง ใต้รูปวงกลม */
   .tutor-card-honor-pill {
-    bottom: 12px;
-    left: 12px;
-    right: 12px;
-    padding: 8px 14px;
-    font-size: 0.78rem;
+    position: static;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    width: auto;
+    max-width: 95%;
+    margin: 0 auto;
+    padding: 7px 18px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    border-radius: 50px;
+    background: rgba(14, 165, 233, 0.14);
+    color: #38bdf8;
+    border: 1px solid rgba(56, 189, 248, 0.38);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    letter-spacing: 0.2px;
   }
+
+  .tutor-card-honor-pill i {
+    color: #fbbf24;
+    font-size: 0.85rem;
+    margin-right: 2px;
+  }
+
+  /* กล่องข้อความด้านล่าง ปรับใหม่ให้ดูดี ทันสมัย สำหรับมุมมองในมือถือ */
   .tutor-card-body {
-    padding: 24px 20px;
+    padding: 16px 4px 0 4px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .tutor-card-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 14px;
+    width: 100%;
+  }
+
+  .tutor-card-name {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: #ffffff;
+    letter-spacing: -0.3px;
+    margin: 0;
+    text-align: center;
+  }
+
+  .tutor-card-subjects {
+    font-size: 0.82rem;
+    padding: 5px 16px;
+    margin: 0;
+  }
+
+  /* ข้อมูลการศึกษา: ดีไซน์การ์ดโมเดิร์น สไตล์ Frosted Glass */
+  .tutor-card-degree {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 14px;
+    padding: 12px 16px;
+    font-size: 0.86rem;
+    font-weight: 600;
+    color: #e2e8f0;
+    line-height: 1.55;
+    text-align: left;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .tutor-card-degree i {
+    color: #38bdf8;
+    font-size: 1rem;
+    margin-top: 3px;
+    flex-shrink: 0;
+  }
+
+  .tutor-card-bio {
+    font-size: 0.90rem;
+    color: #cbd5e1;
+    line-height: 1.72;
+    text-align: center;
+    margin-bottom: 16px;
+    padding: 0 4px;
+  }
+
+  /* กล่องสโลแกน (Tagline): โมเดิร์น Quote Bar */
+  .tutor-card-tagline {
+    width: 100%;
+    background: linear-gradient(135deg, rgba(225, 29, 72, 0.12) 0%, rgba(14, 165, 233, 0.08) 100%);
+    border: 1px solid rgba(225, 29, 72, 0.32);
+    border-left: 3px solid #e11d48;
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #ffffff;
+    text-align: center;
+    line-height: 1.55;
+    margin: 0;
   }
 }
 
-@media (max-width: 540px) {
-  .tutor-card-img-wrap {
-    height: 290px;
+@media (max-width: 480px) {
+  .tutor-profile-card {
+    padding: 24px 14px 18px;
+    border-radius: 22px;
+  }
+  .tutor-avatar-circle {
+    width: 136px;
+    height: 136px;
   }
   .tutor-card-name {
-    font-size: 1.6rem;
+    font-size: 1.55rem;
   }
-  .tutor-card-body {
-    padding: 18px 16px;
+  .tutor-card-degree {
+    font-size: 0.82rem;
+    padding: 10px 14px;
+  }
+  .tutor-card-bio {
+    font-size: 0.86rem;
+    line-height: 1.65;
+  }
+  .tutor-card-tagline {
+    font-size: 0.84rem;
+    padding: 10px 14px;
   }
 }
 

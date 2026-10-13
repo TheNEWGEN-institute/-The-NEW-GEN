@@ -265,9 +265,11 @@
         const tImg = window.resolveMediaUrl ? window.resolveMediaUrl(t.image) : t.image;
         const isPriority = idx < 2;
         return `
-        <div class="tutor-profile-card">
+        <div class="tutor-profile-card" data-tutor-id="${t.id || ('tutor-' + idx)}">
           <div class="tutor-card-img-wrap">
-            <img src="${tImg}" alt="${t.name} ${t.honor}" ${isPriority ? 'loading="eager" fetchpriority="high"' : 'loading="lazy"'} decoding="async" width="400" height="520">
+            <div class="tutor-avatar-circle">
+              <img src="${tImg}" alt="${t.name} ${t.honor}" ${isPriority ? 'loading="eager" fetchpriority="high"' : 'loading="lazy"'} decoding="async" width="400" height="520">
+            </div>
             <div class="tutor-card-honor-pill">
               <i class="fa-solid fa-award"></i> ${t.honor}
             </div>
@@ -278,7 +280,7 @@
               <span class="tutor-card-subjects"><i class="fa-solid fa-book-open"></i> ${t.subjects}</span>
             </div>
             <div class="tutor-card-degree">
-              <i class="fa-solid fa-graduation-cap"></i> ${t.degree}
+              <i class="fa-solid fa-graduation-cap"></i> <span>${t.degree}</span>
             </div>
             <p class="tutor-card-bio">${t.bio}</p>
             <div class="tutor-card-tagline">
