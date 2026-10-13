@@ -1315,6 +1315,8 @@ function populateAboutFields(about) {
   const subtitleInput = document.getElementById('aboutSubtitle');
   const mainImgInput = document.getElementById('aboutMainImgUrl');
   const mainImgPrev = document.getElementById('aboutMainImgPreview');
+  const secImgInput = document.getElementById('aboutSecondaryImgUrl');
+  const secImgPrev = document.getElementById('aboutSecondaryImgPreview');
   const parasInput = document.getElementById('aboutParagraphs');
 
   if (badgeInput) badgeInput.value = about.badge || 'OUR INSPIRATION & STORY';
@@ -1324,6 +1326,13 @@ function populateAboutFields(about) {
   if (mainImgPrev) {
     const resolved = window.resolveMediaUrl ? window.resolveMediaUrl(about.mainImage) : about.mainImage;
     mainImgPrev.src = resolved || 'assets/images/course-poster-primary.jpg';
+  }
+
+  const secVal = about.secondaryImage || about.mainImage2 || 'assets/images/course-poster-secondary.jpg';
+  if (secImgInput) secImgInput.value = secVal;
+  if (secImgPrev) {
+    const resolvedSec = window.resolveMediaUrl ? window.resolveMediaUrl(secVal) : secVal;
+    secImgPrev.src = resolvedSec || 'assets/images/course-poster-secondary.jpg';
   }
 
   if (parasInput) {
@@ -1410,6 +1419,7 @@ async function saveAboutSettingsForm() {
     title: document.getElementById('aboutTitle')?.value.trim() || 'แรงบันดาลใจในการเป็น The NEW GEN',
     subtitle: document.getElementById('aboutSubtitle')?.value.trim() || '',
     mainImage: document.getElementById('aboutMainImgUrl')?.value.trim() || 'assets/images/course-poster-primary.jpg',
+    secondaryImage: document.getElementById('aboutSecondaryImgUrl')?.value.trim() || 'assets/images/course-poster-secondary.jpg',
     paragraphs: document.getElementById('aboutParagraphs')?.value.trim() || '',
     galleryImages: getAboutGalleryFromBuilder()
   };

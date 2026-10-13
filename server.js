@@ -378,9 +378,12 @@ const server = http.createServer(async (req, res) => {
       if (method === 'POST') {
         const aboutObj = await parseRequestBody(req);
         
-        // Auto convert base64 main image to real file
+        // Auto convert base64 main and secondary images to real files
         if (aboutObj.mainImage) {
           aboutObj.mainImage = saveBase64ToFile(aboutObj.mainImage);
+        }
+        if (aboutObj.secondaryImage) {
+          aboutObj.secondaryImage = saveBase64ToFile(aboutObj.secondaryImage);
         }
 
         // Auto convert base64 gallery images to real files
