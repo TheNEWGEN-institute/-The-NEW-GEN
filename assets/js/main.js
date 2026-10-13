@@ -122,12 +122,16 @@ function initNavbar() {
 function initHeroTutors() {
   renderHeroContent();
 
+  document.addEventListener('newgen:synced', () => {
+    renderHeroContent();
+  });
+
   // Optional local backend preview (NEVER overwrite Cloud)
   const apiUrl = (window.getApiBaseUrl ? window.getApiBaseUrl() : '') + '/api/home';
   fetch(apiUrl)
     .then(res => res.json())
     .then(serverHome => {
-      if (serverHome && serverHome.subtitle && !window._supabaseHomeSynced) {
+      if (serverHome && (serverHome.subtitle || serverHome.leadText) && !window._supabaseHomeSynced) {
         renderHeroContent(serverHome);
       }
     })
@@ -152,9 +156,9 @@ function renderHeroContent(customHomeData) {
     }
   }
 
-  const leadEl = document.querySelector('.hero-lead-text');
+  const leadEl = document.getElementById('heroLeadText') || document.querySelector('.hero-statement-text') || document.querySelector('.hero-lead-text');
   if (leadEl && homeData.leadText) {
-    leadEl.textContent = homeData.leadText;
+    formatHeroLeadText(leadEl, homeData.leadText);
   }
 
   const trustRow = document.querySelector('.hero-trust-row');
@@ -218,6 +222,56 @@ function renderHeroContent(customHomeData) {
       </div>
     `;
   }).join('');
+}
+
+function formatHeroLeadText(element, rawText) {
+  if (!element || !rawText) return;
+  const text = String(rawText).trim();
+
+  // 1. If user entered line breaks in admin, respect them explicitly (max 3 lines)
+  if (text.includes('\n')) {
+    const lines = text.split('\n').map(l => l.trim()).filter(Boolean).slice(0, 3);
+    element.innerHTML = lines.map(line => `<span>${escapeHtml(line)}</span>`).join('<br class="hero-statement-br">');
+    return;
+  }
+
+  // 2. Intelligent clause balancing for single-block paragraph:
+  // Detects natural Thai conjunctions closest to the middle (30%-70% of length) to avoid orphan words
+  const splitKeywords = [
+    'และการเตรียมสอบ',
+    'และเตรียมสอบ',
+    'พร้อมให้คำแนะนำ',
+    'การเรียนล่วงหน้า',
+    'เสริมความเข้าใจ',
+    'ครอบคลุมทั้ง',
+    'เพื่อเพิ่มผลสัมฤทธิ์'
+  ];
+
+  const half = Math.floor(text.length / 2);
+  let bestIdx = -1;
+  let bestDist = Infinity;
+
+  for (const kw of splitKeywords) {
+    let pos = text.indexOf(kw);
+    while (pos !== -1) {
+      // If keyword is 'เสริมความเข้าใจ', split right after it
+      const cutPoint = kw === 'เสริมความเข้าใจ' ? pos + kw.length : pos;
+      const dist = Math.abs(cutPoint - half);
+      if (dist < bestDist && cutPoint > text.length * 0.28 && cutPoint < text.length * 0.72) {
+        bestDist = dist;
+        bestIdx = cutPoint;
+      }
+      pos = text.indexOf(kw, pos + 1);
+    }
+  }
+
+  if (bestIdx !== -1) {
+    const part1 = text.slice(0, bestIdx).trim();
+    const part2 = text.slice(bestIdx).trim();
+    element.innerHTML = `<span>${escapeHtml(part1)}</span><br class="hero-statement-br"><span>${escapeHtml(part2)}</span>`;
+  } else {
+    element.innerHTML = `<span>${escapeHtml(text)}</span>`;
+  }
 }
 
 /* ----------------------------------------------------
