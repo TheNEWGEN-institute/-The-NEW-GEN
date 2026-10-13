@@ -408,58 +408,14 @@
   <script src="assets/js/courses-data.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      initAboutLayoutSwitcher();
       renderAboutInspiration();
       renderContactChannels();
-
-      // Optional local backend preview (NEVER overwrite Cloud)
-      const apiUrl = (window.getApiBaseUrl ? window.getApiBaseUrl() : '') + '/api/about';
-      fetch(apiUrl)
-        .then(res => res.json())
-        .then(serverAbout => {
-          if (serverAbout && (serverAbout.title || serverAbout.mainImage) && !window._supabaseAboutSynced) {
-            renderAboutInspiration(serverAbout);
-          }
-        })
-        .catch(() => {});
     });
 
     document.addEventListener('newgen:synced', () => {
       renderAboutInspiration();
       renderContactChannels();
     });
-
-    function initAboutLayoutSwitcher() {
-      const switcher = document.getElementById('aboutViewSwitcher');
-      const section = document.getElementById('inspirationSection');
-      if (!switcher || !section) return;
-
-      const savedLayout = localStorage.getItem('newgen_about_layout') || 'split-card';
-      setLayout(savedLayout);
-
-      switcher.querySelectorAll('.view-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const layout = btn.getAttribute('data-layout');
-          setLayout(layout);
-          try {
-            localStorage.setItem('newgen_about_layout', layout);
-          } catch (e) {}
-        });
-      });
-
-      function setLayout(layoutName) {
-        section.classList.remove('layout-split-card', 'layout-cinematic', 'layout-magazine');
-        section.classList.add('layout-' + layoutName);
-
-        switcher.querySelectorAll('.view-btn').forEach(b => {
-          if (b.getAttribute('data-layout') === layoutName) {
-            b.classList.add('active');
-          } else {
-            b.classList.remove('active');
-          }
-        });
-      }
-    }
 
     function renderAboutInspiration(customData) {
       const about = customData || (window.NewGenDB ? window.NewGenDB.getAbout() : DEFAULT_ABOUT);
