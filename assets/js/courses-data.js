@@ -285,7 +285,8 @@ const DEFAULT_CONTACT = {
   address: '480/3 หมู่ 13 นวนคร ตำบลคลองหนึ่ง อำเภอคลองหลวง จังหวัดปทุมธานี 12120',
   footerDesc: 'สถาบันกวดวิชา The NEW GEN กวดวิชาของเด็ก GENZ เรียนสนุก ครบทุกเนื้อหา จบที่ The NEW GEN พัฒนาทักษะวิชาการและความมั่นใจสู่อนาคตที่สดใส',
   mapAppUrl: 'https://maps.app.goo.gl/NSR8rtGecvjyE1KL8?g_st=ic',
-  mapEmbedUrl: 'https://maps.app.goo.gl/NSR8rtGecvjyE1KL8?g_st=ic'
+  mapEmbedUrl: 'https://maps.app.goo.gl/NSR8rtGecvjyE1KL8?g_st=ic',
+  mapGraphicImage: 'assets/images/map-graphic.jpg'
 };
 
 const DEFAULT_PRIVILEGE = {

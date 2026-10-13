@@ -641,6 +641,18 @@
               <label>ลิงก์ฝังแผนที่แสดงบนเว็บ (src จากแท็ก iframe ของ Google Maps)</label>
               <textarea id="editContactMapUrl" rows="3" placeholder="https://www.google.com/maps/embed?..."></textarea>
             </div>
+
+            <div class="form-group-luxury" style="margin-top: 18px;">
+              <label><i class="fa-solid fa-route" style="color: var(--color-red-brand);"></i> รูปภาพแผนที่เส้นทางภาพประกอบ (Graphic Road Map)</label>
+              <div class="img-upload-field-row">
+                <input type="file" id="editContactMapGraphicFile" accept="image/*" onchange="previewUploadImage(event, 'editContactMapGraphicPreview', 'editContactMapGraphicUrl')">
+                <input type="text" id="editContactMapGraphicUrl" placeholder="assets/images/map-graphic.jpg">
+              </div>
+              <div class="upload-preview-box" style="margin-top: 8px; max-height: 180px;">
+                <img id="editContactMapGraphicPreview" src="assets/images/map-graphic.jpg" alt="Graphic Map Preview" style="max-height: 160px; object-fit: contain;">
+              </div>
+              <small style="color: var(--text-muted); display: block; margin-top: 4px;">รูปภาพแผนที่ลายเส้นแสดงจุดสังเกตสำคัญ (Big C, Lotus's, รพ.การุญเวช, รร.ยิ่งยศอนุสรณ์) แสดงใต้ Google Maps ในหน้าเกี่ยวกับเรา</small>
+            </div>
           </div>
 
           <!-- Bottom Save Action Bar -->

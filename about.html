@@ -233,7 +233,7 @@
         <div class="contact-interactive-col">
           
           <!-- Google Maps Card -->
-          <div class="contact-map-card">
+          <div class="contact-map-card" style="margin-bottom: 24px;">
             <div class="contact-box-header" style="margin-bottom: 16px;">
               <div class="box-icon-circle" style="background: rgba(2, 132, 199, 0.1); color: var(--color-navy);">
                 <i class="fa-solid fa-map-location-dot"></i>
@@ -255,6 +255,29 @@
               <a id="btnOpenGoogleMapApp" href="https://maps.app.goo.gl/NSR8rtGecvjyE1KL8?g_st=ic" target="_blank" rel="noopener noreferrer" class="btn-open-maps-app">
                 <i class="fa-solid fa-diamond-turn-right"></i> เปิดใน Google Maps แอปพลิเคชัน (นำทาง)
               </a>
+            </div>
+          </div>
+
+          <!-- Graphic Landmark Road Map Card (แผนที่เส้นทางภาพประกอบ จุดสังเกตสำคัญ) -->
+          <div class="contact-map-card" id="contactGraphicMapCard">
+            <div class="contact-box-header" style="margin-bottom: 14px;">
+              <div class="box-icon-circle" style="background: rgba(220, 38, 38, 0.1); color: var(--color-red-brand);">
+                <i class="fa-solid fa-route"></i>
+              </div>
+              <div>
+                <h3>แผนที่เส้นทางสถาบัน (จุดสังเกตสำคัญ)</h3>
+                <p>แผนที่ภาพประกอบการเดินทางในย่านนวนคร (คลิกเพื่อดูรูปขยาย)</p>
+              </div>
+            </div>
+            <div class="map-graphic-box" onclick="openMapLightbox(document.getElementById('contactMapGraphicImg').src)" style="cursor: pointer; position: relative; border-radius: var(--radius-md); overflow: hidden; border: 1.5px solid var(--border-light); background: #ffffff; box-shadow: var(--shadow-xs); transition: all 0.25s ease;">
+              <img id="contactMapGraphicImg" src="assets/images/map-graphic.jpg" alt="แผนที่เส้นทาง สถาบันกวดวิชา The NEW GEN นวนคร" style="width: 100%; height: auto; display: block; object-fit: contain;">
+              <div class="map-graphic-zoom-overlay" style="position: absolute; bottom: 12px; right: 12px; background: rgba(15, 23, 42, 0.82); backdrop-filter: blur(4px); color: #ffffff; padding: 6px 14px; border-radius: 20px; font-size: 0.82rem; font-weight: 600; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.25);">
+                <i class="fa-solid fa-magnifying-glass-plus"></i> คลิกซูมดูรูปใหญ่
+              </div>
+            </div>
+            <div style="margin-top: 14px; padding: 10px 14px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: var(--radius-sm); font-size: 0.88rem; color: var(--color-navy); line-height: 1.5; display: flex; align-items: flex-start; gap: 8px;">
+              <i class="fa-solid fa-location-dot" style="color: var(--color-red-brand); margin-top: 3px; flex-shrink: 0;"></i>
+              <span><strong>จุดสังเกต:</strong> เข้าซอยข้าง Lotus's / รพ.การุญเวช นวนคร ใกล้โรงเรียนยิ่งยศอนุสรณ์</span>
             </div>
           </div>
 
@@ -542,11 +565,49 @@
 
       const mapBtn = document.getElementById('btnOpenGoogleMapApp');
       if (mapBtn && contact.mapAppUrl) mapBtn.href = contact.mapAppUrl;
+
+      const graphicImg = document.getElementById('contactMapGraphicImg');
+      if (graphicImg) {
+        const rawMap = contact.mapGraphicImage || 'assets/images/map-graphic.jpg';
+        graphicImg.src = window.resolveMediaUrl ? window.resolveMediaUrl(rawMap) : rawMap;
+      }
+    }
+
+    function openMapLightbox(imgUrl) {
+      let modal = document.getElementById('mapLightboxModal');
+      if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'mapLightboxModal';
+        modal.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,0.88);backdrop-filter:blur(6px);z-index:999999;display:flex;align-items:center;justify-content:center;padding:20px;cursor:zoom-out;animation:fadeIn 0.25s ease;';
+        modal.innerHTML = `
+          <div style="position:relative;max-width:980px;width:100%;max-height:90vh;display:flex;align-items:center;justify-content:center;cursor:default;" onclick="event.stopPropagation()">
+            <button type="button" onclick="closeMapLightbox()" aria-label="ปิดรูปภาพ" style="position:absolute;top:-46px;right:0;background:rgba(255,255,255,0.15);border:none;color:#ffffff;font-size:1.6rem;cursor:pointer;width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:all 0.2s ease;">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+            <img id="mapLightboxImg" src="" alt="แผนที่เส้นทางขนาดใหญ่" style="max-width:100%;max-height:85vh;object-fit:contain;border-radius:12px;background:#ffffff;box-shadow:0 16px 40px rgba(0,0,0,0.5);">
+          </div>
+        `;
+        modal.addEventListener('click', closeMapLightbox);
+        document.body.appendChild(modal);
+      }
+      document.getElementById('mapLightboxImg').src = imgUrl;
+      modal.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeMapLightbox() {
+      const modal = document.getElementById('mapLightboxModal');
+      if (modal) {
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+      }
     }
 
     if (typeof window !== 'undefined') {
       window.renderContactChannels = renderContactChannels;
       window.renderAboutInspiration = renderAboutInspiration;
+      window.openMapLightbox = openMapLightbox;
+      window.closeMapLightbox = closeMapLightbox;
     }
 
     function escapeHtml(str) {
