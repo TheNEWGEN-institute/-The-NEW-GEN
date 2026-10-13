@@ -85,26 +85,8 @@
             กวดวิชาที่ไม่ใช่แค่ติวให้สอบผ่าน แต่คือพื้นที่สร้างอนาคตและจุดประกายความฝันของเด็ก GEN Z
           </p>
 
-          <div class="about-story-grid" id="aboutStoryGrid">
-            <!-- Left: 2 Main Photos (บน & ล่าง พอดีกับกรอบน้ำเงินด้านขวา) -->
-            <div class="about-main-img-box" id="aboutMainImgBox">
-              <!-- Top Photo -->
-              <div class="about-side-img-card top">
-                <img id="aboutMainImg" src="assets/images/course-poster-primary.jpg" alt="แรงบันดาลใจ The NEW GEN ภาพที่ 1" loading="eager">
-                <div class="about-img-tag">
-                  <i class="fa-solid fa-bolt-lightning" style="color: var(--color-cyan);"></i> The NEW GEN Tutoring Institute
-                </div>
-              </div>
-              <!-- Bottom Photo -->
-              <div class="about-side-img-card bottom">
-                <img id="aboutSecondaryImg" src="assets/images/course-poster-secondary.jpg" alt="แรงบันดาลใจ The NEW GEN ภาพที่ 2" loading="lazy">
-                <div class="about-img-tag bottom-tag">
-                  <i class="fa-solid fa-certificate" style="color: #fbbf24;"></i> 10+ Years Experience
-                </div>
-              </div>
-            </div>
-
-            <!-- Right: Text card with faded student background watermark -->
+          <div class="about-story-grid full-width-story" id="aboutStoryGrid">
+            <!-- Full Width: Dark Blue Story Card with Faded Student Watermark -->
             <div class="about-story-card" id="aboutStoryCard">
               <div class="about-story-watermark-bg"></div>
               <div class="about-story-card-content">
@@ -424,7 +406,6 @@
       const badgeEl = document.getElementById('aboutBadgeText');
       const titleEl = document.getElementById('aboutTitleText');
       const subtitleEl = document.getElementById('aboutSubtitleText');
-      const mainImg = document.getElementById('aboutMainImg');
       const bodyEl = document.getElementById('aboutStoryBody');
       const galleryGrid = document.getElementById('aboutGalleryGrid');
       const gallerySec = document.getElementById('aboutGallerySection');
@@ -432,18 +413,6 @@
       if (badgeEl && about.badge) badgeEl.textContent = about.badge;
       if (titleEl && about.title) titleEl.textContent = about.title;
       if (subtitleEl && about.subtitle) subtitleEl.textContent = about.subtitle;
-      
-      if (mainImg && about.mainImage) {
-        const resolvedImg = window.resolveMediaUrl ? window.resolveMediaUrl(about.mainImage) : about.mainImage;
-        mainImg.src = resolvedImg;
-      }
-
-      const secImg = document.getElementById('aboutSecondaryImg');
-      if (secImg) {
-        const secSrc = about.secondaryImage || about.mainImage2 || 'assets/images/course-poster-secondary.jpg';
-        const resolvedSec = window.resolveMediaUrl ? window.resolveMediaUrl(secSrc) : secSrc;
-        secImg.src = resolvedSec;
-      }
 
       if (bodyEl) {
         let paras = [];
