@@ -122,13 +122,12 @@ function initNavbar() {
 function initHeroTutors() {
   renderHeroContent();
 
-  // Sync fresh home data from Backend API
+  // Optional local backend preview (NEVER overwrite Cloud)
   const apiUrl = (window.getApiBaseUrl ? window.getApiBaseUrl() : '') + '/api/home';
   fetch(apiUrl)
     .then(res => res.json())
     .then(serverHome => {
-      if (serverHome && serverHome.subtitle) {
-        if (window.NewGenDB) window.NewGenDB.saveHome(serverHome);
+      if (serverHome && serverHome.subtitle && !window._supabaseHomeSynced) {
         renderHeroContent(serverHome);
       }
     })
@@ -213,7 +212,7 @@ function renderHeroContent(customHomeData) {
         <div class="hero-tutor-meta">
           <h3 class="hero-tutor-name">${escapeHtml(t.name)}</h3>
           <div class="hero-tutor-degree">
-            <i class="fa-solid fa-graduation-cap"></i> ${escapeHtml(t.honor)}
+            <i class="fa-solid fa-graduation-cap"></i> ${escapeHtml(t.honor || t.degree || '')}
           </div>
         </div>
       </div>

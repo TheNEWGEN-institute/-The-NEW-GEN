@@ -239,22 +239,22 @@
       renderTutors();
       renderQuote();
 
-      // Sync latest tutors order and data from Backend API
+      // Priority: Supabase Cloud Sync listener
+      document.addEventListener('newgen:synced', () => {
+        renderTutors();
+        renderQuote();
+      });
+
+      // Optional local API fallback for preview only (NEVER overwrite Cloud)
       const apiUrl = (window.getApiBaseUrl ? window.getApiBaseUrl() : '') + '/api/tutors';
       fetch(apiUrl)
         .then(res => res.json())
         .then(data => {
-          if (Array.isArray(data) && data.length > 0) {
-            if (window.NewGenDB) window.NewGenDB.saveTutors(data);
+          if (Array.isArray(data) && data.length > 0 && !window._supabaseTutorsSynced) {
             renderTutors(data);
           }
         })
         .catch(() => {});
-    });
-
-    document.addEventListener('newgen:synced', () => {
-      renderTutors();
-      renderQuote();
     });
 
     function renderTutors(customTutors) {
