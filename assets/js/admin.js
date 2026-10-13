@@ -2042,6 +2042,12 @@ function loadAdminContact() {
   if (document.getElementById('editContactMapAppUrl')) {
     document.getElementById('editContactMapAppUrl').value = contact.mapAppUrl || 'https://maps.app.goo.gl/NSR8rtGecvjyE1KL8?g_st=ic';
   }
+  if (document.getElementById('editContactMapGraphicUrl')) {
+    document.getElementById('editContactMapGraphicUrl').value = contact.mapGraphicImage || 'assets/images/map-graphic.jpg';
+  }
+  if (document.getElementById('editContactMapGraphicPreview')) {
+    document.getElementById('editContactMapGraphicPreview').src = contact.mapGraphicImage || 'assets/images/map-graphic.jpg';
+  }
 
   renderPhonesBuilder(contact.phones || []);
 }
@@ -2128,7 +2134,8 @@ async function saveContactForm() {
     address: document.getElementById('editContactAddress').value.trim() || '480/3 หมู่ 13 นวนคร ตำบลคลองหนึ่ง อำเภอคลองหลวง จังหวัดปทุมธานี 12120',
     footerDesc: footerDescVal || 'สถาบันกวดวิชา The NEW GEN กวดวิชาของเด็ก GENZ เรียนสนุก ครบทุกเนื้อหา จบที่ The NEW GEN พัฒนาทักษะวิชาการและความมั่นใจสู่อนาคตที่สดใส',
     mapEmbedUrl: document.getElementById('editContactMapUrl').value.trim(),
-    mapAppUrl: fmt(mapAppUrlVal || 'https://maps.app.goo.gl/NSR8rtGecvjyE1KL8?g_st=ic')
+    mapAppUrl: fmt(mapAppUrlVal || 'https://maps.app.goo.gl/NSR8rtGecvjyE1KL8?g_st=ic'),
+    mapGraphicImage: document.getElementById('editContactMapGraphicUrl') ? document.getElementById('editContactMapGraphicUrl').value.trim() || 'assets/images/map-graphic.jpg' : 'assets/images/map-graphic.jpg'
   };
 
   const cloudRes = await window.NewGenDB.saveContact(contact);
