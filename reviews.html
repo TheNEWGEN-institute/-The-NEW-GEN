@@ -131,7 +131,7 @@
               <span class="brand-subtext">กวดวิชาของเด็ก <span class="highlight-gen">GEN</span> ใหม่</span>
             </div>
           </a>
-          <p class="footer-desc">
+          <p class="footer-desc" id="footerBrandDesc">
             สถาบันกวดวิชา The NEW GEN กวดวิชาของเด็ก GENZ เรียนสนุก ครบทุกเนื้อหา จบที่ The NEW GEN 
             พัฒนาทักษะวิชาการและความมั่นใจสู่อนาคตที่สดใส
           </p>
@@ -232,7 +232,6 @@
           © 2026 สถาบันกวดวิชา The NEW GEN. All Rights Reserved.
         </div>
         <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-          <span>ออกแบบเพื่อเด็ก GEN Z โดยเฉพาะ • Onsite Tutoring Excellence</span>
           <a href="admin-login.html" class="footer-admin-link" title="ระบบจัดการหลังบ้าน">
             <i class="fa-solid fa-lock"></i> จัดการระบบ
           </a>
@@ -312,13 +311,8 @@
 
       grid.innerHTML = achievements.map(a => `
         <div class="achievement-poster-card">
-          <div class="achievement-poster-header">
-            ${a.date ? `<div class="achievement-poster-date"><i class="fa-regular fa-calendar-check"></i> ${a.date}</div>` : ''}
-            <h3 class="achievement-poster-title">${escapeHtml(a.title)}</h3>
-            ${a.description ? `<p class="achievement-poster-desc">${escapeHtml(a.description)}</p>` : ''}
-          </div>
-          <div class="achievement-poster-img-wrap" onclick="viewFullImage('${a.image}', '${escapeHtml(a.title)}')">
-            <img src="${a.image}" alt="${a.title}" loading="lazy">
+          <div class="achievement-poster-img-wrap" onclick="viewFullImage('${a.image}', '')">
+            <img src="${a.image}" alt="ผลงานและความสำเร็จ The NEW GEN" loading="lazy">
             <div class="achievement-poster-zoom-hint">
               <i class="fa-solid fa-expand"></i> คลิกดูภาพขยาย
             </div>

@@ -462,10 +462,8 @@
           <table class="admin-data-table">
             <thead>
               <tr>
-                <th style="width: 100px;">รูปโปสเตอร์</th>
-                <th>ชื่อหัวข้อ / ความสำเร็จ</th>
-                <th>ปีการศึกษา / วันที่</th>
-                <th>รายละเอียดสั้นๆ</th>
+                <th style="width: 140px;">รูปโปสเตอร์ / ผลงาน</th>
+                <th>ที่อยู่ไฟล์รูปภาพ (Image Path)</th>
                 <th style="text-align: right;">จัดการ</th>
               </tr>
             </thead>
@@ -574,6 +572,16 @@
             <div class="form-group-luxury">
               <label>ที่อยู่สถาบัน (เรียนสด Onsite)</label>
               <textarea id="editContactAddress" rows="3" placeholder="480/3 หมู่ 13 นวนคร ตำบลคลองหนึ่ง อำเภอคลองหลวง จังหวัดปทุมธานี 12120"></textarea>
+            </div>
+
+            <div class="form-group-luxury" style="background: #f0f7ff; border: 1.5px solid #bfdbfe; padding: 16px; border-radius: var(--radius-md); margin-top: 14px;">
+              <label style="color: #1e40af; font-weight: 800; font-size: 0.95rem; margin-bottom: 6px; display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-quote-left"></i> ข้อความคำอธิบายสถาบันท้ายเว็บ (Footer Description) *
+              </label>
+              <p style="font-size: 0.82rem; color: #3b82f6; margin: 0 0 8px 0;">
+                ข้อความนี้จะแสดงอยู่ด้านล่างสุดของทุกหน้าใต้โลโก้สถาบัน The NEW GEN
+              </p>
+              <textarea id="editContactFooterDesc" rows="3" placeholder="สถาบันกวดวิชา The NEW GEN กวดวิชาของเด็ก GENZ เรียนสนุก ครบทุกเนื้อหา จบที่ The NEW GEN พัฒนาทักษะวิชาการและความมั่นใจสู่อนาคตที่สดใส"></textarea>
             </div>
           </div>
 
@@ -1192,37 +1200,24 @@
       </div>
       <form id="formAchievement" onsubmit="handleSaveAchievement(event)">
         <input type="hidden" id="achEditId">
+        <input type="hidden" id="achTitle" value="">
+        <input type="hidden" id="achDate" value="">
+        <input type="hidden" id="achDesc" value="">
         <div class="admin-modal-body">
-          <div class="form-row-2col">
-            <div class="form-group-luxury">
-              <label>ชื่อหัวข้อ / รางวัลความสำเร็จ *</label>
-              <input type="text" id="achTitle" required placeholder="เช่น สรุปผลสอบติด ม.1 รร.สวนกุหลาบวิทยาลัย">
-            </div>
-            <div class="form-group-luxury">
-              <label>ปีการศึกษา / ช่วงเวลา</label>
-              <input type="text" id="achDate" placeholder="เช่น ปีการศึกษา 2568 หรือ มีนาคม 2568">
-            </div>
-          </div>
-
           <div class="form-group-luxury">
-            <label>รูปภาพโปสเตอร์ (อัปโหลดรูปภาพ หรือใส่ URL) *</label>
+            <label>รูปภาพผลงาน / โปสเตอร์ (อัปโหลดรูปภาพ หรือใส่ URL) *</label>
             <div class="img-upload-field-row">
               <input type="file" id="achImgFile" accept="image/*" onchange="previewUploadImage(event, 'achImgPreview', 'achImgUrl')">
               <input type="text" id="achImgUrl" required placeholder="assets/images/course-poster-exam.jpg">
             </div>
-            <div class="upload-preview-box" style="height: 140px;">
-              <img id="achImgPreview" src="assets/images/course-poster-exam.jpg" alt="Preview">
+            <div class="upload-preview-box" style="height: 220px; margin-top: 10px;">
+              <img id="achImgPreview" src="assets/images/course-poster-exam.jpg" alt="Preview" style="max-height: 100%; object-fit: contain;">
             </div>
-          </div>
-
-          <div class="form-group-luxury">
-            <label>คำอธิบายประกอบโปสเตอร์</label>
-            <textarea id="achDesc" rows="3" placeholder="อธิบายรายละเอียดผลสอบ สถิติ หรือแสดงความยินดีกับน้องๆ..."></textarea>
           </div>
         </div>
         <div class="admin-modal-footer">
           <button type="button" class="btn-secondary" onclick="closeModal('modalAchievement')">ยกเลิก</button>
-          <button type="submit" class="btn-primary"><i class="fa-solid fa-floppy-disk"></i> บันทึกโปสเตอร์ความสำเร็จ</button>
+          <button type="submit" class="btn-primary"><i class="fa-solid fa-floppy-disk"></i> บันทึกรูปโปสเตอร์</button>
         </div>
       </form>
     </div>
