@@ -298,13 +298,12 @@
     document.addEventListener('DOMContentLoaded', () => {
       renderTrialVideos();
 
-      // Sync fresh videos directly from Backend API
+      // Optional local backend preview (NEVER overwrite Cloud)
       const apiUrl = (window.getApiBaseUrl ? window.getApiBaseUrl() : '') + '/api/videos';
       fetch(apiUrl)
         .then(res => res.json())
         .then(serverVideos => {
-          if (Array.isArray(serverVideos) && serverVideos.length > 0) {
-            if (window.NewGenDB) window.NewGenDB.saveVideos(serverVideos);
+          if (Array.isArray(serverVideos) && serverVideos.length > 0 && !window._supabaseVideosSynced) {
             renderTrialVideos(serverVideos);
           }
         })

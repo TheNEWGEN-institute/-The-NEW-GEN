@@ -419,18 +419,27 @@ const NewGenDB = {
             localStorage.setItem(localKey, JSON.stringify(val));
           } catch (e) {}
         }
-        if (key === 'courses' && typeof window !== 'undefined') window.courseData = NewGenDB.getCourses();
-        if (key === 'tutors' && typeof window !== 'undefined') window.tutorsData = NewGenDB.getTutors();
+        if (key === 'courses' && typeof window !== 'undefined') window.courseData = val;
+        if (key === 'tutors' && typeof window !== 'undefined') {
+          window.tutorsData = val;
+          window._supabaseTutorsSynced = true;
+        }
         if (key === 'tutorsQuote' && typeof window !== 'undefined') window.tutorsQuoteData = val;
-        if (key === 'reviews' && typeof window !== 'undefined') window.reviewsData = NewGenDB.getReviews();
+        if (key === 'reviews' && typeof window !== 'undefined') window.reviewsData = val;
         if (key === 'achievements' && typeof window !== 'undefined') window.achievementsData = val;
         if (key === 'videos' && typeof window !== 'undefined') window.videosData = val;
         if (key === 'contact' && typeof window !== 'undefined') window.contactData = val;
         if (key === 'whyus' && typeof window !== 'undefined') window.whyUsData = val;
         if (key === 'categories' && typeof window !== 'undefined') window.categoriesData = val;
         if (key === 'privilege' && typeof window !== 'undefined') window.privilegeData = val;
-        if (key === 'home' && typeof window !== 'undefined') window.homeData = val;
-        if (key === 'about' && typeof window !== 'undefined') window.aboutData = val;
+        if (key === 'home' && typeof window !== 'undefined') {
+          window.homeData = val;
+          window._supabaseHomeSynced = true;
+        }
+        if (key === 'about' && typeof window !== 'undefined') {
+          window.aboutData = val;
+          window._supabaseAboutSynced = true;
+        }
       });
 
       // Update UI components across all active pages
@@ -525,39 +534,7 @@ const NewGenDB = {
     try {
       const data = localStorage.getItem('newgen_tutors');
       if (data) {
-        const tutors = JSON.parse(data);
-        // Data Migration / Correction for updated requirements
-        let changed = false;
-        tutors.forEach(t => {
-          if (t.id === 'tutor-mac') {
-            if (t.honor.includes('ป.โท มศว') && !t.honor.includes('คณิตมธ')) {
-              t.honor = 'เกียรตินิยมอันดับ 2 คณิตมธ &ป.โท คณิต มศว';
-              t.degree = 'วท.บ. คณิตศาสตร์ (เกียรตินิยมอันดับ 2) มธ. & กศ.ม. คณิตศาสตร์ (ป.โท) มศว';
-              changed = true;
-            }
-            if (!t.heroBadge) { t.heroBadge = 'คณิตศาสตร์'; changed = true; }
-          }
-          if (t.id === 'tutor-non') {
-            if (t.subjects !== 'เคมี&วิทยาศาสตร์') {
-              t.subjects = 'เคมี&วิทยาศาสตร์';
-              t.heroBadge = 'เคมี&วิทยาศาสตร์';
-              changed = true;
-            }
-          }
-          if (t.id === 'tutor-au') {
-            if (t.subjects !== 'ฟิสิกส์&ภาษาอังกฤษ') {
-              t.subjects = 'ฟิสิกส์&ภาษาอังกฤษ';
-              t.heroBadge = 'ฟิสิกส์&ภาษาอังกฤษ';
-              changed = true;
-            }
-          }
-        });
-        if (changed) {
-          try {
-            localStorage.setItem('newgen_tutors', JSON.stringify(tutors));
-          } catch(e) {}
-        }
-        return tutors;
+        return JSON.parse(data);
       }
     } catch (e) {}
     return DEFAULT_TUTORS;

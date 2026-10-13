@@ -351,13 +351,12 @@
       renderAboutInspiration();
       renderContactChannels();
 
-      // Sync fresh data directly from Backend API
+      // Optional local backend preview (NEVER overwrite Cloud)
       const apiUrl = (window.getApiBaseUrl ? window.getApiBaseUrl() : '') + '/api/about';
       fetch(apiUrl)
         .then(res => res.json())
         .then(serverAbout => {
-          if (serverAbout && (serverAbout.title || serverAbout.mainImage)) {
-            if (window.NewGenDB) window.NewGenDB.saveAbout(serverAbout);
+          if (serverAbout && (serverAbout.title || serverAbout.mainImage) && !window._supabaseAboutSynced) {
             renderAboutInspiration(serverAbout);
           }
         })
