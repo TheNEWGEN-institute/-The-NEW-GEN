@@ -283,6 +283,7 @@ const DEFAULT_CONTACT = {
   tiktokUrl: 'https://www.tiktok.com/@thenewgen89?_r=1&_t=ZS-9AUULZATQT2',
   youtubeUrl: 'https://www.youtube.com/@macthenewgen',
   address: '480/3 หมู่ 13 นวนคร ตำบลคลองหนึ่ง อำเภอคลองหลวง จังหวัดปทุมธานี 12120',
+  footerDesc: 'สถาบันกวดวิชา The NEW GEN กวดวิชาของเด็ก GENZ เรียนสนุก ครบทุกเนื้อหา จบที่ The NEW GEN พัฒนาทักษะวิชาการและความมั่นใจสู่อนาคตที่สดใส',
   mapAppUrl: 'https://maps.app.goo.gl/NSR8rtGecvjyE1KL8?g_st=ic',
   mapEmbedUrl: 'https://maps.app.goo.gl/NSR8rtGecvjyE1KL8?g_st=ic'
 };
@@ -642,6 +643,9 @@ const NewGenDB = {
         if (!c.mapAppUrl) {
           c.mapAppUrl = DEFAULT_CONTACT.mapAppUrl;
           try { localStorage.setItem('newgen_contact', JSON.stringify(c)); } catch(e) {}
+        }
+        if (!c.footerDesc) {
+          c.footerDesc = DEFAULT_CONTACT.footerDesc;
         }
         return c;
       }
@@ -1153,6 +1157,12 @@ function renderFooterContactInfo() {
   if (mapIframe && contact.mapEmbedUrl) {
     mapIframe.src = contact.mapEmbedUrl;
   }
+
+  // 10. Footer Brand Description
+  const footerDesc = contact.footerDesc || 'สถาบันกวดวิชา The NEW GEN กวดวิชาของเด็ก GENZ เรียนสนุก ครบทุกเนื้อหา จบที่ The NEW GEN พัฒนาทักษะวิชาการและความมั่นใจสู่อนาคตที่สดใส';
+  document.querySelectorAll('p.footer-desc, #footerBrandDesc').forEach(el => {
+    el.textContent = footerDesc;
+  });
 }
 
 function renderPrivilegeNote() {
@@ -1174,4 +1184,8 @@ if (typeof document !== 'undefined') {
     renderFooterContactInfo();
     renderPrivilegeNote();
   }
+  document.addEventListener('newgen:synced', () => {
+    renderFooterContactInfo();
+    renderPrivilegeNote();
+  });
 }

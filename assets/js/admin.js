@@ -1617,19 +1617,20 @@ function loadAdminAchievements() {
   const tbody = document.getElementById('adminAchievementsTableBody');
   if (!tbody) return;
 
-  tbody.innerHTML = achievements.map(a => `
+  tbody.innerHTML = achievements.map((a, idx) => `
     <tr>
       <td>
-        <img src="${a.image}" alt="${a.title}" style="width: 70px; height: 50px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border-light);">
+        <img src="${a.image}" alt="Poster #${idx + 1}" style="width: 100px; height: 70px; object-fit: cover; border-radius: 8px; border: 1.5px solid var(--border-light); cursor: pointer;" onclick="window.open('${a.image}', '_blank')">
       </td>
-      <td><strong>${a.title}</strong></td>
-      <td><span class="badge badge-primary-level">${a.date || 'ความสำเร็จ'}</span></td>
-      <td><small style="color: var(--text-muted);">${a.description || '-'}</small></td>
+      <td>
+        <div style="font-weight: 700; color: var(--color-navy); word-break: break-all;">${escapeHtml(a.image)}</div>
+        <small style="color: var(--text-muted); font-size: 0.8rem;">รูปโปสเตอร์ลำดับที่ ${idx + 1}</small>
+      </td>
       <td style="text-align: right;">
-        <button type="button" class="btn-action-edit" onclick="openEditAchievementModal('${a.id}')" title="แก้ไข">
+        <button type="button" class="btn-action-edit" onclick="openEditAchievementModal('${a.id}')" title="เปลี่ยนรูปภาพ">
           <i class="fa-solid fa-pen-to-square"></i>
         </button>
-        <button type="button" class="btn-action-del" onclick="deleteAchievement('${a.id}')" title="ลบ">
+        <button type="button" class="btn-action-del" onclick="deleteAchievement('${a.id}')" title="ลบรูปภาพ">
           <i class="fa-solid fa-trash"></i>
         </button>
       </td>
@@ -1638,13 +1639,13 @@ function loadAdminAchievements() {
 }
 
 function openAddAchievementModal() {
-  document.getElementById('modalAchievementTitle').textContent = 'เพิ่มโปสเตอร์ความสำเร็จ';
+  document.getElementById('modalAchievementTitle').textContent = 'เพิ่มรูปโปสเตอร์ผลงาน';
   document.getElementById('achEditId').value = '';
-  document.getElementById('achTitle').value = '';
-  document.getElementById('achDate').value = '';
+  if (document.getElementById('achTitle')) document.getElementById('achTitle').value = '';
+  if (document.getElementById('achDate')) document.getElementById('achDate').value = '';
+  if (document.getElementById('achDesc')) document.getElementById('achDesc').value = '';
   document.getElementById('achImgUrl').value = 'assets/images/course-poster-exam.jpg';
   document.getElementById('achImgPreview').src = 'assets/images/course-poster-exam.jpg';
-  document.getElementById('achDesc').value = '';
   document.getElementById('modalAchievement').classList.add('active');
 }
 
@@ -1653,13 +1654,13 @@ function openEditAchievementModal(id) {
   const a = achievements.find(item => item.id === id);
   if (!a) return;
 
-  document.getElementById('modalAchievementTitle').textContent = 'แก้ไขโปสเตอร์ความสำเร็จ';
+  document.getElementById('modalAchievementTitle').textContent = 'เปลี่ยนรูปโปสเตอร์ผลงาน';
   document.getElementById('achEditId').value = a.id;
-  document.getElementById('achTitle').value = a.title;
-  document.getElementById('achDate').value = a.date || '';
+  if (document.getElementById('achTitle')) document.getElementById('achTitle').value = a.title || '';
+  if (document.getElementById('achDate')) document.getElementById('achDate').value = a.date || '';
+  if (document.getElementById('achDesc')) document.getElementById('achDesc').value = a.description || '';
   document.getElementById('achImgUrl').value = a.image;
   document.getElementById('achImgPreview').src = a.image;
-  document.getElementById('achDesc').value = a.description || '';
   document.getElementById('modalAchievement').classList.add('active');
 }
 
@@ -1668,12 +1669,13 @@ async function handleSaveAchievement(e) {
   const id = document.getElementById('achEditId').value.trim();
   const achievements = window.NewGenDB.getAchievements();
 
+  const existing = id ? achievements.find(a => a.id === id) : null;
   const achObj = {
     id: id || `ach-${Date.now()}`,
-    title: document.getElementById('achTitle').value.trim(),
-    date: document.getElementById('achDate').value.trim(),
+    title: document.getElementById('achTitle') ? document.getElementById('achTitle').value.trim() : (existing ? existing.title : ''),
+    date: document.getElementById('achDate') ? document.getElementById('achDate').value.trim() : (existing ? existing.date : ''),
     image: document.getElementById('achImgUrl').value.trim() || 'assets/images/course-poster-exam.jpg',
-    description: document.getElementById('achDesc').value.trim()
+    description: document.getElementById('achDesc') ? document.getElementById('achDesc').value.trim() : (existing ? existing.description : '')
   };
 
   if (id) {
@@ -1895,6 +1897,9 @@ function loadAdminContact() {
     document.getElementById('editContactYtUrl').value = contact.youtubeUrl || 'https://www.youtube.com/@macthenewgen';
   }
   document.getElementById('editContactAddress').value = contact.address || '480/3 หมู่ 13 นวนคร ตำบลคลองหนึ่ง อำเภอคลองหลวง จังหวัดปทุมธานี 12120';
+  if (document.getElementById('editContactFooterDesc')) {
+    document.getElementById('editContactFooterDesc').value = contact.footerDesc || 'สถาบันกวดวิชา The NEW GEN กวดวิชาของเด็ก GENZ เรียนสนุก ครบทุกเนื้อหา จบที่ The NEW GEN พัฒนาทักษะวิชาการและความมั่นใจสู่อนาคตที่สดใส';
+  }
   document.getElementById('editContactMapUrl').value = contact.mapEmbedUrl || 'https://maps.app.goo.gl/NSR8rtGecvjyE1KL8?g_st=ic';
   if (document.getElementById('editContactMapAppUrl')) {
     document.getElementById('editContactMapAppUrl').value = contact.mapAppUrl || 'https://maps.app.goo.gl/NSR8rtGecvjyE1KL8?g_st=ic';
@@ -1966,6 +1971,7 @@ async function saveContactForm() {
   const igUrlVal = document.getElementById('editContactIgUrl') ? document.getElementById('editContactIgUrl').value.trim() : '';
   const ytUrlVal = document.getElementById('editContactYtUrl') ? document.getElementById('editContactYtUrl').value.trim() : '';
   const mapAppUrlVal = document.getElementById('editContactMapAppUrl') ? document.getElementById('editContactMapAppUrl').value.trim() : '';
+  const footerDescVal = document.getElementById('editContactFooterDesc') ? document.getElementById('editContactFooterDesc').value.trim() : '';
 
   const contact = {
     phones: phones.length > 0 ? phones : [
@@ -1982,6 +1988,7 @@ async function saveContactForm() {
     instagramUrl: fmt(igUrlVal || (igVal ? (igVal.startsWith('http') ? igVal : `https://www.instagram.com/${igVal.replace(/[@()]/g, '').trim().split(' ')[0]}`) : 'https://www.instagram.com/the_.newgen')),
     youtubeUrl: fmt(ytUrlVal || 'https://www.youtube.com/@macthenewgen'),
     address: document.getElementById('editContactAddress').value.trim() || '480/3 หมู่ 13 นวนคร ตำบลคลองหนึ่ง อำเภอคลองหลวง จังหวัดปทุมธานี 12120',
+    footerDesc: footerDescVal || 'สถาบันกวดวิชา The NEW GEN กวดวิชาของเด็ก GENZ เรียนสนุก ครบทุกเนื้อหา จบที่ The NEW GEN พัฒนาทักษะวิชาการและความมั่นใจสู่อนาคตที่สดใส',
     mapEmbedUrl: document.getElementById('editContactMapUrl').value.trim(),
     mapAppUrl: fmt(mapAppUrlVal || 'https://maps.app.goo.gl/NSR8rtGecvjyE1KL8?g_st=ic')
   };
