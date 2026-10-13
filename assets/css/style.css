@@ -846,12 +846,13 @@ button {
   }
   .hero-bottom-statement {
     margin-top: 14px;
-    padding: 10px 22px;
-    max-width: 1040px;
+    padding: 10px 18px;
+    max-width: 100%;
   }
   .hero-statement-text {
-    font-size: 0.82rem;
-    line-height: 1.65;
+    font-size: 0.80rem;
+    line-height: 1.6;
+    letter-spacing: 0;
   }
 }
 
@@ -1015,10 +1016,10 @@ button {
    HERO BOTTOM STATEMENT BAR (White Text on Frosted Navy Glass)
    =================================================================== */
 .hero-bottom-statement {
-  max-width: 1120px;
+  max-width: 100%;
   width: 100%;
-  margin: 24px auto 0;
-  padding: 16px 32px;
+  margin: 20px auto 0;
+  padding: 12px 20px;
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(56, 189, 248, 0.25);
   border-radius: var(--radius-lg);
@@ -1031,15 +1032,14 @@ button {
 }
 
 .hero-statement-text {
-  font-size: clamp(0.84rem, 0.9vw, 0.94rem);
+  font-size: clamp(0.74rem, 0.8vw, 0.84rem);
   color: #ffffff;
-  line-height: 1.85;
+  line-height: 1.7;
   margin: 0;
   font-weight: 400;
-  letter-spacing: 0.15px;
+  letter-spacing: 0;
   text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
   word-break: normal;
-  text-wrap: balance;
   text-align: center;
 }
 
