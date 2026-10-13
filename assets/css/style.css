@@ -475,7 +475,7 @@ button {
   position: relative;
   overflow: hidden;
   background: linear-gradient(135deg, #07132b 0%, #0b1e3f 50%, #0d2c5e 100%);
-  border-bottom: 1px solid rgba(56, 189, 248, 0.22);
+  border-bottom: none;
 }
 
 .hero-section::before {
@@ -1001,45 +1001,49 @@ button {
 }
 
 /* ===================================================================
-   HERO PHILOSOPHY SECTION (Minimal Strip - ชิด Hero ตัวหนังสือล้วน)
+   HERO PHILOSOPHY SECTION (Minimal Strip - Deep Navy & White Text)
    =================================================================== */
 .hero-philosophy-section {
-  padding: 12px 0 14px;
-  background: #ffffff;
-  border-bottom: 1px solid var(--border-light);
+  padding: 0 0 28px;
+  background: linear-gradient(180deg, #0d2c5e 0%, #071630 100%);
+  border-bottom: 1px solid rgba(56, 189, 248, 0.22);
   position: relative;
+  overflow: hidden;
 }
 
 .philosophy-minimal-strip {
   max-width: 1060px;
   margin: 0 auto;
-  padding: 12px 24px;
-  background: #f8fafc;
-  border: 1px solid rgba(11, 30, 63, 0.08);
+  padding: 14px 28px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(56, 189, 248, 0.25);
   border-radius: var(--radius-lg);
   text-align: center;
-  box-shadow: 0 2px 10px rgba(11, 30, 63, 0.03);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .philosophy-pure-text {
-  font-size: clamp(0.88rem, 0.95vw, 0.95rem);
-  color: #475569;
-  line-height: 1.7;
+  font-size: clamp(0.78rem, 0.85vw, 0.87rem);
+  color: #ffffff;
+  line-height: 1.75;
   margin: 0;
-  font-weight: 500;
+  font-weight: 400;
   letter-spacing: 0.1px;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
 }
 
 @media (max-width: 768px) {
   .hero-philosophy-section {
-    padding: 10px 0 12px;
+    padding: 0 0 20px;
   }
   .philosophy-minimal-strip {
-    padding: 12px 16px;
+    padding: 12px 18px;
     border-radius: var(--radius-md);
   }
   .philosophy-pure-text {
-    font-size: 0.86rem;
+    font-size: 0.8rem;
     line-height: 1.6;
     text-align: left;
   }
