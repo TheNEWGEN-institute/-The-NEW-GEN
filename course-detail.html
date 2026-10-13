@@ -107,7 +107,7 @@
         <div class="cd-col-main">
 
           <!-- 1. Full Poster Showcase Card -->
-          <div class="cd-card cd-poster-card">
+          <div class="cd-card cd-poster-card" id="cdPosterCard">
             <div class="cd-card-header">
               <h2 class="cd-card-title">
                 <i class="fa-solid fa-image" style="color: var(--color-cyan);"></i> โปสเตอร์รายละเอียดคอร์ส & ตารางเรียน
@@ -142,8 +142,42 @@
             </div>
           </div>
 
-          <!-- 2. Course Highlights & Benefits -->
-          <div class="cd-card cd-highlights-card">
+          <!-- 2. Schedule & Timetable Table (Moved to TOP after posters as requested) -->
+          <div class="cd-card cd-schedule-card" id="cdScheduleCard">
+            <div class="cd-card-header">
+              <h2 class="cd-card-title">
+                <i class="fa-solid fa-calendar-days" style="color: #0284c7;"></i> ตารางเรียนและรอบเวลา (Schedule)
+              </h2>
+              <span class="cd-hours-badge" id="cdTotalHoursBadge">
+                <i class="fa-regular fa-clock"></i> ชั่วโมงเรียน
+              </span>
+            </div>
+
+            <div class="cd-table-responsive">
+              <table class="cd-schedule-table">
+                <thead>
+                  <tr>
+                    <th style="width: 32%;">กลุ่ม / รูปแบบการเรียน</th>
+                    <th style="width: 28%;">เวลาเรียน</th>
+                    <th style="width: 40%;">วันที่เริ่มเรียน - สิ้นสุด</th>
+                  </tr>
+                </thead>
+                <tbody id="cdScheduleTableBody">
+                  <!-- Dynamically populated via JS -->
+                </tbody>
+              </table>
+            </div>
+
+            <div class="cd-schedule-note">
+              <i class="fa-solid fa-bell" style="color: var(--color-gold);"></i>
+              <div>
+                <strong>หมายเหตุการสำรองที่นั่ง:</strong> เนื่องจากแต่ละกลุ่มเป็นห้องเรียนสด Onsite กลุ่มเล็กเพื่อการดูแลทั่วถึง โควตาในแต่ละรอบจึงมีจำนวนจำกัด หากรอบใดเต็มแล้วจะปิดรับสมัครทันที แนะนำให้ติดต่อสำรองที่นั่งล่วงหน้าครับ
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. Course Highlights & Benefits -->
+          <div class="cd-card cd-highlights-card" id="cdHighlightsCard">
             <div class="cd-card-header">
               <h2 class="cd-card-title">
                 <i class="fa-solid fa-star" style="color: var(--color-gold);"></i> จุดเด่นและสิทธิประโยชน์ของคอร์สนี้
@@ -222,45 +256,11 @@
             </div>
           </div>
 
-          <!-- 3. Schedule & Timetable Table -->
-          <div class="cd-card cd-schedule-card">
-            <div class="cd-card-header">
-              <h2 class="cd-card-title">
-                <i class="fa-solid fa-calendar-days" style="color: #0284c7;"></i> ตารางเรียนและรอบเวลา (Schedule)
-              </h2>
-              <span class="cd-hours-badge" id="cdTotalHoursBadge">
-                <i class="fa-regular fa-clock"></i> ชั่วโมงเรียน
-              </span>
-            </div>
-
-            <div class="cd-table-responsive">
-              <table class="cd-schedule-table">
-                <thead>
-                  <tr>
-                    <th style="width: 32%;">กลุ่ม / รูปแบบการเรียน</th>
-                    <th style="width: 28%;">เวลาเรียน</th>
-                    <th style="width: 40%;">วันที่เริ่มเรียน - สิ้นสุด</th>
-                  </tr>
-                </thead>
-                <tbody id="cdScheduleTableBody">
-                  <!-- Dynamically populated via JS -->
-                </tbody>
-              </table>
-            </div>
-
-            <div class="cd-schedule-note">
-              <i class="fa-solid fa-bell" style="color: var(--color-gold);"></i>
-              <div>
-                <strong>หมายเหตุการสำรองที่นั่ง:</strong> เนื่องจากแต่ละกลุ่มเป็นห้องเรียนสด Onsite กลุ่มเล็กเพื่อการดูแลทั่วถึง โควตาในแต่ละรอบจึงมีจำนวนจำกัด หากรอบใดเต็มแล้วจะปิดรับสมัครทันที แนะนำให้ติดต่อสำรองที่นั่งล่วงหน้าครับ
-              </div>
-            </div>
-          </div>
-
           <!-- Dynamic Custom Sections (Admin Configured Extra Topics) -->
           <div id="cdCustomSectionsContainer"></div>
 
           <!-- 4. Meet The Tutors -->
-          <div class="cd-card cd-tutors-card">
+          <div class="cd-card cd-tutors-card" id="cdTutorsSection">
             <div class="cd-card-header">
               <h2 class="cd-card-title">
                 <i class="fa-solid fa-user-tie" style="color: var(--color-cyan);"></i> ทีมติวเตอร์ผู้สอนประจำหลักสูตร
@@ -268,35 +268,7 @@
             </div>
 
             <div class="cd-tutors-grid" id="cdTutorsGrid">
-              <!-- พี่นนท์ -->
-              <div class="cd-tutor-mini-card">
-                <div class="cd-tutor-avatar">
-                  <img src="assets/images/tutor-non-opt.jpg" alt="พี่นนท์">
-                </div>
-                <div class="cd-tutor-info">
-                  <h4>พี่นนท์</h4>
-                </div>
-              </div>
-
-              <!-- พี่อู๋ -->
-              <div class="cd-tutor-mini-card">
-                <div class="cd-tutor-avatar">
-                  <img src="assets/images/tutor-ou-opt.jpg" alt="พี่อู๋">
-                </div>
-                <div class="cd-tutor-info">
-                  <h4>พี่อู๋</h4>
-                </div>
-              </div>
-
-              <!-- พี่แม็ค -->
-              <div class="cd-tutor-mini-card">
-                <div class="cd-tutor-avatar">
-                  <img src="assets/images/tutor-mac-opt.jpg" alt="พี่แม็ค">
-                </div>
-                <div class="cd-tutor-info">
-                  <h4>พี่แม็ค</h4>
-                </div>
-              </div>
+              <!-- Dynamically populated via JS -->
             </div>
           </div>
 
@@ -321,7 +293,7 @@
             <div class="cd-sidebar-card">
               <!-- Price header -->
               <div class="cd-price-section">
-                <span class="cd-price-label">ค่าลงทะเบียนเรียนพิเศษ</span>
+                <span class="cd-price-label" id="cdPriceLabel">ค่าลงทะเบียนเรียนพิเศษ</span>
                 <div class="cd-price-display">
                   <span class="cd-price-old" id="cdPriceOld">จาก 5,900 บ.</span>
                   <div class="cd-price-main">
@@ -329,39 +301,39 @@
                     <span class="price-suffix">.- <span id="cdPriceUnit">บาท / เทอม</span></span>
                   </div>
                 </div>
-                <div class="cd-installment-badge">
-                  <i class="fa-solid fa-check"></i> <span id="cdMonthlyPrice">แบ่งชำระได้ หรือเลือกเรียนแบบรายเดือน</span>
+                <div class="cd-installment-badge" id="cdMonthlyPriceBadge">
+                  <i class="fa-solid fa-check"></i> <span id="cdMonthlyPrice">1,500 บาท / เดือน (20 ชม.)</span>
                 </div>
               </div>
 
               <!-- Quick Info List -->
               <div class="cd-sidebar-info-list">
-                <div class="cd-info-row">
+                <div class="cd-info-row" id="cdLocationRow">
                   <i class="fa-solid fa-location-dot"></i>
                   <div>
                     <strong>สถานที่เรียน:</strong>
-                    <span>สถาบัน The NEW GEN (เรียนสด Onsite)</span>
+                    <span id="cdLocationText">สถาบัน The NEW GEN (เรียนสด Onsite)</span>
                   </div>
                 </div>
-                <div class="cd-info-row">
+                <div class="cd-info-row" id="cdHoursRow">
                   <i class="fa-solid fa-clock"></i>
                   <div>
                     <strong>เวลาเรียนรวม:</strong>
                     <span id="cdSidebarHours">42 ชั่วโมง</span>
                   </div>
                 </div>
-                <div class="cd-info-row">
+                <div class="cd-info-row" id="cdClassSizeRow">
                   <i class="fa-solid fa-users"></i>
                   <div>
                     <strong>ขนาดห้องเรียน:</strong>
-                    <span>กลุ่มเล็ก ดูแลใกล้ชิด ถามได้ทันที</span>
+                    <span id="cdClassSizeText">กลุ่มเล็ก ดูแลใกล้ชิด ถามได้ทันที</span>
                   </div>
                 </div>
-                <div class="cd-info-row">
+                <div class="cd-info-row" id="cdMaterialsRow">
                   <i class="fa-solid fa-file-lines"></i>
                   <div>
                     <strong>ชุดเอกสาร:</strong>
-                    <span>ฟรี! หนังสือและแนวข้อสอบเก็งพิเศษ</span>
+                    <span id="cdMaterialsText">ฟรี! หนังสือและแนวข้อสอบเก็งพิเศษ</span>
                   </div>
                 </div>
               </div>
@@ -395,14 +367,10 @@
               </div>
 
               <!-- Trust Guarantee -->
-              <div class="cd-trust-badges">
-                <div class="trust-item">
+              <div class="cd-trust-badges" id="cdTrustBadges">
+                <div class="trust-item" id="cdTrustGuaranteeItem">
                   <i class="fa-solid fa-shield-halved"></i>
-                  <span>การันตีการสอนโดยทีมติวเตอร์ The NEW GEN</span>
-                </div>
-                <div class="trust-item">
-                  <i class="fa-solid fa-heart"></i>
-                  <span>ใส่ใจทุกความก้าวหน้าของนักเรียน</span>
+                  <span id="cdTrustGuaranteeText">การันตีการสอนโดยทีมติวเตอร์ The NEW GEN</span>
                 </div>
               </div>
 

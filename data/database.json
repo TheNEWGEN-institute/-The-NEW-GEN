@@ -87,7 +87,11 @@
           "tutor": "พี่อู๋ (สถาปัตย์ มธ.)",
           "details": "ไวยากรณ์พื้นฐาน คำศัพท์สำคัญที่ออกสอบบ่อย และเทคนิคการอ่านจับใจความ Reading"
         }
-      ]
+      ],
+      "location": "สถาบัน The NEW GEN (เรียนสด Onsite)",
+      "classSize": "กลุ่มเล็ก ดูแลใกล้ชิด ถามได้ทันที",
+      "materials": "ฟรี! หนังสือและแนวข้อสอบเก็งพิเศษ",
+      "trustGuarantee": "การันตีการสอนโดยทีมติวเตอร์ The NEW GEN"
     },
     {
       "id": "course-p6-m1",
@@ -181,7 +185,11 @@
           "tutor": "พี่อู๋ (สถาปัตย์ มธ.)",
           "details": "ไวยากรณ์พื้นฐาน คำศัพท์สำคัญที่ออกสอบบ่อย และเทคนิคการอ่านจับใจความ Reading"
         }
-      ]
+      ],
+      "location": "สถาบัน The NEW GEN (เรียนสด Onsite)",
+      "classSize": "กลุ่มเล็ก ดูแลใกล้ชิด ถามได้ทันที",
+      "materials": "ฟรี! หนังสือและแนวข้อสอบเก็งพิเศษ",
+      "trustGuarantee": "การันตีการสอนโดยทีมติวเตอร์ The NEW GEN"
     },
     {
       "id": "course-m1-m2",
@@ -286,7 +294,11 @@
           "tutor": "พี่นนท์ (เกียรตินิยมอันดับ 1 เคมี มศว)",
           "details": "ตารางธาตุ ปฏิกิริยาเคมี กรด-เบส และสารละลาย อธิบายเชื่อมโยงเห็นภาพชัดเจน"
         }
-      ]
+      ],
+      "location": "สถาบัน The NEW GEN (เรียนสด Onsite)",
+      "classSize": "กลุ่มเล็ก ดูแลใกล้ชิด ถามได้ทันที",
+      "materials": "ฟรี! หนังสือและแนวข้อสอบเก็งพิเศษ",
+      "trustGuarantee": "การันตีการสอนโดยทีมติวเตอร์ The NEW GEN"
     },
     {
       "id": "course-m3-m4",
@@ -380,7 +392,11 @@
           "tutor": "พี่นนท์ (เกียรตินิยมอันดับ 1 เคมี มศว)",
           "details": "ตารางธาตุ ปฏิกิริยาเคมี กรด-เบส และสารละลาย อธิบายเชื่อมโยงเห็นภาพชัดเจน"
         }
-      ]
+      ],
+      "location": "สถาบัน The NEW GEN (เรียนสด Onsite)",
+      "classSize": "กลุ่มเล็ก ดูแลใกล้ชิด ถามได้ทันที",
+      "materials": "ฟรี! หนังสือและแนวข้อสอบเก็งพิเศษ",
+      "trustGuarantee": "การันตีการสอนโดยทีมติวเตอร์ The NEW GEN"
     }
   ],
   "tutors": [
@@ -779,7 +795,10 @@
     "heroTutorLeftId": "tutor-non",
     "heroTutorRightId": "tutor-mac",
     "heroTutorCenterId": "tutor-au",
-    "heroTutorsHeaderPill": "ทีมติวเตอร์ The NEW GEN ประจำสถาบัน"
+    "heroTutorsHeaderPill": "ทีมติวเตอร์ The NEW GEN ประจำสถาบัน",
+    "coursesBadge": "POPULAR ONSITE COURSES",
+    "coursesTitle": "คอร์สเรียน Onsite แนะนำ",
+    "coursesHighlight": "เปิดเทอม 2/69"
   },
   "about": {
     "badge": "OUR INSPIRATION & STORY",

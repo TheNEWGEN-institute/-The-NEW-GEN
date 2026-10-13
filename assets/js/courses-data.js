@@ -308,7 +308,10 @@ const DEFAULT_HOME = {
   heroTutorsHeaderPill: 'ทีมติวเตอร์ The NEW GEN ประจำสถาบัน',
   heroTutorLeftId: 'tutor-non',
   heroTutorCenterId: 'tutor-au',
-  heroTutorRightId: 'tutor-mac'
+  heroTutorRightId: 'tutor-mac',
+  coursesBadge: 'POPULAR ONSITE COURSES',
+  coursesTitle: 'คอร์สเรียน Onsite แนะนำ',
+  coursesHighlight: 'เปิดเทอม 2/69'
 };
 
 const DEFAULT_ABOUT = {
@@ -495,15 +498,17 @@ const NewGenDB = {
     const enrichCourse = (c) => ({
       ...c,
       isFeatured: c.isFeatured !== undefined ? c.isFeatured : true,
-      galleryImages: (Array.isArray(c.galleryImages) && c.galleryImages.length > 0) ? c.galleryImages : [c.poster || c.cover || 'assets/images/course-poster-primary.jpg'],
-      targetAudience: c.targetAudience || '• นักเรียนที่ต้องการปูพื้นฐานวิชาหลักให้แน่นเพื่อต่อยอดสู่วัยมัธยมอย่างมั่นใจ\n• นักเรียนที่ต้องการเพิ่มเกรดในห้องเรียนและเตรียมพร้อมสอบแข่งขัน\n• น้องๆ ที่ต้องการเรียนสด Onsite กลุ่มเล็ก บรรยากาศอบอุ่น กล้าซักถามติวเตอร์ได้ทันที',
-      benefits: c.benefits || '• ปูพื้นฐานครบทุกวิชาหลักอย่างเข้มข้น เข้าใจถึงแก่นแท้ไม่เน้นท่องจำ\n• รับฟรี! หนังสือเรียนและแบบฝึกหัดเก็งแนวข้อสอบจริงตลอดหลักสูตร\n• เทคนิคลัดพิชิตโจทย์ยากและวิธีบริหารเวลาในห้องสอบ\n• การดูแลและประเมินผลจุดแข็ง-จุดอ่อนรายบุคคลอย่างใกล้ชิด',
-      subjectBreakdown: Array.isArray(c.subjectBreakdown) && c.subjectBreakdown.length > 0 ? c.subjectBreakdown : [
-        { name: 'วิทยาศาสตร์', price: '1,500 บาท / เดือน', hours: '14 ชม.', tutor: 'พี่นนท์', details: 'เจาะลึกการทดลอง เคมี-ชีวะ-ฟิสิกส์พื้นฐาน และโจทย์วิเคราะห์' },
-        { name: 'คณิตศาสตร์', price: '1,500 บาท / เดือน', hours: '14 ชม.', tutor: 'พี่แม็ค', details: 'ปูพื้นฐานการคำนวณ สูตรลัดตัดช้อยส์ และเทคนิคทำโจทย์เร็ว' },
-        { name: 'ภาษาอังกฤษ', price: '1,500 บาท / เดือน', hours: '14 ชม.', tutor: 'พี่อู๋', details: 'ไวยากรณ์ คำศัพท์สำคัญที่ออกสอบบ่อย และเทคนิคการอ่านจับใจความ' }
-      ],
-      customSections: Array.isArray(c.customSections) ? c.customSections : []
+      galleryImages: Array.isArray(c.galleryImages) ? c.galleryImages : [],
+      targetAudience: c.targetAudience !== undefined ? c.targetAudience : '',
+      benefits: c.benefits !== undefined ? c.benefits : '',
+      subjectBreakdown: Array.isArray(c.subjectBreakdown) ? c.subjectBreakdown : [],
+      monthlyPrice: c.monthlyPrice !== undefined ? c.monthlyPrice : '1,500 บาท / เดือน (20 ชม.)',
+      location: c.location !== undefined ? c.location : 'สถาบัน The NEW GEN (เรียนสด Onsite)',
+      classSize: c.classSize !== undefined ? c.classSize : 'กลุ่มเล็ก ดูแลใกล้ชิด ถามได้ทันที',
+      materials: c.materials !== undefined ? c.materials : 'ฟรี! หนังสือและแนวข้อสอบเก็งพิเศษ',
+      trustGuarantee: c.trustGuarantee !== undefined ? c.trustGuarantee : 'การันตีการสอนโดยทีมติวเตอร์ The NEW GEN',
+      customSections: Array.isArray(c.customSections) ? c.customSections : [],
+      parentFaq: Array.isArray(c.parentFaq) ? c.parentFaq : []
     });
 
     try {

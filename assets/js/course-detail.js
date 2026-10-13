@@ -30,15 +30,10 @@ function renderCourseTutors(course) {
     displayTutors = allTutors.filter(t => tutorTexts.some(txt => txt.includes(t.name)));
   }
 
-  // If explicitly configured as empty array, hide the card
-  if (course && Array.isArray(course.tutorIds) && course.tutorIds.length === 0) {
+  // If no tutors matched or empty, hide the section
+  if (displayTutors.length === 0) {
     if (card) card.style.display = 'none';
     return;
-  }
-
-  // Fallback if none matched
-  if (displayTutors.length === 0) {
-    displayTutors = allTutors;
   }
 
   if (card) card.style.display = 'block';
@@ -91,28 +86,39 @@ function initCourseDetailPage() {
     subjectsEl.innerHTML = `<i class="fa-solid fa-graduation-cap"></i> วิชาที่เปิดสอน: <strong>${course.subjects}</strong>`;
   }
 
-  // อัปเดตรูปโปสเตอร์
+  // อัปเดตรูปโปสเตอร์หลัก (ซ่อนหากไม่มีรูป)
+  const posterCard = document.getElementById('cdPosterCard');
   const posterImg = document.getElementById('cdPosterImg');
-  if (posterImg) {
-    posterImg.src = course.poster || course.cover;
-    posterImg.alt = course.title;
+  const posterSrc = (course.poster || course.cover || '').trim();
+  if (posterSrc) {
+    if (posterCard) posterCard.style.display = 'block';
+    if (posterImg) {
+      posterImg.src = posterSrc;
+      posterImg.alt = course.title || '';
+    }
+  } else {
+    if (posterCard) posterCard.style.display = 'none';
   }
 
   // Lightbox Image & Caption
   const lightboxImg = document.getElementById('cdLightboxImg');
   const lightboxCaption = document.getElementById('cdLightboxCaption');
   const lightboxDownload = document.getElementById('cdLightboxDownload');
-  if (lightboxImg) lightboxImg.src = course.poster || course.cover;
-  if (lightboxCaption) lightboxCaption.textContent = course.title;
-  if (lightboxDownload) lightboxDownload.href = course.poster || course.cover;
+  if (lightboxImg) lightboxImg.src = posterSrc;
+  if (lightboxCaption) lightboxCaption.textContent = course.title || '';
+  if (lightboxDownload) lightboxDownload.href = posterSrc;
 
-  // 1. Extra Posters / Gallery Strip (Item 4)
+  // 1. Extra Posters / Gallery Strip (ซ่อนหากไม่มีรูปภาพเพิ่มเติม)
   const extraGalleryCard = document.getElementById('cdExtraGalleryCard');
   const extraGalleryContainer = document.getElementById('cdExtraGalleryContainer');
   if (extraGalleryCard && extraGalleryContainer) {
-    if (course.galleryImages && Array.isArray(course.galleryImages) && course.galleryImages.length > 0) {
+    const validGallery = (Array.isArray(course.galleryImages) ? course.galleryImages : []).filter(img => {
+      const u = typeof img === 'string' ? img : (img ? img.url : '');
+      return u && u.trim();
+    });
+    if (validGallery.length > 0) {
       extraGalleryCard.style.display = 'block';
-      extraGalleryContainer.innerHTML = course.galleryImages.map(img => {
+      extraGalleryContainer.innerHTML = validGallery.map(img => {
         const url = typeof img === 'string' ? img : (img.url || '');
         return `
           <div class="cd-gallery-item" onclick="openLightboxImage('${escapeHtml(url)}', '${escapeHtml(course.title)}')">
@@ -129,18 +135,71 @@ function initCourseDetailPage() {
     }
   }
 
-  // 2. Course Highlights
-  const highlightsList = document.getElementById('cdHighlightsList');
-  if (highlightsList && course.highlights) {
-    highlightsList.innerHTML = course.highlights.map(h => `
-      <li>
-        <i class="fa-solid fa-circle-check"></i>
-        <span>${h}</span>
-      </li>
-    `).join('');
+  // 2. ตารางเรียนและรอบเวลา (Schedule Table) - อัปเดตชั่วโมงเรียนและรอบเวลา (ซ่อนหากไม่มีข้อมูล)
+  const scheduleCard = document.getElementById('cdScheduleCard');
+  const scheduleBody = document.getElementById('cdScheduleTableBody');
+  const totalHoursBadge = document.getElementById('cdTotalHoursBadge');
+  const validSchedules = (Array.isArray(course.scheduleList) ? course.scheduleList : []).filter(s => s && (s.type || s.time || s.dates));
+  if (scheduleCard) {
+    if (validSchedules.length > 0) {
+      scheduleCard.style.display = 'block';
+      if (totalHoursBadge) {
+        if (course.totalHours && course.totalHours.trim()) {
+          totalHoursBadge.style.display = 'inline-flex';
+          totalHoursBadge.innerHTML = `<i class="fa-regular fa-clock"></i> ${escapeHtml(course.totalHours)}`;
+        } else {
+          totalHoursBadge.style.display = 'none';
+        }
+      }
+      if (scheduleBody) {
+        scheduleBody.innerHTML = validSchedules.map(s => `
+          <tr>
+            <td>
+              <div class="schedule-group-name">
+                <i class="fa-solid fa-chalkboard"></i> ${escapeHtml(s.type || '')}
+              </div>
+            </td>
+            <td>
+              <div class="schedule-time">
+                <i class="fa-regular fa-clock"></i> ${escapeHtml(s.time || '')}
+              </div>
+            </td>
+            <td>
+              <div class="schedule-dates">
+                <i class="fa-regular fa-calendar-check"></i> ${escapeHtml(s.dates || '')}
+              </div>
+            </td>
+          </tr>
+        `).join('');
+      }
+    } else {
+      scheduleCard.style.display = 'none';
+      if (scheduleBody) scheduleBody.innerHTML = '';
+    }
   }
 
-  // 3. Target Audience (Item 4: คอร์สนี้เหมาะกับใคร ?)
+  // 3. จุดเด่นและสิทธิประโยชน์ (Highlights - ซ่อนหากไม่มีข้อมูล)
+  const highlightsCard = document.getElementById('cdHighlightsCard');
+  const highlightsList = document.getElementById('cdHighlightsList');
+  const validHighlights = (Array.isArray(course.highlights) ? course.highlights : []).filter(h => h && typeof h === 'string' && h.trim());
+  if (highlightsCard) {
+    if (validHighlights.length > 0) {
+      highlightsCard.style.display = 'block';
+      if (highlightsList) {
+        highlightsList.innerHTML = validHighlights.map(h => `
+          <li>
+            <i class="fa-solid fa-circle-check"></i>
+            <span>${escapeHtml(h)}</span>
+          </li>
+        `).join('');
+      }
+    } else {
+      highlightsCard.style.display = 'none';
+      if (highlightsList) highlightsList.innerHTML = '';
+    }
+  }
+
+  // 4. Target Audience (Item 4: คอร์สนี้เหมาะกับใคร ? - ซ่อนหากไม่ได้กรอก)
   const targetAudienceCard = document.getElementById('cdTargetAudienceCard');
   const targetAudienceContent = document.getElementById('cdTargetAudienceContent');
   if (targetAudienceCard && targetAudienceContent) {
@@ -151,10 +210,10 @@ function initCourseDetailPage() {
       if (isList) {
         targetAudienceContent.innerHTML = `<ul class="cd-highlights-list">${lines.map(l => {
           const clean = l.replace(/^[-•\d.]+\s*/, '');
-          return `<li><i class="fa-solid fa-circle-check" style="color: #0284c7;"></i><span>${clean}</span></li>`;
+          return `<li><i class="fa-solid fa-circle-check" style="color: #0284c7;"></i><span>${escapeHtml(clean)}</span></li>`;
         }).join('')}</ul>`;
       } else {
-        targetAudienceContent.innerHTML = lines.map(p => `<p class="cd-custom-paragraph">${p}</p>`).join('');
+        targetAudienceContent.innerHTML = lines.map(p => `<p class="cd-custom-paragraph">${escapeHtml(p)}</p>`).join('');
       }
     } else {
       targetAudienceCard.style.display = 'none';
@@ -162,7 +221,7 @@ function initCourseDetailPage() {
     }
   }
 
-  // 4. Benefits (Item 4: สิ่งที่จะได้รับจากคอร์สนี้)
+  // 5. Benefits (Item 4: สิ่งที่จะได้รับจากคอร์สนี้ - ซ่อนหากไม่ได้กรอก)
   const benefitsCard = document.getElementById('cdBenefitsCard');
   const benefitsContent = document.getElementById('cdBenefitsContent');
   if (benefitsCard && benefitsContent) {
@@ -173,10 +232,10 @@ function initCourseDetailPage() {
       if (isList) {
         benefitsContent.innerHTML = `<ul class="cd-highlights-list">${lines.map(l => {
           const clean = l.replace(/^[-•\d.]+\s*/, '');
-          return `<li><i class="fa-solid fa-gift" style="color: #c026d3;"></i><span>${clean}</span></li>`;
+          return `<li><i class="fa-solid fa-gift" style="color: #c026d3;"></i><span>${escapeHtml(clean)}</span></li>`;
         }).join('')}</ul>`;
       } else {
-        benefitsContent.innerHTML = lines.map(p => `<p class="cd-custom-paragraph">${p}</p>`).join('');
+        benefitsContent.innerHTML = lines.map(p => `<p class="cd-custom-paragraph">${escapeHtml(p)}</p>`).join('');
       }
     } else {
       benefitsCard.style.display = 'none';
@@ -273,37 +332,7 @@ function initCourseDetailPage() {
     }
   }
 
-  // อัปเดตชั่วโมงเรียน
-  const totalHoursBadge = document.getElementById('cdTotalHoursBadge');
-  if (totalHoursBadge) {
-    totalHoursBadge.innerHTML = `<i class="fa-regular fa-clock"></i> ${course.totalHours}`;
-  }
-
-  // อัปเดตตารางเรียน (Schedule Table)
-  const scheduleBody = document.getElementById('cdScheduleTableBody');
-  if (scheduleBody && course.scheduleList) {
-    scheduleBody.innerHTML = course.scheduleList.map(s => `
-      <tr>
-        <td>
-          <div class="schedule-group-name">
-            <i class="fa-solid fa-chalkboard"></i> ${s.type}
-          </div>
-        </td>
-        <td>
-          <div class="schedule-time">
-            <i class="fa-regular fa-clock"></i> ${s.time}
-          </div>
-        </td>
-        <td>
-          <div class="schedule-dates">
-            <i class="fa-regular fa-calendar-check"></i> ${s.dates}
-          </div>
-        </td>
-      </tr>
-    `).join('');
-  }
-
-  // Render Custom Sections (Admin Extensible Topics)
+  // Render Custom Sections (Admin Extensible Topics - ซ่อนหากไม่มีข้อมูล)
   const customSectionsContainer = document.getElementById('cdCustomSectionsContainer');
   if (customSectionsContainer) {
     if (course.customSections && Array.isArray(course.customSections) && course.customSections.length > 0) {
@@ -329,7 +358,7 @@ function initCourseDetailPage() {
           <div class="cd-card cd-custom-section-card">
             <div class="cd-card-header">
               <h2 class="cd-card-title">
-                <i class="fa-solid fa-circle-info" style="color: var(--color-cyan);"></i> ${title}
+                <i class="fa-solid fa-circle-info" style="color: var(--color-cyan);"></i> ${escapeHtml(title)}
               </h2>
             </div>
             <div class="cd-custom-section-body">
@@ -343,10 +372,10 @@ function initCourseDetailPage() {
     }
   }
 
-  // 5. Render Tutors specifically teaching this course (Item 3)
+  // Render Tutors specifically teaching this course (ซ่อนหากไม่มีติวเตอร์)
   renderCourseTutors(course);
 
-  // 6. Render Parent Info & FAQ (Item 4: Optional, editable via Admin)
+  // Render Parent Info & FAQ (ซ่อนหากไม่มีข้อมูล)
   const faqCard = document.getElementById('cdParentFaqCard');
   const faqList = document.getElementById('cdParentFaqList');
   if (faqCard && faqList) {
@@ -365,12 +394,19 @@ function initCourseDetailPage() {
     }
   }
 
-  // อัปเดตราคาในแถบ Sidebar
+  // อัปเดตราคาในแถบ Sidebar (ตามรูปที่ผู้ใช้ส่งมา - ซ่อนแถวที่ไม่ได้กรอก)
   const priceOld = document.getElementById('cdPriceOld');
-  if (priceOld) priceOld.textContent = `จาก ${course.priceOriginal}`;
+  if (priceOld) {
+    if (course.priceOriginal && course.priceOriginal.trim()) {
+      priceOld.style.display = 'inline-block';
+      priceOld.textContent = `จาก ${course.priceOriginal}`;
+    } else {
+      priceOld.style.display = 'none';
+    }
+  }
 
   const pricePromo = document.getElementById('cdPricePromo');
-  if (pricePromo) pricePromo.textContent = course.pricePromo;
+  if (pricePromo) pricePromo.textContent = course.pricePromo || '';
 
   const priceUnit = document.getElementById('cdPriceUnit');
   if (priceUnit) {
@@ -379,11 +415,80 @@ function initCourseDetailPage() {
     priceUnit.textContent = cleanU || 'บาท / เทอม';
   }
 
+  // ราคาแบบรายเดือน (ป้ายเขียว) - ซ่อนหากไม่ได้กรอก
+  const monthlyBadge = document.getElementById('cdMonthlyPriceBadge');
   const monthlyPrice = document.getElementById('cdMonthlyPrice');
-  if (monthlyPrice) monthlyPrice.textContent = course.monthlyPrice || 'แบ่งชำระได้ หรือเลือกเรียนแบบรายเดือน';
+  if (monthlyBadge) {
+    if (course.monthlyPrice && course.monthlyPrice.trim()) {
+      monthlyBadge.style.display = 'inline-flex';
+      if (monthlyPrice) monthlyPrice.textContent = course.monthlyPrice;
+    } else {
+      monthlyBadge.style.display = 'none';
+    }
+  }
 
+  // สถานที่เรียน - ซ่อนหากไม่ได้กรอก
+  const locationRow = document.getElementById('cdLocationRow');
+  const locationText = document.getElementById('cdLocationText');
+  if (locationRow) {
+    if (course.location && course.location.trim()) {
+      locationRow.style.display = 'flex';
+      if (locationText) locationText.textContent = course.location;
+    } else {
+      locationRow.style.display = 'none';
+    }
+  }
+
+  // เวลาเรียนรวม - ซ่อนหากไม่ได้กรอก
+  const hoursRow = document.getElementById('cdHoursRow');
   const sidebarHours = document.getElementById('cdSidebarHours');
-  if (sidebarHours) sidebarHours.textContent = course.totalHours;
+  if (hoursRow) {
+    if (course.totalHours && course.totalHours.trim()) {
+      hoursRow.style.display = 'flex';
+      if (sidebarHours) sidebarHours.textContent = course.totalHours;
+    } else {
+      hoursRow.style.display = 'none';
+    }
+  }
+
+  // ขนาดห้องเรียน - ซ่อนหากไม่ได้กรอก
+  const classSizeRow = document.getElementById('cdClassSizeRow');
+  const classSizeText = document.getElementById('cdClassSizeText');
+  if (classSizeRow) {
+    if (course.classSize && course.classSize.trim()) {
+      classSizeRow.style.display = 'flex';
+      if (classSizeText) classSizeText.textContent = course.classSize;
+    } else {
+      classSizeRow.style.display = 'none';
+    }
+  }
+
+  // ชุดเอกสาร - ซ่อนหากไม่ได้กรอก
+  const materialsRow = document.getElementById('cdMaterialsRow');
+  const materialsText = document.getElementById('cdMaterialsText');
+  if (materialsRow) {
+    if (course.materials && course.materials.trim()) {
+      materialsRow.style.display = 'flex';
+      if (materialsText) materialsText.textContent = course.materials;
+    } else {
+      materialsRow.style.display = 'none';
+    }
+  }
+
+  // การันตีการสอนท้ายการ์ด - ซ่อนหากไม่ได้กรอก
+  const trustItem = document.getElementById('cdTrustGuaranteeItem');
+  const trustText = document.getElementById('cdTrustGuaranteeText');
+  const trustBadgesWrap = document.getElementById('cdTrustBadges');
+  if (trustItem) {
+    if (course.trustGuarantee && course.trustGuarantee.trim()) {
+      trustItem.style.display = 'flex';
+      if (trustText) trustText.textContent = course.trustGuarantee;
+      if (trustBadgesWrap) trustBadgesWrap.style.display = 'block';
+    } else {
+      trustItem.style.display = 'none';
+      if (trustBadgesWrap) trustBadgesWrap.style.display = 'none';
+    }
+  }
 
   // ปรับลิงก์ LINE และเบอร์โทรสำหรับสมัครเรียน
   const lineEnrollBtn = document.getElementById('btnLineEnroll');

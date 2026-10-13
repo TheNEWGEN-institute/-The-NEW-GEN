@@ -380,13 +380,14 @@
             </h3>
             <div class="course-subjects"><i class="fa-solid fa-graduation-cap"></i> ${c.subjects}</div>
             <div class="course-meta-list">
+              ${c.totalHours ? `
               <div class="course-meta-item">
                 <i class="fa-regular fa-clock"></i>
                 <span>เวลาเรียน: ${c.totalHours}</span>
-              </div>
+              </div>` : ''}
               <div class="course-meta-item">
                 <i class="fa-solid fa-chalkboard-user"></i>
-                <span>เรียนสด Onsite ได้ความรู้เต็มเปี่ยม</span>
+                <span>${c.location || 'เรียนสด Onsite กลุ่มเล็กดูแลทั่วถึง'}</span>
               </div>
             </div>
             <div class="course-footer">
