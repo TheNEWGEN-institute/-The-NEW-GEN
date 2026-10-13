@@ -63,7 +63,7 @@
       <h1 class="subpage-hero-title">
         เกี่ยวกับเรา <span class="text-navy">&amp; แรงบันดาลใจ</span>
       </h1>
-      <p class="subpage-hero-desc">
+      <p class="subpage-hero-desc" id="aboutHeroDescText">
         เรื่องราว ความตั้งใจ และจุดเริ่มต้นของการสร้างสถาบันกวดวิชาที่เข้าใจธรรมชาติของเด็ก GEN Z ยุคใหม่อย่างแท้จริง
       </p>
     </div>
@@ -421,6 +421,7 @@
       const about = customData || (window.NewGenDB ? window.NewGenDB.getAbout() : DEFAULT_ABOUT);
       if (!about) return;
 
+      const heroDescEl = document.getElementById('aboutHeroDescText');
       const badgeEl = document.getElementById('aboutBadgeText');
       const titleEl = document.getElementById('aboutTitleText');
       const subtitleEl = document.getElementById('aboutSubtitleText');
@@ -428,6 +429,7 @@
       const galleryGrid = document.getElementById('aboutGalleryGrid');
       const gallerySec = document.getElementById('aboutGallerySection');
 
+      if (heroDescEl && about.heroDesc) heroDescEl.textContent = about.heroDesc;
       if (badgeEl && about.badge) badgeEl.textContent = about.badge;
       if (titleEl && about.title) titleEl.textContent = about.title;
       if (subtitleEl && about.subtitle) subtitleEl.textContent = about.subtitle;

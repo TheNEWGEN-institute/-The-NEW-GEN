@@ -1448,6 +1448,7 @@ function loadAboutSettings() {
 
 function populateAboutFields(about) {
   if (!about) return;
+  const heroDescInput = document.getElementById('aboutHeroDesc');
   const badgeInput = document.getElementById('aboutBadge');
   const titleInput = document.getElementById('aboutTitle');
   const subtitleInput = document.getElementById('aboutSubtitle');
@@ -1457,6 +1458,7 @@ function populateAboutFields(about) {
   const secImgPrev = document.getElementById('aboutSecondaryImgPreview');
   const parasInput = document.getElementById('aboutParagraphs');
 
+  if (heroDescInput) heroDescInput.value = about.heroDesc || 'เรื่องราว ความตั้งใจ และจุดเริ่มต้นของการสร้างสถาบันกวดวิชาที่เข้าใจธรรมชาติของเด็ก GEN Z ยุคใหม่อย่างแท้จริง';
   if (badgeInput) badgeInput.value = about.badge || 'OUR INSPIRATION & STORY';
   if (titleInput) titleInput.value = about.title || 'แรงบันดาลใจในการเป็น The NEW GEN';
   if (subtitleInput) subtitleInput.value = about.subtitle || '';
@@ -1553,6 +1555,7 @@ async function saveAboutSettingsForm() {
   }
 
   const about = {
+    heroDesc: document.getElementById('aboutHeroDesc')?.value.trim() || 'เรื่องราว ความตั้งใจ และจุดเริ่มต้นของการสร้างสถาบันกวดวิชาที่เข้าใจธรรมชาติของเด็ก GEN Z ยุคใหม่อย่างแท้จริง',
     badge: document.getElementById('aboutBadge')?.value.trim() || 'OUR INSPIRATION & STORY',
     title: document.getElementById('aboutTitle')?.value.trim() || 'แรงบันดาลใจในการเป็น The NEW GEN',
     subtitle: document.getElementById('aboutSubtitle')?.value.trim() || '',
