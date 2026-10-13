@@ -181,7 +181,7 @@ const server = http.createServer(async (req, res) => {
     }
 
     // 3. Courses API
-    if (pathname === '/api/courses') {
+    if (pathname === '/api/courses' || pathname === '/api/courses/reorder') {
       if (method === 'GET') {
         return sendJson(res, 200, db.courses || []);
       }

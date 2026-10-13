@@ -3573,6 +3573,33 @@ button {
   text-shadow: 0 0 24px rgba(244, 63, 94, 0.35);
 }
 
+/* Mobile adjustments for Subpage Hero Titles */
+@media (max-width: 767px) {
+  /* 1. Tutors Page Title: แยกบรรทัด "ทีมติวเตอร์" กับ "The NEW GEN" เฉพาะบนมือถือ */
+  .tutors-hero-title .tutor-title-prefix {
+    display: block;
+    margin-bottom: 2px;
+    white-space: nowrap;
+  }
+  .tutors-hero-title .tutor-title-brand {
+    display: block;
+    white-space: nowrap;
+  }
+
+  /* 2. About Page Title: ข้อความ "เกี่ยวกับเรา & แรงบันดาลใจ" อยู่ในบรรทัดเดียว ไม่ตกบรรทัด */
+  .about-hero-title {
+    font-size: clamp(1.4rem, 6.5vw, 1.95rem) !important;
+    white-space: nowrap;
+    letter-spacing: -0.3px;
+  }
+}
+
+@media (max-width: 380px) {
+  .about-hero-title {
+    font-size: clamp(1.22rem, 6.2vw, 1.45rem) !important;
+  }
+}
+
 .subpage-hero-desc {
   max-width: 1100px;
   margin: 0 auto;

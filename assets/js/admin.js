@@ -291,15 +291,28 @@ function loadAdminCourses() {
   const tbody = document.getElementById('adminCoursesTableBody');
   if (!tbody) return;
 
-  tbody.innerHTML = courses.map((c, i) => `
+  tbody.innerHTML = courses.map((c, idx) => `
     <tr>
-      <td>
-        <img src="${c.cover || c.poster}" alt="${c.title}" style="width: 60px; height: 42px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border-light);">
+      <td style="text-align: center;">
+        <span class="tutor-order-badge">${idx + 1}</span>
       </td>
-      <td><strong>${c.title}</strong></td>
-      <td><span class="badge ${c.category === 'primary' ? 'badge-primary-level' : 'badge-secondary-level'}">${c.categoryLabel || c.category}</span></td>
-      <td><small>${c.subjects}</small></td>
-      <td style="color: var(--color-gold); font-weight: 800; font-family: var(--font-en); font-size: 1.1rem;">${c.pricePromo}.-</td>
+      <td style="text-align: center;">
+        <div style="display: inline-flex; gap: 4px;">
+          <button type="button" class="btn-reorder" onclick="moveCourseUp(${idx})" title="เลื่อนขึ้น" ${idx === 0 ? 'disabled' : ''}>
+            <i class="fa-solid fa-arrow-up"></i>
+          </button>
+          <button type="button" class="btn-reorder" onclick="moveCourseDown(${idx})" title="เลื่อนลง" ${idx === courses.length - 1 ? 'disabled' : ''}>
+            <i class="fa-solid fa-arrow-down"></i>
+          </button>
+        </div>
+      </td>
+      <td>
+        <img src="${c.cover || c.poster}" alt="${escapeHtml(c.title)}" style="width: 60px; height: 42px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border-light);">
+      </td>
+      <td><strong>${escapeHtml(c.title)}</strong></td>
+      <td><span class="badge ${c.category === 'primary' ? 'badge-primary-level' : 'badge-secondary-level'}">${escapeHtml(c.categoryLabel || c.category)}</span></td>
+      <td><small>${escapeHtml(c.subjects)}</small></td>
+      <td style="color: var(--color-gold); font-weight: 800; font-family: var(--font-en); font-size: 1.1rem;">${escapeHtml(c.pricePromo)}.-</td>
       <td style="text-align: center;">
         <button type="button" 
           class="btn-featured-toggle ${c.isFeatured !== false ? 'active' : ''}" 
@@ -308,7 +321,7 @@ function loadAdminCourses() {
           ${c.isFeatured !== false ? '⭐ แนะนำ' : '⚪ ไม่แสดง'}
         </button>
       </td>
-      <td><span class="badge ${c.statusClass}">${c.statusBadge}</span></td>
+      <td><span class="badge ${c.statusClass}">${escapeHtml(c.statusBadge)}</span></td>
       <td style="text-align: right;">
         <button type="button" class="btn-action-edit" onclick="openEditCourseModal('${c.id}')" title="แก้ไข">
           <i class="fa-solid fa-pen-to-square"></i>
@@ -319,6 +332,46 @@ function loadAdminCourses() {
       </td>
     </tr>
   `).join('');
+}
+
+function moveCourseUp(idx) {
+  const courses = window.NewGenDB.getCourses();
+  if (idx <= 0 || idx >= courses.length) return;
+  const temp = courses[idx];
+  courses[idx] = courses[idx - 1];
+  courses[idx - 1] = temp;
+  saveAndSyncCoursesOrder(courses, `เลื่อนคอร์ส "${temp.title}" ขึ้นเป็นลำดับที่ ${idx} สำเร็จแล้ว!`);
+}
+
+function moveCourseDown(idx) {
+  const courses = window.NewGenDB.getCourses();
+  if (idx < 0 || idx >= courses.length - 1) return;
+  const temp = courses[idx];
+  courses[idx] = courses[idx + 1];
+  courses[idx + 1] = temp;
+  saveAndSyncCoursesOrder(courses, `เลื่อนคอร์ส "${temp.title}" ลงเป็นลำดับที่ ${idx + 2} สำเร็จแล้ว!`);
+}
+
+async function saveAndSyncCoursesOrder(courses, successMsg) {
+  // 1. บันทึกลำดับคอร์สขึ้น Cloud & LocalStorage
+  const resCourses = await window.NewGenDB.saveCourses(courses);
+
+  // 2. ซิงค์กับ Backend API (server.js)
+  const baseUrl = (window.getApiBaseUrl ? window.getApiBaseUrl() : '');
+  fetch(baseUrl + '/api/courses/reorder', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(courses)
+  }).catch(() => {});
+
+  // 3. รีเฟรชตารางในหน้า Admin
+  loadAdminCourses();
+
+  if (resCourses && resCourses.success) {
+    showToast(`✅ ${successMsg || 'บันทึกลำดับคอร์สเรียนและซิงค์ Cloud สำเร็จ!'}`, 'success');
+  } else {
+    showToast(`⚠️ ${successMsg || 'บันทึกลำดับในเครื่องแล้ว'} (${resCourses && resCourses.error ? resCourses.error : 'รอปลดล็อก Supabase RLS'})`, 'warning');
+  }
 }
 
 function toggleCourseFeatured(id) {
