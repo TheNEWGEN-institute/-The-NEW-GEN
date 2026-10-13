@@ -49,8 +49,6 @@ function renderCourseTutors(course) {
       </div>
       <div class="cd-tutor-info">
         <h4>${t.name}</h4>
-        ${t.heroBadge || t.subjects ? `<span class="cd-tutor-badge-tag">${escapeHtml(t.heroBadge || t.subjects)}</span>` : ''}
-        ${t.honor ? `<p class="cd-tutor-honor-text">${escapeHtml(t.honor)}</p>` : ''}
       </div>
     </div>
   `).join('');
