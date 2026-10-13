@@ -175,6 +175,20 @@ function renderHeroContent(customHomeData) {
     headerPill.innerHTML = `<i class="fa-solid fa-award"></i> ${escapeHtml(homeData.heroTutorsHeaderPill)}`;
   }
 
+  // Recommended Courses Header Sync
+  const coursesBadgeEl = document.getElementById('homeCoursesSubtitle');
+  if (coursesBadgeEl && homeData.coursesBadge) {
+    coursesBadgeEl.textContent = homeData.coursesBadge;
+  }
+  const coursesTitleEl = document.getElementById('homeCoursesTitleText');
+  if (coursesTitleEl && homeData.coursesTitle) {
+    coursesTitleEl.textContent = homeData.coursesTitle;
+  }
+  const coursesHighlightEl = document.getElementById('homeCoursesHighlightText');
+  if (coursesHighlightEl && homeData.coursesHighlight) {
+    coursesHighlightEl.textContent = homeData.coursesHighlight;
+  }
+
   // 2. Select & Position 3 Tutors for Hero Showcase
   const grid = document.getElementById('heroTutorsGrid');
   if (!grid) return;
@@ -293,40 +307,47 @@ function initCourseSlider() {
 
   function renderCourses() {
     track.innerHTML = '';
-    const displayList = filteredCourses.length > 0 ? filteredCourses : courses;
+    const displayList = filteredCourses;
+
+    if (displayList.length === 0) {
+      track.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--text-muted); width: 100%;"><p>ยังไม่มีคอร์สเรียนแนะนำในขณะนี้</p></div>';
+      updatePagination();
+      return;
+    }
 
     displayList.forEach(c => {
       const card = document.createElement('div');
       card.className = 'course-card';
       card.setAttribute('data-course-id', c.id);
       card.innerHTML = `
-        <a href="course-detail.html?id=${c.id}" class="course-thumbnail" aria-label="ดูรายละเอียด ${c.title}">
-          <img src="${c.cover || c.poster}" alt="${c.title}" loading="lazy">
-          <span class="course-badge-level">${c.category === 'primary' ? 'ประถมศึกษา' : 'มัธยมศึกษาตอนต้น'}</span>
-          <span class="badge ${c.statusClass} course-badge-status">${c.statusBadge}</span>
+        <a href="course-detail.html?id=${c.id}" class="course-thumbnail" aria-label="ดูรายละเอียด ${escapeHtml(c.title)}">
+          <img src="${c.cover || c.poster}" alt="${escapeHtml(c.title)}" loading="lazy">
+          <span class="course-badge-level">${escapeHtml(c.categoryLabel || (c.category === 'primary' ? 'ประถมศึกษา' : 'มัธยมศึกษาตอนต้น'))}</span>
+          <span class="badge ${c.statusClass} course-badge-status">${escapeHtml(c.statusBadge)}</span>
         </a>
         <div class="course-body">
           <h3 class="course-title">
-            <a href="course-detail.html?id=${c.id}">${c.title}</a>
+            <a href="course-detail.html?id=${c.id}">${escapeHtml(c.title)}</a>
           </h3>
-          <div class="course-subjects"><i class="fa-solid fa-graduation-cap"></i> ${c.subjects}</div>
+          <div class="course-subjects"><i class="fa-solid fa-graduation-cap"></i> ${escapeHtml(c.subjects)}</div>
           <div class="course-meta-list">
+            ${c.totalHours ? `
             <div class="course-meta-item">
               <i class="fa-regular fa-clock"></i>
-              <span>เวลาเรียน: ${c.totalHours}</span>
-            </div>
+              <span>เวลาเรียน: ${escapeHtml(c.totalHours)}</span>
+            </div>` : ''}
             <div class="course-meta-item">
               <i class="fa-solid fa-chalkboard-user"></i>
-              <span>เรียนสด Onsite ได้ความรู้เต็มเปี่ยม</span>
+              <span>${escapeHtml(c.location || 'เรียนสด Onsite กลุ่มเล็กดูแลทั่วถึง')}</span>
             </div>
           </div>
           <div class="course-footer">
             ${(window.formatCoursePriceHtml ? window.formatCoursePriceHtml(c) : `
               <div class="course-price-wrap">
-                <span class="course-price-old">จาก ${c.priceOriginal || ''}</span>
+                ${c.priceOriginal ? `<span class="course-price-old">จาก ${escapeHtml(c.priceOriginal)}</span>` : ''}
                 <div class="course-price-now">
-                  <span class="course-price-amount">${c.pricePromo}</span><span class="course-price-dash">.-</span>
-                  <span class="course-price-unit-tag">${c.priceUnit || 'บาท / เทอม'}</span>
+                  <span class="course-price-amount">${escapeHtml(c.pricePromo)}</span><span class="course-price-dash">.-</span>
+                  <span class="course-price-unit-tag">${escapeHtml(c.priceUnit || 'บาท / เทอม')}</span>
                 </div>
               </div>
             `)}
@@ -346,7 +367,7 @@ function initCourseSlider() {
     if (!dotsContainer) return;
     dotsContainer.innerHTML = '';
     const visibleCount = getCardsPerView();
-    const displayList = filteredCourses.length > 0 ? filteredCourses : courses;
+    const displayList = filteredCourses;
     const maxIndex = Math.max(0, displayList.length - visibleCount);
 
     for (let i = 0; i <= maxIndex; i++) {
@@ -387,7 +408,7 @@ function initCourseSlider() {
 
   nextBtn?.addEventListener('click', () => {
     const visibleCount = getCardsPerView();
-    const displayList = filteredCourses.length > 0 ? filteredCourses : courses;
+    const displayList = filteredCourses;
     const maxIndex = Math.max(0, displayList.length - visibleCount);
     if (currentIndex < maxIndex) {
       currentIndex++;

@@ -186,7 +186,13 @@ const server = http.createServer(async (req, res) => {
         return sendJson(res, 200, db.courses || []);
       }
       if (method === 'POST') {
-        const course = await parseRequestBody(req);
+        const body = await parseRequestBody(req);
+        if (Array.isArray(body)) {
+          db.courses = body;
+          writeDatabase(db);
+          return sendJson(res, 200, { success: true, courses: db.courses });
+        }
+        const course = body;
         if (!course.id) course.id = `course-${Date.now()}`;
         const idx = db.courses.findIndex(c => c.id === course.id);
         if (idx !== -1) {

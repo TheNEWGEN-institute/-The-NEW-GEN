@@ -676,8 +676,13 @@ function openAddCourseModal() {
   document.getElementById('cStatus').value = 'เปิดรับสมัคร|badge-emerald';
   document.getElementById('cPriceOld').value = '5,900 บ.';
   document.getElementById('cPricePromo').value = '4,500';
-  document.getElementById('cPriceUnit').value = 'บาท / เทอม (แบ่งชำระได้)';
+  document.getElementById('cPriceUnit').value = 'บาท / เทอม';
+  if (document.getElementById('cMonthlyPrice')) document.getElementById('cMonthlyPrice').value = '1,500 บาท / เดือน (20 ชม.)';
+  if (document.getElementById('cLocation')) document.getElementById('cLocation').value = 'สถาบัน The NEW GEN (เรียนสด Onsite)';
   document.getElementById('cTotalHours').value = '42 ชั่วโมง (รายเทอม) / 20 ชม. (รายเดือน)';
+  if (document.getElementById('cClassSize')) document.getElementById('cClassSize').value = 'กลุ่มเล็ก ดูแลใกล้ชิด ถามได้ทันที';
+  if (document.getElementById('cMaterials')) document.getElementById('cMaterials').value = 'ฟรี! หนังสือและแนวข้อสอบเก็งพิเศษ';
+  if (document.getElementById('cTrustGuarantee')) document.getElementById('cTrustGuarantee').value = 'การันตีการสอนโดยทีมติวเตอร์ The NEW GEN';
   document.getElementById('cImgUrl').value = 'assets/images/course-poster-primary.jpg';
   document.getElementById('cImgPreview').src = 'assets/images/course-poster-primary.jpg';
   document.getElementById('cShortDesc').value = '';
@@ -729,7 +734,12 @@ function openEditCourseModal(id) {
   document.getElementById('cPriceOld').value = c.priceOriginal || '';
   document.getElementById('cPricePromo').value = c.pricePromo || '';
   document.getElementById('cPriceUnit').value = c.priceUnit || '';
+  if (document.getElementById('cMonthlyPrice')) document.getElementById('cMonthlyPrice').value = c.monthlyPrice || '';
+  if (document.getElementById('cLocation')) document.getElementById('cLocation').value = c.location !== undefined ? c.location : 'สถาบัน The NEW GEN (เรียนสด Onsite)';
   document.getElementById('cTotalHours').value = c.totalHours || '';
+  if (document.getElementById('cClassSize')) document.getElementById('cClassSize').value = c.classSize !== undefined ? c.classSize : 'กลุ่มเล็ก ดูแลใกล้ชิด ถามได้ทันที';
+  if (document.getElementById('cMaterials')) document.getElementById('cMaterials').value = c.materials !== undefined ? c.materials : 'ฟรี! หนังสือและแนวข้อสอบเก็งพิเศษ';
+  if (document.getElementById('cTrustGuarantee')) document.getElementById('cTrustGuarantee').value = c.trustGuarantee !== undefined ? c.trustGuarantee : 'การันตีการสอนโดยทีมติวเตอร์ The NEW GEN';
   document.getElementById('cImgUrl').value = c.cover || c.poster;
   document.getElementById('cImgPreview').src = c.cover || c.poster;
   document.getElementById('cShortDesc').value = c.shortDesc || '';
@@ -772,7 +782,12 @@ async function handleSaveCourse(e) {
     priceOriginal: document.getElementById('cPriceOld').value.trim(),
     pricePromo: document.getElementById('cPricePromo').value.trim(),
     priceUnit: document.getElementById('cPriceUnit').value.trim(),
+    monthlyPrice: document.getElementById('cMonthlyPrice') ? document.getElementById('cMonthlyPrice').value.trim() : '',
+    location: document.getElementById('cLocation') ? document.getElementById('cLocation').value.trim() : '',
     totalHours: document.getElementById('cTotalHours').value.trim(),
+    classSize: document.getElementById('cClassSize') ? document.getElementById('cClassSize').value.trim() : '',
+    materials: document.getElementById('cMaterials') ? document.getElementById('cMaterials').value.trim() : '',
+    trustGuarantee: document.getElementById('cTrustGuarantee') ? document.getElementById('cTrustGuarantee').value.trim() : '',
     shortDesc: document.getElementById('cShortDesc').value.trim(),
     isFeatured: isFeatured,
     galleryImages: getCourseGalleryFromBuilder(),
@@ -879,15 +894,127 @@ function renderAdminCategories() {
 
   tbody.innerHTML = categories.map(cat => `
     <tr>
-      <td><code style="background: #e2e8f0; padding: 2px 6px; border-radius: 4px; font-weight: 700;">${cat.id}</code></td>
-      <td><strong>${cat.name}</strong></td>
-      <td style="text-align: right;">
-        <button type="button" class="btn-table-action delete" title="ลบระดับชั้นนี้" onclick="deleteCategory('${cat.id}')">
+      <td><code style="background: #e2e8f0; padding: 2px 6px; border-radius: 4px; font-weight: 700;">${escapeHtml(cat.id)}</code></td>
+      <td><strong>${escapeHtml(cat.name)}</strong></td>
+      <td style="text-align: right; white-space: nowrap;">
+        <button type="button" class="btn-table-action edit" style="margin-right: 4px;" title="แก้ไขระดับชั้นนี้" onclick="openEditCategory('${escapeHtml(cat.id)}')">
+          <i class="fa-solid fa-pen-to-square"></i>
+        </button>
+        <button type="button" class="btn-table-action delete" title="ลบระดับชั้นนี้" onclick="deleteCategory('${escapeHtml(cat.id)}')">
           <i class="fa-solid fa-trash-can"></i>
         </button>
       </td>
     </tr>
   `).join('');
+}
+
+function openEditCategory(id) {
+  const categories = window.NewGenDB ? window.NewGenDB.getCategories() : [];
+  const cat = categories.find(c => c.id === id);
+  if (!cat) return;
+
+  const oldIdInput = document.getElementById('editCatOldId');
+  const idInput = document.getElementById('editCatId');
+  const nameInput = document.getElementById('editCatName');
+  const displayLabel = document.getElementById('editCatDisplayLabel');
+  const editBox = document.getElementById('editCategoryBox');
+  const addBox = document.getElementById('addCategoryBox');
+
+  if (oldIdInput) oldIdInput.value = cat.id;
+  if (idInput) idInput.value = cat.id;
+  if (nameInput) nameInput.value = cat.name;
+  if (displayLabel) displayLabel.textContent = cat.name;
+
+  if (editBox) editBox.style.display = 'block';
+  if (addBox) addBox.style.display = 'none';
+
+  editBox?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function cancelEditCategory() {
+  const editBox = document.getElementById('editCategoryBox');
+  const addBox = document.getElementById('addCategoryBox');
+  if (editBox) editBox.style.display = 'none';
+  if (addBox) addBox.style.display = 'block';
+}
+
+async function handleSaveEditCategory() {
+  const oldIdInput = document.getElementById('editCatOldId');
+  const idInput = document.getElementById('editCatId');
+  const nameInput = document.getElementById('editCatName');
+
+  const oldId = oldIdInput ? oldIdInput.value.trim() : '';
+  const newId = idInput ? idInput.value.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '') : '';
+  const newName = nameInput ? nameInput.value.trim() : '';
+
+  if (!oldId || !newId || !newName) {
+    alert('กรุณากรอกรหัสระดับชั้น (ภาษาอังกฤษ) และชื่อระดับชั้นให้ครบถ้วน');
+    return;
+  }
+
+  let categories = window.NewGenDB ? window.NewGenDB.getCategories() : [];
+  if (newId !== oldId && categories.some(c => c.id === newId)) {
+    alert(`รหัสระดับชั้น "${newId}" มีอยู่ในระบบแล้ว กรุณาใช้รหัสอื่น`);
+    return;
+  }
+
+  // Update categories list
+  let found = false;
+  categories = categories.map(c => {
+    if (c.id === oldId) {
+      found = true;
+      return { ...c, id: newId, name: newName };
+    }
+    return c;
+  });
+
+  if (!found) {
+    alert('ไม่พบระดับชั้นที่ต้องการแก้ไข');
+    return;
+  }
+
+  const cloudRes = await window.NewGenDB.saveCategories(categories);
+
+  // Sync categories to server API
+  fetch('/api/categories', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(categories)
+  }).catch(() => {});
+
+  // Update courses if ID or label changed
+  let courses = window.NewGenDB ? window.NewGenDB.getCourses() : [];
+  let coursesUpdated = false;
+  courses = courses.map(c => {
+    if (c.category === oldId) {
+      coursesUpdated = true;
+      return { ...c, category: newId, categoryLabel: newName };
+    } else if (c.category === newId && c.categoryLabel !== newName) {
+      coursesUpdated = true;
+      return { ...c, categoryLabel: newName };
+    }
+    return c;
+  });
+
+  if (coursesUpdated) {
+    await window.NewGenDB.saveCourses(courses);
+    fetch('/api/courses', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(courses)
+    }).catch(() => {});
+    if (typeof loadAdminCourses === 'function') loadAdminCourses();
+  }
+
+  cancelEditCategory();
+  renderAdminCategories();
+  populateCategoryDropdown();
+
+  if (cloudRes && cloudRes.success) {
+    showToast('✅ แก้ไขระดับชั้นและอัปเดตคอร์สที่เกี่ยวข้องเรียบร้อยแล้ว!', 'success');
+  } else {
+    showToast('⚠️ บันทึกการแก้ไขระดับชั้นในเครื่องแล้ว (รอปลดล็อก Supabase RLS)', 'warning');
+  }
 }
 
 async function handleAddNewCategory() {
@@ -980,6 +1107,13 @@ function loadHomeSettings() {
   if (trust2) trust2.value = trusts[1] || '';
   if (trust3) trust3.value = trusts[2] || '';
 
+  const coursesBadgeInput = document.getElementById('homeCoursesBadge');
+  const coursesTitleInput = document.getElementById('homeCoursesTitle');
+  const coursesHighlightInput = document.getElementById('homeCoursesHighlight');
+  if (coursesBadgeInput) coursesBadgeInput.value = home.coursesBadge || 'POPULAR ONSITE COURSES';
+  if (coursesTitleInput) coursesTitleInput.value = home.coursesTitle || 'คอร์สเรียน Onsite แนะนำ';
+  if (coursesHighlightInput) coursesHighlightInput.value = home.coursesHighlight || 'เปิดเทอม 2/69';
+
   populateHeroTutorDropdowns();
 }
 
@@ -1040,6 +1174,10 @@ async function saveHomeSettingsForm() {
   const t3 = document.getElementById('homeTrustBadge3')?.value.trim();
   home.trustBadges = [t1, t2, t3].filter(Boolean);
 
+  home.coursesBadge = document.getElementById('homeCoursesBadge')?.value.trim() || 'POPULAR ONSITE COURSES';
+  home.coursesTitle = document.getElementById('homeCoursesTitle')?.value.trim() || 'คอร์สเรียน Onsite แนะนำ';
+  home.coursesHighlight = document.getElementById('homeCoursesHighlight')?.value.trim() || 'เปิดเทอม 2/69';
+
   home.heroTutorLeftId = document.getElementById('homeTutorLeft')?.value || '';
   home.heroTutorCenterId = document.getElementById('homeTutorCenter')?.value || '';
   home.heroTutorRightId = document.getElementById('homeTutorRight')?.value || '';
@@ -1053,7 +1191,7 @@ async function saveHomeSettingsForm() {
   }).catch(() => {});
 
   if (cloudRes && cloudRes.success) {
-    showToast('✅ บันทึกการตั้งค่าหน้าแรก & ตำแหน่งติวเตอร์ และซิงค์ Cloud เรียบร้อยแล้ว!', 'success');
+    showToast('✅ บันทึกการตั้งค่าหน้าแรก & คอร์สแนะนำ และซิงค์ Cloud เรียบร้อยแล้ว!', 'success');
   } else {
     showToast(`⚠️ บันทึกหน้าแรกในเครื่องแล้ว (${cloudRes && cloudRes.error ? cloudRes.error : 'รอปลดล็อก Supabase RLS'})`, 'warning');
   }

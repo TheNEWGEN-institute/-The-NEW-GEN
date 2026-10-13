@@ -253,6 +253,37 @@
             </div>
           </div>
         </div>
+
+        <!-- Section 3: Recommended Courses Header Texts -->
+        <div class="admin-editor-card" style="margin-top: 24px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+            <div>
+              <h3 class="editor-section-title" style="margin: 0;">
+                <i class="fa-solid fa-graduation-cap" style="color: var(--color-cyan);"></i> หัวข้อส่วน "คอร์สเรียน Onsite แนะนำ" บนหน้าแรก
+              </h3>
+              <p style="font-size: 0.85rem; color: var(--text-muted); margin: 4px 0 0 0;">
+                ปรับแต่งข้อความหัวข้อและสโลแกนของแถบสไลเดอร์คอร์สเรียนแนะนำในหน้าแรก (ส่วนตัวเลือกติ๊กเลือกว่าจะให้คอร์สไหนแสดงบ้าง สามารถตั้งค่าได้ในหน้าต่างแก้ไขแต่ละคอร์ส)
+              </p>
+            </div>
+            <button type="button" class="btn-primary" onclick="saveHomeSettingsForm()">
+              <i class="fa-solid fa-floppy-disk"></i> บันทึกหัวข้อคอร์สแนะนำ
+            </button>
+          </div>
+          <div class="form-row-2col">
+            <div class="form-group-luxury">
+              <label>ป้ายหัวข้อภาษาอังกฤษ (Subtitle Tag)</label>
+              <input type="text" id="homeCoursesBadge" placeholder="เช่น POPULAR ONSITE COURSES">
+            </div>
+            <div class="form-group-luxury">
+              <label>ข้อความเน้นสี (Highlight Text)</label>
+              <input type="text" id="homeCoursesHighlight" placeholder="เช่น เปิดเทอม 2/69 หรือ ตะลุยโจทย์เข้มข้น">
+            </div>
+          </div>
+          <div class="form-group-luxury" style="margin-bottom: 0;">
+            <label>หัวข้อหลักภาษาไทย (Main Title)</label>
+            <input type="text" id="homeCoursesTitle" placeholder="เช่น คอร์สเรียน Onsite แนะนำ">
+          </div>
+        </div>
       </section>
 
       <!-- ================= 3. TUTORS TAB (เรียงลำดับติวเตอร์ได้) ================= -->
@@ -815,6 +846,14 @@
             </div>
           </div>
 
+          <div class="form-group-luxury" style="background: #f8fafc; border: 1.5px solid #cbd5e1; padding: 12px 16px; border-radius: var(--radius-md); margin-bottom: 16px;">
+            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin: 0; font-weight: 700; color: var(--color-navy); font-size: 0.95rem;">
+              <input type="checkbox" id="cIsFeatured" checked style="width: 18px; height: 18px; accent-color: var(--color-royal); cursor: pointer;">
+              <span>⭐ แสดงในคอร์สเรียนแนะนำบนหน้าแรก (Homepage Recommended Course)</span>
+            </label>
+            <small style="color: var(--text-muted); display: block; margin-left: 28px; margin-top: 4px;">หากเลือก คอร์สนี้จะแสดงในสไลเดอร์ "คอร์สเรียน Onsite แนะนำ" บนหน้าแรกของเว็บไซต์</small>
+          </div>
+
           <div class="form-row-2col">
             <div class="form-group-luxury">
               <label>ราคาเต็ม (เดิม)</label>
@@ -828,12 +867,49 @@
 
           <div class="form-row-2col">
             <div class="form-group-luxury">
-              <label>หน่วยราคา / การแบ่งชำระ</label>
-              <input type="text" id="cPriceUnit" placeholder="เช่น บาท / เทอม (แบ่งชำระได้)">
+              <label>หน่วยราคา / การชำระ</label>
+              <input type="text" id="cPriceUnit" placeholder="เช่น บาท / เทอม">
             </div>
             <div class="form-group-luxury">
-              <label>จำนวนชั่วโมงเรียน</label>
-              <input type="text" id="cTotalHours" placeholder="เช่น 42 ชั่วโมง (รายเทอม) / 20 ชม. (รายเดือน)">
+              <label>ราคาแบบรายเดือน / ทางเลือกแบ่งชำระ (ป้ายเขียว)</label>
+              <input type="text" id="cMonthlyPrice" placeholder="เช่น 1,500 บาท / เดือน (20 ชม.)">
+              <small style="color: var(--text-muted); display: block; margin-top: 3px;">หากไม่ระบุ ระบบจะซ่อนป้ายนี้โดยอัตโนมัติ</small>
+            </div>
+          </div>
+
+          <!-- Quick Info Details (Shown in Right Sidebar & Mobile Bar) -->
+          <div style="background: #f0fdfa; border: 1.5px solid #99f6e4; padding: 16px; border-radius: var(--radius-md); margin-bottom: 16px;">
+            <div style="margin-bottom: 12px;">
+              <label style="margin: 0; color: #0f766e; font-weight: 800; font-size: 0.95rem;">
+                <i class="fa-solid fa-list-check" style="color: #0d9488;"></i> ข้อมูลสรุปการ์ดด้านขวา (Quick Info List)
+              </label>
+              <small style="color: #115e59; display: block; margin-top: 2px;">
+                แก้ไขข้อความที่แสดงในการ์ดด้านขวาของหน้ารายละเอียดคอร์สได้ทั้งหมด (หากข้อไหนเว้นว่างไว้ ระบบจะซ่อนแถวนั้นให้อัตโนมัติ)
+              </small>
+            </div>
+            <div class="form-row-2col">
+              <div class="form-group-luxury">
+                <label>📍 สถานที่เรียน</label>
+                <input type="text" id="cLocation" placeholder="เช่น สถาบัน The NEW GEN (เรียนสด Onsite)">
+              </div>
+              <div class="form-group-luxury">
+                <label>🕒 เวลาเรียนรวม</label>
+                <input type="text" id="cTotalHours" placeholder="เช่น 42 ชั่วโมง (รายเทอม) / 20 ชม. (รายเดือน)">
+              </div>
+            </div>
+            <div class="form-row-2col">
+              <div class="form-group-luxury">
+                <label>👥 ขนาดห้องเรียน</label>
+                <input type="text" id="cClassSize" placeholder="เช่น กลุ่มเล็ก ดูแลใกล้ชิด ถามได้ทันที">
+              </div>
+              <div class="form-group-luxury">
+                <label>📄 ชุดเอกสาร</label>
+                <input type="text" id="cMaterials" placeholder="เช่น ฟรี! หนังสือและแนวข้อสอบเก็งพิเศษ">
+              </div>
+            </div>
+            <div class="form-group-luxury" style="margin-bottom: 0;">
+              <label>🛡️ ข้อความการันตีท้ายการ์ด</label>
+              <input type="text" id="cTrustGuarantee" placeholder="เช่น การันตีการสอนโดยทีมติวเตอร์ The NEW GEN">
             </div>
           </div>
 
@@ -1022,9 +1098,9 @@
         <table class="admin-data-table" style="margin-bottom: 24px;">
           <thead>
             <tr>
-              <th style="width: 140px;">รหัส (ID)</th>
+              <th style="width: 130px;">รหัส (ID)</th>
               <th>ชื่อระดับชั้น</th>
-              <th style="text-align: right; width: 90px;">จัดการ</th>
+              <th style="text-align: right; width: 110px;">จัดการ</th>
             </tr>
           </thead>
           <tbody id="adminCategoriesTableBody">
@@ -1032,8 +1108,35 @@
           </tbody>
         </table>
 
+        <!-- Edit Category Form (Hidden by default) -->
+        <div id="editCategoryBox" style="display: none; background: #eff6ff; padding: 18px; border-radius: var(--radius-md); border: 1.5px solid #60a5fa; margin-bottom: 20px;">
+          <h4 style="font-size: 0.95rem; font-weight: 700; color: #1e40af; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-pen-to-square"></i> แก้ไขข้อมูลระดับชั้น: <span id="editCatDisplayLabel" style="color: var(--color-navy); font-weight: 800;"></span>
+          </h4>
+          <input type="hidden" id="editCatOldId">
+          <div class="form-row-2col">
+            <div class="form-group-luxury">
+              <label>รหัสระดับชั้น (ภาษาอังกฤษ) *</label>
+              <input type="text" id="editCatId" placeholder="เช่น primary หรือ highschool">
+              <small style="color: #3b82f6; display: block; margin-top: 3px;">หากเปลี่ยนรหัส ระบบจะอัปเดตคอร์สที่เกี่ยวข้องให้อัตโนมัติ</small>
+            </div>
+            <div class="form-group-luxury">
+              <label>ชื่อระดับชั้นที่แสดงบนหน้าเว็บ *</label>
+              <input type="text" id="editCatName" placeholder="เช่น ประถมศึกษา (ป.4 - ป.6)">
+            </div>
+          </div>
+          <div style="display: flex; gap: 10px; margin-top: 10px;">
+            <button type="button" class="btn-primary" onclick="handleSaveEditCategory()">
+              <i class="fa-solid fa-floppy-disk"></i> บันทึกการแก้ไขระดับชั้น
+            </button>
+            <button type="button" class="btn-secondary" onclick="cancelEditCategory()">
+              ยกเลิก
+            </button>
+          </div>
+        </div>
+
         <!-- Add Category Form -->
-        <div style="background: #f8fafc; padding: 18px; border-radius: var(--radius-md); border: 1px solid var(--border-light);">
+        <div id="addCategoryBox" style="background: #f8fafc; padding: 18px; border-radius: var(--radius-md); border: 1px solid var(--border-light);">
           <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--color-navy); margin-bottom: 12px;">
             <i class="fa-solid fa-plus-circle" style="color: var(--color-cyan);"></i> เพิ่มระดับชั้นใหม่
           </h4>
