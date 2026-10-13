@@ -74,34 +74,94 @@
     <div class="container">
       
       <!-- ================= 1. INSPIRATION SECTION ================= -->
-      <section class="about-inspiration-card" id="inspirationSection">
-        <div class="about-header-badge" id="aboutBadgeWrap">
-          <i class="fa-solid fa-lightbulb"></i> <span id="aboutBadgeText">OUR INSPIRATION &amp; STORY</span>
-        </div>
-        <h2 class="about-inspiration-title" id="aboutTitleText">แรงบันดาลใจในการเป็น The NEW GEN</h2>
-        <p class="about-inspiration-subtitle" id="aboutSubtitleText">
-          กวดวิชาที่ไม่ใช่แค่ติวให้สอบผ่าน แต่คือพื้นที่สร้างอนาคตและจุดประกายความฝันของเด็ก GEN Z
-        </p>
+      <section class="about-inspiration-card layout-split-card" id="inspirationSection">
 
-        <div class="about-story-grid">
-          <div class="about-main-img-box" id="aboutMainImgBox">
-            <img id="aboutMainImg" src="assets/images/course-poster-primary.jpg" alt="แรงบันดาลใจ The NEW GEN" loading="eager">
-            <div class="about-img-tag">
-              <i class="fa-solid fa-bolt-lightning" style="color: var(--color-sky);"></i> The NEW GEN Tutoring Institute
+        <div class="about-inspiration-inner" id="aboutInspirationInner">
+          <div class="about-header-badge" id="aboutBadgeWrap">
+            <i class="fa-solid fa-lightbulb"></i> <span id="aboutBadgeText">OUR INSPIRATION &amp; STORY</span>
+          </div>
+          <h2 class="about-inspiration-title" id="aboutTitleText">แรงบันดาลใจในการเป็น The NEW GEN</h2>
+          <p class="about-inspiration-subtitle" id="aboutSubtitleText">
+            กวดวิชาที่ไม่ใช่แค่ติวให้สอบผ่าน แต่คือพื้นที่สร้างอนาคตและจุดประกายความฝันของเด็ก GEN Z
+          </p>
+
+          <div class="about-story-grid" id="aboutStoryGrid">
+            <!-- Left: 2 Main Photos (บน & ล่าง พอดีกับกรอบน้ำเงินด้านขวา) -->
+            <div class="about-main-img-box" id="aboutMainImgBox">
+              <!-- Top Photo -->
+              <div class="about-side-img-card top">
+                <img id="aboutMainImg" src="assets/images/course-poster-primary.jpg" alt="แรงบันดาลใจ The NEW GEN ภาพที่ 1" loading="eager">
+                <div class="about-img-tag">
+                  <i class="fa-solid fa-bolt-lightning" style="color: var(--color-cyan);"></i> The NEW GEN Tutoring Institute
+                </div>
+              </div>
+              <!-- Bottom Photo -->
+              <div class="about-side-img-card bottom">
+                <img id="aboutSecondaryImg" src="assets/images/course-poster-secondary.jpg" alt="แรงบันดาลใจ The NEW GEN ภาพที่ 2" loading="lazy">
+                <div class="about-img-tag bottom-tag">
+                  <i class="fa-solid fa-certificate" style="color: #fbbf24;"></i> 10+ Years Experience
+                </div>
+              </div>
+            </div>
+
+            <!-- Right: Text card with faded student background watermark -->
+            <div class="about-story-card" id="aboutStoryCard">
+              <div class="about-story-watermark-bg"></div>
+              <div class="about-story-card-content">
+                <div class="about-story-card-header">
+                  <div class="about-story-pill">
+                    <i class="fa-solid fa-heart" style="color: #e11d48;"></i> ความตั้งใจจริงของเรา
+                  </div>
+                  <span class="about-story-sparkle"><i class="fa-solid fa-sparkles"></i> เพื่อเด็ก GEN Z ยุคใหม่</span>
+                </div>
+
+                <div class="about-story-body" id="aboutStoryBody">
+                  <!-- Dynamically populated via JS -->
+                </div>
+
+                <!-- 4 Core Pillars Highlights -->
+                <div class="about-pillars-grid">
+                  <div class="about-pillar-item">
+                    <div class="pillar-icon"><i class="fa-solid fa-scale-balanced"></i></div>
+                    <div>
+                      <span class="pillar-title">โอกาสเท่าเทียม</span>
+                      <span class="pillar-sub">ราคาสมเหตุสมผล ลดภาระผู้ปกครอง</span>
+                    </div>
+                  </div>
+                  <div class="about-pillar-item">
+                    <div class="pillar-icon"><i class="fa-solid fa-users-viewfinder"></i></div>
+                    <div>
+                      <span class="pillar-title">ใส่ใจเต็มที่</span>
+                      <span class="pillar-sub">เรียนสดกลุ่มเล็ก ทัก Line ถามได้ตลอด</span>
+                    </div>
+                  </div>
+                  <div class="about-pillar-item">
+                    <div class="pillar-icon"><i class="fa-solid fa-compass"></i></div>
+                    <div>
+                      <span class="pillar-title">ที่ปรึกษาจริงใจ</span>
+                      <span class="pillar-sub">วิเคราะห์โรงเรียนและคณะเป้าหมาย</span>
+                    </div>
+                  </div>
+                  <div class="about-pillar-item">
+                    <div class="pillar-icon"><i class="fa-solid fa-house-chimney-heart"></i></div>
+                    <div>
+                      <span class="pillar-title">เหมือนครอบครัว</span>
+                      <span class="pillar-sub">อบอุ่น ผูกพัน ไว้วางใจยาวนาน</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-          <div class="about-story-body" id="aboutStoryBody">
-            <!-- Dynamically populated via JS -->
-          </div>
-        </div>
 
-        <!-- Atmosphere & Activity Photo Gallery -->
-        <div class="about-gallery-section" id="aboutGallerySection">
-          <h3 class="about-gallery-title">
-            <i class="fa-solid fa-images" style="color: var(--color-red-brand);"></i> บรรยากาศและความตั้งใจในการเรียนการสอน
-          </h3>
-          <div class="about-gallery-grid" id="aboutGalleryGrid">
-            <!-- Dynamically populated via JS -->
+          <!-- Atmosphere & Activity Photo Gallery -->
+          <div class="about-gallery-section" id="aboutGallerySection">
+            <h3 class="about-gallery-title">
+              <i class="fa-solid fa-images" style="color: var(--color-red-brand);"></i> บรรยากาศและความตั้งใจในการเรียนการสอน
+            </h3>
+            <div class="about-gallery-grid" id="aboutGalleryGrid">
+              <!-- Dynamically populated via JS -->
+            </div>
           </div>
         </div>
       </section>
@@ -348,6 +408,7 @@
   <script src="assets/js/courses-data.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
+      initAboutLayoutSwitcher();
       renderAboutInspiration();
       renderContactChannels();
 
@@ -367,6 +428,38 @@
       renderAboutInspiration();
       renderContactChannels();
     });
+
+    function initAboutLayoutSwitcher() {
+      const switcher = document.getElementById('aboutViewSwitcher');
+      const section = document.getElementById('inspirationSection');
+      if (!switcher || !section) return;
+
+      const savedLayout = localStorage.getItem('newgen_about_layout') || 'split-card';
+      setLayout(savedLayout);
+
+      switcher.querySelectorAll('.view-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const layout = btn.getAttribute('data-layout');
+          setLayout(layout);
+          try {
+            localStorage.setItem('newgen_about_layout', layout);
+          } catch (e) {}
+        });
+      });
+
+      function setLayout(layoutName) {
+        section.classList.remove('layout-split-card', 'layout-cinematic', 'layout-magazine');
+        section.classList.add('layout-' + layoutName);
+
+        switcher.querySelectorAll('.view-btn').forEach(b => {
+          if (b.getAttribute('data-layout') === layoutName) {
+            b.classList.add('active');
+          } else {
+            b.classList.remove('active');
+          }
+        });
+      }
+    }
 
     function renderAboutInspiration(customData) {
       const about = customData || (window.NewGenDB ? window.NewGenDB.getAbout() : DEFAULT_ABOUT);
@@ -389,12 +482,28 @@
         mainImg.src = resolvedImg;
       }
 
+      const secImg = document.getElementById('aboutSecondaryImg');
+      if (secImg) {
+        const secSrc = about.secondaryImage || about.mainImage2 || 'assets/images/course-poster-secondary.jpg';
+        const resolvedSec = window.resolveMediaUrl ? window.resolveMediaUrl(secSrc) : secSrc;
+        secImg.src = resolvedSec;
+      }
+
       if (bodyEl) {
+        let paras = [];
         if (typeof about.paragraphs === 'string') {
-          const paras = about.paragraphs.split(/\n\s*\n/).filter(p => p.trim());
-          bodyEl.innerHTML = paras.map(p => `<p>${escapeHtml(p.trim()).replace(/\n/g, '<br>')}</p>`).join('');
+          if (about.paragraphs.includes('\u200b')) {
+            paras = about.paragraphs.split(/\u200b/).map(p => p.trim()).filter(Boolean);
+          } else {
+            paras = about.paragraphs.split(/\n\s*\n|\n/).map(p => p.trim()).filter(Boolean);
+          }
+          bodyEl.innerHTML = paras.map((p, idx) => `
+            <p class="${idx === 0 ? 'lead-para' : ''}">${escapeHtml(p).replace(/\n/g, '<br>')}</p>
+          `).join('');
         } else if (Array.isArray(about.paragraphs)) {
-          bodyEl.innerHTML = about.paragraphs.map(p => `<p>${escapeHtml(p)}</p>`).join('');
+          bodyEl.innerHTML = about.paragraphs.map((p, idx) => `
+            <p class="${idx === 0 ? 'lead-para' : ''}">${escapeHtml(p)}</p>
+          `).join('');
         }
       }
 

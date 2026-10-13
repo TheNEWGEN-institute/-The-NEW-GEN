@@ -345,24 +345,49 @@
             <input type="text" id="aboutSubtitle" placeholder="เช่น กวดวิชาที่ไม่ใช่แค่ติวให้สอบผ่าน แต่คือพื้นที่สร้างอนาคตและจุดประกายความฝันของเด็ก GEN Z">
           </div>
 
-          <!-- Main Story Image -->
-          <div class="form-group-luxury" style="background: #f0f7ff; border: 1.5px solid #bfdbfe; padding: 16px; border-radius: var(--radius-md);">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; flex-wrap: wrap; gap: 6px;">
-              <label style="color: #1e40af; font-weight: 800; font-size: 0.95rem; margin: 0;">
-                <i class="fa-solid fa-image"></i> รูปภาพเด่นหลักของเรื่องราว (Main Story Image) *
-              </label>
-              <span id="aboutMainImgStatus" style="font-size: 0.82rem; font-weight: 700; color: #16a34a; display: none;"></span>
+          <!-- 2 Main Story Images (ภาพบน & ภาพล่าง พอดีกับกรอบด้านขวา) -->
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; margin-bottom: 20px;">
+            
+            <!-- Image 1: Top Image -->
+            <div class="form-group-luxury" style="background: #f0f7ff; border: 1.5px solid #bfdbfe; padding: 16px; border-radius: var(--radius-md); margin-bottom: 0;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; flex-wrap: wrap; gap: 6px;">
+                <label style="color: #1e40af; font-weight: 800; font-size: 0.95rem; margin: 0;">
+                  <i class="fa-solid fa-image"></i> รูปเด่นด้านซ้าย ภาพที่ 1 (บน) *
+                </label>
+                <span id="aboutMainImgStatus" style="font-size: 0.82rem; font-weight: 700; color: #16a34a; display: none;"></span>
+              </div>
+              <p style="font-size: 0.82rem; color: #3b82f6; margin: 2px 0 8px 0;">
+                รูปภาพบน จะแสดงคู่กับป้าย The NEW GEN Tutoring Institute
+              </p>
+              <div class="img-upload-field-row">
+                <input type="file" id="aboutMainImgFile" accept="image/*" onchange="previewUploadImage(event, 'aboutMainImgPreview', 'aboutMainImgUrl', 'aboutMainImgStatus')">
+                <input type="text" id="aboutMainImgUrl" placeholder="assets/images/course-poster-primary.jpg">
+              </div>
+              <div class="upload-preview-box" style="height: 160px; margin-top: 8px;">
+                <img id="aboutMainImgPreview" src="assets/images/course-poster-primary.jpg" alt="Preview ภาพบน" style="max-height: 100%; object-fit: contain;">
+              </div>
             </div>
-            <p style="font-size: 0.82rem; color: #3b82f6; margin: 2px 0 8px 0;">
-              รูปภาพนี้จะแสดงเด่นอยู่ข้างเรื่องเล่าแรงบันดาลใจ สามารถอัปโหลดรูปภาพบรรยากาศการสอน หรือรูปทีมงานได้
-            </p>
-            <div class="img-upload-field-row">
-              <input type="file" id="aboutMainImgFile" accept="image/*" onchange="previewUploadImage(event, 'aboutMainImgPreview', 'aboutMainImgUrl', 'aboutMainImgStatus')">
-              <input type="text" id="aboutMainImgUrl" placeholder="assets/images/course-poster-primary.jpg">
+
+            <!-- Image 2: Bottom Image -->
+            <div class="form-group-luxury" style="background: #fff7ed; border: 1.5px solid #fed7aa; padding: 16px; border-radius: var(--radius-md); margin-bottom: 0;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; flex-wrap: wrap; gap: 6px;">
+                <label style="color: #9a3412; font-weight: 800; font-size: 0.95rem; margin: 0;">
+                  <i class="fa-solid fa-image"></i> รูปเด่นด้านซ้าย ภาพที่ 2 (ล่าง) *
+                </label>
+                <span id="aboutSecondaryImgStatus" style="font-size: 0.82rem; font-weight: 700; color: #16a34a; display: none;"></span>
+              </div>
+              <p style="font-size: 0.82rem; color: #ea580c; margin: 2px 0 8px 0;">
+                รูปภาพล่าง จะแสดงคู่กับป้าย 10+ Years Experience
+              </p>
+              <div class="img-upload-field-row">
+                <input type="file" id="aboutSecondaryImgFile" accept="image/*" onchange="previewUploadImage(event, 'aboutSecondaryImgPreview', 'aboutSecondaryImgUrl', 'aboutSecondaryImgStatus')">
+                <input type="text" id="aboutSecondaryImgUrl" placeholder="assets/images/course-poster-secondary.jpg">
+              </div>
+              <div class="upload-preview-box" style="height: 160px; margin-top: 8px;">
+                <img id="aboutSecondaryImgPreview" src="assets/images/course-poster-secondary.jpg" alt="Preview ภาพล่าง" style="max-height: 100%; object-fit: contain;">
+              </div>
             </div>
-            <div class="upload-preview-box" style="height: 180px; margin-top: 8px;">
-              <img id="aboutMainImgPreview" src="assets/images/course-poster-primary.jpg" alt="Preview" style="max-height: 100%; object-fit: contain;">
-            </div>
+
           </div>
 
           <div class="form-group-luxury">

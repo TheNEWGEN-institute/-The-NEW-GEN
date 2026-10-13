@@ -636,7 +636,8 @@
         "url": "uploads/upload-1791812274279-2681.jpg",
         "caption": ""
       }
-    ]
+    ],
+    "secondaryImage": "assets/images/course-poster-secondary.jpg"
   },
   "admin_ping": {
     "ping": true,
