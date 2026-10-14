@@ -8,8 +8,10 @@ function bootstrapApp() {
   initWhyUs();
   initCourseSlider();
   initHomeReviews();
+  initHomeFeaturedVideo();
   initBackToTop();
   initSmoothScroll();
+  initHomePopupCampaign();
 }
 
 if (document.readyState === 'loading') {
@@ -23,14 +25,23 @@ document.addEventListener('newgen:synced', () => {
   initWhyUs();
   initCourseSlider();
   initHomeReviews();
+  initHomeFeaturedVideo();
+  renderHomePopupCampaign();
 });
 
 if (typeof window !== 'undefined') {
   window.renderHeroContent = renderHeroContent;
   window.initCourseSlider = initCourseSlider;
   window.initHomeReviews = initHomeReviews;
+  window.initHomeFeaturedVideo = initHomeFeaturedVideo;
   window.initWhyUs = initWhyUs;
   window.initNavbar = initNavbar;
+  window.initHomePopupCampaign = initHomePopupCampaign;
+  window.renderHomePopupCampaign = renderHomePopupCampaign;
+  window.openCampaignPopup = openCampaignPopup;
+  window.closeCampaignPopup = closeCampaignPopup;
+  window.dismissCampaignFloatingPill = dismissCampaignFloatingPill;
+  window.handleCampaignRegisterClick = handleCampaignRegisterClick;
 }
 
 /* ----------------------------------------------------
@@ -589,7 +600,241 @@ function initSmoothScroll() {
   });
 }
 
+/* ----------------------------------------------------
+   8. Home Page Campaign Popup (โครงการติวฟรี)
+   ---------------------------------------------------- */
+let campaignPopupTimer = null;
+
+function initHomePopupCampaign() {
+  const modal = document.getElementById('campaignPopupModal');
+  if (!modal) return; // Not on index.html
+
+  // Bind close on backdrop click (click outside card)
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      closeCampaignPopup(false);
+    }
+  });
+
+  // Render content from DB
+  renderHomePopupCampaign();
+
+  const campaign = window.NewGenDB ? window.NewGenDB.getPopupCampaign() : null;
+  if (!campaign || campaign.enabled === false) {
+    return;
+  }
+
+  // Check if user already dismissed in this session
+  const isDismissed = sessionStorage.getItem('newgen_campaign_dismissed') === 'true';
+  const pill = document.getElementById('campaignFloatingPill');
+
+  if (isDismissed) {
+    // Show minimized pill
+    if (pill) pill.style.display = 'flex';
+  } else {
+    // Auto popup after 800ms
+    if (campaignPopupTimer) clearTimeout(campaignPopupTimer);
+    campaignPopupTimer = setTimeout(() => {
+      openCampaignPopup(false);
+    }, 800);
+  }
+}
+
+function renderHomePopupCampaign() {
+  const modal = document.getElementById('campaignPopupModal');
+  const pill = document.getElementById('campaignFloatingPill');
+  if (!modal) return;
+
+  const campaign = window.NewGenDB ? window.NewGenDB.getPopupCampaign() : null;
+  if (!campaign || campaign.enabled === false) {
+    modal.classList.remove('active');
+    modal.style.display = 'none';
+    if (pill) pill.style.display = 'none';
+    return;
+  }
+
+  // Populate Elements
+  const layout = document.getElementById('campaignPopupLayout');
+  const imgEl = document.getElementById('campaignPopupImg');
+  const mediaCol = document.getElementById('campaignMediaCol');
+  const badgeEl = document.getElementById('campaignPopupBadge');
+  const titleEl = document.getElementById('campaignPopupTitle');
+  const subEl = document.getElementById('campaignPopupSubtitle');
+  const descEl = document.getElementById('campaignPopupDesc');
+  const hlEl = document.getElementById('campaignPopupHighlights');
+  const regBtnText = document.getElementById('campaignRegisterBtnText');
+  const lineBtn = document.getElementById('btnCampaignLine');
+  const lineBtnText = document.getElementById('campaignLineBtnText');
+  const pillLabel = document.getElementById('pillBadgeLabel');
+  const pillSub = document.getElementById('pillSubtitleLabel');
+
+  // Media
+  const hasImg = Boolean(campaign.image && campaign.image.trim() !== '');
+  if (hasImg) {
+    if (layout) layout.classList.remove('no-image');
+    if (mediaCol) mediaCol.style.display = 'flex';
+    if (imgEl) {
+      imgEl.src = window.resolveMediaUrl ? window.resolveMediaUrl(campaign.image) : campaign.image;
+      imgEl.alt = campaign.title || 'โปสเตอร์โครงการติวฟรี';
+    }
+  } else {
+    if (layout) layout.classList.add('no-image');
+    if (mediaCol) mediaCol.style.display = 'none';
+  }
+
+  // Badge & Titles
+  if (badgeEl) badgeEl.innerHTML = `<i class="fa-solid fa-sparkles"></i> <span>${escapeHtml(campaign.badge || 'โครงการพิเศษ • ติวฟรี 100%')}</span>`;
+  if (titleEl) titleEl.textContent = campaign.title || 'โครงการติวฟรี The NEW GEN';
+  if (subEl) subEl.textContent = campaign.subtitle || 'ยกระดับผลการเรียน เสริมทักษะความรู้อย่างมั่นใจ';
+
+  // Description (multiline support)
+  if (descEl) {
+    if (campaign.description) {
+      descEl.innerHTML = escapeHtml(campaign.description).replace(/\n/g, '<br>');
+      descEl.style.display = 'block';
+    } else {
+      descEl.innerHTML = '';
+      descEl.style.display = 'none';
+    }
+  }
+
+  // Highlights
+  if (hlEl) {
+    const list = Array.isArray(campaign.highlights) && campaign.highlights.length > 0
+      ? campaign.highlights
+      : [
+          'ติวสดกับทีมติวเตอร์ The NEW GEN แบบกลุ่มเล็ก',
+          'แจกฟรี! เอกสารประกอบการเรียนและแบบฝึกหัดเก็งข้อสอบ',
+          'ไม่มีค่าใช้จ่าย สิทธิ์มีจำนวนจำกัดตามลำดับลงทะเบียน'
+        ];
+    hlEl.innerHTML = list.map(item => `
+      <li>
+        <i class="fa-solid fa-circle-check"></i>
+        <span>${escapeHtml(item)}</span>
+      </li>
+    `).join('');
+  }
+
+  // Buttons
+  if (regBtnText) regBtnText.textContent = campaign.buttonText || 'สมัครเข้าเรียนฟรี';
+  if (lineBtn) {
+    lineBtn.href = campaign.lineUrl || 'https://lin.ee/RXrzi1G';
+    if (lineBtnText) lineBtnText.textContent = campaign.lineButtonText || 'สอบถามเพิ่มเติมทาง LINE';
+  }
+
+  // Pill
+  if (pillLabel) pillLabel.textContent = campaign.title || 'โครงการติวฟรี!';
+  if (pillSub) pillSub.textContent = 'คลิกเพื่อรับสิทธิ์ด่วน 🎁';
+}
+
+function openCampaignPopup(fromPill = false) {
+  const modal = document.getElementById('campaignPopupModal');
+  const pill = document.getElementById('campaignFloatingPill');
+  if (!modal) return;
+
+  renderHomePopupCampaign();
+
+  const campaign = window.NewGenDB ? window.NewGenDB.getPopupCampaign() : null;
+  if (!campaign || campaign.enabled === false) return;
+
+  modal.style.display = 'flex';
+  // Trigger animation frame
+  requestAnimationFrame(() => {
+    modal.classList.add('active');
+  });
+
+  if (pill) {
+    pill.style.display = 'none';
+  }
+}
+
+function closeCampaignPopup(manual = false) {
+  const modal = document.getElementById('campaignPopupModal');
+  const pill = document.getElementById('campaignFloatingPill');
+  if (!modal) return;
+
+  modal.classList.remove('active');
+  setTimeout(() => {
+    modal.style.display = 'none';
+  }, 300);
+
+  // Set session storage so it doesn't pop up again automatically
+  sessionStorage.setItem('newgen_campaign_dismissed', 'true');
+
+  // Show floating pill if campaign is still enabled
+  const campaign = window.NewGenDB ? window.NewGenDB.getPopupCampaign() : null;
+  if (pill && campaign && campaign.enabled !== false) {
+    pill.style.display = 'flex';
+  }
+}
+
+function dismissCampaignFloatingPill(e) {
+  if (e) e.stopPropagation();
+  const pill = document.getElementById('campaignFloatingPill');
+  if (pill) {
+    pill.style.opacity = '0';
+    pill.style.transform = 'translateY(10px) scale(0.9)';
+    setTimeout(() => {
+      pill.style.display = 'none';
+      pill.style.opacity = '';
+      pill.style.transform = '';
+    }, 250);
+  }
+}
+
+function handleCampaignRegisterClick() {
+  const campaign = window.NewGenDB ? window.NewGenDB.getPopupCampaign() : null;
+  closeCampaignPopup(false);
+
+  // Open enrollment modal for free tutoring or target course
+  if (typeof window.openEnrollmentModal === 'function') {
+    const courseId = campaign && campaign.courseId ? campaign.courseId : null;
+    window.openEnrollmentModal(courseId);
+
+    // Pre-populate note if empty
+    setTimeout(() => {
+      const notesEl = document.getElementById('enrInputNotes');
+      if (notesEl && !notesEl.value) {
+        notesEl.value = `[สมัครสิทธิ์โครงการ: ${campaign && campaign.title ? campaign.title : 'โครงการติวฟรี'}]`;
+      }
+    }, 350);
+  } else {
+    // If enrollment modal script not present, fallback to contact
+    window.location.href = '#courses';
+  }
+}
+
+function initHomeFeaturedVideo() {
+  const iframe = document.getElementById('homeFeaturedVideoIframe');
+  if (!iframe) return;
+  const videos = window.NewGenDB ? window.NewGenDB.getVideos() : (window.videosData || []);
+  if (!Array.isArray(videos) || videos.length === 0) return;
+
+  const v = videos[0];
+  let cleanId = v.youtubeId;
+  if (!cleanId && v.youtubeUrl) {
+    const match = v.youtubeUrl.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/|live\/))([\w-]{11})/);
+    if (match) cleanId = match[1];
+  }
+  if (!cleanId) cleanId = 'OEBgi1xzb_c';
+
+  const embedUrl = `https://www.youtube.com/embed/${cleanId}?rel=0&modestbranding=1`;
+  if (!iframe.src || !iframe.src.includes(cleanId)) {
+    iframe.src = embedUrl;
+  }
+
+  const titleEl = document.getElementById('homeFeaturedVideoTitle');
+  const descEl = document.getElementById('homeFeaturedVideoDesc');
+  if (titleEl && v.title) {
+    titleEl.innerHTML = `${escapeHtml(v.title)} กับ <span class="text-gradient-cyan">The NEW GEN</span>`;
+  }
+  if (descEl && v.description) {
+    descEl.textContent = v.description;
+  }
+}
+
 function escapeHtml(str) {
   if (!str) return '';
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
 }
+

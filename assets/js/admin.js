@@ -31,6 +31,7 @@ function initAdminDashboard() {
   try { loadSecuritySettings(); } catch (e) { console.warn('loadSecuritySettings error:', e); }
   try { loadAdminEnrollments(); } catch (e) { console.warn('loadAdminEnrollments error:', e); }
   try { loadAdminEnrollmentConfig(); } catch (e) { console.warn('loadAdminEnrollmentConfig error:', e); }
+  try { loadAdminPopupCampaign(); } catch (e) { console.warn('loadAdminPopupCampaign error:', e); }
   try { checkSupabaseConnection(false); } catch (e) { console.warn('checkSupabaseConnection error:', e); }
 }
 
@@ -160,13 +161,28 @@ function switchAdminTab(tabKey, btn) {
   } else if (tabKey === 'whyus') {
     tabKey = 'home';
     setTimeout(() => switchHomeSubtab('whyus'), 10);
+  } else if (tabKey === 'popup') {
+    tabKey = 'home';
+    setTimeout(() => switchHomeSubtab('popup'), 10);
   }
 
   document.querySelectorAll('.admin-tab-pane').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.admin-nav-item').forEach(b => b.classList.remove('active'));
   
   const pane = document.getElementById(`tab-${tabKey}`);
-  if (pane) pane.classList.add('active');
+  if (pane) {
+    pane.classList.add('active');
+    // Mobile screen: smoothly scroll down to the content pane
+    if (window.innerWidth <= 900) {
+      setTimeout(() => {
+        pane.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 50);
+    } else {
+      // Desktop: always reset scroll position to top of workspace so content is never hidden
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    }
+  }
+
   if (btn) {
     btn.classList.add('active');
   } else {
@@ -185,6 +201,7 @@ function switchAdminTab(tabKey, btn) {
     } else if (tabKey === 'home') {
       loadHomeSettings();
       loadAdminWhyUs();
+      loadAdminPopupCampaign();
     } else if (tabKey === 'tutors') {
       loadAdminTutors();
       loadTutorsQuote();
@@ -208,17 +225,23 @@ function switchAdminTab(tabKey, btn) {
 function switchHomeSubtab(subtab) {
   const btnGeneral = document.getElementById('btnHomeSubtabGeneral');
   const btnWhyUs = document.getElementById('btnHomeSubtabWhyUs');
+  const btnPopup = document.getElementById('btnHomeSubtabPopup');
   const subtabGeneral = document.getElementById('subtabHomeGeneral');
   const subtabWhyUs = document.getElementById('subtabHomeWhyUs');
+  const subtabPopup = document.getElementById('subtabHomePopup');
 
   if (btnGeneral) btnGeneral.classList.toggle('active', subtab === 'general');
   if (btnWhyUs) btnWhyUs.classList.toggle('active', subtab === 'whyus');
+  if (btnPopup) btnPopup.classList.toggle('active', subtab === 'popup');
 
   if (subtabGeneral) subtabGeneral.style.display = subtab === 'general' ? 'block' : 'none';
   if (subtabWhyUs) subtabWhyUs.style.display = subtab === 'whyus' ? 'block' : 'none';
+  if (subtabPopup) subtabPopup.style.display = subtab === 'popup' ? 'block' : 'none';
 
   if (subtab === 'whyus') {
     loadAdminWhyUs();
+  } else if (subtab === 'popup') {
+    loadAdminPopupCampaign();
   } else {
     loadHomeSettings();
   }
@@ -1460,80 +1483,459 @@ async function saveHomeSettingsForm() {
 }
 
 /* ===================================================================
-   TUTORS MANAGEMENT & REORDERING
+   POPUP CAMPAIGN MANAGEMENT (โครงการติวฟรี & ประกาศหน้าแรก)
    =================================================================== */
+function loadAdminPopupCampaign() {
+  const popup = window.NewGenDB ? window.NewGenDB.getPopupCampaign() : null;
+  if (!popup) return;
+
+  const enabledCheckbox = document.getElementById('popupCampaignEnabled');
+  const enabledLabel = document.getElementById('popupCampaignEnabledLabel');
+  const imgUrlInput = document.getElementById('popupCampaignImgUrl');
+  const imgPrev = document.getElementById('popupCampaignImgPreview');
+  const badgeInput = document.getElementById('popupCampaignBadge');
+  const miniBadgeInput = document.getElementById('popupCampaignMiniBadge');
+  const titleInput = document.getElementById('popupCampaignTitle');
+  const descInput = document.getElementById('popupCampaignDesc');
+  const highlightsInput = document.getElementById('popupCampaignHighlights');
+  const btnRegInput = document.getElementById('popupCampaignBtnReg');
+  const btnLineInput = document.getElementById('popupCampaignBtnLine');
+  const lineUrlInput = document.getElementById('popupCampaignLineUrl');
+
+  const isEnabled = popup.enabled !== false;
+  if (enabledCheckbox) enabledCheckbox.checked = isEnabled;
+  if (enabledLabel) {
+    enabledLabel.textContent = isEnabled ? 'เปิดแสดง Pop-up (Active)' : 'ซ่อน Pop-up ชั่วคราว (Hidden)';
+    enabledLabel.style.color = isEnabled ? '#16a34a' : '#94a3b8';
+  }
+
+  const defaultImg = 'https://wdazilhmlttnurpfewlk.supabase.co/storage/v1/object/public/uploads/img-1791819087634-e5ri.png';
+  const imgUrl = popup.image || defaultImg;
+  if (imgUrlInput) imgUrlInput.value = imgUrl;
+  if (imgPrev) {
+    const resolved = window.resolveMediaUrl ? window.resolveMediaUrl(imgUrl) : imgUrl;
+    imgPrev.src = resolved;
+  }
+
+  if (badgeInput) badgeInput.value = popup.badge || '🔥 โครงการติวฟรี โควตาจำกัด 30 ที่นั่ง';
+  if (miniBadgeInput) miniBadgeInput.value = popup.miniBadgeText || '🎁 โครงการติวฟรี! คลิกดูสิทธิ์';
+  if (titleInput) titleInput.value = popup.title || 'โครงการติวฟรี ตะลุยโจทย์พิชิตเกรด 4 & สอบเข้า ม.1 / ม.4';
+  if (descInput) descInput.value = popup.description || 'สัมผัสเทคนิคการสอนจริงโดยทีมติวเตอร์ The NEW GEN ฟรี! ไม่มีค่าใช้จ่าย พร้อมรับเอกสารสรุปสูตรเก็งข้อสอบจริง และแนวคิดลัดที่นำไปใช้สอบได้ทันที';
+  
+  if (highlightsInput) {
+    if (Array.isArray(popup.highlights)) {
+      highlightsInput.value = popup.highlights.join('\n');
+    } else {
+      highlightsInput.value = popup.highlights || '- เรียนสด Onsite กลุ่มเล็ก ติวเตอร์ประกบดูแลใกล้ชิด ซักถามได้ทันที\n- ฟรี! ชุดเอกสารแบบฝึกหัดและแนวข้อสอบเก็งพิเศษตลอดโครงการ\n- วิเคราะห์จุดอ่อนรายบุคคล พร้อมแนะแนววางแผนสอบเข้า รร. ดัง';
+    }
+  }
+
+  if (btnRegInput) btnRegInput.value = popup.btnRegisterText || 'สมัครเข้าเรียนฟรีทันที';
+  if (btnLineInput) btnLineInput.value = popup.btnLineText || 'สอบถามเพิ่มเติมทาง LINE';
+  if (lineUrlInput) lineUrlInput.value = popup.lineUrl || 'https://lin.ee/RXrzi1G';
+}
+
+function togglePopupCampaignEnabledStatus(checked) {
+  const enabledLabel = document.getElementById('popupCampaignEnabledLabel');
+  if (enabledLabel) {
+    enabledLabel.textContent = checked ? 'เปิดแสดง Pop-up (Active)' : 'ซ่อน Pop-up ชั่วคราว (Hidden)';
+    enabledLabel.style.color = checked ? '#16a34a' : '#94a3b8';
+  }
+}
+
+function updatePopupCampaignImgPreview(url) {
+  const imgPrev = document.getElementById('popupCampaignImgPreview');
+  if (!imgPrev) return;
+  const resolved = window.resolveMediaUrl ? window.resolveMediaUrl(url || 'assets/images/course-poster-primary.jpg') : (url || 'assets/images/course-poster-primary.jpg');
+  imgPrev.src = resolved;
+}
+
+async function handlePopupCampaignImgUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const statusEl = document.getElementById('popupCampaignUploadStatus');
+  const imgUrlInput = document.getElementById('popupCampaignImgUrl');
+  const imgPrev = document.getElementById('popupCampaignImgPreview');
+
+  if (statusEl) {
+    statusEl.style.display = 'block';
+    statusEl.style.color = '#2563eb';
+    statusEl.textContent = '⏳ กำลังอัปโหลดรูปภาพ...';
+  }
+
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    const base64Data = e.target.result;
+    if (imgPrev) imgPrev.src = base64Data;
+
+    try {
+      if (window.NewGenDB && window.NewGenDB.uploadImageToSupabase) {
+        const cloudUrl = await window.NewGenDB.uploadImageToSupabase(file, file.name);
+        if (cloudUrl && cloudUrl.startsWith('http')) {
+          if (imgUrlInput) imgUrlInput.value = cloudUrl;
+          if (imgPrev) imgPrev.src = cloudUrl;
+          if (statusEl) {
+            statusEl.style.color = '#16a34a';
+            statusEl.textContent = '✅ อัปโหลดขึ้น Cloud สำเร็จเรียบร้อย!';
+          }
+          return;
+        }
+      }
+
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ base64Data, filename: file.name })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.url) {
+          if (imgUrlInput) imgUrlInput.value = data.url;
+          if (imgPrev) imgPrev.src = data.url;
+          if (statusEl) {
+            statusEl.style.color = '#16a34a';
+            statusEl.textContent = '✅ อัปโหลดเข้า Server สำเร็จ!';
+          }
+          return;
+        }
+      }
+
+      if (imgUrlInput) imgUrlInput.value = base64Data;
+      if (statusEl) {
+        statusEl.style.color = '#16a34a';
+        statusEl.textContent = '✅ ใช้ไฟล์ภาพเรียบร้อยแล้ว';
+      }
+    } catch (err) {
+      console.warn('Upload error:', err);
+      if (imgUrlInput) imgUrlInput.value = base64Data;
+      if (statusEl) {
+        statusEl.style.color = '#16a34a';
+        statusEl.textContent = '✅ พร้อมใช้งานรูปภาพ';
+      }
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+function previewCampaignPopupInAdmin() {
+  const imgUrl = (document.getElementById('popupCampaignImgUrl')?.value || '').trim() || 'assets/images/course-poster-primary.jpg';
+  const badge = (document.getElementById('popupCampaignBadge')?.value || '').trim() || '🔥 โครงการติวฟรี โควตาจำกัด 30 ที่นั่ง';
+  const title = (document.getElementById('popupCampaignTitle')?.value || '').trim() || 'โครงการติวฟรี ตะลุยโจทย์พิชิตเกรด 4 & สอบเข้า ม.1 / ม.4';
+  const desc = (document.getElementById('popupCampaignDesc')?.value || '').trim() || 'สัมผัสเทคนิคการสอนจริงโดยทีมติวเตอร์ The NEW GEN ฟรี! ไม่มีค่าใช้จ่าย';
+  const rawHighlights = (document.getElementById('popupCampaignHighlights')?.value || '').trim();
+  const btnReg = (document.getElementById('popupCampaignBtnReg')?.value || '').trim() || 'สมัครเข้าเรียนฟรีทันที';
+  const btnLine = (document.getElementById('popupCampaignBtnLine')?.value || '').trim() || 'สอบถามเพิ่มเติมทาง LINE';
+  const lineUrl = (document.getElementById('popupCampaignLineUrl')?.value || '').trim() || 'https://lin.ee/RXrzi1G';
+
+  const previewImg = document.getElementById('adminPreviewPopupImg');
+  const previewBadge = document.getElementById('adminPreviewPopupBadge');
+  const previewTitle = document.getElementById('adminPreviewPopupTitle');
+  const previewDesc = document.getElementById('adminPreviewPopupDesc');
+  const previewHighlights = document.getElementById('adminPreviewPopupHighlights');
+  const previewBtnReg = document.getElementById('adminPreviewPopupBtnReg');
+  const previewBtnLine = document.getElementById('adminPreviewPopupBtnLine');
+  const previewBtnLineText = document.getElementById('adminPreviewPopupBtnLineText');
+
+  if (previewImg) {
+    const resolved = window.resolveMediaUrl ? window.resolveMediaUrl(imgUrl) : imgUrl;
+    previewImg.src = resolved;
+  }
+  if (previewBadge) previewBadge.textContent = badge;
+  if (previewTitle) previewTitle.textContent = title;
+  if (previewDesc) previewDesc.textContent = desc;
+  if (previewBtnReg) previewBtnReg.textContent = btnReg;
+  if (previewBtnLineText) previewBtnLineText.textContent = btnLine;
+  if (previewBtnLine) previewBtnLine.href = lineUrl;
+
+  if (previewHighlights) {
+    const lines = rawHighlights ? rawHighlights.split('\n').map(l => l.trim().replace(/^[-•*]\s*/, '')).filter(Boolean) : [];
+    if (lines.length > 0) {
+      previewHighlights.innerHTML = lines.map(l => `
+        <div class="popup-highlight-item">
+          <i class="fa-solid fa-circle-check"></i>
+          <span>${escapeHtml(l)}</span>
+        </div>
+      `).join('');
+    } else {
+      previewHighlights.innerHTML = '';
+    }
+  }
+
+  const modal = document.getElementById('modalCampaignPreview');
+  if (modal) modal.classList.add('active');
+}
+
+async function saveAdminPopupCampaignForm() {
+  const enabled = document.getElementById('popupCampaignEnabled')?.checked !== false;
+  const image = (document.getElementById('popupCampaignImgUrl')?.value || '').trim();
+  const badge = (document.getElementById('popupCampaignBadge')?.value || '').trim();
+  const miniBadgeText = (document.getElementById('popupCampaignMiniBadge')?.value || '').trim();
+  const title = (document.getElementById('popupCampaignTitle')?.value || '').trim();
+  const description = (document.getElementById('popupCampaignDesc')?.value || '').trim();
+  const rawHighlights = (document.getElementById('popupCampaignHighlights')?.value || '').trim();
+  const btnRegisterText = (document.getElementById('popupCampaignBtnReg')?.value || '').trim();
+  const btnLineText = (document.getElementById('popupCampaignBtnLine')?.value || '').trim();
+  const lineUrl = (document.getElementById('popupCampaignLineUrl')?.value || '').trim();
+
+  if (!title) {
+    showToast('⚠️ กรุณาระบุหัวข้อแคมเปญ (Title)', 'warning');
+    return;
+  }
+
+  const highlights = rawHighlights ? rawHighlights.split('\n').map(l => l.trim()).filter(Boolean) : [];
+
+  const popupData = {
+    enabled,
+    image: image || 'assets/images/course-poster-primary.jpg',
+    badge: badge || '🔥 โครงการติวฟรี โควตาจำกัด 30 ที่นั่ง',
+    miniBadgeText: miniBadgeText || '🎁 โครงการติวฟรี! คลิกดูสิทธิ์',
+    title,
+    description: description || '',
+    highlights,
+    btnRegisterText: btnRegisterText || 'สมัครเข้าเรียนฟรีทันที',
+    btnLineText: btnLineText || 'สอบถามเพิ่มเติมทาง LINE',
+    lineUrl: lineUrl || 'https://lin.ee/RXrzi1G',
+    updatedAt: new Date().toISOString()
+  };
+
+  const cloudRes = await window.NewGenDB.savePopupCampaign(popupData);
+
+  // Sync to local server
+  fetch('/api/popup-campaign', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(popupData)
+  }).catch(() => {});
+
+  if (cloudRes && cloudRes.success) {
+    showToast('✅ บันทึก Pop-up แคมเปญ และซิงค์ Cloud เรียบร้อยแล้ว!', 'success');
+  } else {
+    showToast(`⚠️ บันทึกในเครื่องแล้ว (${cloudRes && cloudRes.error ? cloudRes.error : 'เชื่อมต่อออนไลน์แล้ว'})`, 'success');
+  }
+}
+
+function resetPopupCampaignDefaults() {
+  if (confirm('คุณต้องการคืนค่าเริ่มต้นของ Pop-up แคมเปญ (โครงการติวฟรี) หรือไม่?')) {
+    const defaultData = {
+      enabled: true,
+      title: "โครงการติวฟรี ตะลุยโจทย์พิชิตเกรด 4 & สอบเข้า ม.1 / ม.4",
+      badge: "🔥 โครงการติวฟรี โควตาจำกัด 30 ที่นั่ง",
+      image: "https://wdazilhmlttnurpfewlk.supabase.co/storage/v1/object/public/uploads/img-1791819087634-e5ri.png",
+      description: "สัมผัสเทคนิคการสอนจริงโดยทีมติวเตอร์ The NEW GEN ฟรี! ไม่มีค่าใช้จ่าย พร้อมรับเอกสารสรุปสูตรเก็งข้อสอบจริง และแนวคิดลัดที่นำไปใช้สอบได้ทันที",
+      highlights: [
+        "- เรียนสด Onsite กลุ่มเล็ก ติวเตอร์ประกบดูแลใกล้ชิด ซักถามได้ทันที",
+        "- ฟรี! ชุดเอกสารแบบฝึกหัดและแนวข้อสอบเก็งพิเศษตลอดโครงการ",
+        "- วิเคราะห์จุดอ่อนรายบุคคล พร้อมแนะแนววางแผนสอบเข้า รร. ดัง"
+      ],
+      btnRegisterText: "สมัครเข้าเรียนฟรีทันที",
+      btnLineText: "สอบถามเพิ่มเติมทาง LINE",
+      lineUrl: "https://lin.ee/RXrzi1G",
+      miniBadgeText: "🎁 โครงการติวฟรี! คลิกดูสิทธิ์"
+    };
+    window.NewGenDB.savePopupCampaign(defaultData);
+    loadAdminPopupCampaign();
+    showToast('รีเซ็ตข้อมูล Pop-up แคมเปญกลับสู่ค่าเริ่มต้นเรียบร้อยแล้ว');
+  }
+}
+
+/* ===================================================================
+   TUTORS MANAGEMENT & REORDERING (แยกทีม Onsite & Online ชัดเจน)
+   =================================================================== */
+function filterTutorsAdminTable(type) {
+  const btnAll = document.getElementById('btnTutorFilterAll');
+  const btnOnsite = document.getElementById('btnTutorFilterOnsite');
+  const btnOnline = document.getElementById('btnTutorFilterOnline');
+  const secOnsite = document.getElementById('secTutorsOnsite');
+  const secOnline = document.getElementById('secTutorsOnline');
+
+  if (btnAll) btnAll.classList.toggle('active', type === 'all');
+  if (btnOnsite) btnOnsite.classList.toggle('active', type === 'onsite');
+  if (btnOnline) btnOnline.classList.toggle('active', type === 'online');
+
+  if (secOnsite) secOnsite.style.display = (type === 'all' || type === 'onsite') ? 'block' : 'none';
+  if (secOnline) secOnline.style.display = (type === 'all' || type === 'online') ? 'block' : 'none';
+}
+
 function loadAdminTutors() {
   const tutors = window.NewGenDB.getTutors();
-  const tbody = document.getElementById('adminTutorsTableBody');
-  if (!tbody) return;
+  const onsiteTutors = tutors.filter(t => (t.type || 'onsite') === 'onsite');
+  const onlineTutors = tutors.filter(t => t.type === 'online');
 
-  tbody.innerHTML = tutors.map((t, idx) => `
-    <tr>
-      <td style="text-align: center;">
-        <span class="tutor-order-badge">${idx + 1}</span>
-      </td>
-      <td style="text-align: center;">
-        <div style="display: inline-flex; gap: 4px;">
-          <button type="button" class="btn-reorder" onclick="moveTutorUp(${idx})" title="เลื่อนขึ้น" ${idx === 0 ? 'disabled' : ''}>
-            <i class="fa-solid fa-arrow-up"></i>
-          </button>
-          <button type="button" class="btn-reorder" onclick="moveTutorDown(${idx})" title="เลื่อนลง" ${idx === tutors.length - 1 ? 'disabled' : ''}>
-            <i class="fa-solid fa-arrow-down"></i>
-          </button>
-        </div>
-      </td>
-      <td>
-        <img src="${t.image}" alt="${escapeHtml(t.name)}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid var(--border-light);">
-      </td>
-      <td><strong>${escapeHtml(t.name)}</strong></td>
-      <td><span style="color: var(--color-blue-accent); font-weight: 700;">${escapeHtml(t.honor)}</span><br><small style="color: var(--text-muted);">${escapeHtml(t.degree)}</small></td>
-      <td>${escapeHtml(t.subjects)}</td>
-      <td style="text-align: right;">
-        <button type="button" class="btn-action-edit" onclick="openEditTutorModal('${t.id}')" title="แก้ไข">
-          <i class="fa-solid fa-pen-to-square"></i>
-        </button>
-        <button type="button" class="btn-action-del" onclick="deleteTutor('${t.id}')" title="ลบ">
-          <i class="fa-solid fa-trash"></i>
-        </button>
-      </td>
-    </tr>
-  `).join('');
+  // Update counts
+  const badgeCountOnsite = document.getElementById('badgeCountOnsite');
+  const labelCountOnsite = document.getElementById('labelCountOnsite');
+  const badgeCountOnline = document.getElementById('badgeCountOnline');
+  const labelCountOnline = document.getElementById('labelCountOnline');
+
+  if (badgeCountOnsite) badgeCountOnsite.textContent = onsiteTutors.length;
+  if (labelCountOnsite) labelCountOnsite.textContent = `${onsiteTutors.length} ท่าน`;
+  if (badgeCountOnline) badgeCountOnline.textContent = onlineTutors.length;
+  if (labelCountOnline) labelCountOnline.textContent = `${onlineTutors.length} ท่าน`;
+
+  // Render Table 1: Onsite Tutors
+  const tbodyOnsite = document.getElementById('adminTutorsOnsiteTableBody');
+  if (tbodyOnsite) {
+    if (onsiteTutors.length === 0) {
+      tbodyOnsite.innerHTML = `
+        <tr>
+          <td colspan="8" style="text-align: center; padding: 28px; color: var(--text-muted);">
+            <i class="fa-solid fa-school" style="font-size: 1.5rem; color: #cbd5e1; margin-bottom: 8px; display: block;"></i>
+            ยังไม่มีติวเตอร์หลัก (สอน Onsite) ในระบบ — คลิกปุ่ม "+ เพิ่มติวเตอร์หลัก (Onsite)" เพื่อเพิ่มข้อมูล
+          </td>
+        </tr>
+      `;
+    } else {
+      tbodyOnsite.innerHTML = onsiteTutors.map((t, idx) => `
+        <tr>
+          <td style="text-align: center;">
+            <span class="tutor-order-badge" style="background: #e0f2fe; color: #0369a1;">${idx + 1}</span>
+          </td>
+          <td style="text-align: center;">
+            <div style="display: inline-flex; gap: 4px;">
+              <button type="button" class="btn-reorder" onclick="moveTutorUp('${t.id}')" title="เลื่อนขึ้น" ${idx === 0 ? 'disabled' : ''}>
+                <i class="fa-solid fa-arrow-up"></i>
+              </button>
+              <button type="button" class="btn-reorder" onclick="moveTutorDown('${t.id}')" title="เลื่อนลง" ${idx === onsiteTutors.length - 1 ? 'disabled' : ''}>
+                <i class="fa-solid fa-arrow-down"></i>
+              </button>
+            </div>
+          </td>
+          <td>
+            <img src="${window.resolveMediaUrl ? window.resolveMediaUrl(t.image) : t.image}" alt="${escapeHtml(t.name)}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid #38bdf8;">
+          </td>
+          <td>
+            <strong>${escapeHtml(t.name)}</strong>
+            ${idx < 3 ? '<span class="badge" style="background:#fef3c7; color:#92400e; font-size:0.7rem; margin-left:6px;"><i class="fa-solid fa-star"></i> แสดงหน้าแรก</span>' : ''}
+          </td>
+          <td><span style="color: var(--color-blue-accent); font-weight: 700;">${escapeHtml(t.honor)}</span><br><small style="color: var(--text-muted);">${escapeHtml(t.degree)}</small></td>
+          <td>${escapeHtml(t.subjects)}</td>
+          <td>
+            <span class="badge" style="background: #e0f2fe; color: #0369a1; font-weight: 700; font-size: 0.78rem;">
+              <i class="fa-solid fa-school"></i> สอน Onsite
+            </span>
+          </td>
+          <td style="text-align: right;">
+            <button type="button" class="btn-action-edit" onclick="openEditTutorModal('${t.id}')" title="แก้ไข">
+              <i class="fa-solid fa-pen-to-square"></i>
+            </button>
+            <button type="button" class="btn-action-del" onclick="deleteTutor('${t.id}')" title="ลบ">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
+  }
+
+  // Render Table 2: Online Tutors
+  const tbodyOnline = document.getElementById('adminTutorsOnlineTableBody');
+  if (tbodyOnline) {
+    if (onlineTutors.length === 0) {
+      tbodyOnline.innerHTML = `
+        <tr>
+          <td colspan="8" style="text-align: center; padding: 28px; color: var(--text-muted);">
+            <i class="fa-solid fa-laptop-code" style="font-size: 1.5rem; color: #cbd5e1; margin-bottom: 8px; display: block;"></i>
+            ยังไม่มีติวเตอร์ในทีมสอน Online — คลิกปุ่ม "+ เพิ่มติวเตอร์สอน Online" เพื่อเพิ่มข้อมูล
+          </td>
+        </tr>
+      `;
+    } else {
+      tbodyOnline.innerHTML = onlineTutors.map((t, idx) => `
+        <tr>
+          <td style="text-align: center;">
+            <span class="tutor-order-badge" style="background: #ede9fe; color: #6d28d9;">${idx + 1}</span>
+          </td>
+          <td style="text-align: center;">
+            <div style="display: inline-flex; gap: 4px;">
+              <button type="button" class="btn-reorder" onclick="moveTutorUp('${t.id}')" title="เลื่อนขึ้น" ${idx === 0 ? 'disabled' : ''}>
+                <i class="fa-solid fa-arrow-up"></i>
+              </button>
+              <button type="button" class="btn-reorder" onclick="moveTutorDown('${t.id}')" title="เลื่อนลง" ${idx === onlineTutors.length - 1 ? 'disabled' : ''}>
+                <i class="fa-solid fa-arrow-down"></i>
+              </button>
+            </div>
+          </td>
+          <td>
+            <img src="${window.resolveMediaUrl ? window.resolveMediaUrl(t.image) : t.image}" alt="${escapeHtml(t.name)}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid #a855f7;">
+          </td>
+          <td><strong>${escapeHtml(t.name)}</strong></td>
+          <td><span style="color: #7c3aed; font-weight: 700;">${escapeHtml(t.honor)}</span><br><small style="color: var(--text-muted);">${escapeHtml(t.degree)}</small></td>
+          <td>${escapeHtml(t.subjects)}</td>
+          <td>
+            <span class="badge" style="background: #ede9fe; color: #6d28d9; font-weight: 700; font-size: 0.78rem;">
+              <i class="fa-solid fa-laptop"></i> สอน Online
+            </span>
+          </td>
+          <td style="text-align: right;">
+            <button type="button" class="btn-action-edit" onclick="openEditTutorModal('${t.id}')" title="แก้ไข">
+              <i class="fa-solid fa-pen-to-square"></i>
+            </button>
+            <button type="button" class="btn-action-del" onclick="deleteTutor('${t.id}')" title="ลบ">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
+  }
 
   // Update dropdown options in Home tab
   populateHeroTutorDropdowns();
 }
 
-function moveTutorUp(idx) {
+function moveTutorUp(id) {
   const tutors = window.NewGenDB.getTutors();
-  if (idx <= 0 || idx >= tutors.length) return;
-  const temp = tutors[idx];
-  tutors[idx] = tutors[idx - 1];
-  tutors[idx - 1] = temp;
-  saveAndSyncTutorsOrder(tutors, `เลื่อน "${temp.name}" ขึ้นเป็นลำดับที่ ${idx} สำเร็จแล้ว!`);
+  const current = tutors.find(t => t.id === id);
+  if (!current) return;
+  const currentType = (current.type || 'onsite');
+  const group = tutors.filter(t => (t.type || 'onsite') === currentType);
+  const idx = group.findIndex(t => t.id === id);
+  if (idx <= 0) return;
+  const prevId = group[idx - 1].id;
+
+  const idx1 = tutors.findIndex(t => t.id === id);
+  const idx2 = tutors.findIndex(t => t.id === prevId);
+  const temp = tutors[idx1];
+  tutors[idx1] = tutors[idx2];
+  tutors[idx2] = temp;
+
+  saveAndSyncTutorsOrder(tutors, `เลื่อน "${current.name}" ขึ้นสำเร็จแล้ว!`);
 }
 
-function moveTutorDown(idx) {
+function moveTutorDown(id) {
   const tutors = window.NewGenDB.getTutors();
-  if (idx < 0 || idx >= tutors.length - 1) return;
-  const temp = tutors[idx];
-  tutors[idx] = tutors[idx + 1];
-  tutors[idx + 1] = temp;
-  saveAndSyncTutorsOrder(tutors, `เลื่อน "${temp.name}" ลงเป็นลำดับที่ ${idx + 2} สำเร็จแล้ว!`);
+  const current = tutors.find(t => t.id === id);
+  if (!current) return;
+  const currentType = (current.type || 'onsite');
+  const group = tutors.filter(t => (t.type || 'onsite') === currentType);
+  const idx = group.findIndex(t => t.id === id);
+  if (idx < 0 || idx >= group.length - 1) return;
+  const nextId = group[idx + 1].id;
+
+  const idx1 = tutors.findIndex(t => t.id === id);
+  const idx2 = tutors.findIndex(t => t.id === nextId);
+  const temp = tutors[idx1];
+  tutors[idx1] = tutors[idx2];
+  tutors[idx2] = temp;
+
+  saveAndSyncTutorsOrder(tutors, `เลื่อน "${current.name}" ลงสำเร็จแล้ว!`);
 }
 
 async function saveAndSyncTutorsOrder(tutors, successMsg) {
   // 1. บันทึกลำดับติวเตอร์ขึ้น Cloud
   const resTutors = await window.NewGenDB.saveTutors(tutors);
 
-  // 2. ซิงค์ตำแหน่งติวเตอร์ 3 คนแรกในหน้าแรกให้ตรงตามลำดับทันที
+  // 2. ซิงค์ตำแหน่งติวเตอร์ 3 คนแรกของหมวด Onsite ในหน้าแรกให้ตรงตามลำดับทันที
+  const onsiteTutors = tutors.filter(t => (t.type || 'onsite') === 'onsite');
   const home = window.NewGenDB.getHome();
-  if (tutors[0]) home.heroTutorLeftId = tutors[0].id;
-  if (tutors[1]) home.heroTutorCenterId = tutors[1].id;
-  if (tutors[2]) home.heroTutorRightId = tutors[2].id;
+  if (onsiteTutors[0]) home.heroTutorLeftId = onsiteTutors[0].id;
+  if (onsiteTutors[1]) home.heroTutorCenterId = onsiteTutors[1].id;
+  if (onsiteTutors[2]) home.heroTutorRightId = onsiteTutors[2].id;
   window.NewGenDB.saveHome(home);
   const resHome = await window.NewGenDB.saveToSupabase('home', home);
 
-  // 3. ซิงค์กับ Backend API (ถ้ามีรัน server.js)
+  // 3. ซิงค์กับ Backend API
   const baseUrl = (window.getApiBaseUrl ? window.getApiBaseUrl() : '');
   fetch(baseUrl + '/api/tutors/reorder', {
     method: 'POST',
@@ -1546,15 +1948,17 @@ async function saveAndSyncTutorsOrder(tutors, successMsg) {
   populateHeroTutorDropdowns();
 
   if (resTutors && resTutors.success && resHome && resHome.success) {
-    showToast(`✅ ${successMsg || 'บันทึกลำดับติวเตอร์และซิงค์ Cloud สำเร็จ!'} (หน้าแรกและหน้าทีมติวเตอร์อัปเดตตรงกันแล้ว)`, 'success');
+    showToast(`✅ ${successMsg || 'บันทึกลำดับติวเตอร์และซิงค์ Cloud สำเร็จ!'}`, 'success');
   } else {
     showToast(`⚠️ บันทึกในเครื่องแล้ว (${resTutors && resTutors.error ? resTutors.error : 'รอปลดล็อก Supabase RLS'})`, 'warning');
   }
 }
 
-function openAddTutorModal() {
-  document.getElementById('modalTutorTitle').textContent = 'เพิ่มติวเตอร์ใหม่';
+function openAddTutorModal(defaultType = 'onsite') {
+  document.getElementById('modalTutorTitle').textContent = defaultType === 'online' ? 'เพิ่มติวเตอร์สอน Online' : 'เพิ่มติวเตอร์หลัก (Onsite)';
   document.getElementById('tutorEditId').value = '';
+  const typeSelect = document.getElementById('tType');
+  if (typeSelect) typeSelect.value = defaultType;
   document.getElementById('tName').value = '';
   document.getElementById('tHonor').value = '';
   document.getElementById('tDegree').value = '';
@@ -1574,13 +1978,15 @@ function openEditTutorModal(id) {
 
   document.getElementById('modalTutorTitle').textContent = 'แก้ไขข้อมูลติวเตอร์';
   document.getElementById('tutorEditId').value = t.id;
+  const typeSelect = document.getElementById('tType');
+  if (typeSelect) typeSelect.value = t.type === 'online' ? 'online' : 'onsite';
   document.getElementById('tName').value = t.name;
   document.getElementById('tHonor').value = t.honor;
   document.getElementById('tDegree').value = t.degree || '';
   document.getElementById('tSubjects').value = t.subjects || '';
   document.getElementById('tHeroBadge').value = t.heroBadge || t.badge || '';
   document.getElementById('tImgUrl').value = t.image;
-  document.getElementById('tImgPreview').src = t.image;
+  document.getElementById('tImgPreview').src = window.resolveMediaUrl ? window.resolveMediaUrl(t.image) : t.image;
   document.getElementById('tBio').value = t.bio || '';
   document.getElementById('tTagline').value = t.tagline || '';
   document.getElementById('modalTutor').classList.add('active');
@@ -1594,6 +2000,7 @@ async function handleSaveTutor(e) {
   const tutorObj = {
     id: id || `tutor-${Date.now()}`,
     name: document.getElementById('tName').value.trim(),
+    type: document.getElementById('tType')?.value || 'onsite',
     honor: document.getElementById('tHonor').value.trim(),
     degree: document.getElementById('tDegree').value.trim(),
     subjects: document.getElementById('tSubjects').value.trim(),
@@ -1619,7 +2026,6 @@ async function handleSaveTutor(e) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(tutorObj)
   }).then(res => res.json()).then(result => {
-    // Update image if server processed base64 upload
     if (result && result.tutor && result.tutor.image && !result.tutor.image.startsWith('data:')) {
       const updatedTutors = window.NewGenDB.getTutors();
       const idx2 = updatedTutors.findIndex(t => t.id === tutorObj.id);
@@ -1695,13 +2101,13 @@ function loadAboutSettings() {
   const about = window.NewGenDB.getAbout();
   populateAboutFields(about);
 
-  // Sync fresh data from Backend API
+  // Sync fresh data from Backend API only if Supabase has not synced yet
   const apiUrl = (window.getApiBaseUrl ? window.getApiBaseUrl() : '') + '/api/about';
   fetch(apiUrl)
     .then(res => res.json())
     .then(serverAbout => {
-      if (serverAbout && (serverAbout.title || serverAbout.mainImage)) {
-        window.NewGenDB.saveAbout(serverAbout);
+      if (serverAbout && (serverAbout.title || serverAbout.mainImage) && !window._supabaseAboutSynced) {
+        window.aboutData = serverAbout;
         populateAboutFields(serverAbout);
       }
     })
@@ -2163,8 +2569,8 @@ function loadAdminVideos() {
   fetch('/api/videos')
     .then(r => r.json())
     .then(serverVideos => {
-      if (Array.isArray(serverVideos) && serverVideos.length > 0) {
-        window.NewGenDB.saveVideos(serverVideos);
+      if (Array.isArray(serverVideos) && serverVideos.length > 0 && !window._supabaseVideosSynced) {
+        window.videosData = serverVideos;
         render(serverVideos);
       }
     })
