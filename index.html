@@ -240,7 +240,7 @@
       <div class="video-container">
         <!-- Video Player Frame -->
         <div class="video-player-frame">
-          <iframe src="https://www.youtube.com/embed/OEBgi1xzb_c?start=4307"
+          <iframe id="homeFeaturedVideoIframe" src="https://www.youtube.com/embed/OEBgi1xzb_c?start=4307"
             title="ทดลองเรียนฟรี The NEW GEN บน YouTube"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
             allowfullscreen>
@@ -253,11 +253,11 @@
             <span class="badge badge-red" style="margin-bottom: 12px;">
               <i class="fa-brands fa-youtube"></i> FREE TRIAL LESSON
             </span>
-            <h2 class="video-info-title">ทดลองเรียนฟรีก่อนใคร กับ <span class="text-gradient-cyan">The NEW GEN</span>
+            <h2 class="video-info-title" id="homeFeaturedVideoTitle">ทดลองเรียนฟรีก่อนใคร กับ <span class="text-gradient-cyan">The NEW GEN</span>
             </h2>
           </div>
 
-          <p style="color: var(--text-secondary); font-size: 1rem; line-height: 1.6;">
+          <p id="homeFeaturedVideoDesc" style="color: var(--text-secondary); font-size: 1rem; line-height: 1.6;">
             สัมผัสสไตล์การสอนสุดเอ็กซ์คลูซีฟ เรียนสนุก เทคนิคลัดเข้าใจง่ายในคลิปตัวอย่างจริง
             ดูแล้วจะเข้าใจว่าทำไมเด็ก Gen Z ถึงเลือกเรียนที่นี่!
           </p>
@@ -532,6 +532,91 @@
         <!-- Injected via JavaScript -->
       </div>
     </div>
+  </div>
+
+  <!-- ===================================================================
+       Campaign Popup Modal (โครงการติวฟรี / สิทธิพิเศษหน้าแรก)
+       =================================================================== -->
+  <div class="campaign-popup-backdrop" id="campaignPopupModal" role="dialog" aria-modal="true" aria-labelledby="campaignPopupTitle" style="display: none;">
+    <div class="campaign-popup-dialog">
+      <div class="campaign-popup-card" id="campaignPopupCard">
+        <button type="button" class="campaign-popup-close-btn" id="btnCampaignClose" aria-label="ปิดหน้าต่างแคมเปญ" onclick="closeCampaignPopup(false)" title="ปิดหน้าต่าง">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+
+        <div class="campaign-popup-layout" id="campaignPopupLayout">
+          <!-- Poster / Media Column -->
+          <div class="campaign-media-col" id="campaignMediaCol">
+            <div class="campaign-image-wrapper">
+              <img src="" alt="โปสเตอร์โครงการติวฟรี" id="campaignPopupImg" class="campaign-popup-img" />
+              <div class="campaign-img-glow"></div>
+              <span class="campaign-image-badge" id="campaignImgBadge">
+                <i class="fa-solid fa-fire"></i> สิทธิ์พิเศษจำนวนจำกัด
+              </span>
+            </div>
+          </div>
+
+          <!-- Details & Action Column -->
+          <div class="campaign-details-col" id="campaignDetailsCol">
+            <div class="campaign-header-area">
+              <div class="campaign-tag-badge" id="campaignPopupBadge">
+                <i class="fa-solid fa-sparkles"></i> <span>โครงการพิเศษ • ติวฟรี 100%</span>
+              </div>
+              <h2 class="campaign-main-title" id="campaignPopupTitle">โครงการติวฟรี The NEW GEN</h2>
+              <p class="campaign-sub-title" id="campaignPopupSubtitle">ยกระดับผลการเรียน เสริมทักษะความรู้อย่างมั่นใจ</p>
+            </div>
+
+            <div class="campaign-description-area" id="campaignPopupDesc">
+              <!-- Multiline description injected dynamically -->
+            </div>
+
+            <div class="campaign-highlights-area" id="campaignHighlightsArea">
+              <div class="highlights-heading">
+                <i class="fa-solid fa-gift"></i> สิทธิประโยชน์ที่ได้รับในโครงการ:
+              </div>
+              <ul class="campaign-highlights-list" id="campaignPopupHighlights">
+                <!-- Highlights list injected dynamically -->
+              </ul>
+            </div>
+
+            <div class="campaign-action-group">
+              <button type="button" class="btn-campaign-register" id="btnCampaignRegister" onclick="handleCampaignRegisterClick()">
+                <i class="fa-solid fa-user-plus"></i>
+                <span id="campaignRegisterBtnText">สมัครเข้าเรียนฟรี</span>
+                <i class="fa-solid fa-arrow-right icon-arrow"></i>
+              </button>
+
+              <a href="https://lin.ee/RXrzi1G" target="_blank" rel="noopener noreferrer" class="btn-campaign-line" id="btnCampaignLine">
+                <i class="fa-brands fa-line"></i>
+                <span id="campaignLineBtnText">สอบถามเพิ่มเติมทาง LINE</span>
+              </a>
+            </div>
+
+            <div class="campaign-footer-notice">
+              <i class="fa-solid fa-shield-halved"></i>
+              <span>รับจำนวนจำกัดตามลำดับลงทะเบียน • เจ้าหน้าที่จะติดต่อยืนยันสิทธิ์ทันที</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================
+       Campaign Floating Pill (ป้ายลอยเปิดแคมเปญเมื่อปิดไปแล้ว)
+       =================================================================== -->
+  <div class="campaign-floating-pill" id="campaignFloatingPill" style="display: none;" onclick="openCampaignPopup(true)" title="คลิกเพื่อดูสิทธิ์โครงการติวฟรี">
+    <div class="pill-pulse-ring"></div>
+    <div class="pill-icon-box">
+      <i class="fa-solid fa-gift"></i>
+    </div>
+    <div class="pill-content">
+      <span class="pill-label" id="pillBadgeLabel">โครงการติวฟรี!</span>
+      <span class="pill-sub" id="pillSubtitleLabel">คลิกเพื่อรับสิทธิ์ด่วน 🎁</span>
+    </div>
+    <button type="button" class="pill-close-btn" id="btnPillDismiss" onclick="dismissCampaignFloatingPill(event)" title="ซ่อนป้ายนี้">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
   </div>
 
   <!-- ===================================================================

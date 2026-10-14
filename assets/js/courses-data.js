@@ -127,6 +127,7 @@ const DEFAULT_TUTORS = [
   {
     id: 'tutor-non',
     name: 'พี่นนท์',
+    type: 'onsite',
     honor: 'เกียรตินิยมอันดับ 1 เคมี มศว',
     degree: 'วท.บ. เคมี (เกียรตินิยมอันดับ 1) มหาวิทยาลัยศรีนครินทรวิโรฒ',
     subjects: 'เคมี&วิทยาศาสตร์',
@@ -138,6 +139,7 @@ const DEFAULT_TUTORS = [
   {
     id: 'tutor-au',
     name: 'พี่อู๋',
+    type: 'onsite',
     honor: 'เกียรตินิยมอันดับ 2 วิศวกรรมนานาชาติ มธ.',
     degree: 'วศ.บ. วิศวกรรมศาสตร์นานาชาติ (เกียรตินิยมอันดับ 2) มหาวิทยาลัยธรรมศาสตร์',
     subjects: 'ฟิสิกส์&ภาษาอังกฤษ',
@@ -149,6 +151,7 @@ const DEFAULT_TUTORS = [
   {
     id: 'tutor-mac',
     name: 'พี่แม็ค',
+    type: 'onsite',
     honor: 'เกียรตินิยมอันดับ 2 คณิตมธ &ป.โท คณิต มศว',
     degree: 'วท.บ. คณิตศาสตร์ (เกียรตินิยมอันดับ 2) มธ. & กศ.ม. คณิตศาสตร์ (ป.โท) มศว',
     subjects: 'คณิตศาสตร์',
@@ -160,6 +163,7 @@ const DEFAULT_TUTORS = [
   {
     id: 'tutor-anont',
     name: 'พี่อานนท์',
+    type: 'onsite',
     honor: 'ทีมติวเตอร์ The NEW GEN',
     degree: 'สถาบันกวดวิชา The NEW GEN',
     subjects: 'วิทยาศาสตร์ & คณิตศาสตร์',
@@ -324,16 +328,25 @@ const DEFAULT_ABOUT = {
   badge: 'OUR INSPIRATION & STORY',
   title: 'แรงบันดาลใจในการเป็น The NEW GEN',
   subtitle: 'กวดวิชาที่ไม่ใช่แค่ติวให้สอบผ่าน แต่คือพื้นที่สร้างอนาคตและจุดประกายความฝันของเด็ก GEN Z',
-  mainImage: 'uploads/upload-1791807625296-2038.jpg',
-  secondaryImage: 'assets/images/course-poster-secondary.jpg',
+  mainImage: 'https://wdazilhmlttnurpfewlk.supabase.co/storage/v1/object/public/uploads/img-1791870836312-526i.jpg',
+  secondaryImage: 'https://wdazilhmlttnurpfewlk.supabase.co/storage/v1/object/public/uploads/img-1791870847531-ksdu.jpg',
   paragraphs: `​กวดวิชา The New Gen เกิดขึ้นจากความตั้งใจที่อยากให้  "น้อง ๆ ทุกคนเข้าถึงโอกาสทางการศึกษาได้อย่างเท่าเทียม" ​ราคาสมเหตุสมผล คุ้มค่า เมื่อเทียบราคาต่อชั่วโมงแล้ว เรียนที่นี่ประหยัดกว่า เพื่อช่วยลดภาระของผู้ปกครอง​ใส่ใจเต็มที่ ทั้งในและนอกห้องเรียน อีกทั้งมีติวเพิ่มพิเศษนอกตารางเรียน พร้อมดูแลใกล้ชิด สามารถทัก Line สอบถามเนื้อหาที่ไม่เข้าใจได้ตลอดเวลา ​เป็นที่ปรึกษาที่จริงใจ ไม่ใช่แค่เรื่องเรียน แต่เราพร้อมเป็นพี่ปรึกษาให้ทั้งน้องๆ และผู้ปกครอง ช่วยวิเคราะห์ข้อดี-ข้อด้อยของแต่ละโรงเรียนในพื้นที่ เพื่อแนะนำการเลือกโรงเรียนมัธยม รวมถึงการเลือกคณะและมหาวิทยาลัยในระดับอุดมศึกษาอย่างตรงจุด ​บรรยากาศเหมือนครอบครัว น้อง ๆ มีความสนิทสนม ผูกพัน และไว้วางใจเรียนต่อเนื่องกับเรามาอย่างยาวนาน`,
   galleryImages: [
-    { url: 'uploads/upload-1791807629566-4831.jpg', caption: 'บรรยากาศห้องเรียน Onsite The NEW GEN' },
-    { url: 'uploads/upload-1791807634385-9100.jpg', caption: 'การเรียนรู้กลุ่มเล็ก ดูแลทั่วถึง' },
-    { url: 'uploads/upload-1791812133765-6290.jpg', caption: 'ติวเตอร์ดูแลใกล้ชิดรายบุคคล' },
-    { url: 'uploads/upload-1791812141476-2256.jpg', caption: 'บรรยากาศเป็นกันเอง อบอุ่น' },
-    { url: 'uploads/upload-1791812265175-3650.jpg', caption: 'กิจกรรมและบรรยากาศการเรียน' },
-    { url: 'uploads/upload-1791812274279-2681.jpg', caption: 'ความมุ่งมั่นและความสำเร็จของน้องๆ' }
+    { url: 'https://wdazilhmlttnurpfewlk.supabase.co/storage/v1/object/public/uploads/img-1791890797027-mctw.jpg', caption: 'บรรยากาศการเรียนสด Onsite The NEW GEN' },
+    { url: 'https://wdazilhmlttnurpfewlk.supabase.co/storage/v1/object/public/uploads/img-1791890811986-hd02.jpg', caption: 'ติวเตอร์ดูแลใกล้ชิดรายบุคคล' },
+    { url: 'https://wdazilhmlttnurpfewlk.supabase.co/storage/v1/object/public/uploads/img-1791890837130-vsjl.jpg', caption: 'กลุ่มเล็ก ซักถามได้ทันที' },
+    { url: 'https://wdazilhmlttnurpfewlk.supabase.co/storage/v1/object/public/uploads/img-1791890862549-x5al.jpg', caption: 'ตั้งใจฝึกทำโจทย์ข้อสอบจริง' },
+    { url: 'https://wdazilhmlttnurpfewlk.supabase.co/storage/v1/object/public/uploads/img-1791890874376-n52p.jpg', caption: 'เทคนิคคิดลัด เข้าใจง่าย' },
+    { url: 'https://wdazilhmlttnurpfewlk.supabase.co/storage/v1/object/public/uploads/img-1791890920155-u6fi.jpg', caption: 'ห้องเรียน Onsite สะอาด สบาย เป็นกันเอง' },
+    { url: 'https://wdazilhmlttnurpfewlk.supabase.co/storage/v1/object/public/uploads/img-1791890922773-nsnb.jpg', caption: 'พัฒนาการเรียนและความมั่นใจของน้องๆ' },
+    { url: 'https://wdazilhmlttnurpfewlk.supabase.co/storage/v1/object/public/uploads/img-1791890929124-p6n3.jpg', caption: 'กิจกรรมติวเสริมสร้างทัศนคติที่ดี' },
+    { url: 'https://wdazilhmlttnurpfewlk.supabase.co/storage/v1/object/public/uploads/img-1791890936556-tak8.jpg', caption: 'ความอบอุ่นเหมือนครอบครัว' },
+    { url: 'https://wdazilhmlttnurpfewlk.supabase.co/storage/v1/object/public/uploads/img-1791890966233-345c.jpg', caption: 'แนะแนวการศึกษาและวางแผนสอบเข้า' },
+    { url: 'https://wdazilhmlttnurpfewlk.supabase.co/storage/v1/object/public/uploads/img-1791890991388-h00x.jpg', caption: 'รอยยิ้มและความผูกพันกับพี่ๆ ติวเตอร์' },
+    { url: 'https://wdazilhmlttnurpfewlk.supabase.co/storage/v1/object/public/uploads/img-1791891067537-v5jl.jpg', caption: 'มุ่งมั่นเตรียมสอบเข้า ม.1 และ ม.4' },
+    { url: 'https://wdazilhmlttnurpfewlk.supabase.co/storage/v1/object/public/uploads/img-1791891078031-hwg6.jpg', caption: 'ติวเข้มเนื้อหาพร้อมฝึกทำโจทย์' },
+    { url: 'https://wdazilhmlttnurpfewlk.supabase.co/storage/v1/object/public/uploads/img-1791891085570-pofh.jpg', caption: 'ความสำเร็จและความภูมิใจของ The NEW GEN' },
+    { url: 'https://wdazilhmlttnurpfewlk.supabase.co/storage/v1/object/public/uploads/img-1791891357840-01sl.jpg', caption: 'บรรยากาศการเรียนรู้ที่สนุกสนาน' }
   ]
 };
 
@@ -349,6 +362,20 @@ const SUPABASE_CONFIG = {
   anonKey: 'sb_publishable_JEhUerLycZxgOmYstFD4aw_nFT3ifYp',
   serviceKey: 'sb_publishable_JEhUerLycZxgOmYstFD4aw_nFT3ifYp', // Fallback to anonKey to prevent unregistered key failures
   bucket: 'uploads'
+};
+
+// Default Campaign Popup Configuration (โครงการติวฟรี & ประกาศหน้าแรก)
+const DEFAULT_POPUP_CAMPAIGN = {
+  enabled: true,
+  title: "โครงการติวฟรี ตะลุยโจทย์พิชิตเกรด 4 & สอบเข้า ม.1 / ม.4",
+  badge: "🔥 โครงการติวฟรี โควตาจำกัด 30 ที่นั่ง",
+  image: "https://wdazilhmlttnurpfewlk.supabase.co/storage/v1/object/public/uploads/img-1791819087634-e5ri.png",
+  description: "สัมผัสเทคนิคการสอนจริงโดยทีมติวเตอร์ The NEW GEN ฟรี! ไม่มีค่าใช้จ่าย พร้อมรับเอกสารสรุปสูตรเก็งข้อสอบจริง และแนวคิดลัดที่นำไปใช้สอบได้ทันที",
+  highlights: "- เรียนสด Onsite กลุ่มเล็ก ติวเตอร์ประกบดูแลใกล้ชิด ซักถามได้ทันที\n- ฟรี! ชุดเอกสารแบบฝึกหัดและแนวข้อสอบเก็งพิเศษตลอดโครงการ\n- วิเคราะห์จุดอ่อนรายบุคคล พร้อมแนะแนววางแผนสอบเข้า รร. ดัง",
+  btnRegisterText: "สมัครเข้าเรียนฟรีทันที",
+  btnLineText: "สอบถามเพิ่มเติมทาง LINE",
+  lineUrl: "https://lin.ee/RXrzi1G",
+  miniBadgeText: "🎁 โครงการติวฟรี! คลิกดูสิทธิ์"
 };
 
 // Default Enrollment Modal Text Configuration (สามารถปรับแก้ได้จากระบบหลังบ้าน)
@@ -400,7 +427,8 @@ const SUPABASE_KEY_MAPPING = {
   about: 'newgen_about',
   admin: 'newgen_admin_cred',
   enrollments: 'newgen_enrollments',
-  enrollmentConfig: 'newgen_enrollment_config'
+  enrollmentConfig: 'newgen_enrollment_config',
+  popupCampaign: 'newgen_popup_campaign'
 };
 
 // Global Store Helper with Integrated Supabase Cloud Sync
@@ -460,15 +488,31 @@ const NewGenDB = {
             localStorage.setItem(localKey, JSON.stringify(val));
           } catch (e) {}
         }
-        if (key === 'courses' && typeof window !== 'undefined') window.courseData = val;
+        if (key === 'courses' && typeof window !== 'undefined') {
+          window.courseData = val;
+          window._supabaseCoursesSynced = true;
+        }
         if (key === 'tutors' && typeof window !== 'undefined') {
-          window.tutorsData = val;
+          const normalized = Array.isArray(val) ? val.map(t => ({
+            ...t,
+            type: (t.type === 'online') ? 'online' : 'onsite'
+          })) : val;
+          window.tutorsData = normalized;
           window._supabaseTutorsSynced = true;
         }
         if (key === 'tutorsQuote' && typeof window !== 'undefined') window.tutorsQuoteData = val;
-        if (key === 'reviews' && typeof window !== 'undefined') window.reviewsData = val;
-        if (key === 'achievements' && typeof window !== 'undefined') window.achievementsData = val;
-        if (key === 'videos' && typeof window !== 'undefined') window.videosData = val;
+        if (key === 'reviews' && typeof window !== 'undefined') {
+          window.reviewsData = val;
+          window._supabaseReviewsSynced = true;
+        }
+        if (key === 'achievements' && typeof window !== 'undefined') {
+          window.achievementsData = val;
+          window._supabaseAchievementsSynced = true;
+        }
+        if (key === 'videos' && typeof window !== 'undefined') {
+          window.videosData = val;
+          window._supabaseVideosSynced = true;
+        }
         if (key === 'contact' && typeof window !== 'undefined') window.contactData = val;
         if (key === 'whyus' && typeof window !== 'undefined') window.whyUsData = val;
         if (key === 'categories' && typeof window !== 'undefined') window.categoriesData = val;
@@ -490,6 +534,11 @@ const NewGenDB = {
           if (typeof window.applyEnrollmentConfig === 'function') window.applyEnrollmentConfig();
           if (typeof window.loadAdminEnrollmentConfig === 'function') window.loadAdminEnrollmentConfig();
         }
+        if (key === 'popupCampaign' && typeof window !== 'undefined') {
+          window.popupCampaignData = val;
+          if (typeof window.renderHomePopupCampaign === 'function') window.renderHomePopupCampaign();
+          if (typeof window.loadAdminPopupCampaign === 'function') window.loadAdminPopupCampaign();
+        }
       });
 
       // Update UI components across all active pages
@@ -497,6 +546,7 @@ const NewGenDB = {
       if (typeof renderPrivilegeNote === 'function') renderPrivilegeNote();
       if (typeof window !== 'undefined') {
         if (typeof window.renderHeroContent === 'function') window.renderHeroContent();
+        if (typeof window.renderHomeFeaturedVideo === 'function') window.renderHomeFeaturedVideo();
         if (typeof window.renderTutors === 'function') window.renderTutors();
         if (typeof window.renderCourses === 'function') window.renderCourses();
         if (typeof window.renderReviews === 'function') window.renderReviews();
@@ -509,6 +559,8 @@ const NewGenDB = {
         if (typeof window.renderTrialVideos === 'function') window.renderTrialVideos();
         if (typeof window.renderAboutInspiration === 'function') window.renderAboutInspiration();
         if (typeof window.renderContactChannels === 'function') window.renderContactChannels();
+        if (typeof window.renderHomePopupCampaign === 'function') window.renderHomePopupCampaign();
+        if (typeof window.loadAdminPopupCampaign === 'function') window.loadAdminPopupCampaign();
       }
 
       if (typeof document !== 'undefined') {
@@ -565,6 +617,9 @@ const NewGenDB = {
       registerUrl: c.registerUrl || ''
     });
 
+    if (typeof window !== 'undefined' && Array.isArray(window.courseData) && window.courseData.length > 0) {
+      return window.courseData.map(enrichCourse);
+    }
     try {
       const data = localStorage.getItem('newgen_courses');
       if (data) {
@@ -584,24 +639,44 @@ const NewGenDB = {
     return NewGenDB.saveToSupabase('courses', courses);
   },
 
-  // Tutors
+  // Tutors (แบ่ง 2 ทีม: Onsite ประจำสถาบัน & สอน Online)
   getTutors: () => {
-    try {
-      const data = localStorage.getItem('newgen_tutors');
-      if (data) {
-        return JSON.parse(data);
-      }
-    } catch (e) {}
-    return DEFAULT_TUTORS;
+    let list = null;
+    if (typeof window !== 'undefined' && Array.isArray(window.tutorsData) && window.tutorsData.length > 0) {
+      list = window.tutorsData;
+    } else {
+      try {
+        const data = localStorage.getItem('newgen_tutors');
+        if (data) {
+          const parsed = JSON.parse(data);
+          if (Array.isArray(parsed) && parsed.length > 0) list = parsed;
+        }
+      } catch (e) {}
+    }
+    if (!list) list = DEFAULT_TUTORS;
+    return list.map(t => ({
+      ...t,
+      type: (t.type === 'online') ? 'online' : 'onsite'
+    }));
+  },
+  getOnsiteTutors: () => {
+    return NewGenDB.getTutors().filter(t => (t.type || 'onsite') === 'onsite');
+  },
+  getOnlineTutors: () => {
+    return NewGenDB.getTutors().filter(t => t.type === 'online');
   },
   saveTutors: (tutors) => {
+    const normalized = Array.isArray(tutors) ? tutors.map(t => ({
+      ...t,
+      type: (t.type === 'online') ? 'online' : 'onsite'
+    })) : tutors;
     try {
-      localStorage.setItem('newgen_tutors', JSON.stringify(tutors));
+      localStorage.setItem('newgen_tutors', JSON.stringify(normalized));
     } catch(e) {
       console.warn('LocalStorage save error:', e);
     }
-    if (typeof window !== 'undefined') window.tutorsData = tutors;
-    return NewGenDB.saveToSupabase('tutors', tutors);
+    if (typeof window !== 'undefined') window.tutorsData = normalized;
+    return NewGenDB.saveToSupabase('tutors', normalized);
   },
 
   // Tutors Quote Banner
@@ -624,17 +699,20 @@ const NewGenDB = {
 
   // Reviews
   getReviews: () => {
-    try {
-      const data = localStorage.getItem('newgen_reviews');
-      if (data) {
-        const parsed = JSON.parse(data);
-        return parsed.map(r => ({
-          ...r,
-          isFeatured: r.isFeatured !== undefined ? r.isFeatured : true
-        }));
-      }
-    } catch (e) {}
-    return DEFAULT_REVIEWS.map(r => ({
+    let list = null;
+    if (typeof window !== 'undefined' && Array.isArray(window.reviewsData) && window.reviewsData.length > 0) {
+      list = window.reviewsData;
+    } else {
+      try {
+        const data = localStorage.getItem('newgen_reviews');
+        if (data) {
+          const parsed = JSON.parse(data);
+          if (Array.isArray(parsed) && parsed.length > 0) list = parsed;
+        }
+      } catch (e) {}
+    }
+    if (!list) list = DEFAULT_REVIEWS;
+    return list.map(r => ({
       ...r,
       isFeatured: r.isFeatured !== undefined ? r.isFeatured : true
     }));
@@ -651,6 +729,9 @@ const NewGenDB = {
 
   // Achievements / Hall of Fame Banners
   getAchievements: () => {
+    if (typeof window !== 'undefined' && Array.isArray(window.achievementsData) && window.achievementsData.length > 0) {
+      return window.achievementsData;
+    }
     try {
       const data = localStorage.getItem('newgen_achievements');
       if (data) return JSON.parse(data);
@@ -669,6 +750,9 @@ const NewGenDB = {
 
   // Videos
   getVideos: () => {
+    if (typeof window !== 'undefined' && Array.isArray(window.videosData) && window.videosData.length > 0) {
+      return window.videosData;
+    }
     try {
       const data = localStorage.getItem('newgen_videos');
       if (data) {
@@ -690,25 +774,24 @@ const NewGenDB = {
 
   // Contact
   getContact: () => {
-    try {
-      const data = localStorage.getItem('newgen_contact');
-      if (data) {
-        const c = JSON.parse(data);
-        if (!c.address || c.address.includes('เรียนสด Onsite ห้องแอร์')) {
-          c.address = DEFAULT_CONTACT.address;
-          c.mapAppUrl = DEFAULT_CONTACT.mapAppUrl;
-          try { localStorage.setItem('newgen_contact', JSON.stringify(c)); } catch(e) {}
-        }
-        if (!c.mapAppUrl) {
-          c.mapAppUrl = DEFAULT_CONTACT.mapAppUrl;
-          try { localStorage.setItem('newgen_contact', JSON.stringify(c)); } catch(e) {}
-        }
-        if (!c.footerDesc) {
-          c.footerDesc = DEFAULT_CONTACT.footerDesc;
-        }
-        return c;
+    let c = null;
+    if (typeof window !== 'undefined' && window.contactData && window.contactData.address) {
+      c = { ...window.contactData };
+    } else {
+      try {
+        const data = localStorage.getItem('newgen_contact');
+        if (data) c = JSON.parse(data);
+      } catch (e) {}
+    }
+    if (c) {
+      if (!c.address || c.address.includes('เรียนสด Onsite ห้องแอร์')) {
+        c.address = DEFAULT_CONTACT.address;
+        c.mapAppUrl = DEFAULT_CONTACT.mapAppUrl;
       }
-    } catch (e) {}
+      if (!c.mapAppUrl) c.mapAppUrl = DEFAULT_CONTACT.mapAppUrl;
+      if (!c.footerDesc) c.footerDesc = DEFAULT_CONTACT.footerDesc;
+      return c;
+    }
     return DEFAULT_CONTACT;
   },
   saveContact: (contact) => {
@@ -723,6 +806,9 @@ const NewGenDB = {
 
   // Why Us (ทำไมต้องเลือก The NEW GEN)
   getWhyUs: () => {
+    if (typeof window !== 'undefined' && window.whyUsData && window.whyUsData.title) {
+      return window.whyUsData;
+    }
     try {
       const data = localStorage.getItem('newgen_whyus');
       if (data) return JSON.parse(data);
@@ -741,6 +827,9 @@ const NewGenDB = {
 
   // Categories (ระดับชั้น)
   getCategories: () => {
+    if (typeof window !== 'undefined' && Array.isArray(window.categoriesData) && window.categoriesData.length > 0) {
+      return window.categoriesData;
+    }
     try {
       const data = localStorage.getItem('newgen_categories');
       if (data) return JSON.parse(data);
@@ -759,6 +848,9 @@ const NewGenDB = {
 
   // Privilege Banner (Item 3)
   getPrivilege: () => {
+    if (typeof window !== 'undefined' && window.privilegeData && window.privilegeData.text) {
+      return window.privilegeData;
+    }
     try {
       const data = localStorage.getItem('newgen_privilege');
       if (data) return JSON.parse(data);
@@ -777,6 +869,9 @@ const NewGenDB = {
 
   // Home Page Settings & Tutor Placement
   getHome: () => {
+    if (typeof window !== 'undefined' && window.homeData && (window.homeData.heroTitle || window.homeData.heroTutorCenterId)) {
+      return { ...DEFAULT_HOME, ...window.homeData };
+    }
     try {
       const data = localStorage.getItem('newgen_home');
       if (data) return { ...DEFAULT_HOME, ...JSON.parse(data) };
@@ -795,6 +890,9 @@ const NewGenDB = {
 
   // About Us & Inspiration
   getAbout: () => {
+    if (typeof window !== 'undefined' && window.aboutData && (window.aboutData.title || window.aboutData.mainImage)) {
+      return { ...DEFAULT_ABOUT, ...window.aboutData };
+    }
     try {
       const data = localStorage.getItem('newgen_about');
       if (data) return { ...DEFAULT_ABOUT, ...JSON.parse(data) };
@@ -817,6 +915,32 @@ const NewGenDB = {
     }
     if (typeof window !== 'undefined') window.aboutData = aboutObj;
     return NewGenDB.saveToSupabase('about', aboutObj);
+  },
+
+  // Popup Campaign (แคมเปญโครงการติวฟรีหน้าแรก)
+  getPopupCampaign: () => {
+    try {
+      const data = localStorage.getItem('newgen_popup_campaign');
+      if (data) return { ...DEFAULT_POPUP_CAMPAIGN, ...JSON.parse(data) };
+    } catch (e) {}
+    return (typeof window !== 'undefined' && window.popupCampaignData) ? { ...DEFAULT_POPUP_CAMPAIGN, ...window.popupCampaignData } : DEFAULT_POPUP_CAMPAIGN;
+  },
+  savePopupCampaign: (popupObj) => {
+    try {
+      localStorage.setItem('newgen_popup_campaign', JSON.stringify(popupObj));
+    } catch (e) {
+      console.warn('LocalStorage save error:', e);
+    }
+    if (typeof window !== 'undefined') window.popupCampaignData = popupObj;
+    try {
+      const base = typeof getApiBaseUrl === 'function' ? getApiBaseUrl() : '';
+      fetch(`${base}/api/popup-campaign`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(popupObj)
+      }).catch(() => {});
+    } catch (err) {}
+    return NewGenDB.saveToSupabase('popupCampaign', popupObj);
   },
 
   // Enrollments (ระบบรายชื่อผู้สมัครเรียน)

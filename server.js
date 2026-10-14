@@ -25,7 +25,7 @@ function readDatabase() {
   } catch (err) {
     console.error('Error reading database:', err);
   }
-  return { courses: [], tutors: [], reviews: [], videos: [], contact: {}, whyus: {}, admin: { username: 'admin', password: 'NewGen@2026' } };
+  return { courses: [], tutors: [], reviews: [], videos: [], contact: {}, whyus: {}, popupCampaign: {}, admin: { username: 'admin', password: 'NewGen@2026' } };
 }
 
 function writeDatabase(data) {
@@ -511,6 +511,20 @@ const server = http.createServer(async (req, res) => {
         db.about = { ...db.about, ...aboutObj };
         writeDatabase(db);
         return sendJson(res, 200, { success: true, about: db.about });
+      }
+    }
+
+    // 15. Popup Campaign API (โครงการติวฟรี & ประกาศหน้าแรก)
+    if (pathname === '/api/popup-campaign') {
+      if (method === 'GET') return sendJson(res, 200, db.popupCampaign || {});
+      if (method === 'POST') {
+        const popupObj = await parseRequestBody(req);
+        if (popupObj && popupObj.image && popupObj.image.startsWith('data:image/')) {
+          popupObj.image = saveBase64ToFile(popupObj.image);
+        }
+        db.popupCampaign = { ...db.popupCampaign, ...popupObj };
+        writeDatabase(db);
+        return sendJson(res, 200, { success: true, popupCampaign: db.popupCampaign });
       }
     }
 

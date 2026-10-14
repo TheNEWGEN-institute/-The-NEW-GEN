@@ -71,13 +71,57 @@
     </div>
   </section>
 
-  <!-- Main Tutors Profile Grid -->
+  <!-- Main Tutors Profile Grid (แยก 2 ทีม: Onsite & Online) -->
   <main class="page-content-wrapper">
     <div class="container">
       
-      <div class="tutors-full-grid" id="tutorsFullGrid">
-        <!-- Dynamically injected via JS -->
+      <!-- Category Jump Navigation Pills -->
+      <div class="tutors-category-nav">
+        <a href="#onsite-tutors" class="tutor-cat-pill active" id="pillOnsite">
+          <i class="fa-solid fa-school"></i> 1. ทีมติวเตอร์หลัก (สอน Onsite)
+        </a>
+        <a href="#online-tutors" class="tutor-cat-pill pill-online" id="pillOnline">
+          <i class="fa-solid fa-laptop-code"></i> 2. ทีมติวเตอร์สอน Online
+        </a>
       </div>
+
+      <!-- Section 1: ทีมติวเตอร์หลัก (สอน Onsite) -->
+      <section class="tutor-group-section" id="onsite-tutors">
+        <div class="tutor-group-header">
+          <div class="tutor-group-badge badge-onsite">
+            <i class="fa-solid fa-school"></i> ONSITE FACULTY
+          </div>
+          <h2 class="tutor-group-title">
+            ทีมติวเตอร์หลัก <span class="text-gradient-cyan">(สอน Onsite ประจำสถาบัน)</span>
+          </h2>
+          <p class="tutor-group-desc">
+            เรียนสด Onsite ห้องแอร์กลุ่มเล็ก ติวเตอร์ประจำสถาบันดูแลประกบใกล้ชิด ซักถามได้ทันที ปูพื้นฐาน 3 วิชาหลักให้แน่น ตะลุยโจทย์สอบแข่งขัน
+          </p>
+        </div>
+
+        <div class="tutors-full-grid" id="tutorsOnsiteGrid">
+          <!-- Dynamically injected via JS -->
+        </div>
+      </section>
+
+      <!-- Section 2: ทีมติวเตอร์สอน Online -->
+      <section class="tutor-group-section" id="online-tutors">
+        <div class="tutor-group-header">
+          <div class="tutor-group-badge badge-online">
+            <i class="fa-solid fa-laptop-code"></i> ONLINE FACULTY
+          </div>
+          <h2 class="tutor-group-title">
+            ทีมติวเตอร์ <span class="text-gradient-purple">(สอน Online)</span>
+          </h2>
+          <p class="tutor-group-desc">
+            เรียนสดและทบทวนผ่านระบบออนไลน์ สะดวก ทุกที่ ทุกเวลา ครบทุกเนื้อหา เทคนิคคิดลัดเข้าใจง่าย
+          </p>
+        </div>
+
+        <div class="tutors-full-grid" id="tutorsOnlineGrid">
+          <!-- Dynamically injected via JS -->
+        </div>
+      </section>
 
       <!-- Trust Commitment Banner (Editable via Admin) -->
       <div class="luxury-quote-box" id="tutorsQuoteBox">
@@ -258,43 +302,84 @@
 
     function renderTutors(customTutors) {
       const tutors = customTutors || (window.NewGenDB ? window.NewGenDB.getTutors() : (window.tutorsData || []));
-      const grid = document.getElementById('tutorsFullGrid');
-      if (!grid) return;
+      const onsiteGrid = document.getElementById('tutorsOnsiteGrid');
+      const onlineGrid = document.getElementById('tutorsOnlineGrid');
 
-      grid.innerHTML = tutors.map((t, idx) => {
+      const onsiteTutors = tutors.filter(t => (t.type || 'onsite') === 'onsite');
+      const onlineTutors = tutors.filter(t => t.type === 'online');
+
+      const renderCard = (t, idx) => {
         const tImg = window.resolveMediaUrl ? window.resolveMediaUrl(t.image) : t.image;
         const isPriority = idx < 2;
+        const isOnline = t.type === 'online';
         return `
-        <div class="tutor-profile-card" data-tutor-id="${t.id || ('tutor-' + idx)}">
-          <div class="tutor-card-img-wrap">
-            <div class="tutor-avatar-circle">
-              <img src="${tImg}" alt="${t.name} ${t.honor}" ${isPriority ? 'loading="eager" fetchpriority="high"' : 'loading="lazy"'} decoding="async" width="400" height="520">
+          <div class="tutor-profile-card ${isOnline ? 'tutor-card-online' : ''}" data-tutor-id="${t.id || ('tutor-' + idx)}">
+            <div class="tutor-card-img-wrap">
+              <div class="tutor-avatar-circle">
+                <img src="${tImg}" alt="${escapeHtml(t.name)} ${escapeHtml(t.honor)}" ${isPriority ? 'loading="eager" fetchpriority="high"' : 'loading="lazy"'} decoding="async" width="400" height="520">
+              </div>
+              <div class="tutor-card-type-tag ${isOnline ? 'type-online' : 'type-onsite'}">
+                <i class="fa-solid ${isOnline ? 'fa-laptop' : 'fa-school'}"></i> ${isOnline ? 'สอน Online' : 'สอน Onsite'}
+              </div>
+              <div class="tutor-card-honor-pill">
+                <i class="fa-solid fa-award"></i> ${escapeHtml(t.honor)}
+              </div>
+              <div class="tutor-card-name-overlay">
+                <span class="tutor-card-name-mobile">${escapeHtml(t.name)}</span>
+              </div>
             </div>
-            <!-- ป้ายเกียรตินิยมแสดงเฉพาะบนคอมพิวเตอร์ (มือถือซ่อนออกตามคำขอ) -->
-            <div class="tutor-card-honor-pill">
-              <i class="fa-solid fa-award"></i> ${t.honor}
-            </div>
-            <!-- แถบชื่อติวเตอร์คาดขอบล่างของรูปภาพสำหรับมือถือ (Glassmorphism Name Bar) -->
-            <div class="tutor-card-name-overlay">
-              <span class="tutor-card-name-mobile">${t.name}</span>
+            <div class="tutor-card-body">
+              <div class="tutor-card-header">
+                <h2 class="tutor-card-name">${escapeHtml(t.name)}</h2>
+                <span class="tutor-card-subjects"><i class="fa-solid fa-book-open"></i> ${escapeHtml(t.subjects)}</span>
+              </div>
+              <div class="tutor-card-degree">
+                <i class="fa-solid fa-graduation-cap"></i> <span>${escapeHtml(t.degree)}</span>
+              </div>
+              <p class="tutor-card-bio">${escapeHtml(t.bio)}</p>
+              <div class="tutor-card-tagline">
+                <i class="fa-solid fa-quote-left"></i> "${escapeHtml(t.tagline)}"
+              </div>
             </div>
           </div>
-          <div class="tutor-card-body">
-            <div class="tutor-card-header">
-              <h2 class="tutor-card-name">${t.name}</h2>
-              <span class="tutor-card-subjects"><i class="fa-solid fa-book-open"></i> ${t.subjects}</span>
+        `;
+      };
+
+      if (onsiteGrid) {
+        if (onsiteTutors.length > 0) {
+          onsiteGrid.innerHTML = onsiteTutors.map((t, idx) => renderCard(t, idx)).join('');
+        } else {
+          onsiteGrid.innerHTML = `
+            <div style="grid-column: 1 / -1; text-align: center; padding: 40px 20px; color: var(--text-secondary);">
+              <i class="fa-solid fa-school" style="font-size: 2rem; color: #94a3b8; margin-bottom: 12px; display: block;"></i>
+              กำลังอัปเดตรายชื่อทีมติวเตอร์หลัก
             </div>
-            <div class="tutor-card-degree">
-              <i class="fa-solid fa-graduation-cap"></i> <span>${t.degree}</span>
+          `;
+        }
+      }
+
+      if (onlineGrid) {
+        if (onlineTutors.length > 0) {
+          onlineGrid.innerHTML = onlineTutors.map((t, idx) => renderCard(t, idx)).join('');
+        } else {
+          onlineGrid.innerHTML = `
+            <div class="tutor-online-empty-card" style="background: linear-gradient(145deg, rgba(13, 31, 65, 0.75) 0%, rgba(6, 17, 38, 0.9) 100%); border: 2px dashed rgba(168, 85, 247, 0.45); border-radius: 24px; padding: 48px 24px; text-align: center; width: 100%; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);">
+              <div style="width: 72px; height: 72px; border-radius: 50%; background: rgba(124, 58, 237, 0.2); color: #c084fc; display: inline-flex; align-items: center; justify-content: center; font-size: 2rem; margin-bottom: 16px; border: 1px solid rgba(168, 85, 247, 0.4);">
+                <i class="fa-solid fa-laptop-code"></i>
+              </div>
+              <h3 style="font-size: 1.4rem; color: #ffffff; font-weight: 800; margin-bottom: 10px;">
+                ทีมติวเตอร์สอน Online (เร็วๆ นี้)
+              </h3>
+              <p style="color: #94a3b8; max-width: 580px; margin: 0 auto 22px auto; font-size: 0.98rem; line-height: 1.7;">
+                เตรียมพบกับคอร์สเรียนสด Online และระบบทบทวนย้อนหลัง ครอบคลุมทั้งประถมและมัธยม สอนโดยทีมติวเตอร์คุณภาพ พร้อมเฉลยละเอียดและเอกสารเก็งข้อสอบจริง
+              </p>
+              <a href="https://lin.ee/RXrzi1G" target="_blank" rel="noopener noreferrer" class="btn-primary" style="background: linear-gradient(135deg, #06c755, #059669); display: inline-flex; align-items: center; gap: 8px; padding: 12px 28px; border-radius: 99px; font-weight: 700;">
+                <i class="fa-brands fa-line" style="font-size: 1.2rem;"></i> สอบถามข้อมูลคอร์ส Online ทาง LINE
+              </a>
             </div>
-            <p class="tutor-card-bio">${t.bio}</p>
-            <div class="tutor-card-tagline">
-              <i class="fa-solid fa-quote-left"></i> "${t.tagline}"
-            </div>
-          </div>
-        </div>
-      `;
-      }).join('');
+          `;
+        }
+      }
     }
 
     function renderQuote() {
