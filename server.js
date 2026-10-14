@@ -317,6 +317,108 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, 200, { success: true });
     }
 
+    // 8.5 Enrollments API (ระบบสมัครเรียน)
+    if (pathname === '/api/enrollments') {
+      if (method === 'GET') {
+        const query = parsedUrl.query || {};
+        let list = db.enrollments || [];
+        if (query.courseId) {
+          list = list.filter(e => e.courseId === query.courseId);
+        }
+        return sendJson(res, 200, list);
+      }
+      if (method === 'POST') {
+        const enroll = await parseRequestBody(req);
+        if (Array.isArray(enroll)) {
+          db.enrollments = enroll;
+          // Recalculate seats for all courses
+          if (Array.isArray(db.courses)) {
+            db.courses.forEach(c => {
+              const count = db.enrollments.filter(e => e.courseId === c.id).length;
+              const cap = Number(c.maxSeats || 12);
+              c.remainingSeats = Math.max(0, cap - count);
+              if (c.remainingSeats <= 0) c.isFull = true;
+            });
+          }
+          writeDatabase(db);
+          return sendJson(res, 200, { success: true, enrollments: db.enrollments, courses: db.courses });
+        }
+        if (!enroll.id) enroll.id = `enr-${Date.now()}`;
+        if (!enroll.createdAt) enroll.createdAt = new Date().toISOString();
+        if (!db.enrollments) db.enrollments = [];
+        const idx = db.enrollments.findIndex(e => e.id === enroll.id);
+        if (idx !== -1) db.enrollments[idx] = { ...db.enrollments[idx], ...enroll };
+        else db.enrollments.unshift(enroll);
+
+        // Auto-recalculate capacity for this course
+        if (enroll.courseId && Array.isArray(db.courses)) {
+          const targetCourse = db.courses.find(c => c.id === enroll.courseId);
+          if (targetCourse) {
+            const count = db.enrollments.filter(e => e.courseId === enroll.courseId).length;
+            const cap = Number(targetCourse.maxSeats || 12);
+            targetCourse.remainingSeats = Math.max(0, cap - count);
+            if (targetCourse.remainingSeats <= 0) targetCourse.isFull = true;
+          }
+        }
+
+        writeDatabase(db);
+        return sendJson(res, 200, { success: true, enrollment: enroll, courses: db.courses });
+      }
+      if (method === 'DELETE') {
+        const query = parsedUrl.query || {};
+        const idToDelete = query.id;
+        if (idToDelete && db.enrollments) {
+          const itemToDelete = db.enrollments.find(e => e.id === idToDelete);
+          db.enrollments = db.enrollments.filter(e => e.id !== idToDelete);
+          if (itemToDelete && itemToDelete.courseId && Array.isArray(db.courses)) {
+            const targetCourse = db.courses.find(c => c.id === itemToDelete.courseId);
+            if (targetCourse) {
+              const count = db.enrollments.filter(e => e.courseId === itemToDelete.courseId).length;
+              const cap = Number(targetCourse.maxSeats || 12);
+              targetCourse.remainingSeats = Math.max(0, cap - count);
+              if (targetCourse.remainingSeats > 0 && targetCourse.isFull) {
+                targetCourse.isFull = false;
+              }
+            }
+          }
+          writeDatabase(db);
+          return sendJson(res, 200, { success: true });
+        }
+      }
+    }
+
+    if (pathname.startsWith('/api/enrollments/') && method === 'DELETE') {
+      const enrId = pathname.replace('/api/enrollments/', '');
+      if (db.enrollments) {
+        const itemToDelete = db.enrollments.find(e => e.id === enrId);
+        db.enrollments = db.enrollments.filter(e => e.id !== enrId);
+        if (itemToDelete && itemToDelete.courseId && Array.isArray(db.courses)) {
+          const targetCourse = db.courses.find(c => c.id === itemToDelete.courseId);
+          if (targetCourse) {
+            const count = db.enrollments.filter(e => e.courseId === itemToDelete.courseId).length;
+            const cap = Number(targetCourse.maxSeats || 12);
+            targetCourse.remainingSeats = Math.max(0, cap - count);
+            if (targetCourse.remainingSeats > 0 && targetCourse.isFull) {
+              targetCourse.isFull = false;
+            }
+          }
+        }
+        writeDatabase(db);
+      }
+      return sendJson(res, 200, { success: true });
+    }
+
+    // 8.6 Enrollment Config API (ตั้งค่าข้อความหน้าสมัครเรียน)
+    if (pathname === '/api/enrollment-config') {
+      if (method === 'GET') return sendJson(res, 200, db.enrollmentConfig || {});
+      if (method === 'POST') {
+        const config = await parseRequestBody(req);
+        db.enrollmentConfig = { ...db.enrollmentConfig, ...config };
+        writeDatabase(db);
+        return sendJson(res, 200, { success: true, enrollmentConfig: db.enrollmentConfig });
+      }
+    }
+
     // 9. Contact API
     if (pathname === '/api/contact') {
       if (method === 'GET') return sendJson(res, 200, db.contact || {});

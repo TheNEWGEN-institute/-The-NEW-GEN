@@ -338,14 +338,23 @@
                 </div>
               </div>
 
-              <!-- Action Buttons -->
+              <!-- Action Buttons: 1. สมัครเลย (ลิงก์คอร์ส) vs 2. สอบถามข้อมูล (LINE) -->
               <div class="cd-action-buttons">
-                <!-- Direct LINE Button with prefilled text -->
+                <!-- 1. ปุ่มสมัครเรียนเลย -->
+                <a href="#" target="_blank" rel="noopener noreferrer" class="btn-cd-register" id="btnDirectRegister">
+                  <i class="fa-solid fa-bolt"></i>
+                  <div>
+                    <strong id="btnDirectRegisterTitle">สมัครเรียนเลย (จองที่นั่ง)</strong>
+                    <small id="btnDirectRegisterSub">กรอกข้อมูลและลงทะเบียนทันที</small>
+                  </div>
+                </a>
+
+                <!-- 2. ปุ่มสอบถามข้อมูลเพิ่มเติมผ่าน LINE -->
                 <a href="https://lin.ee/RXrzi1G" target="_blank" rel="noopener noreferrer" class="btn-cd-line" id="btnLineEnroll">
                   <i class="fa-brands fa-line"></i>
                   <div>
-                    <strong>สมัครเรียน / จองที่นั่งผ่าน LINE</strong>
-                    <small>ทักสอบถามรอบว่างและโปรโมชั่นทันที</small>
+                    <strong>สอบถามข้อมูลเพิ่มเติมผ่าน LINE</strong>
+                    <small>ทักคุยกับพี่แอดมิน ปรึกษาหลักสูตรและโปรโมชั่น</small>
                   </div>
                 </a>
 
@@ -562,8 +571,11 @@
         </div>
       </div>
       <div class="cd-msb-actions">
+        <a href="#" target="_blank" rel="noopener noreferrer" class="btn-msb-register" id="btnMsbRegister">
+          <i class="fa-solid fa-bolt"></i> สมัครเลย
+        </a>
         <a href="https://lin.ee/RXrzi1G" target="_blank" rel="noopener noreferrer" class="btn-msb-line" id="btnMsbLine">
-          <i class="fa-brands fa-line"></i> สมัครผ่าน LINE
+          <i class="fa-brands fa-line"></i> สอบถาม
         </a>
         <a href="tel:0954721072" class="btn-msb-phone" id="btnMsbPhone" title="โทรสอบถาม">
           <i class="fa-solid fa-phone"></i>
@@ -589,6 +601,7 @@
 
   <!-- Scripts -->
   <script src="assets/js/courses-data.js"></script>
+  <script src="assets/js/enrollment-modal.js"></script>
   <script src="assets/js/course-detail.js"></script>
   <script src="assets/js/main.js"></script>
 </body>

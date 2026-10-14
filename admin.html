@@ -64,32 +64,30 @@
         <button type="button" class="admin-nav-item active" onclick="switchAdminTab('courses', this)">
           <i class="fa-solid fa-graduation-cap"></i> 1. จัดการคอร์สเรียน
         </button>
+        <button type="button" class="admin-nav-item" onclick="switchAdminTab('enrollments', this)" id="navTabEnrollments">
+          <i class="fa-solid fa-users-rectangle"></i> 2. รายชื่อผู้สมัครเรียน
+          <span class="badge" id="navEnrollCountBadge" style="margin-left: auto; font-size: 0.72rem; background: #2563eb; color: #fff; border-radius: 99px; padding: 2px 7px; font-weight: 700;">0</span>
+        </button>
         <button type="button" class="admin-nav-item" onclick="switchAdminTab('home', this)">
-          <i class="fa-solid fa-house"></i> 2. จัดการหน้าแรก & ตำแหน่งติวเตอร์
+          <i class="fa-solid fa-house"></i> 3. จัดการหน้าแรก &amp; จุดเด่น
         </button>
         <button type="button" class="admin-nav-item" onclick="switchAdminTab('tutors', this)">
-          <i class="fa-solid fa-user-tie"></i> 3. จัดการทีมติวเตอร์ (เรียงลำดับ)
+          <i class="fa-solid fa-user-tie"></i> 4. จัดการทีมติวเตอร์ (เรียงลำดับ)
         </button>
         <button type="button" class="admin-nav-item" onclick="switchAdminTab('about', this)">
-          <i class="fa-solid fa-heart-pulse"></i> 4. เกี่ยวกับเรา & แรงบันดาลใจ
+          <i class="fa-solid fa-heart-pulse"></i> 5. เกี่ยวกับเรา &amp; แรงบันดาลใจ
         </button>
         <button type="button" class="admin-nav-item" onclick="switchAdminTab('reviews', this)">
-          <i class="fa-solid fa-comments"></i> 5. จัดการรีวิวจริงจากนักเรียน
+          <i class="fa-solid fa-comments"></i> 6. จัดการรีวิวจริงจากนักเรียน
         </button>
         <button type="button" class="admin-nav-item" onclick="switchAdminTab('videos', this)">
-          <i class="fa-brands fa-youtube"></i> 6. จัดการวิดีโอทดลองเรียนฟรี
+          <i class="fa-brands fa-youtube"></i> 7. จัดการวิดีโอทดลองเรียนฟรี
         </button>
         <button type="button" class="admin-nav-item" onclick="switchAdminTab('contact', this)">
-          <i class="fa-solid fa-address-book"></i> 7. จัดการข้อมูลติดต่อ & แผนที่
+          <i class="fa-solid fa-address-book"></i> 8. จัดการข้อมูลติดต่อ &amp; แผนที่
         </button>
-        <button type="button" class="admin-nav-item" onclick="switchAdminTab('whyus', this)">
-          <i class="fa-solid fa-star"></i> 8. ทำไมต้องเลือก The NEW GEN
-        </button>
-        <button type="button" class="admin-nav-item" onclick="switchAdminTab('backup', this)">
-          <i class="fa-solid fa-database"></i> 9. สำรอง & กู้คืนข้อมูล
-        </button>
-        <button type="button" class="admin-nav-item" onclick="switchAdminTab('security', this)">
-          <i class="fa-solid fa-key"></i> 10. เปลี่ยนรหัสผ่านผู้ดูแลระบบ
+        <button type="button" class="admin-nav-item" onclick="switchAdminTab('system', this)" id="navTabSystem">
+          <i class="fa-solid fa-sliders"></i> 9. ตั้งค่าระบบ (สำรองข้อมูล &amp; รหัสผ่าน)
         </button>
       </nav>
     </aside>
@@ -121,19 +119,17 @@
         </div>
 
         <div class="admin-table-card">
-          <table class="admin-data-table">
+          <table class="admin-data-table admin-courses-table">
             <thead>
               <tr>
-                <th style="width: 60px; text-align: center;">ลำดับ</th>
-                <th style="width: 100px; text-align: center;">เลื่อนตำแหน่ง</th>
-                <th style="width: 80px;">รูปภาพ</th>
-                <th>ชื่อคอร์ส</th>
-                <th>ระดับชั้น</th>
-                <th>วิชาที่สอน</th>
-                <th>ราคาโปรโมชั่น</th>
-                <th>แนะนำหน้าแรก</th>
-                <th>สถานะ</th>
-                <th style="text-align: right;">จัดการ</th>
+                <th style="width: 70px; text-align: center;">ลำดับ</th>
+                <th style="width: 65px; text-align: center;">รูปปก</th>
+                <th style="min-width: 250px;">ชื่อคอร์สเรียน</th>
+                <th style="width: 130px; text-align: center;">ที่นั่งคงเหลือ</th>
+                <th style="width: 95px; text-align: center;">แสดงบนเว็บ</th>
+                <th style="width: 95px; text-align: center;">คอร์สแนะนำ</th>
+                <th style="width: 125px; text-align: center;">สถานะคอร์ส</th>
+                <th style="width: 135px; text-align: right;">จัดการ</th>
               </tr>
             </thead>
             <tbody id="adminCoursesTableBody">
@@ -163,17 +159,550 @@
         </div>
       </section>
 
-      <!-- ================= 2. HOME TAB (คำพูดหน้าแรก & ตำแหน่งติวเตอร์) ================= -->
+      <!-- ================= 2. ENROLLMENTS & CAPACITY TAB ================= -->
+      <section id="tab-enrollments" class="admin-tab-pane">
+<div class="admin-pane-header">
+          <div>
+            <h2><i class="fa-solid fa-users-rectangle" style="color: var(--color-navy);"></i> ระบบสถิติ &amp; บริหารการรับสมัครเรียน (Enrollment &amp; Live Seat Analytics)</h2>
+            <p>รายงานสถิติผู้สมัครแบบเรียลไทม์ ตรวจสอบและตั้งค่าโควตาความจุที่นั่งรายคอร์ส และจัดการรายชื่อนักเรียนทั้งหมด</p>
+          </div>
+          <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+            <button type="button" class="btn-secondary" onclick="openExportEnrollmentsModal()" style="display: inline-flex; align-items: center; gap: 8px;">
+              <i class="fa-solid fa-file-excel" style="color: #16a34a; font-size: 1.1rem;"></i> ส่งออก Excel / CSV
+            </button>
+            <button type="button" class="btn-primary" onclick="openAddEnrollmentModal()" style="display: inline-flex; align-items: center; gap: 8px;">
+              <i class="fa-solid fa-user-plus"></i> เพิ่มรายชื่อนักเรียน
+            </button>
+          </div>
+        </div>
+
+        <!-- Sub-Tab Navigation Bar -->
+        <div class="admin-enroll-subtabs">
+          <button type="button" class="admin-subtab-btn active" id="btnEnrollSubtabStats" onclick="switchEnrollSubtab('stats')">
+            <i class="fa-solid fa-chart-pie"></i> 1. สรุปสถิติ &amp; ความจุที่นั่ง (แยกคอร์ส &amp; สรุปรวม)
+          </button>
+          <button type="button" class="admin-subtab-btn" id="btnEnrollSubtabRoster" onclick="switchEnrollSubtab('roster')">
+            <i class="fa-solid fa-users"></i> 2. รายชื่อนักเรียน (แยกตามคอร์ส &amp; รวมทั้งหมด)
+          </button>
+          <button type="button" class="admin-subtab-btn" id="btnEnrollSubtabConfig" onclick="switchEnrollSubtab('config')">
+            <i class="fa-solid fa-pen-to-square"></i> 3. ตั้งค่าข้อความหน้าสมัครเรียน
+          </button>
+        </div>
+
+        <!-- ================= SUB-TAB 1: STATS & CAPACITY ================= -->
+        <div id="subtabEnrollStats" class="enroll-subtab-content" style="display: block;">
+          
+          <!-- Overall Stats Summary Cards -->
+          <div class="enroll-stats-grid" style="margin-bottom: 24px;">
+            <div class="enroll-stat-card">
+              <div class="enroll-stat-icon primary">
+                <i class="fa-solid fa-user-graduate"></i>
+              </div>
+              <div>
+                <div class="enroll-stat-val" id="statTotalStudents">0</div>
+                <div class="enroll-stat-label">ผู้สมัครเรียนทั้งหมด (คน)</div>
+              </div>
+            </div>
+            <div class="enroll-stat-card">
+              <div class="enroll-stat-icon onsite">
+                <i class="fa-solid fa-chalkboard-user"></i>
+              </div>
+              <div>
+                <div class="enroll-stat-val" id="statOnsiteStudents">0</div>
+                <div class="enroll-stat-label">เรียนสด Onsite ที่สถาบัน</div>
+              </div>
+            </div>
+            <div class="enroll-stat-card">
+              <div class="enroll-stat-icon online">
+                <i class="fa-solid fa-laptop-code"></i>
+              </div>
+              <div>
+                <div class="enroll-stat-val" id="statOnlineStudents">0</div>
+                <div class="enroll-stat-label">เรียนสด Online (Zoom)</div>
+              </div>
+            </div>
+            <div class="enroll-stat-card">
+              <div class="enroll-stat-icon pending">
+                <i class="fa-solid fa-clock"></i>
+              </div>
+              <div>
+                <div class="enroll-stat-val" id="statPendingStudents">0</div>
+                <div class="enroll-stat-label">รอตรวจสอบ / รอชำระ</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Course-by-Course Capacity Grid -->
+          <div class="admin-editor-card" style="margin-bottom: 24px; padding: 22px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+              <div>
+                <h3 style="margin: 0; font-size: 1.15rem; color: var(--color-navy); font-weight: 800;">
+                  <i class="fa-solid fa-chair" style="color: var(--color-blue-brand);"></i> สถิติความจุที่นั่ง &amp; ยอดรับสมัครแยกตามคอร์สเรียน (Real-time Seat Quotas)
+                </h3>
+                <small style="color: var(--text-muted);">ระบบคำนวณและอัปเดตแบบเรียลไทม์ หากที่นั่งเต็มแล้วระบบจะปิดรับสมัครคอร์สนั้นอัตโนมัติ</small>
+              </div>
+              <button type="button" class="btn-secondary" onclick="loadAdminEnrollments()" style="padding: 6px 12px; font-size: 0.82rem;">
+                <i class="fa-solid fa-arrows-rotate"></i> อัปเดตข้อมูลสด
+              </button>
+            </div>
+
+            <!-- Dynamic Capacity Cards Grid -->
+            <div id="adminCourseCapacityGrid" class="course-capacity-grid">
+              <!-- Dynamically populated via JS -->
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ================= SUB-TAB 2: STUDENT ROSTER ================= -->
+        <div id="subtabEnrollRoster" class="enroll-subtab-content" style="display: none;">
+
+          <!-- Quick Course Filter Pills (ปุ่มเลือกดูแยกคอร์ส หรือ รวมทั้งหมด) -->
+          <div style="margin-bottom: 14px;">
+            <label style="font-size: 0.82rem; font-weight: 800; color: var(--color-navy); margin-bottom: 8px; display: block;">
+              <i class="fa-solid fa-layer-group" style="color: var(--color-blue-brand);"></i> เลือกดูรายชื่อนักเรียน: (คลิกสลับดูเฉพาะคอร์ส หรือ สรุปรวมทั้งหมด)
+            </label>
+            <div id="adminQuickCoursePills" class="admin-quick-course-pills">
+              <!-- Dynamically populated via JS -->
+            </div>
+          </div>
+
+          <!-- Filter & Search Bar -->
+          <div class="admin-editor-card" style="margin-bottom: 20px; padding: 18px;">
+            <div style="display: flex; gap: 14px; align-items: center; flex-wrap: wrap;">
+              <div style="flex: 2; min-width: 220px;">
+                <label style="font-size: 0.82rem; font-weight: 700; color: var(--color-navy); margin-bottom: 6px; display: block;">
+                  <i class="fa-solid fa-filter"></i> เลือกดูตามคอร์สเรียน:
+                </label>
+                <select id="enrollFilterCourse" onchange="filterAdminEnrollments()" style="width: 100%; padding: 9px 12px; border: 1.5px solid var(--border-color); border-radius: 8px; font-weight: 600;">
+                  <option value="all">📚 ทุกคอร์สเรียน (แสดงทั้งหมด)</option>
+                </select>
+              </div>
+
+              <div style="flex: 1; min-width: 160px;">
+                <label style="font-size: 0.82rem; font-weight: 700; color: var(--color-navy); margin-bottom: 6px; display: block;">
+                  <i class="fa-solid fa-graduation-cap"></i> รูปแบบการเรียน:
+                </label>
+                <select id="enrollFilterLearningType" onchange="filterAdminEnrollments()" style="width: 100%; padding: 9px 12px; border: 1.5px solid var(--border-color); border-radius: 8px; font-weight: 600;">
+                  <option value="all">ทั้งหมด (All Types)</option>
+                  <option value="onsite">🏫 Onsite (เรียนสดที่สถาบัน)</option>
+                  <option value="online">💻 Online (เรียนสดออนไลน์)</option>
+                </select>
+              </div>
+
+              <div style="flex: 3; min-width: 240px;">
+                <label style="font-size: 0.82rem; font-weight: 700; color: var(--color-navy); margin-bottom: 6px; display: block;">
+                  <i class="fa-solid fa-magnifying-glass"></i> ค้นหาข้อมูลนักเรียน:
+                </label>
+                <input type="text" id="enrollSearchKeyword" oninput="filterAdminEnrollments()" placeholder="พิมพ์ชื่อ-สกุล, ชื่อเล่น, โรงเรียน, เบอร์โทร, LINE ID..." style="width: 100%; padding: 9px 12px; border: 1.5px solid var(--border-color); border-radius: 8px;">
+              </div>
+
+              <div style="align-self: flex-end;">
+                <button type="button" class="btn-secondary" onclick="resetEnrollmentFilters()" style="padding: 9px 16px; font-size: 0.85rem;" title="ล้างตัวกรอง">
+                  <i class="fa-solid fa-rotate-left"></i> ล้างตัวกรอง
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Student Roster Table -->
+          <div class="admin-table-card">
+            <table class="admin-data-table">
+              <thead>
+                <tr>
+                  <th style="width: 50px; text-align: center;">#</th>
+                  <th>ข้อมูลนักเรียน</th>
+                  <th>ชั้น / โรงเรียน</th>
+                  <th>คอร์สที่สมัคร &amp; รอบเรียน</th>
+                  <th style="text-align: center;">รูปแบบ</th>
+                  <th>เบอร์โทรติดต่อ</th>
+                  <th>Line ID</th>
+                  <th>ที่อยู่จัดส่งเอกสาร</th>
+                  <th style="text-align: right; width: 105px;">จัดการ</th>
+                </tr>
+              </thead>
+              <tbody id="adminEnrollmentsTableBody">
+                <!-- Dynamically populated via JS -->
+              </tbody>
+            </table>
+            <div id="enrollmentsEmptyState" style="display: none; padding: 48px 20px; text-align: center; color: var(--text-muted);">
+              <i class="fa-solid fa-user-slash" style="font-size: 3rem; color: #cbd5e1; margin-bottom: 12px; display: block;"></i>
+              <h4 style="color: var(--color-navy); margin-bottom: 6px;">ไม่พบข้อมูลผู้สมัครเรียน</h4>
+              <p style="font-size: 0.9rem; margin: 0;">ยังไม่มีผู้สมัครในเงื่อนไขที่เลือก หรือลองพิมพ์คำค้นหาอื่น</p>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ================= SUB-TAB 3: ENROLLMENT MODAL TEXT CUSTOMIZATION ================= -->
+        <div id="subtabEnrollConfig" class="enroll-subtab-content" style="display: none;">
+          <div class="admin-editor-card" style="padding: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 14px;">
+              <div>
+                <h3 style="margin: 0; font-size: 1.25rem; color: var(--color-navy); font-weight: 800;">
+                  <i class="fa-solid fa-pen-to-square" style="color: var(--color-blue-brand);"></i> ปรับแต่งข้อความ &amp; คำพูดหน้าสมัครเรียน (Enrollment Modal Texts)
+                </h3>
+                <small style="color: var(--text-muted); display: block; margin-top: 4px;">
+                  คุณสามารถแก้ไขคำพูด หัวข้อ และคำอธิบายทุกจุดในหน้าสมัครเรียนของนักเรียนได้จากที่นี่ โดยข้อความจะแสดงผลทันทีและบันทึกลงสู่ Cloud แบบถาวร
+                </small>
+              </div>
+              <div style="display: flex; gap: 8px;">
+                <button type="button" class="btn-secondary" onclick="resetAdminEnrollmentConfig()" style="font-size: 0.88rem; padding: 8px 16px;">
+                  <i class="fa-solid fa-rotate-left"></i> คืนค่าเริ่มต้น
+                </button>
+                <button type="button" class="btn-primary" onclick="saveAdminEnrollmentConfig()" style="font-size: 0.88rem; padding: 8px 20px;">
+                  <i class="fa-solid fa-floppy-disk"></i> บันทึกการตั้งค่าข้อความ
+                </button>
+              </div>
+            </div>
+
+            <form id="formEnrollmentConfig" onsubmit="handleSaveEnrollmentConfig(event)">
+              
+              <!-- SECTION 1: HEADER & TITLE -->
+              <h4 class="editor-section-title"><i class="fa-solid fa-heading"></i> 1. ส่วนหัวหน้าต่างสมัครเรียน (Modal Header)</h4>
+              <div class="form-row-2col">
+                <div class="form-group-luxury">
+                  <label for="cfgModalTitle">หัวข้อหลักบนหน้าต่างสมัคร *</label>
+                  <input type="text" id="cfgModalTitle" required placeholder="เช่น แบบฟอร์มสมัครเรียนออนไลน์">
+                  <small style="color: var(--text-muted);">ข้อความชื่อหัวข้อหลักด้านบนสุดของหน้าต่างสมัคร</small>
+                </div>
+                <div class="form-group-luxury">
+                  <label for="cfgModalSubtitle">หัวข้อย่อย / สโลแกนสถาบัน *</label>
+                  <input type="text" id="cfgModalSubtitle" required placeholder="เช่น สถาบันกวดวิชา The NEW GEN (Onsite & Online)">
+                  <small style="color: var(--text-muted);">ข้อความระบุชื่อสถาบันใต้หัวข้อหลัก</small>
+                </div>
+              </div>
+
+              <!-- SECTION 2: LEARNING TYPES (ONSITE VS ONLINE) -->
+              <h4 class="editor-section-title" style="margin-top: 24px;"><i class="fa-solid fa-chalkboard-user"></i> 2. ตัวเลือกรูปแบบการเรียน (Step 1: Onsite vs Online)</h4>
+              <div class="form-row-2col">
+                <div class="form-group-luxury">
+                  <label for="cfgOnsiteTitle">ชื่อรูปแบบ Onsite *</label>
+                  <input type="text" id="cfgOnsiteTitle" required placeholder="เช่น เรียนสด Onsite ที่สถาบัน">
+                </div>
+                <div class="form-group-luxury">
+                  <label for="cfgOnsiteDesc">คำอธิบายย่อยรูปแบบ Onsite *</label>
+                  <input type="text" id="cfgOnsiteDesc" required placeholder="เช่น ห้องเรียนแอร์กลุ่มเล็ก ติวเตอร์ดูแลใกล้ชิดรายบุคคล">
+                </div>
+              </div>
+              <div class="form-row-2col" style="margin-top: 10px;">
+                <div class="form-group-luxury">
+                  <label for="cfgOnlineTitle">ชื่อรูปแบบ Online *</label>
+                  <input type="text" id="cfgOnlineTitle" required placeholder="เช่น เรียนสด Online (Zoom)">
+                </div>
+                <div class="form-group-luxury">
+                  <label for="cfgOnlineDesc">คำอธิบายย่อยรูปแบบ Online *</label>
+                  <input type="text" id="cfgOnlineDesc" required placeholder="เช่น เรียนสดพร้อมถามตอบได้ทันที จัดส่งหนังสือฟรีถึงบ้าน">
+                </div>
+              </div>
+
+              <!-- SECTION 3: SUBMIT BUTTON -->
+              <h4 class="editor-section-title" style="margin-top: 24px;"><i class="fa-solid fa-paper-plane"></i> 3. ปุ่มส่งใบสมัครเรียน (Step 1)</h4>
+              <div class="form-group-luxury">
+                <label for="cfgSubmitBtnText">ข้อความบนปุ่มยืนยันการสมัคร *</label>
+                <input type="text" id="cfgSubmitBtnText" required placeholder="เช่น ยืนยันการสมัครเรียน (จองที่นั่ง)">
+                <small style="color: var(--text-muted);">ข้อความบนปุ่มสีน้ำเงินด้านล่างสุดของฟอร์มกรอกข้อมูล</small>
+              </div>
+
+              <!-- SECTION 4: STEP 2 CONFIRMATION & SUCCESS -->
+              <h4 class="editor-section-title" style="margin-top: 24px;"><i class="fa-solid fa-circle-check"></i> 4. หน้าแจ้งผลการสมัครสำเร็จ (Step 2: Confirmation View)</h4>
+              <div class="form-row-2col">
+                <div class="form-group-luxury">
+                  <label for="cfgSuccessTitle">หัวข้อเมื่อสมัครสำเร็จ *</label>
+                  <input type="text" id="cfgSuccessTitle" required placeholder="เช่น ลงทะเบียนสมัครเรียนสำเร็จเรียบร้อยแล้ว! 🎉">
+                </div>
+                <div class="form-group-luxury">
+                  <label for="cfgTicketStatusBadge">ป้ายสถานะในบัตรอ้างอิง *</label>
+                  <input type="text" id="cfgTicketStatusBadge" required placeholder="เช่น รอการยืนยันที่นั่ง">
+                </div>
+              </div>
+              <div class="form-group-luxury" style="margin-top: 10px;">
+                <label for="cfgSuccessLead">คำอธิบายใต้หัวข้อแจ้งผล *</label>
+                <textarea id="cfgSuccessLead" rows="2" placeholder="เช่น ระบบได้บันทึกข้อมูลการสมัครเรียนของน้องเข้าสู่ระบบสถาบัน The NEW GEN เรียบร้อยแล้ว"></textarea>
+              </div>
+
+              <!-- SECTION 5: LINE CALLOUT & ACTION BUTTONS -->
+              <h4 class="editor-section-title" style="margin-top: 24px;"><i class="fa-brands fa-line" style="color: #06c755;"></i> 5. กล่องแจ้งเตือนทัก LINE &amp; ปุ่มดำเนินการ (LINE Callout &amp; Actions)</h4>
+              <div class="form-group-luxury">
+                <label for="cfgLineCalloutTitle">หัวข้อกล่องแจ้งเตือนทัก LINE *</label>
+                <input type="text" id="cfgLineCalloutTitle" required placeholder="เช่น ขั้นตอนสุดท้าย: ทักไปยืนยันการสมัครที่ LINE สถาบัน">
+              </div>
+              <div class="form-group-luxury" style="margin-top: 10px;">
+                <label for="cfgLineCalloutBody">ข้อความแนะนำในกล่องทัก LINE *</label>
+                <textarea id="cfgLineCalloutBody" rows="3" placeholder="เช่น กรุณากดปุ่มด้านล่างเพื่อทักไปยืนยันการสมัครและส่งหลักฐานการชำระเงินที่ LINE Official เจ้าหน้าที่จะตรวจสอบและยืนยันที่นั่งให้น้องทันทีครับ"></textarea>
+              </div>
+
+              <div class="form-row-2col" style="margin-top: 10px;">
+                <div class="form-group-luxury">
+                  <label for="cfgLineBtnText">ข้อความบนปุ่มทัก LINE สีเขียว *</label>
+                  <input type="text" id="cfgLineBtnText" required placeholder="เช่น คลิกเพื่อทัก LINE ยืนยันการสมัครทันที">
+                </div>
+                <div class="form-group-luxury">
+                  <label for="cfgLineUrl">ลิงก์ LINE Official (LINE Add Friend URL) *</label>
+                  <input type="text" id="cfgLineUrl" required placeholder="เช่น https://lin.ee/RXrzi1G">
+                </div>
+              </div>
+
+              <div class="form-row-2col" style="margin-top: 10px;">
+                <div class="form-group-luxury">
+                  <label for="cfgCopyBtnText">ข้อความบนปุ่มคัดลอกข้อมูลสรุป *</label>
+                  <input type="text" id="cfgCopyBtnText" required placeholder="เช่น คัดลอกข้อมูลสรุปสำหรับส่งใน LINE">
+                </div>
+                <div class="form-group-luxury">
+                  <label for="cfgDoneBtnText">ข้อความบนปุ่มเสร็จสิ้น / ปิดหน้าต่าง *</label>
+                  <input type="text" id="cfgDoneBtnText" required placeholder="เช่น เสร็จสิ้น / ปิดหน้าต่าง">
+                </div>
+              </div>
+
+              <!-- SECTION 6: FORM QUESTIONS & CUSTOM FIELDS BUILDER -->
+              <div style="margin-top: 32px; padding-top: 24px; border-top: 2px dashed #cbd5e1;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
+                  <div>
+                    <h4 class="editor-section-title" style="margin: 0;">
+                      <i class="fa-solid fa-clipboard-question" style="color: var(--color-blue-brand);"></i> 6. จัดการข้อคำถามในแบบฟอร์มรับสมัคร (Form Questions &amp; Builder)
+                    </h4>
+                    <small style="color: var(--text-muted); display: block; margin-top: 4px;">
+                      คุณสามารถแก้ไขชื่อคำถาม (Label), คำอธิบายตัวอย่างในช่อง (Placeholder), และกำหนดว่าต้องบังคับกรอก (*) หรือไม่ ได้อย่างอิสระ
+                    </small>
+                  </div>
+                </div>
+
+                <!-- 6.1 คำถามมาตรฐาน 9 ข้อ (Standard Questions) -->
+                <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 10px; padding: 18px; margin-bottom: 20px;">
+                  <h5 style="margin: 0 0 12px 0; font-size: 0.95rem; color: var(--color-navy); font-weight: 700;">
+                    <i class="fa-solid fa-list-check" style="color: #2563eb;"></i> ข้อคำถามหลักมาตรฐาน (9 ข้อ)
+                  </h5>
+
+                  <div class="questions-builder-table-wrap" style="overflow-x: auto;">
+                    <table class="admin-data-table" style="font-size: 0.86rem; background: #fff;">
+                      <thead>
+                        <tr>
+                          <th style="width: 40px; text-align: center;">#</th>
+                          <th style="min-width: 170px;">ชื่อข้อคำถาม (Label)</th>
+                          <th style="min-width: 200px;">คำอธิบายตัวอย่าง (Placeholder)</th>
+                          <th style="width: 110px; text-align: center;">จำเป็นต้องกรอก</th>
+                          <th style="width: 90px; text-align: center;">แสดงในฟอร์ม</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <!-- 1. studentName -->
+                        <tr>
+                          <td style="text-align: center; font-weight: 700;">1</td>
+                          <td>
+                            <input type="text" id="qStd_studentName_label" value="ชื่อ - นามสกุลจริง นักเรียน" style="width: 100%; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px;">
+                          </td>
+                          <td>
+                            <input type="text" id="qStd_studentName_ph" value="เช่น ด.ช. ธนภัทร ใจดี" style="width: 100%; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px;">
+                          </td>
+                          <td style="text-align: center;">
+                            <label style="cursor: pointer;"><input type="checkbox" id="qStd_studentName_req" checked> <span style="font-size: 0.78rem;">บังคับ (*)</span></label>
+                          </td>
+                          <td style="text-align: center;">
+                            <label style="cursor: pointer;"><input type="checkbox" id="qStd_studentName_enable" checked> <span style="font-size: 0.78rem;">เปิด</span></label>
+                          </td>
+                        </tr>
+
+                        <!-- 2. nickname -->
+                        <tr>
+                          <td style="text-align: center; font-weight: 700;">2</td>
+                          <td>
+                            <input type="text" id="qStd_nickname_label" value="ชื่อเล่น" style="width: 100%; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px;">
+                          </td>
+                          <td>
+                            <input type="text" id="qStd_nickname_ph" value="เช่น น้องกาย หรือ น้องพรีม" style="width: 100%; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px;">
+                          </td>
+                          <td style="text-align: center;">
+                            <label style="cursor: pointer;"><input type="checkbox" id="qStd_nickname_req" checked> <span style="font-size: 0.78rem;">บังคับ (*)</span></label>
+                          </td>
+                          <td style="text-align: center;">
+                            <label style="cursor: pointer;"><input type="checkbox" id="qStd_nickname_enable" checked> <span style="font-size: 0.78rem;">เปิด</span></label>
+                          </td>
+                        </tr>
+
+                        <!-- 3. grade -->
+                        <tr>
+                          <td style="text-align: center; font-weight: 700;">3</td>
+                          <td>
+                            <input type="text" id="qStd_grade_label" value="ระดับชั้นปัจจุบัน / ที่กำลังจะขึ้น" style="width: 100%; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px;">
+                          </td>
+                          <td>
+                            <input type="text" id="qStd_grade_ph" value="เช่น ป.5 หรือ ป.6 หรือ ม.1" style="width: 100%; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px;">
+                          </td>
+                          <td style="text-align: center;">
+                            <label style="cursor: pointer;"><input type="checkbox" id="qStd_grade_req" checked> <span style="font-size: 0.78rem;">บังคับ (*)</span></label>
+                          </td>
+                          <td style="text-align: center;">
+                            <label style="cursor: pointer;"><input type="checkbox" id="qStd_grade_enable" checked> <span style="font-size: 0.78rem;">เปิด</span></label>
+                          </td>
+                        </tr>
+
+                        <!-- 4. school -->
+                        <tr>
+                          <td style="text-align: center; font-weight: 700;">4</td>
+                          <td>
+                            <input type="text" id="qStd_school_label" value="โรงเรียนปัจจุบัน" style="width: 100%; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px;">
+                          </td>
+                          <td>
+                            <input type="text" id="qStd_school_ph" value="เช่น โรงเรียนอนุบาลเชียงใหม่" style="width: 100%; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px;">
+                          </td>
+                          <td style="text-align: center;">
+                            <label style="cursor: pointer;"><input type="checkbox" id="qStd_school_req" checked> <span style="font-size: 0.78rem;">บังคับ (*)</span></label>
+                          </td>
+                          <td style="text-align: center;">
+                            <label style="cursor: pointer;"><input type="checkbox" id="qStd_school_enable" checked> <span style="font-size: 0.78rem;">เปิด</span></label>
+                          </td>
+                        </tr>
+
+                        <!-- 5. parentPhone -->
+                        <tr>
+                          <td style="text-align: center; font-weight: 700;">5</td>
+                          <td>
+                            <input type="text" id="qStd_parentPhone_label" value="เบอร์โทรศัพท์ผู้ปกครอง" style="width: 100%; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px;">
+                          </td>
+                          <td>
+                            <input type="text" id="qStd_parentPhone_ph" value="เช่น 089-123-4567" style="width: 100%; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px;">
+                          </td>
+                          <td style="text-align: center;">
+                            <label style="cursor: pointer;"><input type="checkbox" id="qStd_parentPhone_req" checked> <span style="font-size: 0.78rem;">บังคับ (*)</span></label>
+                          </td>
+                          <td style="text-align: center;">
+                            <label style="cursor: pointer;"><input type="checkbox" id="qStd_parentPhone_enable" checked> <span style="font-size: 0.78rem;">เปิด</span></label>
+                          </td>
+                        </tr>
+
+                        <!-- 6. lineId -->
+                        <tr>
+                          <td style="text-align: center; font-weight: 700;">6</td>
+                          <td>
+                            <input type="text" id="qStd_lineId_label" value="LINE ID (ผู้ปกครองหรือน้อง)" style="width: 100%; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px;">
+                          </td>
+                          <td>
+                            <input type="text" id="qStd_lineId_ph" value="เช่น newgen_student หรือ เบอร์โทรไลน์" style="width: 100%; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px;">
+                          </td>
+                          <td style="text-align: center;">
+                            <label style="cursor: pointer;"><input type="checkbox" id="qStd_lineId_req" checked> <span style="font-size: 0.78rem;">บังคับ (*)</span></label>
+                          </td>
+                          <td style="text-align: center;">
+                            <label style="cursor: pointer;"><input type="checkbox" id="qStd_lineId_enable" checked> <span style="font-size: 0.78rem;">เปิด</span></label>
+                          </td>
+                        </tr>
+
+                        <!-- 7. studentPhone -->
+                        <tr>
+                          <td style="text-align: center; font-weight: 700;">7</td>
+                          <td>
+                            <input type="text" id="qStd_studentPhone_label" value="เบอร์โทรศัพท์นักเรียน (ถ้ามี)" style="width: 100%; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px;">
+                          </td>
+                          <td>
+                            <input type="text" id="qStd_studentPhone_ph" value="เช่น 095-xxx-xxxx (ไม่บังคับ)" style="width: 100%; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px;">
+                          </td>
+                          <td style="text-align: center;">
+                            <label style="cursor: pointer;"><input type="checkbox" id="qStd_studentPhone_req"> <span style="font-size: 0.78rem;">บังคับ (*)</span></label>
+                          </td>
+                          <td style="text-align: center;">
+                            <label style="cursor: pointer;"><input type="checkbox" id="qStd_studentPhone_enable" checked> <span style="font-size: 0.78rem;">เปิด</span></label>
+                          </td>
+                        </tr>
+
+                        <!-- 8. shippingAddress -->
+                        <tr>
+                          <td style="text-align: center; font-weight: 700;">8</td>
+                          <td>
+                            <input type="text" id="qStd_shippingAddress_label" value="ที่อยู่จัดส่งเอกสารและหนังสือเรียน" style="width: 100%; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px;">
+                          </td>
+                          <td>
+                            <input type="text" id="qStd_shippingAddress_ph" value="บ้านเลขที่ ตำบล อำเภอ จังหวัด รหัสไปรษณีย์" style="width: 100%; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px;">
+                          </td>
+                          <td style="text-align: center;">
+                            <label style="cursor: pointer;"><input type="checkbox" id="qStd_shippingAddress_req"> <span style="font-size: 0.78rem;">บังคับ (*)</span></label>
+                          </td>
+                          <td style="text-align: center;">
+                            <label style="cursor: pointer;"><input type="checkbox" id="qStd_shippingAddress_enable" checked> <span style="font-size: 0.78rem;">เปิด</span></label>
+                          </td>
+                        </tr>
+
+                        <!-- 9. notes -->
+                        <tr>
+                          <td style="text-align: center; font-weight: 700;">9</td>
+                          <td>
+                            <input type="text" id="qStd_notes_label" value="หมายเหตุ / คำถามเพิ่มเติมถึงติวเตอร์ (ถ้ามี)" style="width: 100%; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px;">
+                          </td>
+                          <td>
+                            <input type="text" id="qStd_notes_ph" value="เช่น พื้นฐานวิชาคณิตศาสตร์ยังไม่คล่อง หรือต้องการเน้นเรื่องใดเป็นพิเศษ" style="width: 100%; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px;">
+                          </td>
+                          <td style="text-align: center;">
+                            <label style="cursor: pointer;"><input type="checkbox" id="qStd_notes_req"> <span style="font-size: 0.78rem;">บังคับ (*)</span></label>
+                          </td>
+                          <td style="text-align: center;">
+                            <label style="cursor: pointer;"><input type="checkbox" id="qStd_notes_enable" checked> <span style="font-size: 0.78rem;">เปิด</span></label>
+                          </td>
+                        </tr>
+
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <!-- 6.2 คำถามเพิ่มเติมที่กำหนดเอง (+ เพิ่มคำถามใหม่) -->
+                <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 18px;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+                    <div>
+                      <h5 style="margin: 0; font-size: 0.95rem; color: #166534; font-weight: 700;">
+                        <i class="fa-solid fa-plus-circle" style="color: #16a34a;"></i> ข้อคำถามเพิ่มเติมที่กำหนดเอง (Custom Questions)
+                      </h5>
+                      <small style="color: #15803d;">คุณสามารถเพิ่มคำถามที่ต้องการถามนักเรียนเพิ่มเติมได้ไม่จำกัด เช่น สายการเรียนที่สนใจ, โรงเรียนเป้าหมาย, เกรดเฉลี่ย</small>
+                    </div>
+                    <button type="button" class="btn-primary" onclick="openAddCustomQuestionModal()" style="font-size: 0.82rem; padding: 6px 14px; background: #16a34a; border-color: #16a34a;">
+                      <i class="fa-solid fa-plus"></i> เพิ่มข้อคำถามใหม่
+                    </button>
+                  </div>
+
+                  <div id="adminCustomQuestionsContainer" style="display: flex; flex-direction: column; gap: 10px;">
+                    <!-- Dynamically populated via JS -->
+                  </div>
+                </div>
+
+              </div>
+
+              <!-- Bottom Action Bar -->
+              <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 28px; padding-top: 18px; border-top: 1px solid var(--border-color);">
+                <button type="button" class="btn-secondary" onclick="resetAdminEnrollmentConfig()">
+                  <i class="fa-solid fa-rotate-left"></i> คืนค่าเริ่มต้น (Reset to Default)
+                </button>
+                <button type="submit" class="btn-primary" style="padding: 12px 28px; font-size: 0.95rem;">
+                  <i class="fa-solid fa-floppy-disk"></i> บันทึกการตั้งค่าข้อความหน้าสมัครเรียน
+                </button>
+              </div>
+
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 3. HOME TAB (คำพูดหน้าแรก & ตำแหน่งติวเตอร์) ================= -->
       <section id="tab-home" class="admin-tab-pane">
         <div class="admin-pane-header">
           <div>
-            <h2><i class="fa-solid fa-house" style="color: var(--color-navy);"></i> จัดการหน้าแรก & ตำแหน่งติวเตอร์ (Home Page & Hero Showcase)</h2>
-            <p>ปรับแก้คำพูด/ข้อความต่าง ๆ ที่แสดงบนหน้าแรก และกำหนดตำแหน่งยืนของติวเตอร์ว่าใครยืนซ้าย กลาง หรือขวา</p>
+            <h2><i class="fa-solid fa-house" style="color: var(--color-navy);"></i> จัดการหน้าแรก &amp; จุดเด่น (Home Page &amp; Why Us)</h2>
+            <p>ปรับแก้คำพูด/ข้อความบนหน้าแรก กำหนดตำแหน่งติวเตอร์ และจัดการการ์ดจุดเด่น ทำไมต้องเลือก The NEW GEN</p>
           </div>
           <button type="button" class="btn-primary" onclick="saveHomeSettingsForm()">
             <i class="fa-solid fa-floppy-disk"></i> บันทึกการตั้งค่าหน้าแรก
           </button>
         </div>
+
+        <!-- Sub-Tabs Navigation for Home -->
+        <div class="admin-enroll-subtabs" style="margin-bottom: 22px;">
+          <button type="button" class="admin-subtab-btn active" id="btnHomeSubtabGeneral" onclick="switchHomeSubtab('general')">
+            <i class="fa-solid fa-house"></i> 1. ข้อความหน้าแรก &amp; ตำแหน่งติวเตอร์
+          </button>
+          <button type="button" class="admin-subtab-btn" id="btnHomeSubtabWhyUs" onclick="switchHomeSubtab('whyus')">
+            <i class="fa-solid fa-star" style="color: var(--color-gold);"></i> 2. จุดเด่น ทำไมต้องเลือก The NEW GEN
+          </button>
+        </div>
+
+        <!-- SUBTAB 1: GENERAL & TUTORS -->
+        <div id="subtabHomeGeneral" class="home-subtab-content" style="display: block;">
 
         <!-- Section 1: Hero Tutor Placement -->
         <div class="admin-editor-card" style="margin-bottom: 24px;">
@@ -301,6 +830,48 @@
               <i class="fa-solid fa-arrow-up-right-from-square"></i> ไปที่ "1. จัดการคอร์สเรียน" เพื่อเลือกลำดับ
             </button>
           </div>
+        </div>
+        </div>
+
+        <!-- SUBTAB 2: WHY US -->
+        <div id="subtabHomeWhyUs" class="home-subtab-content" style="display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+            <div>
+              <h3 style="margin: 0; color: var(--color-navy); font-weight: 800;">
+                <i class="fa-solid fa-star" style="color: var(--color-gold);"></i> จุดเด่น "ทำไมต้องเลือก The NEW GEN" (Why Choose Us)
+              </h3>
+              <small style="color: var(--text-muted);">แก้ไขข้อความหัวข้อ คำบรรยาย และการ์ดจุดเด่น 4 กล่องบนหน้าแรก</small>
+            </div>
+            <button type="button" class="btn-primary" onclick="openAddWhyUsModal()">
+              <i class="fa-solid fa-plus"></i> เพิ่มจุดเด่นใหม่
+            </button>
+          </div>
+          <div class="form-row-2col">
+            <div class="form-group-luxury">
+              <label>ป้ายหัวข้อภาษาอังกฤษ (Subtitle Tag)</label>
+              <input type="text" id="whySubtitleInput" placeholder="WHY CHOOSE US">
+            </div>
+            <div class="form-group-luxury">
+              <label>หัวข้อหลักภาษาไทย (Main Title)</label>
+              <input type="text" id="whyTitleInput" placeholder="ทำไมต้องเลือก The NEW GEN">
+            </div>
+          </div>
+          <div class="form-group-luxury">
+            <label>คำอธิบายใต้หัวข้อหลัก</label>
+            <input type="text" id="whyDescInput" placeholder="เราไม่ได้แค่สอนให้จำ แต่เราสอนให้เข้าใจและนำไปใช้ทำข้อสอบได้จริง">
+          </div>
+          <div style="display: flex; justify-content: flex-end; margin-top: 12px;">
+            <button type="button" class="btn-primary" onclick="saveWhyUsHeader()"><i class="fa-solid fa-floppy-disk"></i> บันทึกข้อความส่วนหัว</button>
+          </div>
+        </div>
+
+        <!-- Feature Cards List -->
+        <div style="margin-top: 24px;">
+          <h3 class="editor-section-title"><i class="fa-solid fa-boxes-stacked"></i> การ์ดจุดเด่นที่แสดงบนหน้าเว็บ</h3>
+          <div id="adminWhyUsGrid" class="admin-whyus-items-grid">
+            <!-- Dynamically populated via JS -->
+          </div>
+        </div>
         </div>
       </section>
 
@@ -693,57 +1264,87 @@
         </div>
       </section>
 
-      <!-- ================= 6. WHY US TAB ================= -->
-      <section id="tab-whyus" class="admin-tab-pane">
+      
+
+      
+
+      
+
+      
+
+    <!-- ================= 9. SYSTEM SETTINGS TAB ================= -->
+      <section id="tab-system" class="admin-tab-pane">
         <div class="admin-pane-header">
           <div>
-            <h2><i class="fa-solid fa-star" style="color: var(--color-gold);"></i> จัดการ "ทำไมต้องเลือก The NEW GEN"</h2>
-            <p>แก้ไขข้อความหัวข้อ คำบรรยาย และการ์ดจุดเด่น 4 กล่อง (หรือเพิ่ม/ลบจุดเด่นใหม่ได้ตามต้องการ)</p>
+            <h2><i class="fa-solid fa-sliders" style="color: var(--color-navy);"></i> ตั้งค่าระบบ (System Settings)</h2>
+            <p>เปลี่ยนรหัสผ่านผู้ดูแลระบบ ความปลอดภัย และสำรอง/กู้คืนฐานข้อมูลสถาบัน</p>
           </div>
-          <button type="button" class="btn-primary" onclick="openAddWhyUsModal()">
-            <i class="fa-solid fa-plus"></i> เพิ่มจุดเด่นใหม่
+        </div>
+
+        <!-- Sub-Tabs Navigation for System Settings -->
+        <div class="admin-enroll-subtabs" style="margin-bottom: 22px;">
+          <button type="button" class="admin-subtab-btn active" id="btnSystemSubtabSecurity" onclick="switchSystemSubtab('security')">
+            <i class="fa-solid fa-shield-halved"></i> 1. เปลี่ยนรหัสผ่านผู้ดูแลระบบ
+          </button>
+          <button type="button" class="admin-subtab-btn" id="btnSystemSubtabBackup" onclick="switchSystemSubtab('backup')">
+            <i class="fa-solid fa-database"></i> 2. สำรอง &amp; กู้คืนข้อมูล (Backup &amp; Restore)
           </button>
         </div>
 
-        <!-- Section Header Settings -->
-        <div class="admin-whyus-header-card">
-          <h3 class="editor-section-title"><i class="fa-solid fa-pen-nib"></i> ข้อความส่วนหัวของหัวข้อ (Header Text)</h3>
-          <div class="form-row-2col">
-            <div class="form-group-luxury">
-              <label>หัวข้อย่อยด้านบน (เช่น WHY CHOOSE US)</label>
-              <input type="text" id="whySubtitleInput" placeholder="WHY CHOOSE US">
-            </div>
-            <div class="form-group-luxury">
-              <label>หัวข้อหลัก (เช่น ทำไมต้องเลือก The NEW GEN)</label>
-              <input type="text" id="whyTitleInput" placeholder="ทำไมต้องเลือก The NEW GEN">
-            </div>
-          </div>
-          <div class="form-group-luxury">
-            <label>คำอธิบายใต้หัวข้อหลัก</label>
-            <input type="text" id="whyDescInput" placeholder="เราไม่ได้แค่สอนให้จำ แต่เราสอนให้เข้าใจและนำไปใช้ทำข้อสอบได้จริง">
-          </div>
-          <div style="display: flex; justify-content: flex-end; margin-top: 12px;">
-            <button type="button" class="btn-primary" onclick="saveWhyUsHeader()"><i class="fa-solid fa-floppy-disk"></i> บันทึกข้อความส่วนหัว</button>
+        <!-- SUBTAB 1: SECURITY -->
+        <div id="subtabSystemSecurity" class="system-subtab-content" style="display: block;">
+          <div class="admin-editor-card" style="max-width: 650px;">
+            <form id="adminChangePasswordForm" onsubmit="handleChangePasswordSubmit(event)">
+              <div class="form-group-luxury" style="margin-bottom: 20px;">
+                <label><i class="fa-solid fa-user"></i> ชื่อผู้ใช้งาน (Username) *</label>
+                <input type="text" id="secUsername" placeholder="admin" required autocomplete="username">
+                <small style="color: #64748b; font-size: 0.8rem; margin-top: 4px; display: block;">ชื่อผู้ใช้งานที่ใช้เข้าสู่ระบบ (ค่าเริ่มต้นคือ admin)</small>
+              </div>
+
+              <div class="form-group-luxury" style="margin-bottom: 20px;">
+                <label><i class="fa-solid fa-lock"></i> รหัสผ่านปัจจุบัน (Current Password) *</label>
+                <div class="password-input-wrap">
+                  <input type="password" id="secCurrentPassword" placeholder="••••••••••••" required autocomplete="current-password">
+                  <button type="button" class="btn-toggle-eye" onclick="toggleSecPass('secCurrentPassword', this)" aria-label="แสดงรหัสผ่าน">
+                    <i class="fa-solid fa-eye"></i>
+                  </button>
+                </div>
+                <small style="color: #64748b; font-size: 0.8rem; margin-top: 4px; display: block;">ใส่รหัสผ่านปัจจุบันเพื่อยืนยันสิทธิ์ในการแก้ไข</small>
+              </div>
+
+              <div class="form-group-luxury" style="margin-bottom: 20px;">
+                <label><i class="fa-solid fa-key"></i> รหัสผ่านใหม่ (New Password) *</label>
+                <div class="password-input-wrap">
+                  <input type="password" id="secNewPassword" placeholder="••••••••••••" required autocomplete="new-password" minlength="4">
+                  <button type="button" class="btn-toggle-eye" onclick="toggleSecPass('secNewPassword', this)" aria-label="แสดงรหัสผ่าน">
+                    <i class="fa-solid fa-eye"></i>
+                  </button>
+                </div>
+                <small style="color: #64748b; font-size: 0.8rem; margin-top: 4px; display: block;">ความยาวอย่างน้อย 4 ตัวอักษรขึ้นไป</small>
+              </div>
+
+              <div class="form-group-luxury" style="margin-bottom: 24px;">
+                <label><i class="fa-solid fa-circle-check"></i> ยืนยันรหัสผ่านใหม่ (Confirm New Password) *</label>
+                <div class="password-input-wrap">
+                  <input type="password" id="secConfirmPassword" placeholder="••••••••••••" required autocomplete="new-password" minlength="4">
+                  <button type="button" class="btn-toggle-eye" onclick="toggleSecPass('secConfirmPassword', this)" aria-label="แสดงรหัสผ่าน">
+                    <i class="fa-solid fa-eye"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+                <button type="submit" id="btnSaveAdminPassword" class="btn-primary" style="padding: 12px 28px; font-size: 0.95rem;">
+                  <i class="fa-solid fa-floppy-disk"></i> บันทึกรหัสผ่านใหม่
+                </button>
+                <span id="secStatusText" style="font-size: 0.88rem; font-weight: 600;"></span>
+              </div>
+            </form>
           </div>
         </div>
 
-        <!-- Feature Cards List -->
-        <div style="margin-top: 24px;">
-          <h3 class="editor-section-title"><i class="fa-solid fa-boxes-stacked"></i> การ์ดจุดเด่นที่แสดงบนหน้าเว็บ</h3>
-          <div id="adminWhyUsGrid" class="admin-whyus-items-grid">
-            <!-- Dynamically populated via JS -->
-          </div>
-        </div>
-      </section>
-
-      <!-- ================= 7. BACKUP & RESET TAB ================= -->
-      <section id="tab-backup" class="admin-tab-pane">
-        <div class="admin-pane-header">
-          <div>
-            <h2><i class="fa-solid fa-database" style="color: var(--color-navy);"></i> สำรองและกู้คืนข้อมูล (Backup & Restore)</h2>
-            <p>บันทึกข้อมูลทั้งหมดเก็บไว้ในเครื่อง หรือนำเข้าข้อมูลเดิมได้ตลอดเวลา</p>
-          </div>
-        </div>
+        <!-- SUBTAB 2: BACKUP & RESTORE -->
+        <div id="subtabSystemBackup" class="system-subtab-content" style="display: none;">
 
         <div class="admin-editor-card" style="max-width: 700px;">
           <div class="backup-action-row">
@@ -781,64 +1382,6 @@
             </button>
           </div>
         </div>
-      </section>
-
-      <!-- ================= 10. SECURITY & PASSWORD TAB ================= -->
-      <section id="tab-security" class="admin-tab-pane">
-        <div class="admin-pane-header">
-          <div>
-            <h2><i class="fa-solid fa-shield-halved" style="color: var(--color-navy);"></i> จัดการรหัสผ่านผู้ดูแลระบบ (Security & Password)</h2>
-            <p>เปลี่ยนชื่อผู้ใช้งานและรหัสผ่านสำหรับเข้าสู่ระบบหลังบ้าน ข้อมูลจะถูกบันทึกและซิงค์ขึ้น Supabase Cloud ทันที</p>
-          </div>
-        </div>
-
-        <div class="admin-editor-card" style="max-width: 650px;">
-          <form id="adminChangePasswordForm" onsubmit="handleChangePasswordSubmit(event)">
-            <div class="form-group-luxury" style="margin-bottom: 20px;">
-              <label><i class="fa-solid fa-user"></i> ชื่อผู้ใช้งาน (Username) *</label>
-              <input type="text" id="secUsername" placeholder="admin" required autocomplete="username">
-              <small style="color: #64748b; font-size: 0.8rem; margin-top: 4px; display: block;">ชื่อผู้ใช้งานที่ใช้เข้าสู่ระบบ (ค่าเริ่มต้นคือ admin)</small>
-            </div>
-
-            <div class="form-group-luxury" style="margin-bottom: 20px;">
-              <label><i class="fa-solid fa-lock"></i> รหัสผ่านปัจจุบัน (Current Password) *</label>
-              <div class="password-input-wrap">
-                <input type="password" id="secCurrentPassword" placeholder="••••••••••••" required autocomplete="current-password">
-                <button type="button" class="btn-toggle-eye" onclick="toggleSecPass('secCurrentPassword', this)" aria-label="แสดงรหัสผ่าน">
-                  <i class="fa-solid fa-eye"></i>
-                </button>
-              </div>
-              <small style="color: #64748b; font-size: 0.8rem; margin-top: 4px; display: block;">ใส่รหัสผ่านปัจจุบันเพื่อยืนยันสิทธิ์ในการแก้ไข</small>
-            </div>
-
-            <div class="form-group-luxury" style="margin-bottom: 20px;">
-              <label><i class="fa-solid fa-key"></i> รหัสผ่านใหม่ (New Password) *</label>
-              <div class="password-input-wrap">
-                <input type="password" id="secNewPassword" placeholder="••••••••••••" required autocomplete="new-password" minlength="4">
-                <button type="button" class="btn-toggle-eye" onclick="toggleSecPass('secNewPassword', this)" aria-label="แสดงรหัสผ่าน">
-                  <i class="fa-solid fa-eye"></i>
-                </button>
-              </div>
-              <small style="color: #64748b; font-size: 0.8rem; margin-top: 4px; display: block;">ความยาวอย่างน้อย 4 ตัวอักษรขึ้นไป</small>
-            </div>
-
-            <div class="form-group-luxury" style="margin-bottom: 24px;">
-              <label><i class="fa-solid fa-circle-check"></i> ยืนยันรหัสผ่านใหม่ (Confirm New Password) *</label>
-              <div class="password-input-wrap">
-                <input type="password" id="secConfirmPassword" placeholder="••••••••••••" required autocomplete="new-password" minlength="4">
-                <button type="button" class="btn-toggle-eye" onclick="toggleSecPass('secConfirmPassword', this)" aria-label="แสดงรหัสผ่าน">
-                  <i class="fa-solid fa-eye"></i>
-                </button>
-              </div>
-            </div>
-
-            <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
-              <button type="submit" id="btnSaveAdminPassword" class="btn-primary" style="padding: 12px 28px; font-size: 0.95rem;">
-                <i class="fa-solid fa-floppy-disk"></i> บันทึกรหัสผ่านใหม่
-              </button>
-              <span id="secStatusText" style="font-size: 0.88rem; font-weight: 600;"></span>
-            </div>
-          </form>
         </div>
       </section>
 
@@ -881,10 +1424,41 @@
               <label>สถานะคอร์ส</label>
               <select id="cStatus">
                 <option value="เปิดรับสมัคร|badge-emerald">เปิดรับสมัคร</option>
+                <option value="✨ คอร์สใหม่ล่าสุด|badge-gold">✨ คอร์สใหม่ล่าสุด</option>
                 <option value="🔥 โควตาใกล้เต็ม|badge-red">🔥 โควตาใกล้เต็ม</option>
                 <option value="🛑 เต็มแล้ว|badge-red">🛑 เต็มแล้ว</option>
               </select>
             </div>
+          </div>
+
+          <!-- Seat Availability & Quota Settings -->
+          <div class="form-group-luxury" style="background: #f0fdf4; border: 1.5px solid #86efac; padding: 16px; border-radius: var(--radius-md); margin-bottom: 16px;">
+            <div style="margin-bottom: 12px;">
+              <label style="margin: 0; color: #166534; font-weight: 800; font-size: 0.95rem;">
+                <i class="fa-solid fa-users" style="color: #16a34a;"></i> ตั้งค่าจำนวนที่นั่งที่รับได้ &amp; โควตานักเรียน (Course Quota &amp; Live Capacity)
+              </label>
+              <small style="color: #15803d; display: block; margin-top: 2px;">
+                ระบบรับสมัครในเว็บไซต์โดยตรง: เมื่อมีนักเรียนสมัครเข้ามา ยอดที่นั่งคงเหลือจะลดลงแบบเรียลไทม์ และปิดรับสมัครอัตโนมัติเมื่อเต็ม
+              </small>
+            </div>
+
+            <div class="form-row-2col">
+              <div class="form-group-luxury" style="margin-bottom: 10px;">
+                <label>จำนวนนักเรียนที่รับได้ทั้งหมด (Max Capacity)</label>
+                <input type="number" id="cMaxSeats" min="1" placeholder="เช่น 12 หรือ 15 (ค่าเริ่มต้น 12 ที่นั่ง)" oninput="updateCourseSeatCalcPreview()">
+                <small id="courseSeatCalcPreview" style="color: #15803d; display: block; margin-top: 4px; font-weight: 600;">
+                  คำนวณที่นั่งอัตโนมัติ: (รับได้ทั้งหมด - ผู้สมัครปัจจุบัน = ที่นั่งคงเหลือ)
+                </small>
+              </div>
+              <div class="form-group-luxury" style="margin-bottom: 10px; display: flex; flex-direction: column; justify-content: center;">
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 700; color: #dc2626; margin-top: 14px;">
+                  <input type="checkbox" id="cIsFull" style="width: 20px; height: 20px; accent-color: #dc2626; cursor: pointer;">
+                  <span>🛑 บังคับปิดรับสมัครทันที ("ที่นั่งเต็มแล้ว")</span>
+                </label>
+                <small style="color: var(--text-muted); display: block; margin-top: 4px;">สวิตช์ปิดรับสมัครด้วยตนเอง (Manual Override) แม้ที่นั่งยังไม่ครบ</small>
+              </div>
+            </div>
+            <input type="hidden" id="cRemainingSeats">
           </div>
 
           <div class="form-group-luxury" style="background: #f8fafc; border: 1.5px solid #cbd5e1; padding: 12px 16px; border-radius: var(--radius-md); margin-bottom: 16px;">
@@ -1112,6 +1686,17 @@
             </label>
             <small style="color: #15803d; display: block; margin-top: 5px; padding-left: 30px; font-size: 0.82rem;">
               ทำเครื่องหมายถูก หากต้องการให้คอร์สนี้แสดงในสไลเดอร์คอร์สแนะนำบนหน้าแรกของเว็บไซต์
+            </small>
+          </div>
+
+          <!-- Hidden Course Toggle (ซ่อนคอร์สเรียน) -->
+          <div class="form-group-luxury" style="background: #fef2f2; border: 1.5px solid #fecaca; padding: 14px 16px; border-radius: var(--radius-sm); margin-top: 10px;">
+            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin: 0; color: #991b1b; font-weight: 700; font-size: 1rem;">
+              <input type="checkbox" id="cIsHidden" style="width: 20px; height: 20px; cursor: pointer; accent-color: #dc2626;">
+              <span><i class="fa-solid fa-eye-slash"></i> ซ่อนคอร์สเรียนนี้ (ไม่ให้แสดงบนหน้าเว็บไซต์)</span>
+            </label>
+            <small style="color: #b91c1c; display: block; margin-top: 5px; padding-left: 30px; font-size: 0.82rem;">
+              ทำเครื่องหมายถูก หากต้องการซ่อนคอร์สนี้ ไม่ให้นักเรียนมองเห็นบนหน้าเว็บ (ระบบหลังบ้านยังคงเข้าถึงและเปิดการแสดงผลกลับมาได้ตลอดเวลา)
             </small>
           </div>
         </div>
@@ -1467,6 +2052,235 @@
         <div class="admin-modal-footer">
           <button type="button" class="btn-secondary" onclick="closeModal('modalWhyUs')">ยกเลิก</button>
           <button type="submit" class="btn-primary"><i class="fa-solid fa-floppy-disk"></i> บันทึกจุดเด่น</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Student Enrollment Modal (Item 3) -->
+  <div class="admin-modal-backdrop" id="modalEnrollment">
+    <div class="admin-modal-card modal-card-wide">
+      <div class="admin-modal-header">
+        <h3 id="modalEnrollmentTitle"><i class="fa-solid fa-user-plus" style="color: #2563eb;"></i> เพิ่มข้อมูลผู้สมัครเรียน</h3>
+        <button type="button" class="admin-modal-close" onclick="closeModal('modalEnrollment')"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form id="formEnrollment" onsubmit="handleSaveEnrollment(event)">
+        <input type="hidden" id="enrollmentEditId">
+        <div class="admin-modal-body">
+          
+          <!-- Course & Learning Mode -->
+          <div style="background: #eff6ff; border: 1.5px solid #bfdbfe; border-radius: var(--radius-md); padding: 16px; margin-bottom: 16px;">
+            <div class="form-row-2col">
+              <div class="form-group-luxury" style="margin-bottom: 0;">
+                <label style="color: #1e40af; font-weight: 800;">📚 คอร์สเรียนที่สมัคร *</label>
+                <select id="enCourseId" required style="font-weight: 600;">
+                  <!-- Dynamically populated via JS -->
+                </select>
+              </div>
+              <div class="form-group-luxury" style="margin-bottom: 0;">
+                <label style="color: #1e40af; font-weight: 800;">🎓 รูปแบบการเรียน (Online / Onsite) *</label>
+                <select id="enLearningType" required style="font-weight: 600;">
+                  <option value="onsite">🏫 เรียนสด Onsite (ที่สถาบัน)</option>
+                  <option value="online">💻 เรียนสด Online (ระบบห้องเรียนสด)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Student Info (ชื่อ-สกุล, ชื่อเล่น, ชั้น, โรงเรียน) -->
+          <div class="form-row-2col">
+            <div class="form-group-luxury">
+              <label>ชื่อ - สกุล นักเรียน *</label>
+              <input type="text" id="enStudentName" required placeholder="เช่น ด.ช. ณภัทร เจริญพร หรือ ชัยวัฒน์ มั่นคง">
+            </div>
+            <div class="form-group-luxury">
+              <label>ชื่อเล่น *</label>
+              <input type="text" id="enNickname" required placeholder="เช่น น้องนนท์ หรือ น้องพีม">
+            </div>
+          </div>
+
+          <div class="form-row-2col">
+            <div class="form-group-luxury">
+              <label>ระดับชั้น *</label>
+              <input type="text" id="enGrade" required placeholder="เช่น ป.5, ป.6, ม.1, ม.2, ม.3">
+            </div>
+            <div class="form-group-luxury">
+              <label>โรงเรียน *</label>
+              <input type="text" id="enSchool" required placeholder="เช่น รร.อนุบาลชลบุรี หรือ สาธิต มศว">
+            </div>
+          </div>
+
+          <!-- Contact Info (เบอร์โทรนักเรียน, เบอร์โทรผู้ปกครอง, Line ID) -->
+          <div class="form-row-2col">
+            <div class="form-group-luxury">
+              <label>📞 เบอร์โทรผู้ปกครอง *</label>
+              <input type="tel" id="enParentPhone" required placeholder="เช่น 089-123-4567">
+            </div>
+            <div class="form-group-luxury">
+              <label>📱 เบอร์โทรนักเรียน (ถ้ามี)</label>
+              <input type="tel" id="enStudentPhone" placeholder="เช่น 095-987-6543">
+            </div>
+          </div>
+
+          <div class="form-row-2col">
+            <div class="form-group-luxury">
+              <label><i class="fa-brands fa-line" style="color: #16a34a;"></i> Line ID (ของนักเรียน หรือ ผู้ปกครอง) *</label>
+              <input type="text" id="enLineId" required placeholder="เช่น nong_nonth หรือ line_parent01">
+            </div>
+            <div class="form-group-luxury">
+              <label>สถานะการสมัคร</label>
+              <select id="enStatus">
+                <option value="confirmed" selected>✅ ยืนยันที่นั่งแล้ว (ชำระเงินเรียบร้อย)</option>
+                <option value="pending">⏳ รอตรวจสอบ / รอชำระเงิน</option>
+                <option value="materials_sent">📦 จัดส่งหนังสือและเอกสารแล้ว</option>
+                <option value="cancelled">❌ ยกเลิกการสมัคร</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Shipping Address -->
+          <div class="form-group-luxury">
+            <label>🏠 ที่อยู่สำหรับจัดส่งเอกสารและหนังสือเรียน *</label>
+            <textarea id="enShippingAddress" rows="3" required placeholder="ระบุเลขที่บ้าน หมู่ ซอย ถนน ตำบล อำเภอ จังหวัด และรหัสไปรษณีย์ ให้ชัดเจนเพื่อการจัดส่งหนังสือ..."></textarea>
+          </div>
+
+          <!-- Internal Admin Notes -->
+          <div class="form-group-luxury" style="margin-bottom: 0;">
+            <label>📝 หมายเหตุเพิ่มเติม (บันทึกภายใน)</label>
+            <input type="text" id="enNotes" placeholder="เช่น ชำระแบบแบ่งจ่ายงวดแรก, ขอนั่งโต๊ะหน้า, เอกสารส่งรอบวันจันทร์">
+          </div>
+
+        </div>
+        <div class="admin-modal-footer">
+          <button type="button" class="btn-secondary" onclick="closeModal('modalEnrollment')">ยกเลิก</button>
+          <button type="submit" class="btn-primary"><i class="fa-solid fa-floppy-disk"></i> บันทึกข้อมูลผู้สมัคร</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= EXPORT ENROLLMENTS MODAL ================= -->
+  <div class="admin-modal-backdrop" id="modalExportEnrollments">
+    <div class="admin-modal-card" style="max-width: 520px;">
+      <div class="admin-modal-header">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div style="width: 36px; height: 36px; border-radius: 8px; background: #dcfce7; display: flex; align-items: center; justify-content: center; color: #16a34a; font-size: 1.1rem;">
+            <i class="fa-solid fa-file-excel"></i>
+          </div>
+          <div>
+            <h3 style="margin: 0; font-size: 1.15rem; color: var(--color-navy);">ส่งออกรายชื่อผู้สมัคร (Export to Excel)</h3>
+            <span style="font-size: 0.8rem; color: #64748b;">ดาวน์โหลดไฟล์ข้อมูลนักเรียนเพื่อเปิดใน Microsoft Excel หรือ Sheets</span>
+          </div>
+        </div>
+        <button type="button" class="admin-modal-close" onclick="closeModal('modalExportEnrollments')">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="admin-modal-body" style="padding: 20px;">
+        <div style="margin-bottom: 16px;">
+          <label style="display: block; font-weight: 700; color: var(--color-navy); margin-bottom: 8px; font-size: 0.95rem;">
+            เลือกรูปแบบการส่งออก:
+          </label>
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            <label style="display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px; border: 1.5px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: all 0.2s;" id="labelExportAll" class="export-opt-label">
+              <input type="radio" name="exportScope" value="all" id="exportRadioAll" checked onchange="toggleExportCourseSelect(false)" style="margin-top: 3px; accent-color: #2563eb;">
+              <div>
+                <div style="font-weight: 700; color: #1e293b; font-size: 0.92rem;">📁 ส่งออกทุกคอร์สรวมกัน (All Courses)</div>
+                <div style="font-size: 0.8rem; color: #64748b;">รวบรวมรายชื่อผู้สมัครจากทุกคอร์สเรียน พร้อมคอลัมน์ระบุชื่อคอร์สชัดเจน</div>
+              </div>
+            </label>
+
+            <label style="display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px; border: 1.5px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: all 0.2s;" id="labelExportSpecific" class="export-opt-label">
+              <input type="radio" name="exportScope" value="single" id="exportRadioSingle" onchange="toggleExportCourseSelect(true)" style="margin-top: 3px; accent-color: #2563eb;">
+              <div style="width: 100%;">
+                <div style="font-weight: 700; color: #1e293b; font-size: 0.92rem;">🎯 ส่งออกเฉพาะคอร์สเรียนที่เลือก (Specific Course)</div>
+                <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 8px;">แยกไฟล์รายชื่อเฉพาะนักเรียนที่ลงทะเบียนในคอร์สที่ต้องการ</div>
+                
+                <div id="exportCourseSelectWrap" style="display: none; margin-top: 8px;">
+                  <select id="exportCourseSelect" style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.88rem; background: #fff;">
+                    <!-- Dynamically populated -->
+                  </select>
+                </div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; font-size: 0.8rem; color: #64748b; line-height: 1.5;">
+          <i class="fa-solid fa-circle-info" style="color: #3b82f6; margin-right: 4px;"></i>
+          <strong>ข้อมูลไฟล์:</strong> ไฟล์จะถูกส่งออกเป็น <code>.csv</code> รหัส <strong>UTF-8 with BOM</strong> สามารถดับเบิลคลิกเปิดใน <strong>Microsoft Excel</strong> หรือ Google Sheets ได้ทันที สระภาษาไทยไม่เพี้ยน พร้อมส่งออกข้อคำถามที่ตั้งค่าไว้และคำถามเพิ่มเติมทั้งหมดครบถ้วน
+        </div>
+      </div>
+      <div class="admin-modal-footer">
+        <button type="button" class="btn-secondary" onclick="closeModal('modalExportEnrollments')">ยกเลิก</button>
+        <button type="button" class="btn-primary" onclick="confirmExportEnrollments()" style="background: #16a34a; border-color: #16a34a;">
+          <i class="fa-solid fa-file-excel"></i> ดาวน์โหลดไฟล์ Excel (.csv)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= CUSTOM QUESTION MODAL ================= -->
+  <div class="admin-modal-backdrop" id="modalCustomQuestion">
+    <div class="admin-modal-card" style="max-width: 560px;">
+      <div class="admin-modal-header">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div style="width: 36px; height: 36px; border-radius: 8px; background: #eff6ff; display: flex; align-items: center; justify-content: center; color: #2563eb; font-size: 1.1rem;">
+            <i class="fa-solid fa-circle-question"></i>
+          </div>
+          <div>
+            <h3 id="modalCustomQTitle" style="margin: 0; font-size: 1.15rem; color: var(--color-navy);">เพิ่มข้อคำถามใหม่</h3>
+            <span style="font-size: 0.8rem; color: #64748b;">ตั้งค่าคำถามเพิ่มเติมในฟอร์มรับสมัครเรียน</span>
+          </div>
+        </div>
+        <button type="button" class="admin-modal-close" onclick="closeModal('modalCustomQuestion')">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <form id="formCustomQuestion" onsubmit="handleSaveCustomQuestion(event)">
+        <input type="hidden" id="customQId" value="">
+        <div class="admin-modal-body" style="padding: 20px;">
+          <div class="form-group-luxury">
+            <label>หัวข้อ / ข้อคำถาม *</label>
+            <input type="text" id="customQLabel" required placeholder="เช่น ทราบข่าวการสมัครจากช่องทางใด, ไซส์เสื้อที่ต้องการ">
+          </div>
+
+          <div class="form-row-2col">
+            <div class="form-group-luxury">
+              <label>รูปแบบช่องกรอกข้อมูล *</label>
+              <select id="customQType" onchange="toggleCustomQOptions(this.value)">
+                <option value="text">ข้อความสั้น (Single-line Text)</option>
+                <option value="textarea">ข้อความยาว / หลายบรรทัด (Textarea)</option>
+                <option value="select">ตัวเลือกแบบ Dropdown (เลือก 1 ข้อ)</option>
+              </select>
+            </div>
+            <div class="form-group-luxury">
+              <label>คำใบ้ในช่องกรอก (Placeholder)</label>
+              <input type="text" id="customQPlaceholder" placeholder="เช่น เช่น Facebook, TikTok, เพื่อนแนะนำ">
+            </div>
+          </div>
+
+          <!-- Options Wrap for Select type -->
+          <div id="customQOptionsWrap" class="form-group-luxury" style="display: none;">
+            <label>รายการตัวเลือก (พิมพ์ทีละบรรทัด) *</label>
+            <textarea id="customQOptionsText" rows="4" placeholder="Facebook&#10;TikTok&#10;เพื่อน / ผู้ปกครองแนะนำ&#10;ป้ายไวนิล / ป้ายโฆษณา&#10;อื่นๆ"></textarea>
+            <small style="color: #64748b; font-size: 0.78rem;">พิมพ์แต่ละตัวเลือกแยก 1 บรรทัด</small>
+          </div>
+
+          <div style="display: flex; gap: 24px; padding: 12px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; margin-top: 10px;">
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.88rem; font-weight: 600; color: #1e293b;">
+              <input type="checkbox" id="customQRequired" style="accent-color: #ef4444; width: 16px; height: 16px;">
+              <span>บังคับตอบข้อนี้ (*)</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.88rem; font-weight: 600; color: #1e293b;">
+              <input type="checkbox" id="customQEnabled" checked style="accent-color: #16a34a; width: 16px; height: 16px;">
+              <span>เปิดแสดงในฟอร์ม</span>
+            </label>
+          </div>
+        </div>
+        <div class="admin-modal-footer">
+          <button type="button" class="btn-secondary" onclick="closeModal('modalCustomQuestion')">ยกเลิก</button>
+          <button type="submit" class="btn-primary"><i class="fa-solid fa-floppy-disk"></i> บันทึกข้อคำถาม</button>
         </div>
       </form>
     </div>

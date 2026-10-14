@@ -91,7 +91,10 @@
       "location": "สถาบัน The NEW GEN (เรียนสด Onsite)",
       "classSize": "กลุ่มเล็ก ดูแลใกล้ชิด ถามได้ทันที",
       "materials": "ฟรี! หนังสือและแนวข้อสอบเก็งพิเศษ",
-      "trustGuarantee": "การันตีการสอนโดยทีมติวเตอร์ The NEW GEN"
+      "trustGuarantee": "การันตีการสอนโดยทีมติวเตอร์ The NEW GEN",
+      "remainingSeats": 11,
+      "isFull": false,
+      "maxSeats": 12
     },
     {
       "id": "course-p6-m1",
@@ -189,7 +192,10 @@
       "location": "สถาบัน The NEW GEN (เรียนสด Onsite)",
       "classSize": "กลุ่มเล็ก ดูแลใกล้ชิด ถามได้ทันที",
       "materials": "ฟรี! หนังสือและแนวข้อสอบเก็งพิเศษ",
-      "trustGuarantee": "การันตีการสอนโดยทีมติวเตอร์ The NEW GEN"
+      "trustGuarantee": "การันตีการสอนโดยทีมติวเตอร์ The NEW GEN",
+      "remainingSeats": 11,
+      "isFull": false,
+      "maxSeats": 12
     },
     {
       "id": "course-m1-m2",
@@ -298,7 +304,11 @@
       "location": "สถาบัน The NEW GEN (เรียนสด Onsite)",
       "classSize": "กลุ่มเล็ก ดูแลใกล้ชิด ถามได้ทันที",
       "materials": "ฟรี! หนังสือและแนวข้อสอบเก็งพิเศษ",
-      "trustGuarantee": "การันตีการสอนโดยทีมติวเตอร์ The NEW GEN"
+      "trustGuarantee": "การันตีการสอนโดยทีมติวเตอร์ The NEW GEN",
+      "remainingSeats": 11,
+      "isFull": false,
+      "maxSeats": 12,
+      "isHidden": false
     },
     {
       "id": "course-m3-m4",
@@ -396,7 +406,10 @@
       "location": "สถาบัน The NEW GEN (เรียนสด Onsite)",
       "classSize": "กลุ่มเล็ก ดูแลใกล้ชิด ถามได้ทันที",
       "materials": "ฟรี! หนังสือและแนวข้อสอบเก็งพิเศษ",
-      "trustGuarantee": "การันตีการสอนโดยทีมติวเตอร์ The NEW GEN"
+      "trustGuarantee": "การันตีการสอนโดยทีมติวเตอร์ The NEW GEN",
+      "remainingSeats": 10,
+      "isFull": false,
+      "maxSeats": 10
     }
   ],
   "tutors": [
@@ -842,5 +855,138 @@
   },
   "test_key": {
     "test": true
+  },
+  "enrollments": [
+    {
+      "id": "enr-17918201",
+      "courseId": "course-p4-p5",
+      "courseTitle": "คอร์สเปิดเทอม 2/69 (ป.4 - ป.5)",
+      "studentName": "ด.ช. ภัทรพล เจริญสุข",
+      "fullName": "ด.ช. ภัทรพล เจริญสุข",
+      "nickname": "น้องกาย",
+      "grade": "ป.5",
+      "school": "โรงเรียนอนุบาลเชียงใหม่",
+      "studentPhone": "081-234-5678",
+      "parentPhone": "089-876-5432",
+      "learningType": "onsite",
+      "shippingAddress": "123/45 หมู่ 2 ต.ช้างเผือก อ.เมือง จ.เชียงใหม่ 50300",
+      "lineId": "pat.charoen",
+      "status": "confirmed",
+      "notes": "ต้องการเอกสารติววิทย์-คณิตล่วงหน้า",
+      "createdAt": "2026-10-12T10:30:00Z"
+    },
+    {
+      "id": "enr-17918202",
+      "courseId": "course-p6-m1",
+      "courseTitle": "คอร์สเปิดเทอม 2/69 (ป.6 ติวสอบเข้า ม.1)",
+      "studentName": "ด.ญ. กานต์พิชชา วงศ์สวัสดิ์",
+      "fullName": "ด.ญ. กานต์พิชชา วงศ์สวัสดิ์",
+      "nickname": "น้องพรีม",
+      "grade": "ป.6",
+      "school": "โรงเรียนปรินส์รอยแยลส์วิทยาลัย",
+      "studentPhone": "082-345-6789",
+      "parentPhone": "081-987-6543",
+      "learningType": "onsite",
+      "shippingAddress": "456/78 ถ.แก้วนวรัฐ ต.วัดเกต อ.เมือง จ.เชียงใหม่ 50000",
+      "lineId": "preem_kp",
+      "status": "confirmed",
+      "notes": "เป้าหมายสอบเข้า ม.1 ยุพราช ห้องพิเศษ",
+      "createdAt": "2026-10-13T14:15:00Z"
+    },
+    {
+      "id": "enr-17918203",
+      "courseId": "course-m1-m2",
+      "courseTitle": "คอร์สเปิดเทอม 2/69 (ม.1 & ม.2)",
+      "studentName": "นาย กษิดิศ ธนทรัพย์",
+      "fullName": "นาย กษิดิศ ธนทรัพย์",
+      "nickname": "น้องมาร์ค",
+      "grade": "ม.2",
+      "school": "โรงเรียนมงฟอร์ตวิทยาลัย",
+      "studentPhone": "083-456-7890",
+      "parentPhone": "086-765-4321",
+      "learningType": "online",
+      "shippingAddress": "78/9 หมู่ 5 ต.หนองหอย อ.เมือง จ.เชียงใหม่ 50000",
+      "lineId": "mark_kasidit",
+      "status": "pending",
+      "notes": "เรียนสด Online ผ่าน Zoom จัดส่งหนังสือทางไปรษณีย์",
+      "createdAt": "2026-10-14T06:50:00Z"
+    }
+  ],
+  "enrollmentConfig": {
+    "modalTitle": "แบบฟอร์มสมัครเรียนออนไลน์",
+    "modalSubtitle": "สถาบันกวดวิชา The NEW GEN (Onsite & Online)",
+    "onsiteTitle": "เรียนสด Onsite ที่สถาบัน",
+    "onsiteDesc": "ห้องเรียนแอร์กลุ่มเล็ก ติวเตอร์ดูแลใกล้ชิดรายบุคคล",
+    "onlineTitle": "เรียนสด Online (Zoom)",
+    "onlineDesc": "เรียนสดพร้อมถามตอบได้ทันที จัดส่งหนังสือฟรีถึงบ้าน",
+    "submitBtnText": "ยืนยันการสมัครเรียน (จองที่นั่ง)",
+    "successTitle": "ลงทะเบียนสมัครเรียนสำเร็จเรียบร้อยแล้ว! 🎉",
+    "successLead": "ระบบได้บันทึกข้อมูลการสมัครเรียนของน้องเข้าสู่ระบบสถาบัน The NEW GEN เรียบร้อยแล้ว",
+    "ticketStatusBadge": "รอการยืนยันที่นั่ง",
+    "lineCalloutTitle": "ขั้นตอนสุดท้าย: ทักไปยืนยันการสมัครที่ LINE สถาบัน",
+    "lineCalloutBody": "กรุณากดปุ่มด้านล่างเพื่อทักไปยืนยันการสมัครและส่งหลักฐานการชำระเงินที่ LINE Official เจ้าหน้าที่จะตรวจสอบและยืนยันที่นั่งให้น้องทันทีครับ",
+    "lineBtnText": "คลิกเพื่อทัก LINE ยืนยันการสมัครทันที",
+    "lineUrl": "https://lin.ee/RXrzi1G",
+    "copyBtnText": "คัดลอกข้อมูลสรุปสำหรับส่งใน LINE",
+    "doneBtnText": "เสร็จสิ้น / ปิดหน้าต่าง",
+    "formQuestions": {
+      "fields": {
+        "studentName": {
+          "label": "ชื่อ - นามสกุลจริง นักเรียน",
+          "placeholder": "เช่น ด.ช. ธนภัทร ใจดี",
+          "required": true,
+          "enabled": true
+        },
+        "nickname": {
+          "label": "ชื่อเล่น",
+          "placeholder": "เช่น น้องกาย หรือ น้องพรีม",
+          "required": true,
+          "enabled": true
+        },
+        "grade": {
+          "label": "ระดับชั้นปัจจุบัน / ที่กำลังจะขึ้น",
+          "placeholder": "เช่น ป.5 หรือ ป.6 หรือ ม.1",
+          "required": true,
+          "enabled": true
+        },
+        "school": {
+          "label": "โรงเรียนปัจจุบัน",
+          "placeholder": "เช่น โรงเรียนอนุบาลเชียงใหม่",
+          "required": true,
+          "enabled": true
+        },
+        "parentPhone": {
+          "label": "เบอร์โทรศัพท์ผู้ปกครอง",
+          "placeholder": "เช่น 089-123-4567",
+          "required": true,
+          "enabled": true
+        },
+        "lineId": {
+          "label": "LINE ID (ผู้ปกครองหรือน้อง)",
+          "placeholder": "เช่น newgen_student หรือ เบอร์โทรไลน์",
+          "required": true,
+          "enabled": true
+        },
+        "studentPhone": {
+          "label": "เบอร์โทรศัพท์นักเรียน (ถ้ามี)",
+          "placeholder": "เช่น 095-xxx-xxxx (ไม่บังคับ)",
+          "required": false,
+          "enabled": true
+        },
+        "shippingAddress": {
+          "label": "ที่อยู่จัดส่งเอกสารและหนังสือเรียน",
+          "placeholder": "บ้านเลขที่ ตำบล อำเภอ จังหวัด รหัสไปรษณีย์",
+          "required": false,
+          "enabled": true
+        },
+        "notes": {
+          "label": "หมายเหตุ / คำถามเพิ่มเติมถึงติวเตอร์ (ถ้ามี)",
+          "placeholder": "เช่น พื้นฐานวิชาคณิตศาสตร์ยังไม่คล่อง หรือต้องการเน้นเรื่องใดเป็นพิเศษ",
+          "required": false,
+          "enabled": true
+        }
+      },
+      "customQuestions": []
+    }
   }
 }

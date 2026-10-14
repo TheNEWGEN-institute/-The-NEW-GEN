@@ -17,19 +17,21 @@ document.addEventListener('newgen:synced', () => {
 });
 
 function initAdminDashboard() {
-  loadAdminCourses();
-  loadPrivilegeBanner();
-  loadHomeSettings();
-  loadAdminTutors();
-  loadTutorsQuote();
-  loadAboutSettings();
-  loadAdminReviews();
-  loadAdminAchievements();
-  loadAdminVideos();
-  loadAdminContact();
-  loadAdminWhyUs();
-  loadSecuritySettings();
-  checkSupabaseConnection(false);
+  try { loadAdminCourses(); } catch (e) { console.warn('loadAdminCourses error:', e); }
+  try { loadPrivilegeBanner(); } catch (e) { console.warn('loadPrivilegeBanner error:', e); }
+  try { loadHomeSettings(); } catch (e) { console.warn('loadHomeSettings error:', e); }
+  try { loadAdminTutors(); } catch (e) { console.warn('loadAdminTutors error:', e); }
+  try { loadTutorsQuote(); } catch (e) { console.warn('loadTutorsQuote error:', e); }
+  try { loadAboutSettings(); } catch (e) { console.warn('loadAboutSettings error:', e); }
+  try { loadAdminReviews(); } catch (e) { console.warn('loadAdminReviews error:', e); }
+  try { loadAdminAchievements(); } catch (e) { console.warn('loadAdminAchievements error:', e); }
+  try { loadAdminVideos(); } catch (e) { console.warn('loadAdminVideos error:', e); }
+  try { loadAdminContact(); } catch (e) { console.warn('loadAdminContact error:', e); }
+  try { loadAdminWhyUs(); } catch (e) { console.warn('loadAdminWhyUs error:', e); }
+  try { loadSecuritySettings(); } catch (e) { console.warn('loadSecuritySettings error:', e); }
+  try { loadAdminEnrollments(); } catch (e) { console.warn('loadAdminEnrollments error:', e); }
+  try { loadAdminEnrollmentConfig(); } catch (e) { console.warn('loadAdminEnrollmentConfig error:', e); }
+  try { checkSupabaseConnection(false); } catch (e) { console.warn('checkSupabaseConnection error:', e); }
 }
 
 function escapeHtml(str) {
@@ -148,6 +150,18 @@ async function checkSupabaseConnection(isUserClick = false) {
 }
 
 function switchAdminTab(tabKey, btn) {
+  // Support legacy or redirect keys
+  if (tabKey === 'security') {
+    tabKey = 'system';
+    setTimeout(() => switchSystemSubtab('security'), 10);
+  } else if (tabKey === 'backup') {
+    tabKey = 'system';
+    setTimeout(() => switchSystemSubtab('backup'), 10);
+  } else if (tabKey === 'whyus') {
+    tabKey = 'home';
+    setTimeout(() => switchHomeSubtab('whyus'), 10);
+  }
+
   document.querySelectorAll('.admin-tab-pane').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.admin-nav-item').forEach(b => b.classList.remove('active'));
   
@@ -156,8 +170,74 @@ function switchAdminTab(tabKey, btn) {
   if (btn) {
     btn.classList.add('active');
   } else {
-    const navBtn = document.querySelector(`.admin-nav-item[onclick*="'${tabKey}'"]`);
+    const navBtn = document.querySelector(`.admin-nav-item[onclick*="'${tabKey}'"]`) || document.getElementById(tabKey === 'system' ? 'navTabSystem' : (tabKey === 'enrollments' ? 'navTabEnrollments' : ''));
     if (navBtn) navBtn.classList.add('active');
+  }
+
+  // Reload fresh data for whichever tab is opened
+  try {
+    if (tabKey === 'courses') {
+      loadAdminCourses();
+      loadPrivilegeBanner();
+    } else if (tabKey === 'enrollments') {
+      loadAdminEnrollments();
+      loadAdminEnrollmentConfig();
+    } else if (tabKey === 'home') {
+      loadHomeSettings();
+      loadAdminWhyUs();
+    } else if (tabKey === 'tutors') {
+      loadAdminTutors();
+      loadTutorsQuote();
+    } else if (tabKey === 'about') {
+      loadAboutSettings();
+    } else if (tabKey === 'reviews') {
+      loadAdminReviews();
+      loadAdminAchievements();
+    } else if (tabKey === 'videos') {
+      loadAdminVideos();
+    } else if (tabKey === 'contact') {
+      loadAdminContact();
+    } else if (tabKey === 'system') {
+      loadSecuritySettings();
+    }
+  } catch (err) {
+    console.warn(`Error loading tab ${tabKey}:`, err);
+  }
+}
+
+function switchHomeSubtab(subtab) {
+  const btnGeneral = document.getElementById('btnHomeSubtabGeneral');
+  const btnWhyUs = document.getElementById('btnHomeSubtabWhyUs');
+  const subtabGeneral = document.getElementById('subtabHomeGeneral');
+  const subtabWhyUs = document.getElementById('subtabHomeWhyUs');
+
+  if (btnGeneral) btnGeneral.classList.toggle('active', subtab === 'general');
+  if (btnWhyUs) btnWhyUs.classList.toggle('active', subtab === 'whyus');
+
+  if (subtabGeneral) subtabGeneral.style.display = subtab === 'general' ? 'block' : 'none';
+  if (subtabWhyUs) subtabWhyUs.style.display = subtab === 'whyus' ? 'block' : 'none';
+
+  if (subtab === 'whyus') {
+    loadAdminWhyUs();
+  } else {
+    loadHomeSettings();
+  }
+}
+
+function switchSystemSubtab(subtab) {
+  const btnSecurity = document.getElementById('btnSystemSubtabSecurity');
+  const btnBackup = document.getElementById('btnSystemSubtabBackup');
+  const subtabSecurity = document.getElementById('subtabSystemSecurity');
+  const subtabBackup = document.getElementById('subtabSystemBackup');
+
+  if (btnSecurity) btnSecurity.classList.toggle('active', subtab === 'security');
+  if (btnBackup) btnBackup.classList.toggle('active', subtab === 'backup');
+
+  if (subtabSecurity) subtabSecurity.style.display = subtab === 'security' ? 'block' : 'none';
+  if (subtabBackup) subtabBackup.style.display = subtab === 'backup' ? 'block' : 'none';
+
+  if (subtab === 'security') {
+    loadSecuritySettings();
   }
 }
 
@@ -291,47 +371,90 @@ function loadAdminCourses() {
   const tbody = document.getElementById('adminCoursesTableBody');
   if (!tbody) return;
 
-  tbody.innerHTML = courses.map((c, idx) => `
-    <tr>
+  tbody.innerHTML = courses.map((c, idx) => {
+    const enrollList = window.NewGenDB ? window.NewGenDB.getEnrollmentsByCourse(c.id) : [];
+    const enrollCount = enrollList.length;
+
+    const eff = window.getCourseEffectiveSeats ? window.getCourseEffectiveSeats(c) : { remainingSeats: c.remainingSeats, isFull: c.isFull };
+    const isFull = eff.isFull;
+    const remaining = eff.remainingSeats;
+
+    let seatBadgeHtml = '';
+    if (isFull || remaining <= 0) {
+      seatBadgeHtml = '<span class="badge" style="background:#fee2e2; color:#b91c1c; font-weight:800; border:1px solid #fca5a5; white-space:nowrap; padding:4px 8px; font-size:0.75rem;">🛑 เต็มแล้ว</span>';
+    } else if (remaining <= 5) {
+      seatBadgeHtml = `<span class="badge" style="background:#fff7ed; color:#c2410c; font-weight:800; border:1px solid #fed7aa; white-space:nowrap; padding:4px 8px; font-size:0.75rem;">🔥 เหลือ ${remaining} ที่</span>`;
+    } else {
+      seatBadgeHtml = `<span class="badge" style="background:#f0fdf4; color:#15803d; font-weight:800; border:1px solid #bbf7d0; white-space:nowrap; padding:4px 8px; font-size:0.75rem;">⚡ ว่าง ${remaining} ที่</span>`;
+    }
+
+    const effStatus = window.getCourseEffectiveStatus ? window.getCourseEffectiveStatus(c) : {
+      text: c.statusBadge || 'เปิดรับสมัคร',
+      badgeClass: c.statusClass || 'badge-emerald'
+    };
+
+    return `
+    <tr class="${c.isHidden ? 'course-row-hidden' : ''}">
       <td style="text-align: center;">
-        <span class="tutor-order-badge">${idx + 1}</span>
-      </td>
-      <td style="text-align: center;">
-        <div style="display: inline-flex; gap: 4px;">
-          <button type="button" class="btn-reorder" onclick="moveCourseUp(${idx})" title="เลื่อนขึ้น" ${idx === 0 ? 'disabled' : ''}>
-            <i class="fa-solid fa-arrow-up"></i>
-          </button>
-          <button type="button" class="btn-reorder" onclick="moveCourseDown(${idx})" title="เลื่อนลง" ${idx === courses.length - 1 ? 'disabled' : ''}>
-            <i class="fa-solid fa-arrow-down"></i>
-          </button>
+        <div style="display: inline-flex; align-items: center; justify-content: center; gap: 4px;">
+          <span class="tutor-order-badge" style="width:22px; height:22px; font-size:0.75rem;">${idx + 1}</span>
+          <div style="display: flex; flex-direction: column; gap: 1px;">
+            <button type="button" class="btn-reorder-compact" onclick="moveCourseUp(${idx})" title="เลื่อนขึ้น" ${idx === 0 ? 'disabled' : ''}>
+              <i class="fa-solid fa-chevron-up"></i>
+            </button>
+            <button type="button" class="btn-reorder-compact" onclick="moveCourseDown(${idx})" title="เลื่อนลง" ${idx === courses.length - 1 ? 'disabled' : ''}>
+              <i class="fa-solid fa-chevron-down"></i>
+            </button>
+          </div>
         </div>
       </td>
-      <td>
-        <img src="${c.cover || c.poster}" alt="${escapeHtml(c.title)}" style="width: 60px; height: 42px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border-light);">
-      </td>
-      <td><strong>${escapeHtml(c.title)}</strong></td>
-      <td><span class="badge ${c.category === 'primary' ? 'badge-primary-level' : 'badge-secondary-level'}">${escapeHtml(c.categoryLabel || c.category)}</span></td>
-      <td><small>${escapeHtml(c.subjects)}</small></td>
-      <td style="color: var(--color-gold); font-weight: 800; font-family: var(--font-en); font-size: 1.1rem;">${escapeHtml(c.pricePromo)}.-</td>
       <td style="text-align: center;">
+        <img src="${c.cover || c.poster}" alt="${escapeHtml(c.title)}" style="width: 48px; height: 34px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border-light); vertical-align: middle; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
+      </td>
+      <td>
+        <strong style="color: var(--color-navy); font-size: 0.92rem; display: block; line-height: 1.4;">${escapeHtml(c.title)}</strong>
+        ${c.isHidden ? '<span class="badge-hidden-pill" style="margin-top: 4px; display: inline-flex;"><i class="fa-solid fa-eye-slash"></i> ซ่อนอยู่บนเว็บ</span>' : ''}
+      </td>
+      <td style="text-align: center; white-space: nowrap;">
+        ${seatBadgeHtml}
+      </td>
+      <td style="text-align: center; white-space: nowrap;">
+        <button type="button" 
+          class="btn-visibility-toggle ${c.isHidden ? 'hidden' : 'active'}" 
+          onclick="toggleCourseVisibility('${c.id}')"
+          title="คลิกเพื่อสลับ: ซ่อน / แสดง คอร์สนี้บนหน้าเว็บไซต์"
+          style="padding: 4px 10px; font-size: 0.76rem;">
+          ${c.isHidden ? '<i class="fa-solid fa-eye-slash"></i> ซ่อน' : '<i class="fa-solid fa-eye"></i> แสดง'}
+        </button>
+      </td>
+      <td style="text-align: center; white-space: nowrap;">
         <button type="button" 
           class="btn-featured-toggle ${c.isFeatured !== false ? 'active' : ''}" 
           onclick="toggleCourseFeatured('${c.id}')"
-          title="คลิกเพื่อสลับสถานะ: แสดงในคอร์สเรียนแนะนำบนหน้าแรก">
-          ${c.isFeatured !== false ? '⭐ แนะนำ' : '⚪ ไม่แสดง'}
+          title="คลิกเพื่อสลับสถานะ: แสดงในคอร์สเรียนแนะนำบนหน้าแรก"
+          style="padding: 4px 10px; font-size: 0.76rem;">
+          ${c.isFeatured !== false ? '⭐ แนะนำ' : '⚪ ปิด'}
         </button>
       </td>
-      <td><span class="badge ${c.statusClass}">${escapeHtml(c.statusBadge)}</span></td>
-      <td style="text-align: right;">
-        <button type="button" class="btn-action-edit" onclick="openEditCourseModal('${c.id}')" title="แก้ไข">
-          <i class="fa-solid fa-pen-to-square"></i>
-        </button>
-        <button type="button" class="btn-action-del" onclick="deleteCourse('${c.id}')" title="ลบ">
-          <i class="fa-solid fa-trash"></i>
-        </button>
+      <td style="text-align: center; white-space: nowrap;">
+        <span class="badge ${effStatus.badgeClass}" style="font-size: 0.76rem; padding: 4px 9px; font-weight: 700;">${escapeHtml(effStatus.text)}</span>
+      </td>
+      <td style="text-align: right; white-space: nowrap;">
+        <div style="display: inline-flex; align-items: center; justify-content: flex-end; gap: 4px;">
+          <button type="button" class="btn-xs-action" style="background:#2563eb; color:#ffffff; padding:4px 8px; border-radius:5px; font-size:0.75rem; font-weight:700;" onclick="viewCourseEnrollments('${c.id}')" title="ดูรายชื่อนักเรียนที่สมัคร (${enrollCount} คน)">
+            <i class="fa-solid fa-users"></i> ${enrollCount}
+          </button>
+          <button type="button" class="btn-action-edit" onclick="openEditCourseModal('${c.id}')" title="แก้ไขคอร์สเรียน" style="padding: 4px 8px; font-size: 0.78rem;">
+            <i class="fa-solid fa-pen-to-square"></i>
+          </button>
+          <button type="button" class="btn-action-del" onclick="deleteCourse('${c.id}')" title="ลบคอร์สเรียน" style="padding: 4px 8px; font-size: 0.78rem;">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        </div>
       </td>
     </tr>
-  `).join('');
+  `;
+  }).join('');
 }
 
 function moveCourseUp(idx) {
@@ -395,6 +518,40 @@ function toggleCourseFeatured(id) {
 
   loadAdminCourses();
   showToast(c.isFeatured ? `แสดง "${c.title}" ในคอร์สแนะนำหน้าแรกแล้ว` : `ซ่อน "${c.title}" จากคอร์สแนะนำหน้าแรกแล้ว`);
+}
+
+async function toggleCourseVisibility(id) {
+  const courses = window.NewGenDB.getCourses();
+  const c = courses.find(item => item.id === id);
+  if (!c) return;
+
+  c.isHidden = !c.isHidden;
+
+  const cloudRes = await window.NewGenDB.saveCourses(courses);
+
+  // ซิงค์กับ Server Backend API (server.js)
+  const baseUrl = (window.getApiBaseUrl ? window.getApiBaseUrl() : '');
+  fetch(`${baseUrl}/api/courses`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(c)
+  }).catch(() => {});
+
+  loadAdminCourses();
+  if (typeof renderCourseCapacityCards === 'function') {
+    const enrollments = window.NewGenDB ? window.NewGenDB.getEnrollments() : [];
+    renderCourseCapacityCards(courses, enrollments);
+  }
+  if (typeof renderAdminQuickCoursePills === 'function') {
+    const enrollments = window.NewGenDB ? window.NewGenDB.getEnrollments() : [];
+    renderAdminQuickCoursePills(courses, enrollments);
+  }
+
+  if (c.isHidden) {
+    showToast(`👁️‍🗨️ ซ่อนคอร์ส "${c.title}" จากหน้าเว็บไซต์แล้ว`, 'warning');
+  } else {
+    showToast(`👁️ แสดงคอร์ส "${c.title}" บนหน้าเว็บไซต์เรียบร้อยแล้ว`, 'success');
+  }
 }
 
 function populateCategoryDropdown(selectedCategory) {
@@ -738,10 +895,14 @@ function openAddCourseModal() {
   if (document.getElementById('cTrustGuarantee')) document.getElementById('cTrustGuarantee').value = 'การันตีการสอนโดยทีมติวเตอร์ The NEW GEN';
   document.getElementById('cImgUrl').value = 'assets/images/course-poster-primary.jpg';
   document.getElementById('cImgPreview').src = 'assets/images/course-poster-primary.jpg';
-  document.getElementById('cShortDesc').value = '';
+  if (document.getElementById('cShortDesc')) document.getElementById('cShortDesc').value = '';
   if (document.getElementById('cTargetAudience')) document.getElementById('cTargetAudience').value = '';
   if (document.getElementById('cBenefits')) document.getElementById('cBenefits').value = '';
   if (document.getElementById('cIsFeatured')) document.getElementById('cIsFeatured').checked = true;
+  if (document.getElementById('cIsHidden')) document.getElementById('cIsHidden').checked = false;
+  if (document.getElementById('cMaxSeats')) document.getElementById('cMaxSeats').value = '12';
+  if (document.getElementById('cIsFull')) document.getElementById('cIsFull').checked = false;
+  if (typeof updateCourseSeatCalcPreview === 'function') updateCourseSeatCalcPreview();
 
   renderCourseTutorsBuilder(['tutor-non', 'tutor-au', 'tutor-mac']);
   renderCourseGalleryBuilder([]);
@@ -773,6 +934,19 @@ function openAddCourseModal() {
   document.getElementById('modalCourse').classList.add('active');
 }
 
+function updateCourseSeatCalcPreview() {
+  const courseId = document.getElementById('courseEditId') ? document.getElementById('courseEditId').value.trim() : '';
+  const maxSeatsInput = document.getElementById('cMaxSeats');
+  const previewEl = document.getElementById('courseSeatCalcPreview');
+  if (!previewEl || !maxSeatsInput) return;
+  const maxVal = parseInt(maxSeatsInput.value, 10) || 12;
+  const enrollments = (window.NewGenDB ? window.NewGenDB.getEnrollments() : []).filter(e => e.courseId === courseId);
+  const count = enrollments.length;
+  const remaining = Math.max(0, maxVal - count);
+  const color = remaining === 0 ? '#dc2626' : (remaining <= 3 ? '#ea580c' : '#16a34a');
+  previewEl.innerHTML = `ผู้สมัครขณะนี้: <strong>${count}</strong> คน | ที่นั่งคงเหลืออัตโนมัติ: <strong style="color: ${color};">${remaining}</strong> ที่นั่ง (จากความจุ ${maxVal} คน)`;
+}
+
 function openEditCourseModal(id) {
   const courses = window.NewGenDB.getCourses();
   const c = courses.find(item => item.id === id);
@@ -783,7 +957,22 @@ function openEditCourseModal(id) {
   document.getElementById('cTitle').value = c.title;
   populateCategoryDropdown(c.category);
   document.getElementById('cSubjects').value = c.subjects;
-  document.getElementById('cStatus').value = `${c.statusBadge}|${c.statusClass}`;
+  
+  const cStatusEl = document.getElementById('cStatus');
+  if (cStatusEl) {
+    cStatusEl.value = `${c.statusBadge}|${c.statusClass}`;
+    if (!cStatusEl.value) {
+      if ((c.statusBadge || '').includes('ใหม่')) {
+        cStatusEl.value = '✨ คอร์สใหม่ล่าสุด|badge-gold';
+      } else if ((c.statusBadge || '').includes('เต็ม')) {
+        cStatusEl.value = '🛑 เต็มแล้ว|badge-red';
+      } else if ((c.statusBadge || '').includes('ใกล้เต็ม')) {
+        cStatusEl.value = '🔥 โควตาใกล้เต็ม|badge-red';
+      } else {
+        cStatusEl.value = 'เปิดรับสมัคร|badge-emerald';
+      }
+    }
+  }
   document.getElementById('cPriceOld').value = c.priceOriginal || '';
   document.getElementById('cPricePromo').value = c.pricePromo || '';
   document.getElementById('cPriceUnit').value = c.priceUnit || '';
@@ -799,6 +988,14 @@ function openEditCourseModal(id) {
   if (document.getElementById('cTargetAudience')) document.getElementById('cTargetAudience').value = c.targetAudience || '';
   if (document.getElementById('cBenefits')) document.getElementById('cBenefits').value = c.benefits || '';
   if (document.getElementById('cIsFeatured')) document.getElementById('cIsFeatured').checked = c.isFeatured !== false;
+  if (document.getElementById('cIsHidden')) document.getElementById('cIsHidden').checked = (c.isHidden === true);
+  if (document.getElementById('cMaxSeats')) {
+    document.getElementById('cMaxSeats').value = (c.maxSeats !== undefined && c.maxSeats !== null) ? c.maxSeats : 12;
+  }
+  if (document.getElementById('cIsFull')) {
+    document.getElementById('cIsFull').checked = (c.isFull === true);
+  }
+  updateCourseSeatCalcPreview();
 
   renderCourseTutorsBuilder(c.tutorIds || []);
   renderCourseGalleryBuilder(c.galleryImages || []);
@@ -818,8 +1015,15 @@ async function handleSaveCourse(e) {
   const courses = window.NewGenDB.getCourses();
   const categories = window.NewGenDB.getCategories();
   const isFeatured = document.getElementById('cIsFeatured') ? document.getElementById('cIsFeatured').checked : true;
+  const isHidden = document.getElementById('cIsHidden') ? document.getElementById('cIsHidden').checked : false;
   const selectedCat = document.getElementById('cCategory').value;
   const matchedCatObj = categories.find(cat => cat.id === selectedCat);
+
+  const maxSeatsVal = document.getElementById('cMaxSeats') ? (parseInt(document.getElementById('cMaxSeats').value, 10) || 12) : 12;
+  const enrollmentsForThis = (window.NewGenDB ? window.NewGenDB.getEnrollments() : []).filter(en => en.courseId === id);
+  const remainingCalc = Math.max(0, maxSeatsVal - enrollmentsForThis.length);
+  const isFullManual = document.getElementById('cIsFull') ? document.getElementById('cIsFull').checked : false;
+  const isFull = isFullManual || (remainingCalc <= 0);
 
   const courseObj = {
     id: id || `course-${Date.now()}`,
@@ -843,6 +1047,10 @@ async function handleSaveCourse(e) {
     trustGuarantee: document.getElementById('cTrustGuarantee') ? document.getElementById('cTrustGuarantee').value.trim() : '',
     shortDesc: document.getElementById('cShortDesc').value.trim(),
     isFeatured: isFeatured,
+    isHidden: isHidden,
+    maxSeats: maxSeatsVal,
+    remainingSeats: remainingCalc,
+    isFull: isFull,
     galleryImages: getCourseGalleryFromBuilder(),
     targetAudience: document.getElementById('cTargetAudience') ? document.getElementById('cTargetAudience').value.trim() : '',
     benefits: document.getElementById('cBenefits') ? document.getElementById('cBenefits').value.trim() : '',
@@ -870,6 +1078,7 @@ async function handleSaveCourse(e) {
   }).catch(() => {});
 
   loadAdminCourses();
+  if (typeof loadAdminEnrollments === 'function') loadAdminEnrollments();
   closeModal('modalCourse');
   if (cloudRes && cloudRes.success) {
     showToast('✅ บันทึกรายละเอียดคอร์สเรียนและซิงค์ Cloud สำเร็จแล้ว!', 'success');
@@ -2258,9 +2467,13 @@ function loadAdminWhyUs() {
 
 async function saveWhyUsHeader() {
   const whyData = window.NewGenDB.getWhyUs();
-  whyData.subtitle = document.getElementById('whySubtitleInput').value.trim() || 'WHY CHOOSE US';
-  whyData.title = document.getElementById('whyTitleInput').value.trim() || 'ทำไมต้องเลือก The NEW GEN';
-  whyData.desc = document.getElementById('whyDescInput').value.trim() || '';
+  const subEl = document.getElementById('whySubtitleInput');
+  const titleEl = document.getElementById('whyTitleInput');
+  const descEl = document.getElementById('whyDescInput');
+
+  whyData.subtitle = subEl ? (subEl.value.trim() || 'WHY CHOOSE US') : (whyData.subtitle || 'WHY CHOOSE US');
+  whyData.title = titleEl ? (titleEl.value.trim() || 'ทำไมต้องเลือก The NEW GEN') : (whyData.title || 'ทำไมต้องเลือก The NEW GEN');
+  whyData.desc = descEl ? descEl.value.trim() : (whyData.desc || '');
 
   const cloudRes = await window.NewGenDB.saveWhyUs(whyData);
 
@@ -2381,6 +2594,8 @@ async function deleteWhyUsFeature(id) {
 function exportDataToJson() {
   const allData = {
     courses: window.NewGenDB.getCourses(),
+    categories: window.NewGenDB.getCategories(),
+    privilege: window.NewGenDB.getPrivilege(),
     home: window.NewGenDB.getHome(),
     about: window.NewGenDB.getAbout(),
     tutors: window.NewGenDB.getTutors(),
@@ -2390,17 +2605,29 @@ function exportDataToJson() {
     videos: window.NewGenDB.getVideos(),
     contact: window.NewGenDB.getContact(),
     whyus: window.NewGenDB.getWhyUs(),
+    enrollments: window.NewGenDB.getEnrollments(),
+    enrollmentConfig: (window.NewGenDB && typeof window.NewGenDB.getEnrollmentConfig === 'function')
+      ? window.NewGenDB.getEnrollmentConfig()
+      : {},
     exportedAt: new Date().toISOString()
   };
 
-  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(allData, null, 2));
+  const jsonStr = JSON.stringify(allData, null, 2);
+  const blob = new Blob([jsonStr], { type: 'application/json;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
   const downloadAnchor = document.createElement('a');
-  downloadAnchor.setAttribute("href", dataStr);
-  downloadAnchor.setAttribute("download", `newgen-backup-${new Date().toISOString().slice(0,10)}.json`);
+  downloadAnchor.style.display = 'none';
+  downloadAnchor.href = url;
+  const fileName = `the-new-gen-backup-${new Date().toISOString().slice(0, 10)}.json`;
+  downloadAnchor.download = fileName;
   document.body.appendChild(downloadAnchor);
   downloadAnchor.click();
-  downloadAnchor.remove();
-  showToast('ส่งออกข้อมูล JSON สำเร็จแล้ว!');
+  setTimeout(() => {
+    if (downloadAnchor.parentNode) downloadAnchor.parentNode.removeChild(downloadAnchor);
+    URL.revokeObjectURL(url);
+  }, 1500);
+
+  showToast(`📥 ดาวน์โหลดไฟล์สำรอง "${fileName}" สำเร็จแล้ว!`, 'success');
 }
 
 function importDataFromJson(event) {
@@ -2412,6 +2639,8 @@ function importDataFromJson(event) {
     try {
       const data = JSON.parse(e.target.result);
       if (data.courses) await window.NewGenDB.saveCourses(data.courses);
+      if (data.categories) await window.NewGenDB.saveCategories(data.categories);
+      if (data.privilege) await window.NewGenDB.savePrivilege(data.privilege);
       if (data.home) await window.NewGenDB.saveHome(data.home);
       if (data.about) await window.NewGenDB.saveAbout(data.about);
       if (data.tutors) await window.NewGenDB.saveTutors(data.tutors);
@@ -2421,6 +2650,8 @@ function importDataFromJson(event) {
       if (data.videos) await window.NewGenDB.saveVideos(data.videos);
       if (data.contact) await window.NewGenDB.saveContact(data.contact);
       if (data.whyus) await window.NewGenDB.saveWhyUs(data.whyus);
+      if (data.enrollments) await window.NewGenDB.saveEnrollments(data.enrollments);
+      if (data.enrollmentConfig) await window.NewGenDB.saveEnrollmentConfig(data.enrollmentConfig);
 
       initAdminDashboard();
       showToast('✅ นำเข้าข้อมูลและซิงค์ขึ้น Supabase Cloud เรียบร้อยแล้ว!', 'success');
@@ -2557,5 +2788,1111 @@ async function handleChangePasswordSubmit(e) {
     }
   }
 }
+
+/* ===================================================================
+   11. STUDENT ENROLLMENTS MANAGEMENT (Tab 11)
+   =================================================================== */
+
+let _currentEnrollmentFilter = {
+  courseId: 'all',
+  learningType: 'all',
+  keyword: ''
+};
+
+function switchEnrollSubtab(tabName) {
+  const btnStats = document.getElementById('btnEnrollSubtabStats');
+  const btnRoster = document.getElementById('btnEnrollSubtabRoster');
+  const btnConfig = document.getElementById('btnEnrollSubtabConfig');
+  const subtabStats = document.getElementById('subtabEnrollStats');
+  const subtabRoster = document.getElementById('subtabEnrollRoster');
+  const subtabConfig = document.getElementById('subtabEnrollConfig');
+
+  if (btnStats) btnStats.classList.toggle('active', tabName === 'stats');
+  if (btnRoster) btnRoster.classList.toggle('active', tabName === 'roster');
+  if (btnConfig) btnConfig.classList.toggle('active', tabName === 'config');
+
+  if (subtabStats) subtabStats.style.display = tabName === 'stats' ? 'block' : 'none';
+  if (subtabRoster) subtabRoster.style.display = tabName === 'roster' ? 'block' : 'none';
+  if (subtabConfig) subtabConfig.style.display = tabName === 'config' ? 'block' : 'none';
+
+  if (tabName === 'config') {
+    loadAdminEnrollmentConfig();
+  }
+}
+
+let _adminCustomQuestionsList = [];
+
+const STANDARD_QUESTION_KEYS = [
+  'studentName',
+  'nickname',
+  'grade',
+  'school',
+  'parentPhone',
+  'lineId',
+  'studentPhone',
+  'shippingAddress',
+  'notes'
+];
+
+/**
+ * โหลดการตั้งค่าข้อความหน้าต่างสมัครเรียน (Enrollment Config) ใส่ลงฟอร์มหลังบ้าน
+ */
+function loadAdminEnrollmentConfig() {
+  const cfg = (window.NewGenDB && typeof window.NewGenDB.getEnrollmentConfig === 'function')
+    ? window.NewGenDB.getEnrollmentConfig()
+    : {};
+
+  const setVal = (id, val, fallback = '') => {
+    const el = document.getElementById(id);
+    if (el) el.value = (val !== undefined && val !== null) ? val : fallback;
+  };
+
+  setVal('cfgModalTitle', cfg.modalTitle, 'แบบฟอร์มสมัครเรียนออนไลน์');
+  setVal('cfgModalSubtitle', cfg.modalSubtitle, 'สถาบันกวดวิชา The NEW GEN (Onsite & Online)');
+  setVal('cfgOnsiteTitle', cfg.onsiteTitle, 'เรียนสด Onsite ที่สถาบัน');
+  setVal('cfgOnsiteDesc', cfg.onsiteDesc, 'ห้องเรียนแอร์กลุ่มเล็ก ติวเตอร์ดูแลใกล้ชิดรายบุคคล');
+  setVal('cfgOnlineTitle', cfg.onlineTitle, 'เรียนสด Online (Zoom)');
+  setVal('cfgOnlineDesc', cfg.onlineDesc, 'เรียนสดพร้อมถามตอบได้ทันที จัดส่งหนังสือฟรีถึงบ้าน');
+  setVal('cfgSubmitBtnText', cfg.submitBtnText, 'ยืนยันการสมัครเรียน (จองที่นั่ง)');
+  setVal('cfgSuccessTitle', cfg.successTitle, 'ลงทะเบียนสมัครเรียนสำเร็จเรียบร้อยแล้ว! 🎉');
+  setVal('cfgTicketStatusBadge', cfg.ticketStatusBadge, 'รอการยืนยันที่นั่ง');
+  setVal('cfgSuccessLead', cfg.successLead, 'ระบบได้บันทึกข้อมูลการสมัครเรียนของน้องเข้าสู่ระบบสถาบัน The NEW GEN เรียบร้อยแล้ว');
+  setVal('cfgLineCalloutTitle', cfg.lineCalloutTitle, 'ขั้นตอนสุดท้าย: ทักไปยืนยันการสมัครที่ LINE สถาบัน');
+  setVal('cfgLineCalloutBody', cfg.lineCalloutBody, 'กรุณากดปุ่มด้านล่างเพื่อทักไปยืนยันการสมัครและส่งหลักฐานการชำระเงินที่ LINE Official เจ้าหน้าที่จะตรวจสอบและยืนยันที่นั่งให้น้องทันทีครับ');
+  setVal('cfgLineBtnText', cfg.lineBtnText, 'คลิกเพื่อทัก LINE ยืนยันการสมัครทันที');
+  setVal('cfgLineUrl', cfg.lineUrl, 'https://lin.ee/RXrzi1G');
+  setVal('cfgCopyBtnText', cfg.copyBtnText, 'คัดลอกข้อมูลสรุปสำหรับส่งใน LINE');
+  setVal('cfgDoneBtnText', cfg.doneBtnText, 'เสร็จสิ้น / ปิดหน้าต่าง');
+
+  // โหลดค่าคำถามมาตรฐาน 9 ข้อ
+  const formQuestions = cfg.formQuestions || {};
+  const fields = formQuestions.fields || {};
+  STANDARD_QUESTION_KEYS.forEach(key => {
+    const fieldData = fields[key] || {};
+    const labelInput = document.getElementById(`qStd_${key}_label`);
+    const phInput = document.getElementById(`qStd_${key}_ph`);
+    const reqCheck = document.getElementById(`qStd_${key}_req`);
+    const enableCheck = document.getElementById(`qStd_${key}_enable`);
+
+    if (labelInput && fieldData.label !== undefined) labelInput.value = fieldData.label;
+    if (phInput && fieldData.placeholder !== undefined) phInput.value = fieldData.placeholder;
+    if (reqCheck && fieldData.required !== undefined) reqCheck.checked = !!fieldData.required;
+    if (enableCheck && fieldData.enabled !== undefined) enableCheck.checked = fieldData.enabled !== false;
+  });
+
+  // โหลดรายการคำถามเพิ่มเติม
+  _adminCustomQuestionsList = Array.isArray(formQuestions.customQuestions)
+    ? JSON.parse(JSON.stringify(formQuestions.customQuestions))
+    : [];
+
+  renderAdminCustomQuestions();
+}
+
+/**
+ * เรนเดอร์การ์ดรายการคำถามเพิ่มเติมในระบบหลังบ้าน
+ */
+function renderAdminCustomQuestions() {
+  const container = document.getElementById('adminCustomQuestionsContainer');
+  if (!container) return;
+
+  if (!_adminCustomQuestionsList || _adminCustomQuestionsList.length === 0) {
+    container.innerHTML = `
+      <div style="background: #fff; border: 1.5px dashed #cbd5e1; border-radius: 8px; padding: 22px; text-align: center; color: #64748b;">
+        <i class="fa-solid fa-clipboard-question" style="font-size: 2rem; color: #94a3b8; margin-bottom: 8px; display: block;"></i>
+        <div style="font-weight: 600; font-size: 0.92rem; color: #475569;">ยังไม่มีข้อคำถามเพิ่มเติม</div>
+        <div style="font-size: 0.8rem; margin-top: 4px;">คุณสามารถกดปุ่ม <b>"+ เพิ่มข้อคำถามใหม่"</b> ด้านบน เพื่อเพิ่มคำถาม เช่น สายการเรียนที่สนใจ, เป้าหมายการสอบ, ไซส์เสื้อ</div>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = _adminCustomQuestionsList.map((q, idx) => {
+    let typeBadge = '';
+    if (q.type === 'textarea') {
+      typeBadge = '<span style="background: #e0f2fe; color: #0284c7; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700;"><i class="fa-solid fa-align-left"></i> ข้อความยาว</span>';
+    } else if (q.type === 'select') {
+      const optCount = Array.isArray(q.options) ? q.options.length : 0;
+      typeBadge = `<span style="background: #fef3c7; color: #b45309; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700;"><i class="fa-solid fa-list-ul"></i> Dropdown (${optCount} ตัวเลือก)</span>`;
+    } else {
+      typeBadge = '<span style="background: #f1f5f9; color: #475569; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700;"><i class="fa-solid fa-font"></i> ข้อความสั้น</span>';
+    }
+
+    const reqBadge = q.required
+      ? '<span style="color: #dc2626; font-size: 0.78rem; font-weight: 700;"><i class="fa-solid fa-asterisk"></i> บังคับกรอก</span>'
+      : '<span style="color: #64748b; font-size: 0.78rem;">ไม่บังคับ</span>';
+
+    const enabledBadge = q.enabled !== false
+      ? '<span style="color: #16a34a; font-size: 0.78rem; font-weight: 700;"><i class="fa-solid fa-circle-check"></i> เปิดใช้งาน</span>'
+      : '<span style="color: #94a3b8; font-size: 0.78rem;"><i class="fa-solid fa-eye-slash"></i> ซ่อน</span>';
+
+    return `
+      <div style="background: #fff; border: 1.5px solid #cbd5e1; border-radius: 8px; padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 240px;">
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px; flex-wrap: wrap;">
+            <span style="font-weight: 800; color: #1e293b; font-size: 0.95rem;">ข้อ ${idx + 1}: ${escapeHtml(q.label)}</span>
+            ${typeBadge}
+            ${reqBadge}
+            ${enabledBadge}
+          </div>
+          <div style="font-size: 0.82rem; color: #64748b;">
+            <b>คำใบ้ (Placeholder):</b> ${escapeHtml(q.placeholder || '-')}
+            ${q.type === 'select' && Array.isArray(q.options) && q.options.length > 0 ? `
+              <span style="margin-left: 10px; color: #475569;"><b>ตัวเลือก:</b> ${escapeHtml(q.options.slice(0, 3).join(', '))}${q.options.length > 3 ? '...' : ''}</span>
+            ` : ''}
+          </div>
+        </div>
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <button type="button" class="btn-action-edit" onclick="openEditCustomQuestionModal('${q.id}')" title="แก้ไขข้อคำถาม">
+            <i class="fa-solid fa-pen-to-square"></i>
+          </button>
+          <button type="button" class="btn-action-del" onclick="deleteCustomQuestion('${q.id}')" title="ลบข้อคำถาม">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function openAddCustomQuestionModal() {
+  document.getElementById('modalCustomQTitle').textContent = 'เพิ่มข้อคำถามใหม่';
+  document.getElementById('customQId').value = '';
+  document.getElementById('customQLabel').value = '';
+  document.getElementById('customQType').value = 'text';
+  document.getElementById('customQPlaceholder').value = '';
+  document.getElementById('customQOptionsText').value = '';
+  document.getElementById('customQRequired').checked = false;
+  document.getElementById('customQEnabled').checked = true;
+
+  toggleCustomQOptions('text');
+  document.getElementById('modalCustomQuestion').classList.add('active');
+}
+
+function openEditCustomQuestionModal(id) {
+  const q = _adminCustomQuestionsList.find(x => x.id === id);
+  if (!q) return;
+
+  document.getElementById('modalCustomQTitle').textContent = 'แก้ไขข้อคำถาม';
+  document.getElementById('customQId').value = q.id;
+  document.getElementById('customQLabel').value = q.label || '';
+  document.getElementById('customQType').value = q.type || 'text';
+  document.getElementById('customQPlaceholder').value = q.placeholder || '';
+  document.getElementById('customQOptionsText').value = Array.isArray(q.options) ? q.options.join('\n') : '';
+  document.getElementById('customQRequired').checked = !!q.required;
+  document.getElementById('customQEnabled').checked = q.enabled !== false;
+
+  toggleCustomQOptions(q.type || 'text');
+  document.getElementById('modalCustomQuestion').classList.add('active');
+}
+
+function toggleCustomQOptions(type) {
+  const wrap = document.getElementById('customQOptionsWrap');
+  if (wrap) {
+    wrap.style.display = type === 'select' ? 'block' : 'none';
+  }
+}
+
+async function handleSaveCustomQuestion(e) {
+  if (e && e.preventDefault) e.preventDefault();
+  const id = document.getElementById('customQId').value.trim();
+  const label = document.getElementById('customQLabel').value.trim();
+  const type = document.getElementById('customQType').value;
+  const placeholder = document.getElementById('customQPlaceholder').value.trim();
+  const optionsRaw = document.getElementById('customQOptionsText').value;
+  const required = document.getElementById('customQRequired').checked;
+  const enabled = document.getElementById('customQEnabled').checked;
+
+  if (!label) {
+    alert('กรุณาระบุหัวข้อ / ข้อคำถาม');
+    return;
+  }
+
+  let options = [];
+  if (type === 'select') {
+    options = optionsRaw.split('\n').map(o => o.trim()).filter(o => o.length > 0);
+    if (options.length === 0) {
+      alert('กรุณาระบุตัวเลือกอย่างน้อย 1 รายการ');
+      return;
+    }
+  }
+
+  const item = {
+    id: id || `q-${Date.now()}`,
+    label,
+    type,
+    placeholder,
+    options,
+    required,
+    enabled
+  };
+
+  if (id) {
+    const idx = _adminCustomQuestionsList.findIndex(x => x.id === id);
+    if (idx !== -1) {
+      _adminCustomQuestionsList[idx] = item;
+    } else {
+      _adminCustomQuestionsList.push(item);
+    }
+  } else {
+    _adminCustomQuestionsList.push(item);
+  }
+
+  closeModal('modalCustomQuestion');
+  renderAdminCustomQuestions();
+  await saveAdminEnrollmentConfig();
+  showToast('✅ บันทึกข้อคำถามและอัปเดตลงสู่ระบบเรียบร้อยแล้ว', 'success');
+}
+
+async function deleteCustomQuestion(id) {
+  const q = _adminCustomQuestionsList.find(x => x.id === id);
+  const label = q ? q.label : 'คำถามนี้';
+  if (!confirm(`คุณแน่ใจหรือไม่ว่าต้องการลบข้อคำถาม "${label}"?`)) {
+    return;
+  }
+
+  _adminCustomQuestionsList = _adminCustomQuestionsList.filter(x => x.id !== id);
+  renderAdminCustomQuestions();
+  await saveAdminEnrollmentConfig();
+  showToast(`🗑️ ลบข้อคำถาม "${label}" เรียบร้อยแล้ว`, 'success');
+}
+
+/**
+ * บันทึกการตั้งค่าข้อความหน้าสมัครเรียนสู่ Local, Server API, และ Supabase Cloud
+ */
+async function saveAdminEnrollmentConfig() {
+  const getVal = (id, fallback = '') => {
+    const el = document.getElementById(id);
+    return (el && el.value.trim() !== '') ? el.value.trim() : fallback;
+  };
+
+  // รวมค่าข้อคำถามมาตรฐาน 9 ข้อ
+  const fields = {};
+  STANDARD_QUESTION_KEYS.forEach(key => {
+    const labelInput = document.getElementById(`qStd_${key}_label`);
+    const phInput = document.getElementById(`qStd_${key}_ph`);
+    const reqCheck = document.getElementById(`qStd_${key}_req`);
+    const enableCheck = document.getElementById(`qStd_${key}_enable`);
+    fields[key] = {
+      label: labelInput ? labelInput.value.trim() : '',
+      placeholder: phInput ? phInput.value.trim() : '',
+      required: reqCheck ? reqCheck.checked : false,
+      enabled: enableCheck ? enableCheck.checked : true
+    };
+  });
+
+  const newConfig = {
+    modalTitle: getVal('cfgModalTitle', 'แบบฟอร์มสมัครเรียนออนไลน์'),
+    modalSubtitle: getVal('cfgModalSubtitle', 'สถาบันกวดวิชา The NEW GEN (Onsite & Online)'),
+    onsiteTitle: getVal('cfgOnsiteTitle', 'เรียนสด Onsite ที่สถาบัน'),
+    onsiteDesc: getVal('cfgOnsiteDesc', 'ห้องเรียนแอร์กลุ่มเล็ก ติวเตอร์ดูแลใกล้ชิดรายบุคคล'),
+    onlineTitle: getVal('cfgOnlineTitle', 'เรียนสด Online (Zoom)'),
+    onlineDesc: getVal('cfgOnlineDesc', 'เรียนสดพร้อมถามตอบได้ทันที จัดส่งหนังสือฟรีถึงบ้าน'),
+    submitBtnText: getVal('cfgSubmitBtnText', 'ยืนยันการสมัครเรียน (จองที่นั่ง)'),
+    successTitle: getVal('cfgSuccessTitle', 'ลงทะเบียนสมัครเรียนสำเร็จเรียบร้อยแล้ว! 🎉'),
+    ticketStatusBadge: getVal('cfgTicketStatusBadge', 'รอการยืนยันที่นั่ง'),
+    successLead: getVal('cfgSuccessLead', 'ระบบได้บันทึกข้อมูลการสมัครเรียนของน้องเข้าสู่ระบบสถาบัน The NEW GEN เรียบร้อยแล้ว'),
+    lineCalloutTitle: getVal('cfgLineCalloutTitle', 'ขั้นตอนสุดท้าย: ทักไปยืนยันการสมัครที่ LINE สถาบัน'),
+    lineCalloutBody: getVal('cfgLineCalloutBody', 'กรุณากดปุ่มด้านล่างเพื่อทักไปยืนยันการสมัครและส่งหลักฐานการชำระเงินที่ LINE Official...'),
+    lineBtnText: getVal('cfgLineBtnText', 'คลิกเพื่อทัก LINE ยืนยันการสมัครทันที'),
+    lineUrl: getVal('cfgLineUrl', 'https://lin.ee/RXrzi1G'),
+    copyBtnText: getVal('cfgCopyBtnText', 'คัดลอกข้อมูลสรุปสำหรับส่งใน LINE'),
+    doneBtnText: getVal('cfgDoneBtnText', 'เสร็จสิ้น / ปิดหน้าต่าง'),
+    formQuestions: {
+      fields: fields,
+      customQuestions: _adminCustomQuestionsList
+    }
+  };
+
+  try {
+    const cloudRes = await window.NewGenDB.saveEnrollmentConfig(newConfig);
+
+    // Sync to backend Server API
+    const baseUrl = (window.getApiBaseUrl ? window.getApiBaseUrl() : '');
+    fetch(baseUrl + '/api/enrollment-config', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newConfig)
+    }).catch(() => {});
+
+    // Live update open modal if present
+    if (typeof window.applyEnrollmentConfig === 'function') {
+      window.applyEnrollmentConfig();
+    }
+
+    if (cloudRes && cloudRes.success) {
+      showToast('✅ บันทึกการตั้งค่าข้อความและข้อคำถามหน้าสมัครเรียนเรียบร้อยแล้ว!', 'success');
+    } else {
+      showToast(`⚠️ บันทึกในเครื่องแล้ว (${cloudRes && cloudRes.error ? cloudRes.error : 'รอซิงค์ Cloud'})`, 'warning');
+    }
+  } catch (err) {
+    console.error('Error saving enrollment config:', err);
+    showToast('❌ เกิดข้อผิดพลาดในการบันทึกข้อมูล', 'error');
+  }
+}
+
+function handleSaveEnrollmentConfig(e) {
+  if (e) e.preventDefault();
+  saveAdminEnrollmentConfig();
+}
+
+/**
+ * คืนค่าข้อความหน้าสมัครเรียนเป็นค่าเริ่มต้นมาตรฐาน
+ */
+async function resetAdminEnrollmentConfig() {
+  if (!confirm('คุณต้องการคืนค่าข้อความหน้าสมัครเรียนและข้อคำถามเป็นค่าเริ่มต้นมาตรฐานทั้งหมดหรือไม่?')) {
+    return;
+  }
+  const defaultCfg = (typeof DEFAULT_ENROLLMENT_CONFIG !== 'undefined')
+    ? JSON.parse(JSON.stringify(DEFAULT_ENROLLMENT_CONFIG))
+    : {
+      modalTitle: 'แบบฟอร์มสมัครเรียนออนไลน์',
+      modalSubtitle: 'สถาบันกวดวิชา The NEW GEN (Onsite & Online)',
+      onsiteTitle: 'เรียนสด Onsite ที่สถาบัน',
+      onsiteDesc: 'ห้องเรียนแอร์กลุ่มเล็ก ติวเตอร์ดูแลใกล้ชิดรายบุคคล',
+      onlineTitle: 'เรียนสด Online (Zoom)',
+      onlineDesc: 'เรียนสดพร้อมถามตอบได้ทันที จัดส่งหนังสือฟรีถึงบ้าน',
+      submitBtnText: 'ยืนยันการสมัครเรียน (จองที่นั่ง)',
+      successTitle: 'ลงทะเบียนสมัครเรียนสำเร็จเรียบร้อยแล้ว! 🎉',
+      successLead: 'ระบบได้บันทึกข้อมูลการสมัครเรียนของน้องเข้าสู่ระบบสถาบัน The NEW GEN เรียบร้อยแล้ว',
+      ticketStatusBadge: 'รอการยืนยันที่นั่ง',
+      lineCalloutTitle: 'ขั้นตอนสุดท้าย: ทักไปยืนยันการสมัครที่ LINE สถาบัน',
+      lineCalloutBody: 'กรุณากดปุ่มด้านล่างเพื่อทักไปยืนยันการสมัครและส่งหลักฐานการชำระเงินที่ LINE Official เจ้าหน้าที่จะตรวจสอบและยืนยันที่นั่งให้น้องทันทีครับ',
+      lineBtnText: 'คลิกเพื่อทัก LINE ยืนยันการสมัครทันที',
+      lineUrl: 'https://lin.ee/RXrzi1G',
+      copyBtnText: 'คัดลอกข้อมูลสรุปสำหรับส่งใน LINE',
+      doneBtnText: 'เสร็จสิ้น / ปิดหน้าต่าง'
+    };
+
+  await window.NewGenDB.saveEnrollmentConfig(defaultCfg);
+  loadAdminEnrollmentConfig();
+
+  const baseUrl = (window.getApiBaseUrl ? window.getApiBaseUrl() : '');
+  fetch(baseUrl + '/api/enrollment-config', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(defaultCfg)
+  }).catch(() => {});
+
+  if (typeof window.applyEnrollmentConfig === 'function') {
+    window.applyEnrollmentConfig();
+  }
+
+  showToast('🔄 คืนค่าข้อความหน้าสมัครเรียนเป็นค่าเริ่มต้นเรียบร้อยแล้ว', 'info');
+}
+
+window.switchEnrollSubtab = switchEnrollSubtab;
+window.loadAdminEnrollmentConfig = loadAdminEnrollmentConfig;
+window.saveAdminEnrollmentConfig = saveAdminEnrollmentConfig;
+window.handleSaveEnrollmentConfig = handleSaveEnrollmentConfig;
+window.resetAdminEnrollmentConfig = resetAdminEnrollmentConfig;
+window.openAddCustomQuestionModal = openAddCustomQuestionModal;
+window.openEditCustomQuestionModal = openEditCustomQuestionModal;
+window.toggleCustomQOptions = toggleCustomQOptions;
+window.handleSaveCustomQuestion = handleSaveCustomQuestion;
+window.deleteCustomQuestion = deleteCustomQuestion;
+window.renderAdminCustomQuestions = renderAdminCustomQuestions;
+
+function renderCourseCapacityCards(courses, enrollments) {
+  const container = document.getElementById('adminCourseCapacityGrid');
+  if (!container) return;
+
+  if (!courses || courses.length === 0) {
+    container.innerHTML = '<div style="color: var(--text-muted); padding: 16px;">ยังไม่มีคอร์สเรียนในระบบ</div>';
+    return;
+  }
+
+  container.innerHTML = courses.map(c => {
+    const enrForCourse = enrollments.filter(e => e.courseId === c.id);
+    const count = enrForCourse.length;
+    const maxVal = Number(c.maxSeats || 12);
+    const remaining = Math.max(0, maxVal - count);
+    const isFull = (c.isFull === true) || (remaining <= 0);
+    const pct = Math.min(100, Math.round((count / maxVal) * 100));
+
+    let statusPillClass = 'safe';
+    let statusPillText = `${pct}% เต็มแล้ว`;
+    let fillClass = 'safe';
+
+    if (isFull || remaining <= 0) {
+      statusPillClass = 'full';
+      statusPillText = '🛑 ที่นั่งเต็มแล้ว';
+      fillClass = 'full';
+    } else if (pct >= 75 || remaining <= 3) {
+      statusPillClass = 'warning';
+      statusPillText = `🔥 ใกล้เต็ม (${pct}%)`;
+      fillClass = 'warning';
+    }
+
+    return `
+      <div class="course-capacity-card">
+        <div class="cap-card-header">
+          <div>
+            <h4 class="cap-card-title">
+              ${escapeHtml(c.title)}
+              ${c.isHidden ? '<span class="badge-hidden-pill" style="margin-left: 6px;"><i class="fa-solid fa-eye-slash"></i> ซ่อน</span>' : ''}
+            </h4>
+            <small style="color: var(--color-blue-brand); font-weight: 700;">${escapeHtml(c.categoryLabel || c.category)}</small>
+          </div>
+          <span class="cap-percent-pill ${statusPillClass}">${statusPillText}</span>
+        </div>
+
+        <div class="cap-metrics-row">
+          <div class="cap-seats-big">
+            ${count} <span style="font-size: 0.88rem; color: #64748b; font-weight: 600;">/ ${maxVal} คน</span>
+          </div>
+          <div style="font-size: 0.85rem; font-weight: 700; color: ${remaining <= 3 ? '#ea580c' : '#059669'};">
+            ${remaining === 0 ? '❌ ไม่มีที่นั่งว่าง' : `⚡ ว่างอีก ${remaining} ที่`}
+          </div>
+        </div>
+
+        <div class="cap-progress-track">
+          <div class="cap-progress-fill ${fillClass}" style="width: ${pct}%;"></div>
+        </div>
+
+        <div class="cap-card-footer">
+          <span style="font-size: 0.78rem; color: #64748b; max-width: 170px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+            <i class="fa-solid fa-graduation-cap"></i> ${escapeHtml(c.subjects || '')}
+          </span>
+          <button type="button" class="btn-cap-view-students" onclick="viewCourseEnrollments('${c.id}')" title="คลิกเพื่อดูรายชื่อนักเรียนคอร์สนี้">
+            <i class="fa-solid fa-users"></i> ดูรายชื่อ (${count} คน)
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderAdminQuickCoursePills(courses, enrollments, selectedCourseId = 'all') {
+  const container = document.getElementById('adminQuickCoursePills');
+  if (!container) return;
+
+  const totalCount = enrollments.length;
+  let html = `
+    <button type="button" class="quick-course-pill ${selectedCourseId === 'all' ? 'active' : ''}" onclick="selectQuickCourseFilter('all')">
+      📚 ทุกคอร์สเรียนทั้งหมด <span class="count">${totalCount}</span>
+    </button>
+  `;
+
+  courses.forEach(c => {
+    const count = enrollments.filter(e => e.courseId === c.id).length;
+    const isActive = selectedCourseId === c.id ? 'active' : '';
+    html += `
+      <button type="button" class="quick-course-pill ${isActive}" onclick="selectQuickCourseFilter('${c.id}')">
+        ${escapeHtml(c.title)} ${c.isHidden ? '<small style="color:#b91c1c; font-weight:700;">(ซ่อน)</small>' : ''} <span class="count">${count}</span>
+      </button>
+    `;
+  });
+
+  container.innerHTML = html;
+}
+
+function selectQuickCourseFilter(courseId) {
+  const filterSelect = document.getElementById('enrollFilterCourse');
+  if (filterSelect) {
+    filterSelect.value = courseId;
+  }
+  const courses = window.NewGenDB ? window.NewGenDB.getCourses() : [];
+  const enrollments = window.NewGenDB ? window.NewGenDB.getEnrollments() : [];
+  renderAdminQuickCoursePills(courses, enrollments, courseId);
+  filterAdminEnrollments();
+}
+
+function loadAdminEnrollments() {
+  const enrollments = window.NewGenDB ? window.NewGenDB.getEnrollments() : [];
+  const courses = window.NewGenDB ? window.NewGenDB.getCourses() : [];
+
+  // 1. Update navigation badge
+  const navBadge = document.getElementById('navEnrollCountBadge');
+  if (navBadge) navBadge.textContent = enrollments.length;
+
+  // 2. Update stats cards
+  const statTotal = document.getElementById('statTotalStudents');
+  const statOnsite = document.getElementById('statOnsiteStudents');
+  const statOnline = document.getElementById('statOnlineStudents');
+  const statPending = document.getElementById('statPendingStudents');
+
+  if (statTotal) statTotal.textContent = enrollments.length;
+  if (statOnsite) statOnsite.textContent = enrollments.filter(e => (e.learningType || '').toLowerCase() === 'onsite').length;
+  if (statOnline) statOnline.textContent = enrollments.filter(e => (e.learningType || '').toLowerCase() === 'online').length;
+  if (statPending) statPending.textContent = enrollments.filter(e => e.status === 'pending').length;
+
+  // 3. Render Course-by-Course Capacity Cards (Sub-Tab 1)
+  renderCourseCapacityCards(courses, enrollments);
+
+  // 4. Populate course filter dropdown
+  const filterSelect = document.getElementById('enrollFilterCourse');
+  const currentVal = filterSelect ? (filterSelect.value || 'all') : 'all';
+  if (filterSelect) {
+    filterSelect.innerHTML = '<option value="all">📚 ทุกคอร์สเรียน (แสดงทั้งหมด)</option>' +
+      courses.map(c => {
+        const count = enrollments.filter(e => e.courseId === c.id).length;
+        return `<option value="${c.id}">${escapeHtml(c.title)} (${count} คน)</option>`;
+      }).join('');
+    if (courses.some(c => c.id === currentVal) || currentVal === 'all') {
+      filterSelect.value = currentVal;
+    }
+  }
+
+  // 5. Render Quick Course Filter Pills (Sub-Tab 2)
+  renderAdminQuickCoursePills(courses, enrollments, currentVal);
+
+  // 6. Populate modal course dropdown
+  const modalCourseSelect = document.getElementById('enCourseId');
+  if (modalCourseSelect) {
+    modalCourseSelect.innerHTML = courses.map(c => `
+      <option value="${c.id}">${escapeHtml(c.title)} (${escapeHtml(c.categoryLabel || c.category)})</option>
+    `).join('');
+  }
+
+  // 7. Render table according to current filters
+  filterAdminEnrollments();
+}
+
+function filterAdminEnrollments() {
+  const filterCourse = document.getElementById('enrollFilterCourse');
+  const filterType = document.getElementById('enrollFilterLearningType');
+  const searchInput = document.getElementById('enrollSearchKeyword');
+
+  const selectedCourseId = filterCourse ? filterCourse.value : 'all';
+  const selectedType = filterType ? filterType.value : 'all';
+  const keyword = searchInput ? searchInput.value.trim().toLowerCase() : '';
+
+  _currentEnrollmentFilter = {
+    courseId: selectedCourseId,
+    learningType: selectedType,
+    keyword: keyword
+  };
+
+  const allEnrollments = window.NewGenDB ? window.NewGenDB.getEnrollments() : [];
+  const courses = window.NewGenDB ? window.NewGenDB.getCourses() : [];
+  const courseMap = {};
+  courses.forEach(c => { courseMap[c.id] = c; });
+
+  const filtered = allEnrollments.filter(item => {
+    // 1. Filter course
+    if (selectedCourseId !== 'all' && item.courseId !== selectedCourseId) {
+      return false;
+    }
+
+    // 2. Filter learning type
+    if (selectedType !== 'all' && (item.learningType || '').toLowerCase() !== selectedType.toLowerCase()) {
+      return false;
+    }
+
+    // 3. Search keyword
+    if (keyword) {
+      const courseTitle = courseMap[item.courseId] ? courseMap[item.courseId].title : '';
+      const searchable = [
+        item.studentName || '',
+        item.nickname || '',
+        item.grade || '',
+        item.school || '',
+        item.parentPhone || '',
+        item.studentPhone || '',
+        item.lineId || '',
+        item.shippingAddress || '',
+        item.notes || '',
+        item.scheduleChoice || '',
+        courseTitle
+      ].join(' ').toLowerCase();
+
+      if (!searchable.includes(keyword)) {
+        return false;
+      }
+    }
+
+    return true;
+  });
+
+  renderEnrollmentsTable(filtered, courseMap);
+}
+
+function renderEnrollmentsTable(enrollments, courseMap = null) {
+  const tbody = document.getElementById('adminEnrollmentsTableBody');
+  const emptyState = document.getElementById('enrollmentsEmptyState');
+  if (!tbody) return;
+
+  if (!courseMap) {
+    const courses = window.NewGenDB ? window.NewGenDB.getCourses() : [];
+    courseMap = {};
+    courses.forEach(c => { courseMap[c.id] = c; });
+  }
+
+  if (enrollments.length === 0) {
+    tbody.innerHTML = '';
+    if (emptyState) emptyState.style.display = 'block';
+    return;
+  }
+
+  if (emptyState) emptyState.style.display = 'none';
+
+  tbody.innerHTML = enrollments.map((en, idx) => {
+    const c = courseMap[en.courseId];
+    const courseTitle = c ? c.title : (en.courseTitle || en.courseId || 'ไม่ระบุคอร์ส');
+    const isOnline = (en.learningType || '').toLowerCase() === 'online';
+
+    // Status Badge
+    let statusBadgeHtml = '';
+    if (en.status === 'confirmed') {
+      statusBadgeHtml = '<span class="badge-enroll-confirmed"><i class="fa-solid fa-check"></i> ยืนยันแล้ว</span>';
+    } else if (en.status === 'pending') {
+      statusBadgeHtml = '<span class="badge-enroll-pending"><i class="fa-solid fa-clock"></i> รอตรวจสอบ</span>';
+    } else if (en.status === 'materials_sent') {
+      statusBadgeHtml = '<span class="badge-enroll-sent"><i class="fa-solid fa-box"></i> ส่งเอกสารแล้ว</span>';
+    } else if (en.status === 'cancelled') {
+      statusBadgeHtml = '<span class="badge-enroll-cancelled"><i class="fa-solid fa-xmark"></i> ยกเลิก</span>';
+    } else {
+      statusBadgeHtml = `<span class="badge" style="background:#f1f5f9; color:#475569;">${escapeHtml(en.status || 'ทั่วไป')}</span>`;
+    }
+
+    const createdDate = en.createdAt ? new Date(en.createdAt).toLocaleDateString('th-TH', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    }) : '-';
+
+    return `
+      <tr>
+        <td style="text-align: center; color: var(--text-muted); font-weight: 700;">${idx + 1}</td>
+        <td>
+          <div style="font-weight: 700; color: var(--color-navy); font-size: 0.95rem;">
+            ${escapeHtml(en.studentName)}
+          </div>
+          <span style="display: inline-block; background: #f1f5f9; color: #0369a1; padding: 1px 7px; border-radius: 4px; font-size: 0.78rem; font-weight: 700; margin-top: 3px;">
+            ชื่อเล่น: ${escapeHtml(en.nickname || '-')}
+          </span>
+          ${en.notes ? `<div style="font-size: 0.75rem; color: #d97706; margin-top: 2px;"><i class="fa-solid fa-note-sticky"></i> ${escapeHtml(en.notes)}</div>` : ''}
+          ${Array.isArray(en.customAnswers) && en.customAnswers.length > 0 ? `
+            <div style="margin-top: 5px; padding: 4px 8px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px; font-size: 0.75rem; color: #166534; line-height: 1.35;">
+              <div style="font-weight: 700; color: #15803d; margin-bottom: 2px;"><i class="fa-solid fa-clipboard-question"></i> ข้อมูลเพิ่มเติม:</div>
+              ${en.customAnswers.map(a => `<div>• <b>${escapeHtml(a.label)}:</b> ${escapeHtml(a.value || '-')}</div>`).join('')}
+            </div>
+          ` : ''}
+        </td>
+        <td>
+          <div style="font-weight: 600; color: #334155; font-size: 0.88rem;">${escapeHtml(en.grade || '-')}</div>
+          <small style="color: var(--text-muted);">${escapeHtml(en.school || '-')}</small>
+        </td>
+        <td>
+          <div style="font-weight: 700; color: #1e3a8a; font-size: 0.88rem; max-width: 240px; line-height: 1.3;">
+            ${escapeHtml(courseTitle)}
+          </div>
+          ${en.scheduleChoice ? `
+            <div style="font-size: 0.75rem; color: #0284c7; margin-top: 3px; font-weight: 600;">
+              <i class="fa-regular fa-calendar-check"></i> ${escapeHtml(en.scheduleChoice.replace(/\|/g, ' • '))}
+            </div>
+          ` : ''}
+        </td>
+        <td style="text-align: center;">
+          ${isOnline
+            ? '<span class="badge-learning-online"><i class="fa-solid fa-laptop-code"></i> Online</span>'
+            : '<span class="badge-learning-onsite"><i class="fa-solid fa-chalkboard-user"></i> Onsite</span>'
+          }
+        </td>
+        <td>
+          <div style="font-size: 0.86rem; color: var(--color-navy); font-weight: 600;">
+            <i class="fa-solid fa-phone" style="color: #16a34a; font-size: 0.78rem;"></i> ผปค: <a href="tel:${escapeHtml(en.parentPhone || '')}" style="color: inherit; text-decoration: underline;">${escapeHtml(en.parentPhone || '-')}</a>
+          </div>
+          ${en.studentPhone ? `
+            <div style="font-size: 0.8rem; color: #64748b; margin-top: 2px;">
+              <i class="fa-solid fa-mobile-screen" style="color: #0284c7; font-size: 0.75rem;"></i> นร: <a href="tel:${escapeHtml(en.studentPhone)}" style="color: inherit;">${escapeHtml(en.studentPhone)}</a>
+            </div>
+          ` : ''}
+        </td>
+        <td>
+          <span style="display: inline-flex; align-items: center; gap: 4px; color: #059669; font-weight: 700; font-size: 0.86rem; background: #ecfdf5; padding: 2px 8px; border-radius: 4px;">
+            <i class="fa-brands fa-line" style="font-size: 0.95rem;"></i> ${escapeHtml(en.lineId || '-')}
+          </span>
+        </td>
+        <td style="max-width: 220px;">
+          <div style="font-size: 0.82rem; color: #475569; line-height: 1.35; max-height: 60px; overflow-y: auto;" title="${escapeHtml(en.shippingAddress || '')}">
+            <i class="fa-solid fa-location-dot" style="color: #ea580c; font-size: 0.75rem;"></i> ${escapeHtml(en.shippingAddress || 'ไม่ระบุ')}
+          </div>
+        </td>
+        <td style="text-align: right; white-space: nowrap;">
+          <button type="button" class="btn-action-edit" onclick="openEditEnrollmentModal('${en.id}')" title="แก้ไขข้อมูล">
+            <i class="fa-solid fa-pen-to-square"></i>
+          </button>
+          <button type="button" class="btn-action-del" onclick="deleteEnrollment('${en.id}')" title="ลบรายชื่อ">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function resetEnrollmentFilters() {
+  selectQuickCourseFilter('all');
+  const filterType = document.getElementById('enrollFilterLearningType');
+  const searchInput = document.getElementById('enrollSearchKeyword');
+
+  if (filterType) filterType.value = 'all';
+  if (searchInput) searchInput.value = '';
+
+  filterAdminEnrollments();
+}
+
+function viewCourseEnrollments(courseId) {
+  // สลับแท็บไปที่แท็บ 11
+  const navBtn = document.getElementById('navTabEnrollments');
+  switchAdminTab('enrollments', navBtn);
+
+  // สลับไป sub-tab รายชื่อนักเรียน (roster)
+  switchEnrollSubtab('roster');
+
+  // ตั้งค่าตัวกรองเป็นคอร์สที่เลือก
+  selectQuickCourseFilter(courseId);
+
+  const filterType = document.getElementById('enrollFilterLearningType');
+  if (filterType) filterType.value = 'all';
+  const searchInput = document.getElementById('enrollSearchKeyword');
+  if (searchInput) searchInput.value = '';
+
+  filterAdminEnrollments();
+
+  // Scroll to work area
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function openAddEnrollmentModal(preselectedCourseId = '') {
+  document.getElementById('modalEnrollmentTitle').innerHTML = '<i class="fa-solid fa-user-plus" style="color: #2563eb;"></i> เพิ่มข้อมูลผู้สมัครเรียน';
+  document.getElementById('enrollmentEditId').value = '';
+
+  const courses = window.NewGenDB ? window.NewGenDB.getCourses() : [];
+  const modalCourseSelect = document.getElementById('enCourseId');
+  if (modalCourseSelect) {
+    modalCourseSelect.innerHTML = courses.map(c => `
+      <option value="${c.id}">${escapeHtml(c.title)} (${escapeHtml(c.categoryLabel || c.category)})</option>
+    `).join('');
+    if (preselectedCourseId && courses.some(c => c.id === preselectedCourseId)) {
+      modalCourseSelect.value = preselectedCourseId;
+    }
+  }
+
+  document.getElementById('enLearningType').value = 'onsite';
+  document.getElementById('enStudentName').value = '';
+  document.getElementById('enNickname').value = '';
+  document.getElementById('enGrade').value = '';
+  document.getElementById('enSchool').value = '';
+  document.getElementById('enParentPhone').value = '';
+  document.getElementById('enStudentPhone').value = '';
+  document.getElementById('enLineId').value = '';
+  document.getElementById('enStatus').value = 'confirmed';
+  document.getElementById('enShippingAddress').value = '';
+  document.getElementById('enNotes').value = '';
+
+  document.getElementById('modalEnrollment').classList.add('active');
+}
+
+function openEditEnrollmentModal(id) {
+  const enrollments = window.NewGenDB ? window.NewGenDB.getEnrollments() : [];
+  const en = enrollments.find(item => item.id === id);
+  if (!en) return;
+
+  document.getElementById('modalEnrollmentTitle').innerHTML = '<i class="fa-solid fa-pen-to-square" style="color: #2563eb;"></i> แก้ไขข้อมูลผู้สมัครเรียน';
+  document.getElementById('enrollmentEditId').value = en.id;
+
+  const courses = window.NewGenDB ? window.NewGenDB.getCourses() : [];
+  const modalCourseSelect = document.getElementById('enCourseId');
+  if (modalCourseSelect) {
+    modalCourseSelect.innerHTML = courses.map(c => `
+      <option value="${c.id}">${escapeHtml(c.title)} (${escapeHtml(c.categoryLabel || c.category)})</option>
+    `).join('');
+    modalCourseSelect.value = en.courseId || (courses[0] ? courses[0].id : '');
+  }
+
+  document.getElementById('enLearningType').value = en.learningType || 'onsite';
+  document.getElementById('enStudentName').value = en.studentName || '';
+  document.getElementById('enNickname').value = en.nickname || '';
+  document.getElementById('enGrade').value = en.grade || '';
+  document.getElementById('enSchool').value = en.school || '';
+  document.getElementById('enParentPhone').value = en.parentPhone || '';
+  document.getElementById('enStudentPhone').value = en.studentPhone || '';
+  document.getElementById('enLineId').value = en.lineId || '';
+  document.getElementById('enStatus').value = en.status || 'confirmed';
+  document.getElementById('enShippingAddress').value = en.shippingAddress || '';
+  document.getElementById('enNotes').value = en.notes || '';
+
+  document.getElementById('modalEnrollment').classList.add('active');
+}
+
+async function handleSaveEnrollment(e) {
+  e.preventDefault();
+  const id = document.getElementById('enrollmentEditId').value.trim();
+  const courseId = document.getElementById('enCourseId').value;
+  const learningType = document.getElementById('enLearningType').value;
+  const studentName = document.getElementById('enStudentName').value.trim();
+  const nickname = document.getElementById('enNickname').value.trim();
+  const grade = document.getElementById('enGrade').value.trim();
+  const school = document.getElementById('enSchool').value.trim();
+  const parentPhone = document.getElementById('enParentPhone').value.trim();
+  const studentPhone = document.getElementById('enStudentPhone').value.trim();
+  const lineId = document.getElementById('enLineId').value.trim();
+  const status = document.getElementById('enStatus').value;
+  const shippingAddress = document.getElementById('enShippingAddress').value.trim();
+  const notes = document.getElementById('enNotes').value.trim();
+
+  const item = {
+    id: id || `enroll-${Date.now()}`,
+    courseId,
+    learningType,
+    studentName,
+    nickname,
+    grade,
+    school,
+    parentPhone,
+    studentPhone,
+    lineId,
+    status,
+    shippingAddress,
+    notes,
+    createdAt: id ? (window.NewGenDB.getEnrollments().find(x => x.id === id)?.createdAt || new Date().toISOString()) : new Date().toISOString()
+  };
+
+  const res = await window.NewGenDB.saveEnrollment(item);
+
+  // Sync with Server API
+  fetch('/api/enrollments', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(item)
+  }).catch(() => {});
+
+  loadAdminEnrollments();
+  loadAdminCourses();
+  closeModal('modalEnrollment');
+
+  if (res && res.success) {
+    showToast('✅ บันทึกข้อมูลผู้สมัครเรียนเรียบร้อยแล้ว!', 'success');
+  } else {
+    showToast(`⚠️ บันทึกข้อมูลในเครื่องแล้ว (${res && res.error ? res.error : ''})`, 'warning');
+  }
+}
+
+async function deleteEnrollment(id) {
+  const enrollments = window.NewGenDB ? window.NewGenDB.getEnrollments() : [];
+  const en = enrollments.find(item => item.id === id);
+  const studentName = en ? en.studentName : 'ผู้สมัครนี้';
+
+  if (!confirm(`คุณแน่ใจหรือไม่ว่าต้องการลบรายชื่อของ "${studentName}"?`)) {
+    return;
+  }
+
+  const res = await window.NewGenDB.deleteEnrollment(id);
+
+  // Sync with Server API
+  fetch(`/api/enrollments?id=${encodeURIComponent(id)}`, {
+    method: 'DELETE'
+  }).catch(() => {});
+
+  loadAdminEnrollments();
+  loadAdminCourses();
+
+  if (res && res.success) {
+    showToast(`🗑️ ลบข้อมูลของ "${studentName}" เรียบร้อยแล้ว`, 'success');
+  } else {
+    showToast('⚠️ ลบข้อมูลในเครื่องแล้ว', 'warning');
+  }
+}
+
+/**
+ * เปิดหน้าต่างเลือกรูปแบบการส่งออกไฟล์ Excel/CSV
+ */
+function openExportEnrollmentsModal() {
+  const courses = window.NewGenDB ? window.NewGenDB.getCourses() : [];
+  let enrollments = window.NewGenDB ? window.NewGenDB.getEnrollments() : [];
+  if ((!enrollments || enrollments.length === 0) && window.enrollmentsData && window.enrollmentsData.length > 0) {
+    enrollments = window.enrollmentsData;
+  }
+
+  const select = document.getElementById('exportCourseSelect');
+  if (select) {
+    if (courses.length === 0) {
+      select.innerHTML = '<option value="">ไม่มีคอร์สเรียนในระบบ</option>';
+    } else {
+      select.innerHTML = courses.map(c => {
+        const count = enrollments.filter(e => e.courseId === c.id).length;
+        return `<option value="${c.id}">${escapeHtml(c.title)} (${count} คน)</option>`;
+      }).join('');
+    }
+  }
+
+  // รีเซ็ตตัวเลือกเป็น "ทุกคอร์สรวมกัน"
+  const radioAll = document.getElementById('exportRadioAll');
+  if (radioAll) radioAll.checked = true;
+  toggleExportCourseSelect(false);
+
+  const modal = document.getElementById('modalExportEnrollments');
+  if (modal) modal.classList.add('active');
+}
+
+/**
+ * สลับการแสดงผล Dropdown เลือกคอร์สเรียนเฉพาะ
+ */
+function toggleExportCourseSelect(showSpecific) {
+  const wrap = document.getElementById('exportCourseSelectWrap');
+  const labelAll = document.getElementById('labelExportAll');
+  const labelSpecific = document.getElementById('labelExportSpecific');
+
+  if (wrap) wrap.style.display = showSpecific ? 'block' : 'none';
+
+  if (labelAll && labelSpecific) {
+    if (showSpecific) {
+      labelSpecific.style.borderColor = '#2563eb';
+      labelSpecific.style.background = '#f0f9ff';
+      labelAll.style.borderColor = '#e2e8f0';
+      labelAll.style.background = '#fff';
+    } else {
+      labelAll.style.borderColor = '#2563eb';
+      labelAll.style.background = '#f0f9ff';
+      labelSpecific.style.borderColor = '#e2e8f0';
+      labelSpecific.style.background = '#fff';
+    }
+  }
+}
+
+/**
+ * ดำเนินการส่งออกไฟล์ Excel/CSV ตามตัวเลือกที่เลือกไว้
+ */
+function confirmExportEnrollments() {
+  let allEnrollments = window.NewGenDB ? window.NewGenDB.getEnrollments() : [];
+  if ((!allEnrollments || allEnrollments.length === 0) && window.enrollmentsData && window.enrollmentsData.length > 0) {
+    allEnrollments = window.enrollmentsData;
+  }
+
+  const courses = window.NewGenDB ? window.NewGenDB.getCourses() : [];
+  const cfg = (window.NewGenDB && typeof window.NewGenDB.getEnrollmentConfig === 'function')
+    ? window.NewGenDB.getEnrollmentConfig()
+    : {};
+  const formQuestions = cfg.formQuestions || {};
+  const fields = formQuestions.fields || {};
+  const customQuestions = Array.isArray(formQuestions.customQuestions) ? formQuestions.customQuestions : [];
+
+  const courseMap = {};
+  courses.forEach(c => { courseMap[c.id] = c; });
+
+  const isSpecific = document.getElementById('exportRadioSingle') && document.getElementById('exportRadioSingle').checked;
+  const selectedCourseId = document.getElementById('exportCourseSelect') ? document.getElementById('exportCourseSelect').value : '';
+
+  let exportList = [];
+  let fileTitle = 'ทุกคอร์สเรียน';
+
+  if (isSpecific) {
+    if (!selectedCourseId) {
+      alert('กรุณาเลือกคอร์สเรียนที่ต้องการส่งออก');
+      return;
+    }
+    exportList = allEnrollments.filter(item => item.courseId === selectedCourseId);
+    const selectedCourse = courseMap[selectedCourseId];
+    fileTitle = selectedCourse ? selectedCourse.title.replace(/[\/\\?%*:|"<>]/g, '_') : selectedCourseId;
+  } else {
+    exportList = allEnrollments;
+    fileTitle = 'ทุกคอร์สรวมกัน';
+  }
+
+  if (exportList.length === 0) {
+    alert('ไม่มีข้อมูลรายชื่อนักเรียนสำหรับคอร์สที่เลือก');
+    return;
+  }
+
+  function csvEscape(field) {
+    if (field === null || field === undefined) return '""';
+    const str = String(field).replace(/"/g, '""');
+    return `"${str}"`;
+  }
+
+  // สร้าง Header ตามชื่อคำถามที่ตั้งค่าไว้
+  const headers = [
+    'ลำดับ',
+    'วันที่สมัคร',
+    fields.studentName?.label || 'ชื่อ - นามสกุล นักเรียน',
+    fields.nickname?.label || 'ชื่อเล่น',
+    fields.grade?.label || 'ระดับชั้น',
+    fields.school?.label || 'โรงเรียน',
+    'คอร์สเรียนที่สมัคร',
+    'รูปแบบการเรียน',
+    fields.parentPhone?.label || 'เบอร์โทรผู้ปกครอง',
+    fields.studentPhone?.label || 'เบอร์โทรนักเรียน',
+    fields.lineId?.label || 'Line ID',
+    fields.shippingAddress?.label || 'ที่อยู่จัดส่งเอกสาร',
+    fields.notes?.label || 'หมายเหตุ'
+  ];
+
+  // เพิ่มคอลัมน์คำถามเพิ่มเติม (Custom Questions)
+  customQuestions.forEach(q => {
+    headers.push(q.label || `คำถามเพิ่มเติม (${q.id})`);
+  });
+
+  headers.push('สถานะการสมัคร');
+
+  // สร้างแถวข้อมูล (Rows)
+  const rows = exportList.map((en, idx) => {
+    const c = courseMap[en.courseId];
+    const courseTitle = c ? c.title : (en.courseTitle || en.courseId || '-');
+    const createdDate = en.createdAt ? new Date(en.createdAt).toLocaleDateString('th-TH') : '-';
+    const learningTypeLabel = (en.learningType || '').toLowerCase() === 'online' ? 'Online (เรียนสดออนไลน์)' : 'Onsite (เรียนสดที่สถาบัน)';
+
+    let statusLabel = en.status;
+    if (en.status === 'confirmed') statusLabel = 'ยืนยันที่นั่งแล้ว';
+    else if (en.status === 'pending') statusLabel = 'รอตรวจสอบ/รอชำระ';
+    else if (en.status === 'materials_sent') statusLabel = 'จัดส่งเอกสารแล้ว';
+    else if (en.status === 'cancelled') statusLabel = 'ยกเลิก';
+
+    const row = [
+      idx + 1,
+      csvEscape(createdDate),
+      csvEscape(en.studentName),
+      csvEscape(en.nickname),
+      csvEscape(en.grade),
+      csvEscape(en.school),
+      csvEscape(courseTitle),
+      csvEscape(learningTypeLabel),
+      csvEscape(en.parentPhone),
+      csvEscape(en.studentPhone),
+      csvEscape(en.lineId),
+      csvEscape(en.shippingAddress),
+      csvEscape(en.notes)
+    ];
+
+    // คำตอบของคำถามเพิ่มเติม
+    customQuestions.forEach(q => {
+      const foundAnswer = Array.isArray(en.customAnswers) ? en.customAnswers.find(a => a.id === q.id) : null;
+      row.push(csvEscape(foundAnswer ? foundAnswer.value : ''));
+    });
+
+    row.push(csvEscape(statusLabel));
+    return row.join(',');
+  });
+
+  // เติม UTF-8 BOM (\uFEFF) เพื่อให้ Microsoft Excel และ Sheets แสดงภาษาไทยถูกต้อง 100%
+  const csvContent = '\uFEFF' + headers.map(h => csvEscape(h)).join(',') + '\n' + rows.join('\n');
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.style.display = 'none';
+  a.href = url;
+  const fileName = `รายชื่อนักเรียน_${fileTitle}_${new Date().toISOString().slice(0, 10)}.csv`;
+  a.download = fileName;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => {
+    if (a.parentNode) a.parentNode.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, 1500);
+
+  closeModal('modalExportEnrollments');
+  showToast(`📥 ส่งออกไฟล์ "${fileName}" สำเร็จแล้ว!`, 'success');
+}
+
+// Alias for backwards compatibility
+function exportEnrollmentsCsv() {
+  openExportEnrollmentsModal();
+}
+
+window.openExportEnrollmentsModal = openExportEnrollmentsModal;
+window.toggleExportCourseSelect = toggleExportCourseSelect;
+window.confirmExportEnrollments = confirmExportEnrollments;
+window.exportEnrollmentsCsv = exportEnrollmentsCsv;
 
 
