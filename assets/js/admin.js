@@ -2281,10 +2281,35 @@ function loadAdminReviews() {
   const tbody = document.getElementById('adminReviewsTableBody');
   if (!tbody) return;
 
-  tbody.innerHTML = reviews.map(r => `
+  if (reviews.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="8" style="text-align: center; padding: 28px; color: var(--text-muted);">
+          <i class="fa-solid fa-comments" style="font-size: 1.5rem; color: #cbd5e1; margin-bottom: 8px; display: block;"></i>
+          ยังไม่มีรีวิวนักเรียนในระบบ — คลิกปุ่ม "+ เพิ่มรีวิวนักเรียนใหม่" เพื่อเพิ่มข้อมูล
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  tbody.innerHTML = reviews.map((r, idx) => `
     <tr>
+      <td style="text-align: center;">
+        <span class="tutor-order-badge" style="background: #e0f2fe; color: #0369a1;">${idx + 1}</span>
+      </td>
+      <td style="text-align: center;">
+        <div style="display: inline-flex; gap: 4px;">
+          <button type="button" class="btn-reorder" onclick="moveReviewUp('${r.id}')" title="เลื่อนขึ้น" ${idx === 0 ? 'disabled' : ''}>
+            <i class="fa-solid fa-arrow-up"></i>
+          </button>
+          <button type="button" class="btn-reorder" onclick="moveReviewDown('${r.id}')" title="เลื่อนลง" ${idx === reviews.length - 1 ? 'disabled' : ''}>
+            <i class="fa-solid fa-arrow-down"></i>
+          </button>
+        </div>
+      </td>
       <td>
-        <img src="${r.image || 'assets/images/course-poster-primary.jpg'}" alt="${escapeHtml(r.studentName || 'รีวิว')}" style="width: 60px; height: 60px; border-radius: 8px; object-fit: cover; border: 1.5px solid #cbd5e1; box-shadow: 0 2px 4px rgba(0,0,0,0.06);">
+        <img src="${r.image || 'assets/images/course-poster-primary.jpg'}" alt="${escapeHtml(r.studentName || 'รีวิว')}" style="width: 60px; height: 60px; border-radius: 8px; object-fit: cover; border: 1.5px solid #cbd5e1; box-shadow: 0 2px 4px rgba(0,0,0,0.06); cursor: pointer;" onclick="window.open('${r.image || 'assets/images/course-poster-primary.jpg'}', '_blank')">
       </td>
       <td><strong>${r.studentName ? escapeHtml(r.studentName) : '<span style="color: #94a3b8; font-style: italic;">(ไม่ระบุชื่อ)</span>'}</strong></td>
       <td><span style="color: var(--color-navy); font-weight: 700;">${r.school ? escapeHtml(r.school) : '<span style="color: #94a3b8; font-style: italic;">(ไม่ระบุโรงเรียน)</span>'}</span></td>
@@ -2307,6 +2332,49 @@ function loadAdminReviews() {
       </td>
     </tr>
   `).join('');
+}
+
+function moveReviewUp(id) {
+  const reviews = window.NewGenDB.getReviews();
+  const idx = reviews.findIndex(r => r.id === id);
+  if (idx <= 0) return;
+
+  const current = reviews[idx];
+  const temp = reviews[idx];
+  reviews[idx] = reviews[idx - 1];
+  reviews[idx - 1] = temp;
+
+  saveAndSyncReviewsOrder(reviews, `เลื่อนรูปรีวิว "${current.studentName || 'ลำดับ ' + (idx + 1)}" ขึ้นสำเร็จแล้ว!`);
+}
+
+function moveReviewDown(id) {
+  const reviews = window.NewGenDB.getReviews();
+  const idx = reviews.findIndex(r => r.id === id);
+  if (idx < 0 || idx >= reviews.length - 1) return;
+
+  const current = reviews[idx];
+  const temp = reviews[idx];
+  reviews[idx] = reviews[idx + 1];
+  reviews[idx + 1] = temp;
+
+  saveAndSyncReviewsOrder(reviews, `เลื่อนรูปรีวิว "${current.studentName || 'ลำดับ ' + (idx + 1)}" ลงสำเร็จแล้ว!`);
+}
+
+async function saveAndSyncReviewsOrder(reviews, successMsg) {
+  const cloudRes = await window.NewGenDB.saveReviews(reviews);
+
+  fetch('/api/reviews', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(reviews)
+  }).catch(() => {});
+
+  loadAdminReviews();
+  if (cloudRes && cloudRes.success) {
+    showToast(successMsg || '✅ บันทึกลำดับรีวิวและซิงค์ Cloud สำเร็จแล้ว!', 'success');
+  } else {
+    showToast(`⚠️ บันทึกลำดับในเครื่องแล้ว (${cloudRes && cloudRes.error ? cloudRes.error : 'รอปลดล็อก Supabase RLS'})`, 'warning');
+  }
 }
 
 async function toggleReviewFeatured(id) {
@@ -2427,14 +2495,39 @@ function loadAdminAchievements() {
   const tbody = document.getElementById('adminAchievementsTableBody');
   if (!tbody) return;
 
+  if (achievements.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="5" style="text-align: center; padding: 28px; color: var(--text-muted);">
+          <i class="fa-solid fa-award" style="font-size: 1.5rem; color: #cbd5e1; margin-bottom: 8px; display: block;"></i>
+          ยังไม่มีโปสเตอร์ความสำเร็จในระบบ — คลิกปุ่ม "+ เพิ่มโปสเตอร์ความสำเร็จ" เพื่อเพิ่มข้อมูล
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
   tbody.innerHTML = achievements.map((a, idx) => `
     <tr>
+      <td style="text-align: center;">
+        <span class="tutor-order-badge" style="background: #fef3c7; color: #92400e;">${idx + 1}</span>
+      </td>
+      <td style="text-align: center;">
+        <div style="display: inline-flex; gap: 4px;">
+          <button type="button" class="btn-reorder" onclick="moveAchievementUp('${a.id}')" title="เลื่อนขึ้น" ${idx === 0 ? 'disabled' : ''}>
+            <i class="fa-solid fa-arrow-up"></i>
+          </button>
+          <button type="button" class="btn-reorder" onclick="moveAchievementDown('${a.id}')" title="เลื่อนลง" ${idx === achievements.length - 1 ? 'disabled' : ''}>
+            <i class="fa-solid fa-arrow-down"></i>
+          </button>
+        </div>
+      </td>
       <td>
-        <img src="${a.image}" alt="Poster #${idx + 1}" style="width: 100px; height: 70px; object-fit: cover; border-radius: 8px; border: 1.5px solid var(--border-light); cursor: pointer;" onclick="window.open('${a.image}', '_blank')">
+        <img src="${a.image}" alt="Poster #${idx + 1}" style="width: 100px; height: 70px; object-fit: cover; border-radius: 8px; border: 1.5px solid var(--border-light); cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.06);" onclick="window.open('${a.image}', '_blank')">
       </td>
       <td>
         <div style="font-weight: 700; color: var(--color-navy); word-break: break-all;">${escapeHtml(a.image)}</div>
-        <small style="color: var(--text-muted); font-size: 0.8rem;">รูปโปสเตอร์ลำดับที่ ${idx + 1}</small>
+        <small style="color: var(--text-muted); font-size: 0.8rem;">${a.title ? escapeHtml(a.title) + ' • ' : ''}รูปโปสเตอร์ลำดับที่ ${idx + 1}</small>
       </td>
       <td style="text-align: right;">
         <button type="button" class="btn-action-edit" onclick="openEditAchievementModal('${a.id}')" title="เปลี่ยนรูปภาพ">
@@ -2446,6 +2539,47 @@ function loadAdminAchievements() {
       </td>
     </tr>
   `).join('');
+}
+
+function moveAchievementUp(id) {
+  const achievements = window.NewGenDB.getAchievements();
+  const idx = achievements.findIndex(a => a.id === id);
+  if (idx <= 0) return;
+
+  const temp = achievements[idx];
+  achievements[idx] = achievements[idx - 1];
+  achievements[idx - 1] = temp;
+
+  saveAndSyncAchievementsOrder(achievements, `เลื่อนรูปโปสเตอร์ลำดับ ${idx + 1} ขึ้นสำเร็จแล้ว!`);
+}
+
+function moveAchievementDown(id) {
+  const achievements = window.NewGenDB.getAchievements();
+  const idx = achievements.findIndex(a => a.id === id);
+  if (idx < 0 || idx >= achievements.length - 1) return;
+
+  const temp = achievements[idx];
+  achievements[idx] = achievements[idx + 1];
+  achievements[idx + 1] = temp;
+
+  saveAndSyncAchievementsOrder(achievements, `เลื่อนรูปโปสเตอร์ลำดับ ${idx + 1} ลงสำเร็จแล้ว!`);
+}
+
+async function saveAndSyncAchievementsOrder(achievements, successMsg) {
+  const cloudRes = await window.NewGenDB.saveAchievements(achievements);
+
+  fetch('/api/achievements', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(achievements)
+  }).catch(() => {});
+
+  loadAdminAchievements();
+  if (cloudRes && cloudRes.success) {
+    showToast(successMsg || '✅ บันทึกลำดับโปสเตอร์และซิงค์ Cloud สำเร็จแล้ว!', 'success');
+  } else {
+    showToast(`⚠️ บันทึกลำดับในเครื่องแล้ว (${cloudRes && cloudRes.error ? cloudRes.error : 'รอปลดล็อก Supabase RLS'})`, 'warning');
+  }
 }
 
 function openAddAchievementModal() {

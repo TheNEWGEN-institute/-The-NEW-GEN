@@ -92,7 +92,7 @@
             <i class="fa-solid fa-school"></i> ONSITE FACULTY
           </div>
           <h2 class="tutor-group-title">
-            ทีมติวเตอร์หลัก <span class="text-gradient-cyan">(สอน Onsite ประจำสถาบัน)</span>
+            ทีมติวเตอร์หลัก <span class="text-gradient-red">(สอน Onsite ประจำสถาบัน)</span>
           </h2>
           <p class="tutor-group-desc">
             เรียนสด Onsite ห้องแอร์กลุ่มเล็ก ติวเตอร์ประจำสถาบันดูแลประกบใกล้ชิด ซักถามได้ทันที ปูพื้นฐาน 3 วิชาหลักให้แน่น ตะลุยโจทย์สอบแข่งขัน
@@ -317,9 +317,6 @@
             <div class="tutor-card-img-wrap">
               <div class="tutor-avatar-circle">
                 <img src="${tImg}" alt="${escapeHtml(t.name)} ${escapeHtml(t.honor)}" ${isPriority ? 'loading="eager" fetchpriority="high"' : 'loading="lazy"'} decoding="async" width="400" height="520">
-              </div>
-              <div class="tutor-card-type-tag ${isOnline ? 'type-online' : 'type-onsite'}">
-                <i class="fa-solid ${isOnline ? 'fa-laptop' : 'fa-school'}"></i> ${isOnline ? 'สอน Online' : 'สอน Onsite'}
               </div>
               <div class="tutor-card-honor-pill">
                 <i class="fa-solid fa-award"></i> ${escapeHtml(t.honor)}
