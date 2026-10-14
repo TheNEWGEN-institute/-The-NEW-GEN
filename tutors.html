@@ -270,8 +270,13 @@
             <div class="tutor-avatar-circle">
               <img src="${tImg}" alt="${t.name} ${t.honor}" ${isPriority ? 'loading="eager" fetchpriority="high"' : 'loading="lazy"'} decoding="async" width="400" height="520">
             </div>
+            <!-- ป้ายเกียรตินิยมแสดงเฉพาะบนคอมพิวเตอร์ (มือถือซ่อนออกตามคำขอ) -->
             <div class="tutor-card-honor-pill">
               <i class="fa-solid fa-award"></i> ${t.honor}
+            </div>
+            <!-- แถบชื่อติวเตอร์คาดขอบล่างของรูปภาพสำหรับมือถือ (Glassmorphism Name Bar) -->
+            <div class="tutor-card-name-overlay">
+              <span class="tutor-card-name-mobile">${t.name}</span>
             </div>
           </div>
           <div class="tutor-card-body">

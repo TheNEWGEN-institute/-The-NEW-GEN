@@ -3690,12 +3690,36 @@ button {
     display: inline !important;
     white-space: nowrap !important;
   }
+
+  /* ปรับให้ "The NEW GEN" ขึ้นบรรทัดใหม่เฉพาะบนมือถือ ป้องกันคำตก */
+  .reviews-hero-title,
+  .free-trial-hero-title {
+    font-size: clamp(1.35rem, 6vw, 1.9rem) !important;
+    line-height: 1.35 !important;
+    letter-spacing: -0.3px;
+  }
+
+  .reviews-hero-title .hero-title-prefix,
+  .free-trial-hero-title .hero-title-prefix {
+    display: block !important;
+  }
+
+  .reviews-hero-title .hero-title-brand,
+  .free-trial-hero-title .hero-title-brand {
+    display: inline-block !important;
+    white-space: nowrap !important;
+    margin-top: 2px;
+  }
 }
 
 @media (max-width: 380px) {
   .tutors-hero-title,
   .about-hero-title {
     font-size: clamp(1.1rem, 5.2vw, 1.35rem) !important;
+  }
+  .reviews-hero-title,
+  .free-trial-hero-title {
+    font-size: clamp(1.18rem, 5.4vw, 1.4rem) !important;
   }
 }
 
@@ -4183,234 +4207,310 @@ button {
   letter-spacing: 0.5px;
 }
 
+/* ===================================================================
+   Tutor Card - Mobile Layout (รูปแบบที่ 2 แนวนอน 2 คอลัมน์สำหรับมือถือโดยเฉพาะ)
+   - Desktop (> 860px): การ์ดแนวนอนขนาดเต็ม ซ่อนแถบชื่อลอย แสดงป้ายเกียรตินิยม
+   - Mobile (<= 860px): ขยายรูปภาพติวเตอร์ไปทางขวา (165px) เพื่อให้เห็นรูปร่างติวเตอร์ชัดเจน
+                        ย้ายชื่อติวเตอร์มาอยู่ขอบล่างของรูปภาพแบบ Glassmorphism Overlay
+                        นำป้ายสีเหลืองออกตามคำขอ ลดขนาดตัวอักษรทุกส่วน และจัดสมดุลใหม่อย่างลงตัว
+   - ป้องกันการ Crop หน้าติวเตอร์ 100% (Zero Face Crop)
+   =================================================================== */
+
+/* ซ่อน Overlay ชื่อบนคอมพิวเตอร์ (บนคอมชื่อจะอยู่ใน Header ตามปกติ) */
+.tutor-card-name-overlay {
+  display: none;
+}
+
+/* ===================================================================
+   ปรับแต่งสำหรับหน้าจอมือถือและแท็บเล็ต (@media max-width: 860px)
+   =================================================================== */
 @media (max-width: 860px) {
+  .tutors-full-grid {
+    gap: 20px !important;
+  }
+
+  /* การ์ดติวเตอร์แบบ 2 คอลัมน์: ซ้ายรูปภาพ (165px) ขวาเนื้อหา */
   .tutor-profile-card {
-    grid-template-columns: 1fr;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    padding: 30px 20px 24px;
-    border-radius: 28px;
-    background: linear-gradient(160deg, #0b1f42 0%, #061124 100%);
-    border: 1.5px solid rgba(56, 189, 248, 0.28);
-    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6), 0 0 25px rgba(14, 165, 233, 0.12);
+    display: grid !important;
+    grid-template-columns: 165px 1fr !important;
+    gap: 0 !important;
+    max-width: 100% !important;
+    border-radius: 20px !important;
+    overflow: hidden !important;
+    background: linear-gradient(150deg, rgba(13, 31, 65, 0.95) 0%, rgba(6, 17, 38, 0.98) 100%) !important;
+    border: 1.5px solid rgba(56, 189, 248, 0.22) !important;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6) !important;
+    position: relative !important;
+    align-items: stretch !important;
+    padding: 0 !important;
+    margin: 0 !important;
   }
 
   .tutor-profile-card::before {
-    display: none;
-  }
-
-  .tutor-card-img-wrap {
-    background: transparent;
-    border: none;
-    min-height: unset;
-    height: auto;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 8px;
-    position: static;
-    overflow: visible;
-  }
-
-  /* รูปติวเตอร์เป็นวงกลม กรอบไฟนีออนพรีเมียม */
-  .tutor-avatar-circle {
-    width: 148px;
-    height: 148px;
-    border-radius: 50%;
-    overflow: hidden;
-    padding: 3.5px;
-    background: linear-gradient(135deg, #38bdf8 0%, #e11d48 50%, #fbbf24 100%);
-    box-shadow: 0 0 25px rgba(56, 189, 248, 0.35), 0 10px 25px rgba(0, 0, 0, 0.55);
-    margin: 0 auto 14px auto;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-  }
-
-  /* การปรับภาพแบบอัจฉริยะ (Smart Face Focal Tuning): ซูมใบหน้าพอร์ตเทรตสายตาเดียวกันทุกคน */
-  .tutor-avatar-circle img {
-    width: 100%;
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 3.5px;
     height: 100%;
-    border-radius: 50%;
-    object-fit: cover;
-    object-position: center 12%;
-    transform: scale(1.18);
-    transform-origin: center 16%;
-    display: block;
-    transition: transform 0.4s ease;
+    background: linear-gradient(180deg, #e11d48 0%, #38bdf8 100%);
+    z-index: 4;
+    display: block !important;
   }
 
-  /* ปรับโฟกัสเฉพาะบุคคลให้ระดับสายตาและใบหน้าสมดุลกัน */
-  [data-tutor-id="tutor-au"] .tutor-avatar-circle img,
+  /* คอลัมน์รูปภาพติวเตอร์: ขยายพื้นที่กว้างขึ้น (165px) และเห็นตัวติวเตอร์ชัด */
+  .tutor-card-img-wrap {
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 250px !important;
+    position: relative !important;
+    background: radial-gradient(circle at 50% 25%, #172a4e 0%, #081326 100%) !important;
+    border-right: 1px solid rgba(56, 189, 248, 0.18) !important;
+    border-bottom: none !important;
+    overflow: hidden !important;
+    display: block !important;
+    margin: 0 !important;
+  }
+
+  .tutor-avatar-circle {
+    width: 100% !important;
+    height: 100% !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: block !important;
+  }
+
+  /* ปรับตำแหน่งโฟกัสใบหน้าติวเตอร์ไม่ให้โดน Crop */
+  .tutor-card-img-wrap img,
+  .tutor-avatar-circle img {
+    width: 100% !important;
+    height: 100% !important;
+    border-radius: 0 !important;
+    object-fit: cover !important;
+    object-position: center 5% !important;
+    transform: none !important;
+    display: block !important;
+  }
+
   [data-tutor-id*="au"] .tutor-avatar-circle img,
   [data-tutor-id*="ou"] .tutor-avatar-circle img {
-    object-position: center 14%;
-    transform: scale(1.22);
-    transform-origin: center 16%;
+    object-position: center 5% !important;
   }
-
-  [data-tutor-id="tutor-mac"] .tutor-avatar-circle img,
-  [data-tutor-id*="mac"] .tutor-avatar-circle img {
-    object-position: center 12%;
-    transform: scale(1.16);
-    transform-origin: center 14%;
-  }
-
-  [data-tutor-id="tutor-non"] .tutor-avatar-circle img,
   [data-tutor-id*="non"] .tutor-avatar-circle img {
-    object-position: center 10%;
-    transform: scale(1.18);
-    transform-origin: center 12%;
+    object-position: center 5% !important;
   }
-
-  [data-tutor-id="tutor-anont"] .tutor-avatar-circle img,
+  [data-tutor-id*="mac"] .tutor-avatar-circle img {
+    object-position: center 7% !important;
+  }
   [data-tutor-id*="anont"] .tutor-avatar-circle img {
-    object-position: center 12%;
-    transform: scale(1.18);
-    transform-origin: center 14%;
+    object-position: center 4% !important;
   }
 
-  /* ป้ายเกียรตินิยม/ความเชี่ยวชาญ (Honor Pill) กึ่งกลาง ใต้รูปวงกลม */
-  .tutor-card-honor-pill {
-    position: static;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 7px;
-    width: auto;
-    max-width: 95%;
-    margin: 0 auto;
-    padding: 7px 18px;
-    font-size: 0.82rem;
-    font-weight: 700;
-    border-radius: 50px;
-    background: rgba(14, 165, 233, 0.14);
-    color: #38bdf8;
-    border: 1px solid rgba(56, 189, 248, 0.38);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
-    letter-spacing: 0.2px;
+  /* นำป้ายเกียรตินิยมสีเหลืองออกบนมือถือทั้งหมดตามที่ต้องการ */
+  .tutor-card-honor-pill,
+  .tutor-card-honor-inline {
+    display: none !important;
   }
 
-  .tutor-card-honor-pill i {
-    color: #fbbf24;
-    font-size: 0.85rem;
-    margin-right: 2px;
+  /* ย้ายชื่อติวเตอร์มาอยู่ขอบล่างของรูปภาพติวเตอร์ (Deep Navy Glass Floating Bar & Cyan Neon Name) */
+  .tutor-card-name-overlay {
+    display: block !important;
+    position: absolute !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    background: linear-gradient(to top, rgba(8, 22, 48, 0.94) 0%, rgba(13, 33, 70, 0.78) 65%, transparent 100%) !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+    padding: 16px 8px 8px 8px !important;
+    text-align: center !important;
+    z-index: 3 !important;
+    border-top: 1px solid rgba(56, 189, 248, 0.35) !important;
+    box-shadow: 0 -4px 14px rgba(56, 189, 248, 0.12) !important;
   }
 
-  /* กล่องข้อความด้านล่าง ปรับใหม่ให้ดูดี ทันสมัย สำหรับมุมมองในมือถือ */
+  .tutor-card-name-mobile {
+    display: block !important;
+    font-size: 0.96rem !important;
+    font-weight: 800 !important;
+    color: #38bdf8 !important;
+    letter-spacing: -0.2px !important;
+    line-height: 1.25 !important;
+    text-shadow: 0 0 10px rgba(56, 189, 248, 0.45), 0 2px 6px rgba(0, 0, 0, 0.9) !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  /* คอลัมน์ขวา: ข้อมูลรายละเอียดของติวเตอร์ */
   .tutor-card-body {
-    padding: 16px 4px 0 4px;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
+    padding: 14px 15px 14px 15px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    text-align: left !important;
+    align-items: stretch !important;
+    width: 100% !important;
+    gap: 0 !important;
+  }
+
+  /* ซ่อนชื่อในคอลัมน์ขวา เพราะย้ายไปอยู่ใต้รูปภาพแล้ว */
+  .tutor-card-body .tutor-card-name {
+    display: none !important;
   }
 
   .tutor-card-header {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    margin-bottom: 14px;
-    width: 100%;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 6px !important;
+    margin-bottom: 7px !important;
+    width: 100% !important;
   }
 
-  .tutor-card-name {
-    font-size: 1.75rem;
-    font-weight: 800;
-    color: #ffffff;
-    letter-spacing: -0.3px;
-    margin: 0;
-    text-align: center;
-  }
-
+  /* ป้ายวิชาที่สอน (ลดขนาดตัวอักษรลง) */
   .tutor-card-subjects {
-    font-size: 0.82rem;
-    padding: 5px 16px;
-    margin: 0;
+    font-size: 0.68rem !important;
+    padding: 3px 10px !important;
+    border-radius: 50px !important;
+    background: linear-gradient(135deg, rgba(225, 29, 72, 0.2), rgba(190, 18, 60, 0.25)) !important;
+    border: 1px solid rgba(244, 63, 94, 0.4) !important;
+    color: #fda4af !important;
+    font-weight: 700 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    margin: 0 !important;
+    box-shadow: 0 2px 8px rgba(225, 29, 72, 0.15) !important;
   }
 
-  /* ข้อมูลการศึกษา: ดีไซน์การ์ดโมเดิร์น สไตล์ Frosted Glass */
+  /* กล่องวุฒิการศึกษา (ลดขนาดตัวอักษรลง) */
   .tutor-card-degree {
-    width: 100%;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.09);
-    border-radius: 14px;
-    padding: 12px 16px;
-    font-size: 0.86rem;
-    font-weight: 600;
-    color: #e2e8f0;
-    line-height: 1.55;
-    text-align: left;
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    margin-bottom: 14px;
+    font-size: 0.72rem !important;
+    font-weight: 600 !important;
+    color: #38bdf8 !important;
+    background: rgba(56, 189, 248, 0.08) !important;
+    border: 1px solid rgba(56, 189, 248, 0.16) !important;
+    border-radius: 8px !important;
+    padding: 6px 9px !important;
+    margin-bottom: 8px !important;
+    line-height: 1.38 !important;
+    display: flex !important;
+    align-items: flex-start !important;
+    gap: 6px !important;
+    width: 100% !important;
+    text-align: left !important;
   }
 
   .tutor-card-degree i {
-    color: #38bdf8;
-    font-size: 1rem;
-    margin-top: 3px;
+    color: #f43f5e;
+    font-size: 0.82rem !important;
+    margin-top: 2px;
     flex-shrink: 0;
   }
 
+  /* คำอธิบายประวัติ (ลดขนาดตัวอักษรลงและจัดระยะบรรทัด) */
   .tutor-card-bio {
-    font-size: 0.90rem;
-    color: #cbd5e1;
-    line-height: 1.72;
-    text-align: center;
-    margin-bottom: 16px;
-    padding: 0 4px;
+    font-size: 0.72rem !important;
+    color: #cbd5e1 !important;
+    line-height: 1.55 !important;
+    margin-bottom: 8px !important;
+    text-align: left !important;
+    padding: 0 !important;
   }
 
-  /* กล่องสโลแกน (Tagline): โมเดิร์น Quote Bar */
+  /* สโลแกน / ปณิธานติวเตอร์ (ลดขนาดตัวอักษรลง) */
   .tutor-card-tagline {
-    width: 100%;
-    background: linear-gradient(135deg, rgba(225, 29, 72, 0.12) 0%, rgba(14, 165, 233, 0.08) 100%);
-    border: 1px solid rgba(225, 29, 72, 0.32);
-    border-left: 3px solid #e11d48;
-    border-radius: 12px;
-    padding: 12px 16px;
-    font-size: 0.88rem;
-    font-weight: 600;
-    color: #ffffff;
-    text-align: center;
-    line-height: 1.55;
-    margin: 0;
+    font-size: 0.70rem !important;
+    font-style: italic !important;
+    font-weight: 600 !important;
+    color: #f1f5f9 !important;
+    background: rgba(225, 29, 72, 0.07) !important;
+    border-left: 2.5px solid #e11d48 !important;
+    border-top: 1px solid rgba(225, 29, 72, 0.15) !important;
+    border-bottom: 1px solid rgba(225, 29, 72, 0.15) !important;
+    border-right: 1px solid rgba(225, 29, 72, 0.15) !important;
+    padding: 6px 9px !important;
+    border-radius: 0 8px 8px 0 !important;
+    line-height: 1.42 !important;
+    text-align: left !important;
+    margin: 0 !important;
+    width: 100% !important;
+  }
+
+  .tutor-card-tagline i {
+    color: #e11d48;
+    margin-right: 4px;
   }
 }
 
-@media (max-width: 480px) {
+/* ปรับแต่งสำหรับหน้าจอมือถือขนาดเล็กพิเศษ (Small Mobile Screens <= 420px) */
+@media (max-width: 420px) {
+  .tutors-full-grid {
+    gap: 16px !important;
+  }
+
   .tutor-profile-card {
-    padding: 24px 14px 18px;
-    border-radius: 22px;
+    grid-template-columns: 142px 1fr !important;
+    border-radius: 16px !important;
   }
-  .tutor-avatar-circle {
-    width: 136px;
-    height: 136px;
+
+  .tutor-card-img-wrap {
+    min-height: 230px !important;
   }
-  .tutor-card-name {
-    font-size: 1.55rem;
+
+  .tutor-card-name-mobile {
+    font-size: 0.90rem !important;
   }
+
+  .tutor-card-name-overlay {
+    padding: 12px 6px 6px 6px !important;
+  }
+
+  .tutor-card-body {
+    padding: 10px 11px 12px 11px !important;
+  }
+
+  .tutor-card-subjects {
+    font-size: 0.64rem !important;
+    padding: 2px 8px !important;
+  }
+
   .tutor-card-degree {
-    font-size: 0.82rem;
-    padding: 10px 14px;
+    font-size: 0.68rem !important;
+    padding: 5px 7px !important;
+    margin-bottom: 6px !important;
+    line-height: 1.32 !important;
   }
+
+  .tutor-card-degree i {
+    font-size: 0.76rem !important;
+  }
+
   .tutor-card-bio {
-    font-size: 0.86rem;
-    line-height: 1.65;
+    font-size: 0.68rem !important;
+    line-height: 1.48 !important;
+    margin-bottom: 6px !important;
   }
+
   .tutor-card-tagline {
-    font-size: 0.84rem;
-    padding: 10px 14px;
+    font-size: 0.66rem !important;
+    padding: 5px 7px !important;
+    line-height: 1.38 !important;
+  }
+}
+
+@media (max-width: 360px) {
+  .tutor-profile-card {
+    grid-template-columns: 130px 1fr !important;
+  }
+
+  .tutor-card-name-mobile {
+    font-size: 0.84rem !important;
   }
 }
 
