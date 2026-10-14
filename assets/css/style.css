@@ -156,9 +156,11 @@ button {
 }
 
 .badge-gold {
-  background: #fffbeb;
-  color: var(--color-gold);
-  border: 1px solid #fde68a;
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+  color: #b45309;
+  border: 1px solid #f59e0b;
+  font-weight: 700;
+  box-shadow: 0 1px 4px rgba(245, 158, 11, 0.15);
 }
 
 .badge-emerald {
@@ -1520,7 +1522,171 @@ button {
   color: #ffffff;
   border-color: #f43f5e;
   box-shadow: 0 4px 16px rgba(225, 29, 72, 0.45);
+}
+
+/* Dynamic Seat Availability Badges on Course Covers/Posters */
+.course-thumbnail .badge-seat-full,
+.course-thumbnail .badge-seat-urgent,
+.course-thumbnail .badge-seat-available,
+.course-seat-cover-badge {
+  position: absolute !important;
+  top: 12px !important;
+  right: 12px !important;
+  z-index: 5 !important;
+  padding: 5px 12px !important;
+  border-radius: var(--radius-full) !important;
+  font-size: 0.78rem !important;
+  font-weight: 800 !important;
+  white-space: nowrap !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  letter-spacing: 0.2px;
+}
+
+.badge-seat-full {
+  background: linear-gradient(135deg, #991b1b 0%, #dc2626 100%) !important;
+  color: #ffffff !important;
+  border: 1.5px solid #fca5a5 !important;
+  box-shadow: 0 4px 14px rgba(220, 38, 38, 0.55) !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.3px;
+}
+
+.badge-seat-urgent {
+  background: linear-gradient(135deg, #c2410c 0%, #ea580c 100%) !important;
+  color: #ffffff !important;
+  border: 1.5px solid #fdba74 !important;
+  box-shadow: 0 4px 16px rgba(234, 88, 12, 0.55) !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.3px;
+  animation: pulseUrgentBadge 2.2s infinite;
+}
+
+@keyframes pulseUrgentBadge {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 4px 16px rgba(239, 68, 68, 0.45);
+  }
+  50% {
+    transform: scale(1.04);
+    box-shadow: 0 6px 22px rgba(239, 68, 68, 0.7);
+  }
+}
+
+.badge-seat-available {
+  background: linear-gradient(135deg, #065f46 0%, #059669 100%) !important;
+  color: #ffffff !important;
+  border: 1.5px solid #6ee7b7 !important;
+  box-shadow: 0 4px 14px rgba(5, 150, 105, 0.45) !important;
+  font-weight: 800 !important;
+}
+
+.course-thumbnail.is-full::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.35);
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Course Card Action Buttons (Dual Buttons: สมัครเลย vs รายละเอียด) */
+.course-actions-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.btn-course-register {
+  background: linear-gradient(135deg, #e11d48 0%, #be123c 100%);
+  border: 1px solid #f43f5e;
+  color: #ffffff !important;
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  font-size: 0.84rem;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all var(--tr-fast);
+  text-decoration: none;
+  white-space: nowrap !important;
+  box-shadow: 0 3px 12px rgba(225, 29, 72, 0.4);
+}
+
+.btn-course-register:hover {
+  background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
   transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(225, 29, 72, 0.55);
+}
+
+.btn-course-register.disabled {
+  background: #64748b !important;
+  border-color: #94a3b8 !important;
+  color: #e2e8f0 !important;
+  cursor: not-allowed;
+  box-shadow: none;
+  pointer-events: none;
+  opacity: 0.75;
+}
+
+/* Course Detail Large Register Button */
+.btn-cd-register {
+  background: linear-gradient(135deg, #e11d48 0%, #be123c 100%);
+  color: #ffffff !important;
+  padding: 13px 20px;
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1.5px solid #f43f5e;
+  box-shadow: 0 6px 20px rgba(225, 29, 72, 0.35);
+  transition: all var(--tr-fast);
+  margin-bottom: 10px;
+}
+
+.btn-cd-register:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(225, 29, 72, 0.5);
+  background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
+}
+
+.btn-cd-register i {
+  font-size: 1.35rem;
+  color: #ffffff;
+}
+
+.btn-cd-register strong {
+  display: block;
+  font-size: 1.05rem;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.btn-cd-register small {
+  display: block;
+  font-size: 0.78rem;
+  color: #fecdd3;
+  margin-top: 2px;
+}
+
+.btn-cd-register.disabled {
+  background: #64748b !important;
+  border-color: #94a3b8 !important;
+  cursor: not-allowed;
+  box-shadow: none;
+  pointer-events: none;
+  opacity: 0.75;
+}
+
+.btn-cd-register.disabled small {
+  color: #cbd5e1;
 }
 
 .slider-nav {
@@ -5465,29 +5631,76 @@ button {
   background: #ffffff;
   border: 1px solid var(--border-light);
   border-radius: var(--radius-lg);
-  overflow: hidden;
+  overflow-x: auto !important;
+  overflow-y: visible;
   box-shadow: var(--shadow-xs);
+  -webkit-overflow-scrolling: touch;
+}
+
+.admin-table-card::-webkit-scrollbar {
+  height: 8px;
+}
+.admin-table-card::-webkit-scrollbar-track {
+  background: #f8fafc;
+  border-radius: 4px;
+}
+.admin-table-card::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+.admin-table-card::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
 
 .admin-data-table {
   width: 100%;
   border-collapse: collapse;
   text-align: left;
-  font-size: 0.92rem;
+  font-size: 0.88rem;
 }
 
 .admin-data-table th {
   background: #f8fafc;
-  padding: 14px 18px;
+  padding: 11px 10px;
   font-weight: 700;
+  font-size: 0.82rem;
   color: var(--color-navy);
   border-bottom: 2px solid var(--border-light);
+  white-space: nowrap;
 }
 
 .admin-data-table td {
-  padding: 14px 18px;
+  padding: 10px 10px;
   border-bottom: 1px solid var(--border-light);
   vertical-align: middle;
+}
+
+.btn-reorder-compact {
+  width: 18px;
+  height: 13px;
+  padding: 0;
+  border: 1px solid var(--border-light);
+  background: #f8fafc;
+  border-radius: 2px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.58rem;
+  color: #64748b;
+  line-height: 1;
+  transition: all 0.15s ease;
+}
+
+.btn-reorder-compact:hover:not(:disabled) {
+  background: var(--color-blue-brand);
+  color: #ffffff;
+  border-color: var(--color-blue-brand);
+}
+
+.btn-reorder-compact:disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
 }
 
 .admin-data-table tr:hover td {
@@ -7537,5 +7750,1141 @@ button {
   transform: translateY(-1px);
 }
 
+/* ===================================================================
+   Admin Enrollment System Styles (Tab 11)
+   =================================================================== */
+.enroll-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
 
+.enroll-stat-card {
+  background: #ffffff;
+  border: 1px solid var(--border-light, #e2e8f0);
+  border-radius: var(--radius-md, 12px);
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
 
+.enroll-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+}
+
+.enroll-stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+  flex-shrink: 0;
+}
+
+.enroll-stat-icon.primary { background: #eff6ff; color: #2563eb; }
+.enroll-stat-icon.onsite { background: #f0fdf4; color: #16a34a; }
+.enroll-stat-icon.online { background: #fdf4ff; color: #c026d3; }
+.enroll-stat-icon.pending { background: #fff7ed; color: #ea580c; }
+
+.enroll-stat-val {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--color-navy, #0f172a);
+  line-height: 1.1;
+  font-family: var(--font-en, 'Plus Jakarta Sans', sans-serif);
+}
+
+.enroll-stat-label {
+  font-size: 0.82rem;
+  color: var(--text-secondary, #64748b);
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+.badge-learning-onsite {
+  background: #dcfce7;
+  color: #15803d;
+  border: 1px solid #86efac;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 99px;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.badge-learning-online {
+  background: #f3e8ff;
+  color: #7e22ce;
+  border: 1px solid #d8b4fe;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 99px;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.badge-enroll-confirmed {
+  background: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.badge-enroll-pending {
+  background: #fffbeb;
+  color: #92400e;
+  border: 1px solid #fde68a;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.badge-enroll-sent {
+  background: #eff6ff;
+  color: #1e40af;
+  border: 1px solid #bfdbfe;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.badge-enroll-cancelled {
+  background: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  display: inline-block;
+  white-space: nowrap;
+}
+
+/* ===================================================================
+   UNIVERSAL COURSE ENROLLMENT MODAL (ระบบรับสมัครในเว็บไซต์โดยตรง)
+   =================================================================== */
+.enroll-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 999999;
+  background: rgba(5, 16, 36, 0.78);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.28s ease;
+}
+
+.enroll-modal-backdrop.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.enroll-modal-container {
+  width: 100%;
+  max-width: 760px;
+  max-height: 92vh;
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 25px 60px -15px rgba(5, 16, 36, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transform: scale(0.95) translateY(12px);
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.enroll-modal-backdrop.active .enroll-modal-container {
+  transform: scale(1) translateY(0);
+}
+
+.enroll-modal-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 24px;
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.enroll-modal-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.enroll-brand-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--color-blue-brand, #1d4ed8) 0%, #0284c7 100%);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  box-shadow: 0 4px 12px rgba(29, 78, 216, 0.25);
+}
+
+.enroll-modal-heading {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--color-navy, #0b1e3f);
+  line-height: 1.2;
+}
+
+.enroll-modal-sub {
+  font-size: 0.8rem;
+  color: var(--text-muted, #64748b);
+  font-weight: 500;
+}
+
+.enroll-modal-close {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: var(--color-navy, #0b1e3f);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+}
+
+.enroll-modal-close:hover {
+  background: var(--color-red-brand, #e11d48);
+  color: #ffffff;
+  border-color: var(--color-red-brand, #e11d48);
+}
+
+.enroll-modal-view {
+  display: none;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-bottom: 8px;
+}
+
+.enroll-modal-view.active {
+  display: block;
+}
+
+/* Course Review Banner */
+.enroll-course-review-card {
+  margin: 20px 24px 16px;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border: 1.5px solid #cbd5e1;
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.enroll-review-cover-wrap {
+  width: 105px;
+  height: 105px;
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  background: #0b1e3f;
+}
+
+.enroll-review-cover-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.enr-seat-badge-pill {
+  position: absolute;
+  bottom: 4px;
+  left: 4px;
+  right: 4px;
+}
+
+.enr-seat-badge-pill .badge {
+  font-size: 0.65rem;
+  padding: 2px 6px;
+  display: block;
+  text-align: center;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+.enroll-review-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.enroll-review-tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+
+.enroll-review-title {
+  margin: 0 0 4px;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--color-navy, #0b1e3f);
+  line-height: 1.3;
+}
+
+.enroll-review-subjects {
+  margin: 0 0 8px;
+  font-size: 0.85rem;
+  color: var(--color-blue-brand, #1d4ed8);
+  font-weight: 700;
+}
+
+.enroll-review-meta-grid {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.enr-meta-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: #475569;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+.enroll-review-price-box {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.enr-price-label {
+  font-size: 0.8rem;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.enr-price-val {
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: var(--color-red-brand, #e11d48);
+}
+
+.enr-price-unit {
+  font-size: 0.8rem;
+  color: #475569;
+  font-weight: 600;
+}
+
+/* Sections & Fields */
+.enroll-section-block {
+  padding: 0 24px;
+  margin-bottom: 20px;
+}
+
+.enroll-section-label {
+  display: block;
+  font-size: 0.92rem;
+  color: var(--color-navy, #0b1e3f);
+  margin-bottom: 10px;
+  font-weight: 800;
+}
+
+.req-star {
+  color: var(--color-red-brand, #e11d48);
+  font-weight: 800;
+}
+
+/* Schedule List Cards */
+.enroll-schedule-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.enroll-schedule-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  border: 1.5px solid #cbd5e1;
+  background: #ffffff;
+  padding: 12px 14px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.enroll-schedule-card:hover {
+  border-color: var(--color-blue-brand, #1d4ed8);
+  background: #f8fafc;
+}
+
+.enroll-schedule-card.active {
+  border-color: var(--color-blue-brand, #1d4ed8);
+  background: #eff6ff;
+  box-shadow: 0 0 0 2px rgba(29, 78, 216, 0.15);
+}
+
+.enroll-schedule-card.disabled {
+  opacity: 0.55;
+  background: #f1f5f9;
+  cursor: not-allowed;
+  border-color: #e2e8f0;
+}
+
+.enroll-schedule-card input[type="radio"] {
+  margin-top: 3px;
+  accent-color: var(--color-blue-brand, #1d4ed8);
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.sched-card-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.sched-type-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 3px;
+}
+
+.sched-type-row strong {
+  color: var(--color-navy, #0b1e3f);
+  font-size: 0.95rem;
+}
+
+.sched-time-tag {
+  font-size: 0.78rem;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: var(--color-blue-brand, #1d4ed8);
+  padding: 2px 7px;
+  border-radius: 6px;
+  font-weight: 700;
+}
+
+.sched-dates-row {
+  font-size: 0.8rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+/* Learning Type Toggle Cards */
+.enroll-type-toggle-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.enroll-type-radio-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1.5px solid #cbd5e1;
+  background: #ffffff;
+  padding: 12px 14px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.enroll-type-radio-card.active {
+  border-color: var(--color-blue-brand, #1d4ed8);
+  background: #eff6ff;
+  box-shadow: 0 0 0 2px rgba(29, 78, 216, 0.15);
+}
+
+.enroll-type-radio-card input[type="radio"] {
+  width: 17px;
+  height: 17px;
+  accent-color: var(--color-blue-brand, #1d4ed8);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.type-card-body {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.type-card-body i {
+  font-size: 1.35rem;
+  color: var(--color-blue-brand, #1d4ed8);
+  flex-shrink: 0;
+}
+
+.type-card-body strong {
+  display: block;
+  font-size: 0.9rem;
+  color: var(--color-navy, #0b1e3f);
+}
+
+.type-card-body small {
+  display: block;
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+/* Form Inputs Grid */
+.enroll-form-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.enr-form-field label {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--color-navy, #0b1e3f);
+  margin-bottom: 5px;
+}
+
+.enr-form-field input,
+.enr-form-field textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 14px;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  color: var(--color-navy, #0b1e3f);
+  background: #ffffff;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.enr-form-field input:focus,
+.enr-form-field textarea:focus {
+  outline: none;
+  border-color: var(--color-blue-brand, #1d4ed8);
+  box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.12);
+}
+
+/* Modal Actions */
+.enroll-modal-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 24px 20px;
+  background: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+}
+
+.btn-enr-cancel {
+  padding: 10px 18px;
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #475569;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-enr-cancel:hover {
+  background: #f1f5f9;
+}
+
+.btn-enr-submit {
+  padding: 12px 24px;
+  border-radius: 12px;
+  border: none;
+  background: linear-gradient(135deg, var(--color-blue-brand, #1d4ed8) 0%, #1e40af 100%);
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 0.98rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 14px rgba(29, 78, 216, 0.35);
+  transition: all 0.2s ease;
+}
+
+.btn-enr-submit:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(29, 78, 216, 0.45);
+}
+
+.btn-enr-submit:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* ================= STEP 2: CONFIRMATION VIEW ================= */
+.enroll-success-wrap {
+  padding: 28px 24px 24px;
+  text-align: center;
+}
+
+.enroll-success-icon-badge {
+  width: 76px;
+  height: 76px;
+  margin: 0 auto 16px;
+  border-radius: 50%;
+  background: #dcfce7;
+  color: #16a34a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.8rem;
+  box-shadow: 0 8px 20px rgba(22, 163, 74, 0.25);
+  animation: bounceSuccess 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes bounceSuccess {
+  0% { transform: scale(0.3); opacity: 0; }
+  60% { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1); }
+}
+
+.enroll-success-title {
+  margin: 0 0 6px;
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--color-navy, #0b1e3f);
+}
+
+.enroll-success-lead {
+  margin: 0 0 20px;
+  font-size: 0.9rem;
+  color: #64748b;
+  max-width: 540px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Ticket Receipt Card */
+.enroll-ticket-card {
+  background: #f8fafc;
+  border: 2px dashed #cbd5e1;
+  border-radius: 16px;
+  padding: 18px 20px;
+  text-align: left;
+  margin-bottom: 20px;
+}
+
+.enroll-ticket-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 12px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.ticket-label {
+  display: block;
+  font-size: 0.75rem;
+  color: #64748b;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.ticket-code {
+  font-size: 1.15rem;
+  font-weight: 900;
+  color: var(--color-blue-brand, #1d4ed8);
+  font-family: monospace;
+}
+
+.enroll-ticket-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ticket-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 0.88rem;
+}
+
+.ticket-k {
+  color: #64748b;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.ticket-v {
+  color: var(--color-navy, #0b1e3f);
+  text-align: right;
+  word-break: break-word;
+}
+
+/* LINE Callout Box */
+.enroll-line-callout {
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+  border: 2px solid #86efac;
+  border-radius: 16px;
+  padding: 20px;
+  text-align: left;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 16px rgba(22, 163, 74, 0.12);
+}
+
+.callout-header {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.callout-header h4 {
+  margin: 0 0 4px;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #166534;
+}
+
+.callout-header p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #14532d;
+  line-height: 1.4;
+}
+
+.enroll-line-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: stretch;
+}
+
+.btn-line-cta-large {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: #06c755;
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 1.05rem;
+  font-weight: 800;
+  padding: 14px 20px;
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(6, 199, 85, 0.4);
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-line-cta-large:hover {
+  background: #05b34c;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(6, 199, 85, 0.5);
+  color: #ffffff;
+}
+
+.btn-line-cta-large i {
+  font-size: 1.6rem;
+}
+
+.btn-copy-summary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #ffffff;
+  border: 1.5px solid #86efac;
+  color: #166534;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-copy-summary:hover {
+  background: #f0fdf4;
+  border-color: #4ade80;
+}
+
+.btn-enr-done {
+  padding: 10px 22px;
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  color: var(--color-navy, #0b1e3f);
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-enr-done:hover {
+  background: #e2e8f0;
+}
+
+/* ===================================================================
+   ADMIN BACKOFFICE: CAPACITY & ENROLLMENT ANALYTICS STYLES
+   =================================================================== */
+.admin-enroll-subtabs {
+  display: flex;
+  gap: 8px;
+  background: #f1f5f9;
+  padding: 4px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  border: 1px solid #cbd5e1;
+}
+
+.admin-subtab-btn {
+  flex: 1;
+  padding: 10px 16px;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  font-weight: 700;
+  font-size: 0.92rem;
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.admin-subtab-btn.active {
+  background: #ffffff;
+  color: var(--color-navy, #0b1e3f);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.course-capacity-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.course-capacity-card {
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 16px 18px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  transition: transform 0.2s, box-shadow 0.2s;
+  display: flex;
+  flex-direction: column;
+}
+
+.course-capacity-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+  border-color: #cbd5e1;
+}
+
+.cap-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.cap-card-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--color-navy, #0b1e3f);
+  line-height: 1.3;
+}
+
+.cap-metrics-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 8px;
+}
+
+.cap-seats-big {
+  font-size: 1.4rem;
+  font-weight: 900;
+  color: var(--color-navy, #0b1e3f);
+}
+
+.cap-seats-big span {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.cap-percent-pill {
+  font-size: 0.8rem;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.cap-percent-pill.safe {
+  background: #ecfdf5;
+  color: #059669;
+}
+
+.cap-percent-pill.warning {
+  background: #fffbeb;
+  color: #d97706;
+}
+
+.cap-percent-pill.full {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+/* Progress Track */
+.cap-progress-track {
+  width: 100%;
+  height: 8px;
+  background: #e2e8f0;
+  border-radius: 99px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.cap-progress-fill {
+  height: 100%;
+  border-radius: 99px;
+  transition: width 0.4s ease;
+}
+
+.cap-progress-fill.safe {
+  background: linear-gradient(90deg, #10b981, #059669);
+}
+
+.cap-progress-fill.warning {
+  background: linear-gradient(90deg, #f59e0b, #d97706);
+}
+
+.cap-progress-fill.full {
+  background: linear-gradient(90deg, #ef4444, #b91c1c);
+}
+
+.cap-card-footer {
+  margin-top: auto;
+  padding-top: 10px;
+  border-top: 1px solid #f1f5f9;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.btn-cap-view-students {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.2s ease;
+}
+
+.btn-cap-view-students:hover {
+  background: #dbeafe;
+}
+
+/* Quick Course Filter Pills */
+.admin-quick-course-pills {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.quick-course-pill {
+  padding: 6px 12px;
+  border-radius: 99px;
+  border: 1.5px solid #cbd5e1;
+  background: #ffffff;
+  color: #475569;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.quick-course-pill:hover {
+  border-color: #94a3b8;
+  background: #f8fafc;
+}
+
+.quick-course-pill.active {
+  background: var(--color-navy, #0b1e3f);
+  color: #ffffff;
+  border-color: var(--color-navy, #0b1e3f);
+}
+
+.quick-course-pill .count {
+  background: rgba(0, 0, 0, 0.08);
+  padding: 1px 6px;
+  border-radius: 99px;
+  font-size: 0.72rem;
+}
+
+.quick-course-pill.active .count {
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .enroll-modal-container {
+    max-height: 96vh;
+    border-radius: 16px;
+  }
+  .enroll-course-review-card {
+    flex-direction: column;
+    align-items: flex-start;
+    margin: 14px 16px 12px;
+  }
+  .enroll-review-cover-wrap {
+    width: 100%;
+    height: 140px;
+  }
+  .enroll-section-block {
+    padding: 0 16px;
+  }
+  .enroll-form-grid-2 {
+    grid-template-columns: 1fr;
+  }
+  .enroll-type-toggle-group {
+    grid-template-columns: 1fr;
+  }
+  .enroll-modal-actions {
+    padding: 14px 16px 16px;
+  }
+  .course-capacity-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ===================================================================
+   Course Visibility Toggle & Hidden Course Styles (ปุ่มซ่อน/แสดงคอร์ส)
+   =================================================================== */
+.btn-visibility-toggle {
+  background: #f0fdf4;
+  border: 1.5px solid #86efac;
+  border-radius: var(--radius-full);
+  padding: 5px 12px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #15803d;
+  cursor: pointer;
+  transition: all var(--tr-fast);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+
+.btn-visibility-toggle:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(22, 163, 74, 0.2);
+}
+
+.btn-visibility-toggle.hidden {
+  background: #fef2f2;
+  border-color: #fca5a5;
+  color: #b91c1c;
+}
+
+.btn-visibility-toggle.hidden:hover {
+  background: #fee2e2;
+  border-color: #ef4444;
+  box-shadow: 0 2px 6px rgba(239, 68, 68, 0.2);
+}
+
+.course-row-hidden {
+  background-color: #fdfaf9 !important;
+}
+
+.course-row-hidden td {
+  opacity: 0.82;
+}
+
+.course-row-hidden:hover td {
+  opacity: 1;
+}
+
+.badge-hidden-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fca5a5;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+}

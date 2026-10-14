@@ -29,7 +29,8 @@ const DEFAULT_COURSES = [
       'เรียนสด Onsite กลุ่มเล็ก ทีมติวเตอร์ The NEW GEN ดูแลใกล้ชิด ซักถามได้ทันที',
       'มีทั้งแบบรายเดือนยืดหยุ่น และแบบเหมาเทอมสุดคุ้มแบ่งชำระได้',
       'รับฟรี! เอกสารประกอบการเรียนชุดพิเศษและแบบฝึกหัดเก็งแนวข้อสอบตลอดคอร์ส'
-    ]
+    ],
+    maxSeats: 12
   },
   {
     id: 'course-p6-m1',
@@ -57,7 +58,8 @@ const DEFAULT_COURSES = [
       'ตะลุยโจทย์จับเวลาเสมือนจริง พร้อมเฉลยเทคนิคคิดลัดตัดช้อยส์แบบเข้าใจง่าย',
       'เสริมความมั่นใจโค้งสุดท้ายก่อนลงสนามสอบจริง ด้วยการวิเคราะห์จุดอ่อนรายบุคคล',
       'แนะแนวการเลือกสายและวางแผนกลยุทธ์สอบเข้าโดยทีมติวเตอร์ The NEW GEN'
-    ]
+    ],
+    maxSeats: 12
   },
   {
     id: 'course-m1-m2',
@@ -87,7 +89,8 @@ const DEFAULT_COURSES = [
       'เนื้อหาเข้มข้นตรงหลักสูตร สสวท. และครอบคลุมข้อสอบแข่งขันระดับประเทศ',
       'เรียนสด Onsite ซักถามข้อสงสัยได้แบบทันที ไม่ต้องเก็บความงงกลับบ้าน',
       'ชั่วโมงเรียนสุดคุ้มค่ารวมถึง 63 ชั่วโมงเต็มตลอดภาคเรียน'
-    ]
+    ],
+    maxSeats: 12
   },
   {
     id: 'course-m3-m4',
@@ -115,7 +118,8 @@ const DEFAULT_COURSES = [
       'เก็งข้อสอบตรงจุด ตะลุยแนวข้อสอบย้อนหลัง 5 ปีล่าสุดพร้อมเฉลยละเอียด',
       'สอนเทคนิคลัดพิชิตคะแนนโดยทีมติวเตอร์ The NEW GEN โดยตรง ดูแลเทคนิคทำโจทย์เร็ว',
       'เหลือที่นั่งว่างเฉพาะกลุ่มวันอาทิตย์ รีบสำรองที่นั่งด่วนก่อนเต็ม!'
-    ]
+    ],
+    maxSeats: 10
   }
 ];
 
@@ -347,6 +351,40 @@ const SUPABASE_CONFIG = {
   bucket: 'uploads'
 };
 
+// Default Enrollment Modal Text Configuration (สามารถปรับแก้ได้จากระบบหลังบ้าน)
+const DEFAULT_ENROLLMENT_CONFIG = {
+  modalTitle: 'แบบฟอร์มสมัครเรียนออนไลน์',
+  modalSubtitle: 'สถาบันกวดวิชา The NEW GEN (Onsite & Online)',
+  onsiteTitle: 'เรียนสด Onsite ที่สถาบัน',
+  onsiteDesc: 'ห้องเรียนแอร์กลุ่มเล็ก ติวเตอร์ดูแลใกล้ชิดรายบุคคล',
+  onlineTitle: 'เรียนสด Online (Zoom)',
+  onlineDesc: 'เรียนสดพร้อมถามตอบได้ทันที จัดส่งหนังสือฟรีถึงบ้าน',
+  submitBtnText: 'ยืนยันการสมัครเรียน (จองที่นั่ง)',
+  successTitle: 'ลงทะเบียนสมัครเรียนสำเร็จเรียบร้อยแล้ว! 🎉',
+  successLead: 'ระบบได้บันทึกข้อมูลการสมัครเรียนของน้องเข้าสู่ระบบสถาบัน The NEW GEN เรียบร้อยแล้ว',
+  ticketStatusBadge: 'รอการยืนยันที่นั่ง',
+  lineCalloutTitle: 'ขั้นตอนสุดท้าย: ทักไปยืนยันการสมัครที่ LINE สถาบัน',
+  lineCalloutBody: 'กรุณากดปุ่มด้านล่างเพื่อทักไปยืนยันการสมัครและส่งหลักฐานการชำระเงินที่ LINE Official เจ้าหน้าที่จะตรวจสอบและยืนยันที่นั่งให้น้องทันทีครับ',
+  lineBtnText: 'คลิกเพื่อทัก LINE ยืนยันการสมัครทันที',
+  lineUrl: 'https://lin.ee/RXrzi1G',
+  copyBtnText: 'คัดลอกข้อมูลสรุปสำหรับส่งใน LINE',
+  doneBtnText: 'เสร็จสิ้น / ปิดหน้าต่าง',
+  formQuestions: {
+    fields: {
+      studentName: { label: 'ชื่อ - นามสกุลจริง นักเรียน', placeholder: 'เช่น ด.ช. ธนภัทร ใจดี', required: true, enabled: true },
+      nickname: { label: 'ชื่อเล่น', placeholder: 'เช่น น้องกาย หรือ น้องพรีม', required: true, enabled: true },
+      grade: { label: 'ระดับชั้นปัจจุบัน / ที่กำลังจะขึ้น', placeholder: 'เช่น ป.5 หรือ ป.6 หรือ ม.1', required: true, enabled: true },
+      school: { label: 'โรงเรียนปัจจุบัน', placeholder: 'เช่น โรงเรียนอนุบาลเชียงใหม่', required: true, enabled: true },
+      parentPhone: { label: 'เบอร์โทรศัพท์ผู้ปกครอง', placeholder: 'เช่น 089-123-4567', required: true, enabled: true },
+      lineId: { label: 'LINE ID (ผู้ปกครองหรือน้อง)', placeholder: 'เช่น newgen_student หรือ เบอร์โทรไลน์', required: true, enabled: true },
+      studentPhone: { label: 'เบอร์โทรศัพท์นักเรียน (ถ้ามี)', placeholder: 'เช่น 095-xxx-xxxx (ไม่บังคับ)', required: false, enabled: true },
+      shippingAddress: { label: 'ที่อยู่จัดส่งเอกสารและหนังสือเรียน', placeholder: 'บ้านเลขที่ ตำบล อำเภอ จังหวัด รหัสไปรษณีย์', required: false, enabled: true },
+      notes: { label: 'หมายเหตุ / คำถามเพิ่มเติมถึงติวเตอร์ (ถ้ามี)', placeholder: 'เช่น พื้นฐานวิชาคณิตศาสตร์ยังไม่คล่อง หรือต้องการเน้นเรื่องใดเป็นพิเศษ', required: false, enabled: true }
+    },
+    customQuestions: []
+  }
+};
+
 const SUPABASE_KEY_MAPPING = {
   courses: 'newgen_courses',
   tutors: 'newgen_tutors',
@@ -360,7 +398,9 @@ const SUPABASE_KEY_MAPPING = {
   privilege: 'newgen_privilege',
   home: 'newgen_home',
   about: 'newgen_about',
-  admin: 'newgen_admin_cred'
+  admin: 'newgen_admin_cred',
+  enrollments: 'newgen_enrollments',
+  enrollmentConfig: 'newgen_enrollment_config'
 };
 
 // Global Store Helper with Integrated Supabase Cloud Sync
@@ -441,6 +481,15 @@ const NewGenDB = {
           window.aboutData = val;
           window._supabaseAboutSynced = true;
         }
+        if (key === 'enrollments' && typeof window !== 'undefined') {
+          window.enrollmentsData = val;
+          if (typeof loadAdminEnrollments === 'function') loadAdminEnrollments();
+        }
+        if (key === 'enrollmentConfig' && typeof window !== 'undefined') {
+          window.enrollmentConfigData = val;
+          if (typeof window.applyEnrollmentConfig === 'function') window.applyEnrollmentConfig();
+          if (typeof window.loadAdminEnrollmentConfig === 'function') window.loadAdminEnrollmentConfig();
+        }
       });
 
       // Update UI components across all active pages
@@ -510,7 +559,10 @@ const NewGenDB = {
       materials: c.materials !== undefined ? c.materials : 'ฟรี! หนังสือและแนวข้อสอบเก็งพิเศษ',
       trustGuarantee: c.trustGuarantee !== undefined ? c.trustGuarantee : 'การันตีการสอนโดยทีมติวเตอร์ The NEW GEN',
       customSections: Array.isArray(c.customSections) ? c.customSections : [],
-      parentFaq: Array.isArray(c.parentFaq) ? c.parentFaq : []
+      parentFaq: Array.isArray(c.parentFaq) ? c.parentFaq : [],
+      remainingSeats: (c.remainingSeats !== undefined && c.remainingSeats !== null && c.remainingSeats !== '') ? Number(c.remainingSeats) : null,
+      isFull: c.isFull === true,
+      registerUrl: c.registerUrl || ''
     });
 
     try {
@@ -767,6 +819,146 @@ const NewGenDB = {
     return NewGenDB.saveToSupabase('about', aboutObj);
   },
 
+  // Enrollments (ระบบรายชื่อผู้สมัครเรียน)
+  getEnrollments: () => {
+    try {
+      const data = localStorage.getItem('newgen_enrollments');
+      if (data) {
+        const parsed = JSON.parse(data);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch (e) {}
+    return (typeof window !== 'undefined' && Array.isArray(window.enrollmentsData)) ? window.enrollmentsData : [];
+  },
+  saveEnrollments: (enrollments) => {
+    try {
+      localStorage.setItem('newgen_enrollments', JSON.stringify(enrollments));
+    } catch (e) {
+      console.warn('LocalStorage save error:', e);
+    }
+    if (typeof window !== 'undefined') window.enrollmentsData = enrollments;
+    try {
+      const base = typeof getApiBaseUrl === 'function' ? getApiBaseUrl() : '';
+      if (base) {
+        fetch(`${base}/api/enrollments`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(enrollments)
+        }).catch(() => {});
+      }
+    } catch (err) {}
+    return NewGenDB.saveToSupabase('enrollments', enrollments);
+  },
+  saveEnrollment: (enrollment) => {
+    const list = NewGenDB.getEnrollments();
+    if (!enrollment.id) enrollment.id = `enr-${Date.now()}`;
+    if (!enrollment.createdAt) enrollment.createdAt = new Date().toISOString();
+    const idx = list.findIndex(e => e.id === enrollment.id);
+    if (idx !== -1) list[idx] = { ...list[idx], ...enrollment };
+    else list.unshift(enrollment);
+    const savePromise = NewGenDB.saveEnrollments(list);
+
+    // Recalculate remaining seats for the course
+    if (enrollment.courseId) {
+      const courses = NewGenDB.getCourses();
+      const targetCourse = courses.find(c => c.id === enrollment.courseId);
+      if (targetCourse) {
+        const count = list.filter(e => e.courseId === enrollment.courseId).length;
+        const cap = Number(targetCourse.maxSeats || 12);
+        targetCourse.remainingSeats = Math.max(0, cap - count);
+        if (targetCourse.remainingSeats <= 0) targetCourse.isFull = true;
+        NewGenDB.saveCourses(courses);
+      }
+    }
+    if (typeof document !== 'undefined') {
+      document.dispatchEvent(new CustomEvent('newgen:synced'));
+    }
+    return savePromise;
+  },
+  deleteEnrollment: (id) => {
+    let list = NewGenDB.getEnrollments();
+    const itemToDelete = list.find(e => e.id === id);
+    list = list.filter(e => e.id !== id);
+    const savePromise = NewGenDB.saveEnrollments(list);
+
+    if (itemToDelete && itemToDelete.courseId) {
+      const courses = NewGenDB.getCourses();
+      const targetCourse = courses.find(c => c.id === itemToDelete.courseId);
+      if (targetCourse) {
+        const count = list.filter(e => e.courseId === itemToDelete.courseId).length;
+        const cap = Number(targetCourse.maxSeats || 12);
+        targetCourse.remainingSeats = Math.max(0, cap - count);
+        if (targetCourse.remainingSeats > 0 && targetCourse.isFull) {
+          targetCourse.isFull = false;
+        }
+        NewGenDB.saveCourses(courses);
+      }
+    }
+    if (typeof document !== 'undefined') {
+      document.dispatchEvent(new CustomEvent('newgen:synced'));
+    }
+    return savePromise;
+  },
+  getEnrollmentsByCourse: (courseId) => {
+    const list = NewGenDB.getEnrollments();
+    return list.filter(e => e.courseId === courseId);
+  },
+
+  // Enrollment Config (ระบบตั้งค่าข้อความหน้าสมัครเรียน)
+  getEnrollmentConfig: () => {
+    const mergeWithDefault = (parsed) => {
+      if (!parsed || typeof parsed !== 'object') return { ...DEFAULT_ENROLLMENT_CONFIG };
+      const formQ = {
+        fields: {
+          ...DEFAULT_ENROLLMENT_CONFIG.formQuestions.fields,
+          ...(parsed.formQuestions?.fields || {})
+        },
+        customQuestions: Array.isArray(parsed.formQuestions?.customQuestions)
+          ? parsed.formQuestions.customQuestions
+          : []
+      };
+      return {
+        ...DEFAULT_ENROLLMENT_CONFIG,
+        ...parsed,
+        formQuestions: formQ
+      };
+    };
+
+    try {
+      const data = localStorage.getItem('newgen_enrollment_config');
+      if (data) {
+        const parsed = JSON.parse(data);
+        return mergeWithDefault(parsed);
+      }
+    } catch (e) {}
+    return (typeof window !== 'undefined' && window.enrollmentConfigData)
+      ? mergeWithDefault(window.enrollmentConfigData)
+      : { ...DEFAULT_ENROLLMENT_CONFIG };
+  },
+  saveEnrollmentConfig: (config) => {
+    const merged = { ...DEFAULT_ENROLLMENT_CONFIG, ...config };
+    try {
+      localStorage.setItem('newgen_enrollment_config', JSON.stringify(merged));
+    } catch (e) {
+      console.warn('LocalStorage save error:', e);
+    }
+    if (typeof window !== 'undefined') {
+      window.enrollmentConfigData = merged;
+      if (typeof window.applyEnrollmentConfig === 'function') window.applyEnrollmentConfig();
+    }
+    try {
+      const base = typeof getApiBaseUrl === 'function' ? getApiBaseUrl() : '';
+      if (base) {
+        fetch(`${base}/api/enrollment-config`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(merged)
+        }).catch(() => {});
+      }
+    } catch (err) {}
+    return NewGenDB.saveToSupabase('enrollmentConfig', merged);
+  },
+
   // Admin Credentials & Authentication
   getAdminAuth: () => {
     try {
@@ -808,8 +1000,94 @@ const NewGenDB = {
     localStorage.removeItem('newgen_whyus');
     localStorage.removeItem('newgen_home');
     localStorage.removeItem('newgen_about');
+    localStorage.removeItem('newgen_enrollments');
   }
 };
+
+/**
+ * Dynamic course seat calculation helper
+ */
+function getCourseEffectiveSeats(c) {
+  if (!c) return { maxSeats: 12, enrolledCount: 0, remainingSeats: 12, isFull: false };
+  const enrollments = window.NewGenDB ? window.NewGenDB.getEnrollmentsByCourse(c.id) : [];
+  const enrolledCount = enrollments.length;
+  const maxSeats = (c.maxSeats !== undefined && c.maxSeats !== null && c.maxSeats !== '') ? Number(c.maxSeats) : 12;
+  const remainingSeats = (c.remainingSeats !== undefined && c.remainingSeats !== null && c.remainingSeats !== '')
+    ? Number(c.remainingSeats)
+    : Math.max(0, maxSeats - enrolledCount);
+  const isFull = (c.isFull === true) || (remainingSeats <= 0);
+  return { maxSeats, enrolledCount, remainingSeats, isFull };
+}
+if (typeof window !== 'undefined') {
+  window.getCourseEffectiveSeats = getCourseEffectiveSeats;
+}
+
+/**
+ * คำนวณสถานะคอร์สแบบอัตโนมัติ:
+ * - ที่นั่งเต็ม (remainingSeats <= 0 หรือ isFull) -> "🛑 เต็มแล้ว"
+ * - โควตาใกล้เต็ม (เหลือ 1 - 5 ที่นั่ง หรือเหลือ <= 30%) -> "🔥 โควตาใกล้เต็ม" อัตโนมัติ
+ * - คอร์สใหม่ล่าสุด -> "✨ คอร์สใหม่ล่าสุด" (badge-gold)
+ * - ปกติ -> "เปิดรับสมัคร" (badge-emerald)
+ */
+function getCourseEffectiveStatus(c) {
+  if (!c) return { text: 'เปิดรับสมัคร', badgeClass: 'badge-emerald', isNearFull: false, isFull: false };
+  const eff = getCourseEffectiveSeats(c);
+  if (eff.isFull || eff.remainingSeats <= 0) {
+    return { text: '🛑 เต็มแล้ว', badgeClass: 'badge-red', isNearFull: false, isFull: true };
+  }
+  const rem = eff.remainingSeats;
+  const max = eff.maxSeats || 12;
+  const isNearFull = rem <= 5 || (max > 0 && (rem / max) <= 0.3);
+
+  if (isNearFull) {
+    return { text: '🔥 โควตาใกล้เต็ม', badgeClass: 'badge-red', isNearFull: true, isFull: false };
+  }
+
+  const rawBadge = c.statusBadge || 'เปิดรับสมัคร';
+  if (rawBadge.includes('ใหม่')) {
+    return { text: '✨ คอร์สใหม่ล่าสุด', badgeClass: 'badge-gold', isNearFull: false, isFull: false };
+  }
+
+  return { text: rawBadge, badgeClass: c.statusClass || 'badge-emerald', isNearFull: false, isFull: false };
+}
+if (typeof window !== 'undefined') {
+  window.getCourseEffectiveStatus = getCourseEffectiveStatus;
+}
+
+/**
+ * Helper to generate the dynamic seat availability badge
+ * - isFull -> "🛑 ที่นั่งเต็มแล้ว"
+ * - remainingSeats <= 5 หรือ <= 30% -> "🔥 ใกล้เต็มแล้ว (เหลือ X ที่นั่ง)"
+ * - คอร์สใหม่ล่าสุด -> "✨ คอร์สใหม่ล่าสุด (ว่าง X ที่นั่ง)"
+ * - remainingSeats > 5 -> "⚡ ว่าง X ที่นั่ง"
+ */
+function getCourseSeatBadgeHtml(c) {
+  if (!c) return '';
+  const eff = getCourseEffectiveSeats(c);
+  if (eff.isFull || eff.remainingSeats <= 0) {
+    return `<span class="badge course-badge-status course-seat-cover-badge badge-seat-full"><i class="fa-solid fa-ban"></i> 🛑 ที่นั่งเต็มแล้ว</span>`;
+  }
+  const rem = eff.remainingSeats;
+  const max = eff.maxSeats || 12;
+  const isNearFull = rem <= 5 || (max > 0 && (rem / max) <= 0.3);
+
+  if (isNearFull) {
+    return `<span class="badge course-badge-status course-seat-cover-badge badge-seat-urgent"><i class="fa-solid fa-fire fa-beat-fade"></i> 🔥 ใกล้เต็มแล้ว (เหลือ ${rem} ที่นั่ง)</span>`;
+  }
+
+  if ((c.statusBadge || '').includes('ใหม่')) {
+    return `<span class="badge course-badge-status course-seat-cover-badge badge-gold"><i class="fa-solid fa-sparkles"></i> ✨ คอร์สใหม่ล่าสุด (ว่าง ${rem} ที่นั่ง)</span>`;
+  }
+
+  if (rem !== null && rem !== undefined && !isNaN(rem)) {
+    return `<span class="badge course-badge-status course-seat-cover-badge badge-seat-available"><i class="fa-solid fa-chair"></i> ⚡ ว่าง ${rem} ที่นั่ง</span>`;
+  }
+
+  return `<span class="badge course-badge-status ${c.statusClass || 'badge-emerald'}">${c.statusBadge || 'เปิดรับสมัคร'}</span>`;
+}
+if (typeof window !== 'undefined') {
+  window.getCourseSeatBadgeHtml = getCourseSeatBadgeHtml;
+}
 
 /**
  * Universal API Base URL resolver:
@@ -862,6 +1140,9 @@ if (typeof window !== 'undefined') {
   window.whyUsData = NewGenDB.getWhyUs();
   window.homeData = NewGenDB.getHome();
   window.aboutData = NewGenDB.getAbout();
+  window.enrollmentsData = NewGenDB.getEnrollments();
+  window.enrollmentConfigData = NewGenDB.getEnrollmentConfig();
+  window.DEFAULT_ENROLLMENT_CONFIG = DEFAULT_ENROLLMENT_CONFIG;
 
   // Run cloud sync in background immediately
   NewGenDB.syncFromSupabase();

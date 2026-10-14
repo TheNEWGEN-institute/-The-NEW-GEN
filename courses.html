@@ -271,6 +271,7 @@
   </div>
 
   <script src="assets/js/courses-data.js"></script>
+  <script src="assets/js/enrollment-modal.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       initAllCoursesPage();
@@ -332,7 +333,8 @@
     }
 
     function renderCourses() {
-      const courses = window.NewGenDB ? window.NewGenDB.getCourses() : (window.courseData || []);
+      const allCourses = window.NewGenDB ? window.NewGenDB.getCourses() : (window.courseData || []);
+      const courses = allCourses.filter(c => !c.isHidden);
       const categories = window.NewGenDB ? window.NewGenDB.getCategories() : (window.categoriesData || []);
       const grid = document.getElementById('allCoursesGrid');
       const emptyBox = document.getElementById('coursesEmpty');
@@ -366,13 +368,14 @@
       grid.innerHTML = filtered.map(c => {
         const matchedCat = categories.find(cat => cat.id === c.category);
         const levelBadgeText = matchedCat ? matchedCat.name : (c.categoryLabel || (c.category === 'primary' ? 'ระดับประถมศึกษา' : 'ระดับมัธยมศึกษา'));
+        const isFull = Boolean(c.isFull === true || (c.remainingSeats !== null && Number(c.remainingSeats) <= 0));
 
         return `
         <div class="course-card">
-          <a href="course-detail.html?id=${c.id}" class="course-thumbnail" aria-label="ดูรายละเอียด ${c.title}">
+          <a href="course-detail.html?id=${c.id}" class="course-thumbnail ${isFull ? 'is-full' : ''}" aria-label="ดูรายละเอียด ${c.title}">
             <img src="${c.cover || c.poster}" alt="${c.title}" loading="lazy">
             <span class="course-badge-level">${levelBadgeText}</span>
-            <span class="badge ${c.statusClass} course-badge-status">${c.statusBadge}</span>
+            ${window.getCourseSeatBadgeHtml ? window.getCourseSeatBadgeHtml(c) : `<span class="badge ${c.statusClass} course-badge-status">${c.statusBadge}</span>`}
           </a>
           <div class="course-body">
             <h3 class="course-title">
@@ -400,9 +403,20 @@
                   </div>
                 </div>
               `)}
-              <a href="course-detail.html?id=${c.id}" class="btn-detail-link">
-                รายละเอียด <i class="fa-solid fa-arrow-right"></i>
-              </a>
+              <div class="course-actions-wrap">
+                ${c.isFull ? `
+                  <button type="button" class="btn-course-register disabled" disabled title="ที่นั่งคอร์สนี้เต็มแล้ว (ปิดรับสมัคร)">
+                    <i class="fa-solid fa-ban"></i> ที่นั่งเต็มแล้ว
+                  </button>
+                ` : `
+                  <button type="button" class="btn-course-register" onclick="openEnrollmentModal('${c.id}')" title="สมัครเรียนคอร์สนี้">
+                    <i class="fa-solid fa-bolt"></i> สมัครเลย
+                  </button>
+                `}
+                <a href="course-detail.html?id=${c.id}" class="btn-detail-link">
+                  รายละเอียด <i class="fa-solid fa-arrow-right"></i>
+                </a>
+              </div>
             </div>
           </div>
         </div>

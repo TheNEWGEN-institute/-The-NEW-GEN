@@ -74,8 +74,12 @@ function initCourseDetailPage() {
 
   const badgeStatus = document.getElementById('cdBadgeStatus');
   if (badgeStatus) {
-    badgeStatus.className = `badge ${course.statusClass}`;
-    badgeStatus.textContent = course.statusBadge;
+    if (window.getCourseSeatBadgeHtml) {
+      badgeStatus.outerHTML = window.getCourseSeatBadgeHtml(course);
+    } else {
+      badgeStatus.className = `badge ${course.statusClass}`;
+      badgeStatus.textContent = course.statusBadge;
+    }
   }
 
   const titleEl = document.getElementById('cdCourseTitle');
@@ -95,6 +99,18 @@ function initCourseDetailPage() {
     if (posterImg) {
       posterImg.src = posterSrc;
       posterImg.alt = course.title || '';
+    }
+    // Show remaining seats badge directly on the main course poster
+    const posterViewBox = document.getElementById('cdPosterViewBox');
+    if (posterViewBox && window.getCourseSeatBadgeHtml) {
+      let coverBadge = document.getElementById('cdPosterSeatBadge');
+      if (!coverBadge) {
+        coverBadge = document.createElement('div');
+        coverBadge.id = 'cdPosterSeatBadge';
+        coverBadge.style.cssText = 'position: absolute; top: 16px; right: 16px; z-index: 5; pointer-events: none;';
+        posterViewBox.appendChild(coverBadge);
+      }
+      coverBadge.innerHTML = window.getCourseSeatBadgeHtml(course);
     }
   } else {
     if (posterCard) posterCard.style.display = 'none';
@@ -490,16 +506,53 @@ function initCourseDetailPage() {
     }
   }
 
-  // ปรับลิงก์ LINE และเบอร์โทรสำหรับสมัครเรียน
+  // ปรับลิงก์ LINE และปุ่มสมัครเรียน
   const lineEnrollBtn = document.getElementById('btnLineEnroll');
   const contact = window.NewGenDB ? window.NewGenDB.getContact() : (window.DEFAULT_CONTACT || null);
   const fmt = window.formatExternalUrl || ((u) => u);
+  const baseLineUrl = (contact && contact.lineUrl) ? contact.lineUrl : 'https://lin.ee/RXrzi1G';
 
   if (lineEnrollBtn) {
-    const baseLineUrl = (contact && contact.lineUrl) ? contact.lineUrl : 'https://lin.ee/RXrzi1G';
     lineEnrollBtn.href = fmt(baseLineUrl);
     lineEnrollBtn.target = '_blank';
     lineEnrollBtn.rel = 'noopener noreferrer';
+  }
+
+  // ปุ่มสมัครเรียนโดยตรง (Sidebar) & Mobile Bar
+  const eff = window.getCourseEffectiveSeats ? window.getCourseEffectiveSeats(course) : {
+    isFull: course.isFull === true || course.remainingSeats === 0,
+    remainingSeats: course.remainingSeats || 0
+  };
+
+  const directRegisterBtn = document.getElementById('btnDirectRegister');
+  const directTitle = document.getElementById('btnDirectRegisterTitle');
+  const directSub = document.getElementById('btnDirectRegisterSub');
+  if (directRegisterBtn) {
+    if (eff.isFull) {
+      directRegisterBtn.href = 'javascript:void(0)';
+      directRegisterBtn.onclick = null;
+      directRegisterBtn.classList.add('disabled');
+      directRegisterBtn.setAttribute('aria-disabled', 'true');
+      if (directTitle) directTitle.textContent = 'ที่นั่งเต็มแล้ว (ปิดรับสมัคร)';
+      if (directSub) directSub.textContent = 'ทัก LINE เพื่อสอบถามรอบถัดไป';
+    } else {
+      directRegisterBtn.href = 'javascript:void(0)';
+      directRegisterBtn.removeAttribute('target');
+      directRegisterBtn.onclick = (e) => {
+        e.preventDefault();
+        if (typeof window.openEnrollmentModal === 'function') {
+          window.openEnrollmentModal(course.id);
+        }
+      };
+      directRegisterBtn.classList.remove('disabled');
+      directRegisterBtn.removeAttribute('aria-disabled');
+      if (directTitle) directTitle.textContent = 'สมัครเรียนเลย (จองที่นั่ง)';
+      if (directSub) {
+        directSub.textContent = (eff.remainingSeats > 0 && eff.remainingSeats <= 5)
+          ? `🔥 เหลือเพียง ${eff.remainingSeats} ที่นั่งสุดท้าย`
+          : 'กรอกข้อมูลและลงทะเบียนทันที';
+      }
+    }
   }
 
   const phoneBtnsWrap = document.querySelector('.cd-phone-buttons');
@@ -511,6 +564,7 @@ function initCourseDetailPage() {
       </a>
     `).join('');
   }
+
   // ปรับ Mobile Sticky Action Bar
   const msbPricePromo = document.getElementById('cdMsbPricePromo');
   if (msbPricePromo) msbPricePromo.textContent = course.pricePromo;
@@ -522,16 +576,57 @@ function initCourseDetailPage() {
   }
   const msbLineBtn = document.getElementById('btnMsbLine');
   if (msbLineBtn) {
-    const baseLineUrl = (contact && contact.lineUrl) ? contact.lineUrl : 'https://lin.ee/RXrzi1G';
     msbLineBtn.href = fmt(baseLineUrl);
   }
   const msbPhoneBtn = document.getElementById('btnMsbPhone');
   if (msbPhoneBtn && contact && Array.isArray(contact.phones) && contact.phones.length > 0) {
     msbPhoneBtn.href = contact.phones[0].telLink || ('tel:' + contact.phones[0].number.replace(/[^0-9]/g, ''));
   }
+  const msbRegisterBtn = document.getElementById('btnMsbRegister');
+  if (msbRegisterBtn) {
+    if (eff.isFull) {
+      msbRegisterBtn.href = 'javascript:void(0)';
+      msbRegisterBtn.onclick = null;
+      msbRegisterBtn.classList.add('disabled');
+      msbRegisterBtn.innerHTML = '<i class="fa-solid fa-ban"></i> เต็มแล้ว';
+    } else {
+      msbRegisterBtn.href = 'javascript:void(0)';
+      msbRegisterBtn.removeAttribute('target');
+      msbRegisterBtn.onclick = (e) => {
+        e.preventDefault();
+        if (typeof window.openEnrollmentModal === 'function') {
+          window.openEnrollmentModal(course.id);
+        }
+      };
+      msbRegisterBtn.classList.remove('disabled');
+      msbRegisterBtn.innerHTML = '<i class="fa-solid fa-bolt"></i> สมัครเลย';
+    }
+  }
 
   // แสดงคอร์สที่เกี่ยวข้อง (Related Courses)
   renderRelatedCourses(course.id);
+
+  // Hidden Course Notice Banner
+  const hiddenBannerEl = document.getElementById('cdHiddenNotice');
+  if (course.isHidden) {
+    if (!hiddenBannerEl) {
+      const banner = document.createElement('div');
+      banner.id = 'cdHiddenNotice';
+      banner.className = 'course-hidden-banner';
+      banner.style.cssText = 'background:#fef2f2; border:1.5px solid #fecaca; border-radius:12px; padding:14px 18px; margin: 16px 0 20px; display:flex; align-items:center; gap:12px; color:#991b1b;';
+      banner.innerHTML = `
+        <i class="fa-solid fa-eye-slash" style="font-size:1.4rem; color:#dc2626;"></i>
+        <div>
+          <strong style="font-size:1rem; display:block;">คอร์สเรียนนี้ถูกตั้งค่าซ่อนไว้ (ไม่แสดงในหน้ารวมคอร์ส)</strong>
+          <span style="font-size:0.85rem; color:#b91c1c;">คอร์สนี้เปิดดูได้เฉพาะผู้ที่มีลิงก์ตรงหรือผู้ดูแลระบบเท่านั้น</span>
+        </div>
+      `;
+      const headerMeta = document.querySelector('.cd-header-meta');
+      if (headerMeta) headerMeta.prepend(banner);
+    }
+  } else if (hiddenBannerEl) {
+    hiddenBannerEl.remove();
+  }
 }
 
 function renderRelatedCourses(currentCourseId) {
@@ -539,14 +634,20 @@ function renderRelatedCourses(currentCourseId) {
   if (!relatedGrid) return;
 
   const courses = window.courseData || [];
-  const otherCourses = courses.filter(c => c.id !== currentCourseId);
+  const otherCourses = courses.filter(c => c.id !== currentCourseId && !c.isHidden);
+  const contact = window.NewGenDB ? window.NewGenDB.getContact() : (window.DEFAULT_CONTACT || null);
+  const fmt = window.formatExternalUrl || ((u) => u);
+  const baseLineUrl = (contact && contact.lineUrl) ? contact.lineUrl : 'https://lin.ee/RXrzi1G';
 
-  relatedGrid.innerHTML = otherCourses.map(c => `
+  relatedGrid.innerHTML = otherCourses.map(c => {
+    const isFull = Boolean(c.isFull === true || (c.remainingSeats !== null && Number(c.remainingSeats) <= 0));
+    const directUrl = isFull ? 'javascript:void(0)' : (c.registerUrl && c.registerUrl.trim() ? fmt(c.registerUrl) : fmt(baseLineUrl));
+    return `
     <div class="course-card">
-      <a href="course-detail.html?id=${c.id}" class="course-thumbnail" aria-label="ดูรายละเอียด ${c.title}">
+      <a href="course-detail.html?id=${c.id}" class="course-thumbnail ${isFull ? 'is-full' : ''}" aria-label="ดูรายละเอียด ${c.title}">
         <img src="${c.cover || c.poster}" alt="${c.title}" loading="lazy">
         <span class="course-badge-level">${c.category === 'primary' ? 'ประถมศึกษา' : 'มัธยมศึกษาตอนต้น'}</span>
-        <span class="badge ${c.statusClass} course-badge-status">${c.statusBadge}</span>
+        ${window.getCourseSeatBadgeHtml ? window.getCourseSeatBadgeHtml(c) : `<span class="badge ${c.statusClass} course-badge-status">${c.statusBadge}</span>`}
       </a>
       <div class="course-body">
         <h3 class="course-title">
@@ -573,13 +674,25 @@ function renderRelatedCourses(currentCourseId) {
               </div>
             </div>
           `)}
-          <a href="course-detail.html?id=${c.id}" class="btn-detail-link">
-            รายละเอียด <i class="fa-solid fa-arrow-right"></i>
-          </a>
+          <div class="course-actions-wrap">
+            ${isFull ? `
+              <button type="button" class="btn-course-register disabled" disabled title="ที่นั่งเต็มแล้ว">
+                <i class="fa-solid fa-ban"></i> ที่นั่งเต็ม
+              </button>
+            ` : `
+              <button type="button" class="btn-course-register" onclick="openEnrollmentModal('${c.id}')" title="สมัครเรียนคอร์สนี้">
+                <i class="fa-solid fa-bolt"></i> สมัครเลย
+              </button>
+            `}
+            <a href="course-detail.html?id=${c.id}" class="btn-detail-link">
+              รายละเอียด <i class="fa-solid fa-arrow-right"></i>
+            </a>
+          </div>
         </div>
       </div>
     </div>
-  `).join('');
+  `;
+  }).join('');
 }
 
 /* Lightbox Modal logic */

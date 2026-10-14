@@ -300,7 +300,7 @@ function initCourseSlider() {
   const dotsContainer = document.getElementById('sliderDots');
 
   const courses = window.NewGenDB ? window.NewGenDB.getCourses() : (window.courseData || []);
-  const filteredCourses = courses.filter(c => c.isFeatured !== false);
+  const filteredCourses = courses.filter(c => c.isFeatured !== false && !c.isHidden);
   let currentIndex = 0;
 
   renderCourses();
@@ -318,12 +318,12 @@ function initCourseSlider() {
     displayList.forEach(c => {
       const card = document.createElement('div');
       card.className = 'course-card';
-      card.setAttribute('data-course-id', c.id);
+      const isFull = Boolean(c.isFull === true || (c.remainingSeats !== null && Number(c.remainingSeats) <= 0));
       card.innerHTML = `
-        <a href="course-detail.html?id=${c.id}" class="course-thumbnail" aria-label="ดูรายละเอียด ${escapeHtml(c.title)}">
+        <a href="course-detail.html?id=${c.id}" class="course-thumbnail ${isFull ? 'is-full' : ''}" aria-label="ดูรายละเอียด ${escapeHtml(c.title)}">
           <img src="${c.cover || c.poster}" alt="${escapeHtml(c.title)}" loading="lazy">
           <span class="course-badge-level">${escapeHtml(c.categoryLabel || (c.category === 'primary' ? 'ประถมศึกษา' : 'มัธยมศึกษาตอนต้น'))}</span>
-          <span class="badge ${c.statusClass} course-badge-status">${escapeHtml(c.statusBadge)}</span>
+          ${window.getCourseSeatBadgeHtml ? window.getCourseSeatBadgeHtml(c) : `<span class="badge ${c.statusClass} course-badge-status">${escapeHtml(c.statusBadge)}</span>`}
         </a>
         <div class="course-body">
           <h3 class="course-title">
@@ -351,9 +351,20 @@ function initCourseSlider() {
                 </div>
               </div>
             `)}
-            <a href="course-detail.html?id=${c.id}" class="btn-detail-link">
-              รายละเอียด <i class="fa-solid fa-arrow-right"></i>
-            </a>
+            <div class="course-actions-wrap">
+              ${c.isFull ? `
+                <button type="button" class="btn-course-register disabled" disabled title="ที่นั่งคอร์สนี้เต็มแล้ว">
+                  <i class="fa-solid fa-ban"></i> ที่นั่งเต็มแล้ว
+                </button>
+              ` : `
+                <button type="button" class="btn-course-register" onclick="openEnrollmentModal('${c.id}')" title="สมัครเรียนคอร์สนี้">
+                  <i class="fa-solid fa-bolt"></i> สมัครเลย
+                </button>
+              `}
+              <a href="course-detail.html?id=${c.id}" class="btn-detail-link">
+                รายละเอียด <i class="fa-solid fa-arrow-right"></i>
+              </a>
+            </div>
           </div>
         </div>
       `;
