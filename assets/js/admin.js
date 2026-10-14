@@ -520,27 +520,28 @@ async function saveAndSyncCoursesOrder(courses, successMsg) {
   }
 }
 
-function toggleCourseFeatured(id) {
+async function toggleCourseFeatured(id) {
   const courses = window.NewGenDB.getCourses();
   const c = courses.find(item => item.id === id);
   if (!c) return;
 
   c.isFeatured = !(c.isFeatured !== false);
-  try {
-    window.NewGenDB.saveCourses(courses);
-  } catch (err) {
-    console.warn('LocalStorage save error:', err);
-  }
+  const cloudRes = await window.NewGenDB.saveCourses(courses);
 
   // ซิงค์กับ Server
-  fetch('/api/courses', {
+  const baseUrl = (window.getApiBaseUrl ? window.getApiBaseUrl() : '');
+  fetch(`${baseUrl}/api/courses`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(c)
   }).catch(() => {});
 
   loadAdminCourses();
-  showToast(c.isFeatured ? `แสดง "${c.title}" ในคอร์สแนะนำหน้าแรกแล้ว` : `ซ่อน "${c.title}" จากคอร์สแนะนำหน้าแรกแล้ว`);
+  if (cloudRes && cloudRes.success) {
+    showToast(c.isFeatured ? `⭐ แสดง "${c.title}" ในคอร์สแนะนำหน้าแรกแล้ว (ซิงค์ Cloud เรียบร้อย)` : `⚪ ปิดแสดง "${c.title}" จากคอร์สแนะนำหน้าแรกแล้ว (ซิงค์ Cloud เรียบร้อย)`);
+  } else {
+    showToast(c.isFeatured ? `⭐ แสดง "${c.title}" ในคอร์สแนะนำหน้าแรกแล้ว` : `⚪ ปิดแสดง "${c.title}" จากคอร์สแนะนำหน้าแรกแล้ว`);
+  }
 }
 
 async function toggleCourseVisibility(id) {
