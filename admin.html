@@ -78,7 +78,7 @@
           <i class="fa-solid fa-heart-pulse"></i> 5. เกี่ยวกับเรา &amp; แรงบันดาลใจ
         </button>
         <button type="button" class="admin-nav-item" onclick="switchAdminTab('reviews', this)">
-          <i class="fa-solid fa-comments"></i> 6. จัดการรีวิวจริงจากนักเรียน
+          <i class="fa-solid fa-comments"></i> 6. ความสำเร็จของรุ่นพี่ &amp; รีวิว (เรียงลำดับ)
         </button>
         <button type="button" class="admin-nav-item" onclick="switchAdminTab('videos', this)">
           <i class="fa-brands fa-youtube"></i> 7. จัดการวิดีโอทดลองเรียนฟรี
@@ -1246,8 +1246,8 @@
       <section id="tab-reviews" class="admin-tab-pane">
         <div class="admin-pane-header">
           <div>
-            <h2><i class="fa-solid fa-comments" style="color: var(--color-cyan);"></i> จัดการรีวิวจริงจากนักเรียน The NEW GEN</h2>
-            <p>อัปโหลดรูปภาพรีวิวจริงของเด็กๆ (ภาพแชตไลน์ / ผลคะแนน / ใบประกาศ) พร้อมชื่อและโรงเรียนใต้รูป</p>
+            <h2><i class="fa-solid fa-comments" style="color: var(--color-cyan);"></i> 1. รีวิวจริงจากนักเรียน (จัดเรียงลำดับภาพได้)</h2>
+            <p>อัปโหลดรูปภาพรีวิวจริงของเด็กๆ (ภาพแชตไลน์ / ผลคะแนน / ใบประกาศ) จัดลำดับ เลื่อนตำแหน่งก่อน-หลังได้ตามต้องการ</p>
           </div>
           <button type="button" class="btn-primary" onclick="openAddReviewModal()">
             <i class="fa-solid fa-plus"></i> เพิ่มรีวิวนักเรียนใหม่
@@ -1258,7 +1258,9 @@
           <table class="admin-data-table">
             <thead>
               <tr>
-                <th style="width: 90px;">รูปภาพรีวิว</th>
+                <th style="width: 55px; text-align: center;">ลำดับ</th>
+                <th style="width: 75px; text-align: center;">เรียง</th>
+                <th style="width: 80px;">รูปภาพรีวิว</th>
                 <th>ชื่อนักเรียน / ผู้ปกครอง</th>
                 <th>โรงเรียน / ระดับชั้น</th>
                 <th>ผลคะแนน / ความสำเร็จ</th>
@@ -1275,8 +1277,8 @@
         <!-- Hall of Fame / Achievement Posters Section -->
         <div class="admin-pane-header" style="margin-top: 40px; padding-top: 24px; border-top: 2px dashed #e2e8f0;">
           <div>
-            <h2 style="font-size: 1.3rem;"><i class="fa-solid fa-award" style="color: var(--color-gold);"></i> โปสเตอร์ความสำเร็จ & แกลเลอรีผลงาน (Hall of Fame Gallery)</h2>
-            <p>จัดการโปสเตอร์ประกาศผลสอบติด ภาพกิจกรรม และผลงานความสำเร็จขนาดใหญ่ที่โชว์ในหน้ารีวิว</p>
+            <h2 style="font-size: 1.3rem;"><i class="fa-solid fa-award" style="color: var(--color-gold);"></i> 2. โปสเตอร์ความสำเร็จของรุ่นพี่ &amp; แกลเลอรีผลงาน (จัดเรียงลำดับภาพได้)</h2>
+            <p>จัดการโปสเตอร์ประกาศผลสอบติด ภาพกิจกรรม และผลงานความสำเร็จ สามารถเลื่อนตำแหน่งก่อน-หลังรูปภาพได้อิสระ</p>
           </div>
           <button type="button" class="btn-primary" onclick="openAddAchievementModal()">
             <i class="fa-solid fa-plus"></i> เพิ่มโปสเตอร์ความสำเร็จ
@@ -1287,7 +1289,9 @@
           <table class="admin-data-table">
             <thead>
               <tr>
-                <th style="width: 140px;">รูปโปสเตอร์ / ผลงาน</th>
+                <th style="width: 55px; text-align: center;">ลำดับ</th>
+                <th style="width: 75px; text-align: center;">เรียง</th>
+                <th style="width: 130px;">รูปโปสเตอร์ / ผลงาน</th>
                 <th>ที่อยู่ไฟล์รูปภาพ (Image Path)</th>
                 <th style="text-align: right;">จัดการ</th>
               </tr>
