@@ -971,6 +971,7 @@ function openAddCourseModal() {
   if (document.getElementById('cBenefits')) document.getElementById('cBenefits').value = '';
   if (document.getElementById('cIsFeatured')) document.getElementById('cIsFeatured').checked = true;
   if (document.getElementById('cIsHidden')) document.getElementById('cIsHidden').checked = false;
+  if (document.getElementById('cScheduleNote')) document.getElementById('cScheduleNote').value = '';
   if (document.getElementById('cMaxSeats')) document.getElementById('cMaxSeats').value = '12';
   if (document.getElementById('cIsFull')) document.getElementById('cIsFull').checked = false;
   if (typeof updateCourseSeatCalcPreview === 'function') updateCourseSeatCalcPreview();
@@ -1060,6 +1061,7 @@ function openEditCourseModal(id) {
   if (document.getElementById('cBenefits')) document.getElementById('cBenefits').value = c.benefits || '';
   if (document.getElementById('cIsFeatured')) document.getElementById('cIsFeatured').checked = c.isFeatured !== false;
   if (document.getElementById('cIsHidden')) document.getElementById('cIsHidden').checked = (c.isHidden === true);
+  if (document.getElementById('cScheduleNote')) document.getElementById('cScheduleNote').value = c.scheduleNote || '';
   if (document.getElementById('cMaxSeats')) {
     document.getElementById('cMaxSeats').value = (c.maxSeats !== undefined && c.maxSeats !== null) ? c.maxSeats : 12;
   }
@@ -1127,6 +1129,7 @@ async function handleSaveCourse(e) {
     benefits: document.getElementById('cBenefits') ? document.getElementById('cBenefits').value.trim() : '',
     subjectBreakdown: getSubjectBreakdownFromBuilder(),
     scheduleList: getSchedulesFromBuilder(),
+    scheduleNote: document.getElementById('cScheduleNote') ? document.getElementById('cScheduleNote').value.trim() : '',
     highlights: getHighlightsFromBuilder(),
     customSections: getCustomSectionsFromBuilder(),
     parentFaq: getCourseParentFaqFromBuilder()
@@ -1617,6 +1620,7 @@ function openAddBundleModal() {
   toggleBundleImageMode('stack');
 
   populateBundleCoursesChecklist([]);
+  populateBundleCategoriesChecklist([]);
   calculateBundleSavings();
 
   document.getElementById('modalAddBundle').classList.add('active');
@@ -1648,9 +1652,64 @@ function openEditBundleModal(bundleId) {
   toggleBundleImageMode(mode);
 
   populateBundleCoursesChecklist(b.courseIds || []);
+  populateBundleCategoriesChecklist(b.categoryIds || []);
   calculateBundleSavings();
 
   document.getElementById('modalAddBundle').classList.add('active');
+}
+
+function populateBundleCategoriesChecklist(selectedCatIds = []) {
+  const container = document.getElementById('bundleCategoriesChecklist');
+  if (!container) return;
+
+  const defaultCats = [
+    { id: 'primary45', name: 'ป.4 - ป.5' },
+    { id: 'primary6', name: 'ป.6 (สอบเข้า ม.1)' },
+    { id: 'secondary1', name: 'ม.1' },
+    { id: 'secondary2', name: 'ม.2' },
+    { id: 'secondary3', name: 'ม.3 (สอบเข้า ม.4)' },
+    { id: 'highschool4', name: 'ม.4' },
+    { id: 'highschool5', name: 'ม.5' }
+  ];
+
+  const dbCats = (window.NewGenDB ? window.NewGenDB.getCategories() : []);
+  const allCats = (dbCats && dbCats.length >= 4) ? dbCats : defaultCats;
+
+  container.innerHTML = allCats.map(cat => {
+    const isChecked = Array.isArray(selectedCatIds) && selectedCatIds.includes(cat.id);
+    return `
+      <label style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 99px; border: 1.5px solid ${isChecked ? '#2563eb' : '#cbd5e1'}; background: ${isChecked ? '#eff6ff' : '#ffffff'}; font-size: 0.82rem; font-weight: 700; color: ${isChecked ? '#1d4ed8' : '#475569'}; cursor: pointer; transition: all 0.2s;" class="bundle-cat-pill">
+        <input type="checkbox" value="${cat.id}" ${isChecked ? 'checked' : ''} onchange="this.closest('.bundle-cat-pill').style.borderColor = this.checked ? '#2563eb' : '#cbd5e1'; this.closest('.bundle-cat-pill').style.background = this.checked ? '#eff6ff' : '#ffffff'; this.closest('.bundle-cat-pill').style.color = this.checked ? '#1d4ed8' : '#475569';" style="accent-color: #2563eb; width: 15px; height: 15px;">
+        <span>${escapeHtml(cat.name)}</span>
+      </label>
+    `;
+  }).join('');
+}
+
+function autoSelectBundleCategoriesFromCourses() {
+  const checkedBoxes = document.querySelectorAll('#bundleCoursesChecklist input[type="checkbox"]:checked');
+  const selectedCourseIds = Array.from(checkedBoxes).map(cb => cb.value);
+  const courses = (window.NewGenDB ? window.NewGenDB.getCourses() : (window.courseData || []));
+  const selectedCourses = courses.filter(c => selectedCourseIds.includes(c.id));
+  
+  const autoCatIds = new Set();
+  selectedCourses.forEach(c => {
+    if (c.category) autoCatIds.add(c.category);
+  });
+  
+  if (autoCatIds.size > 0) {
+    document.querySelectorAll('#bundleCategoriesChecklist input[type="checkbox"]').forEach(catCb => {
+      if (autoCatIds.has(catCb.value)) {
+        catCb.checked = true;
+        const pill = catCb.closest('.bundle-cat-pill');
+        if (pill) {
+          pill.style.borderColor = '#2563eb';
+          pill.style.background = '#eff6ff';
+          pill.style.color = '#1d4ed8';
+        }
+      }
+    });
+  }
 }
 
 function populateBundleCoursesChecklist(selectedIds = []) {
@@ -1685,6 +1744,7 @@ function onBundleCourseCheckboxChange(chk) {
     label.style.borderColor = chk.checked ? '#2563eb' : '#e2e8f0';
     label.style.background = chk.checked ? '#eff6ff' : '#ffffff';
   }
+  autoSelectBundleCategoriesFromCourses();
   calculateBundleSavings(true);
 }
 
@@ -1823,11 +1883,15 @@ async function handleSaveBundleForm(e) {
   const showInHome = document.getElementById('bundleShowInHome').checked;
   const active = document.getElementById('bundleActive').checked;
 
+  const catBoxes = document.querySelectorAll('#bundleCategoriesChecklist input[type="checkbox"]:checked');
+  const categoryIds = Array.from(catBoxes).map(cb => cb.value);
+
   const bundleObj = {
     id: id || `bundle-${Date.now()}`,
     name,
     badge,
     courseIds,
+    categoryIds,
     priceOriginal,
     pricePromo,
     priceUnit,

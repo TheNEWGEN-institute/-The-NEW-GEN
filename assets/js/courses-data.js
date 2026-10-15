@@ -175,8 +175,13 @@ const DEFAULT_TUTORS = [
 ];
 
 const DEFAULT_CATEGORIES = [
-  { id: 'primary', name: 'ประถม ป.4 - ป.6', badgeClass: 'badge-primary-level' },
-  { id: 'secondary', name: 'มัธยม ม.1 - ม.3', badgeClass: 'badge-secondary-level' }
+  { id: 'primary45', name: 'ประถม ป.4 - ป.5', badgeClass: 'badge-primary-level' },
+  { id: 'primary6', name: 'ประถม ป.6 (สอบเข้า ม.1)', badgeClass: 'badge-primary-level' },
+  { id: 'secondary1', name: 'มัธยมศึกษา ม.1', badgeClass: 'badge-secondary-level' },
+  { id: 'secondary2', name: 'มัธยมศึกษา ม.2', badgeClass: 'badge-secondary-level' },
+  { id: 'secondary3', name: 'มัธยมศึกษา ม.3 (สอบเข้า ม.4)', badgeClass: 'badge-secondary-level' },
+  { id: 'highschool4', name: 'มัธยมศึกษา ม.4', badgeClass: 'badge-highschool-level' },
+  { id: 'highschool5', name: 'มัธยมศึกษา ม.5', badgeClass: 'badge-highschool-level' }
 ];
 
 const DEFAULT_WHYUS = {

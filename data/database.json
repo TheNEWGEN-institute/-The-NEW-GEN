@@ -1497,14 +1497,39 @@
   ],
   "categories": [
     {
-      "id": "primary",
-      "name": "ประถม ป.4 - ป.6",
+      "id": "primary45",
+      "name": "ระดับชั้น ป.4 - ป.5",
       "badgeClass": "badge-primary-level"
     },
     {
-      "id": "secondary",
-      "name": "มัธยม ม.1 - ม.3",
+      "id": "primary6",
+      "name": "ระดับชั้น ป.6 (สอบเข้า ม.1)",
+      "badgeClass": "badge-primary-level"
+    },
+    {
+      "id": "secondary1",
+      "name": "ระดับชั้น ม.1",
       "badgeClass": "badge-secondary-level"
+    },
+    {
+      "id": "secondary2",
+      "name": "ระดับชั้น ม.2",
+      "badgeClass": "badge-secondary-level"
+    },
+    {
+      "id": "secondary3",
+      "name": "ระดับชั้น ม.3 (สอบเข้า ม.4)",
+      "badgeClass": "badge-secondary-level"
+    },
+    {
+      "id": "highschool4",
+      "name": "ระดับชั้น ม.4",
+      "badgeClass": "badge-highschool-level"
+    },
+    {
+      "id": "highschool5",
+      "name": "ระดับชั้น ม.5",
+      "badgeClass": "badge-highschool-level"
     }
   ],
   "reviews": [
@@ -2215,7 +2240,10 @@
       "showInHome": true,
       "active": true,
       "createdAt": "2026-10-15T14:53:09.976Z",
-      "order": 1
+      "order": 1,
+      "categoryIds": [
+        "highschool4"
+      ]
     }
   ]
 }

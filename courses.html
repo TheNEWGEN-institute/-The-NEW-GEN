@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Prompt:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
-  <link rel="stylesheet" href="assets/css/style.css?v=20261015-v3">
+  <link rel="stylesheet" href="assets/css/style.css?v=20261015-v4">
 </head>
 <body class="page-luxury">
 
@@ -270,8 +270,8 @@
     </button>
   </div>
 
-  <script src="assets/js/courses-data.js?v=20261015-v3"></script>
-  <script src="assets/js/enrollment-modal.js?v=20261015-v3"></script>
+  <script src="assets/js/courses-data.js?v=20261015-v4"></script>
+  <script src="assets/js/enrollment-modal.js?v=20261015-v4"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       initAllCoursesPage();
@@ -294,6 +294,30 @@
         searchQuery = e.target.value.toLowerCase().trim();
         renderCourses();
       });
+    }
+
+    function getBundleCategoryIds(bundle, allCourses) {
+      const catSet = new Set();
+      if (Array.isArray(bundle.categories)) {
+        bundle.categories.forEach(c => catSet.add(c));
+      } else if (bundle.category) {
+        catSet.add(bundle.category);
+      }
+      const childIds = Array.isArray(bundle.courseIds) ? bundle.courseIds : [];
+      (allCourses || []).forEach(c => {
+        if (childIds.includes(c.id) && c.category) {
+          catSet.add(c.category);
+        }
+      });
+      const text = `${bundle.name || ''} ${bundle.description || ''}`;
+      if (/ม\.?\s*4/i.test(text)) catSet.add('highschool4');
+      if (/ม\.?\s*5/i.test(text)) catSet.add('highschool5');
+      if (/ม\.?\s*1/i.test(text)) catSet.add('secondary1');
+      if (/ม\.?\s*2/i.test(text)) catSet.add('secondary2');
+      if (/ม\.?\s*3/i.test(text)) catSet.add('secondary3');
+      if (/ป\.?\s*6/i.test(text)) catSet.add('primary6');
+      if (/ป\.?\s*[45]/i.test(text)) catSet.add('primary45');
+      return catSet;
     }
 
     function renderCategoryFilterTabs() {
@@ -320,10 +344,12 @@
       }
 
       categories.forEach(cat => {
-        const count = courses.filter(c => c.category === cat.id).length;
+        const cCount = courses.filter(c => c.category === cat.id).length;
+        const bCount = activeBundles.filter(b => getBundleCategoryIds(b, courses).has(cat.id)).length;
+        const total = cCount + bCount;
         html += `
           <button type="button" class="filter-pill ${currentFilter === cat.id ? 'active' : ''}" data-filter="${cat.id}">
-            <i class="${cat.icon || 'fa-solid fa-graduation-cap'}"></i> ${cat.name} (<span id="count_${cat.id}">${count}</span>)
+            <i class="${cat.icon || 'fa-solid fa-graduation-cap'}"></i> ${cat.name} (<span id="count_${cat.id}">${total}</span>)
           </button>
         `;
       });
@@ -360,7 +386,11 @@
 
       categories.forEach(cat => {
         const cEl = document.getElementById(`count_${cat.id}`);
-        if (cEl) cEl.textContent = courses.filter(c => c.category === cat.id).length;
+        if (cEl) {
+          const cCount = courses.filter(c => c.category === cat.id).length;
+          const bCount = activeBundles.filter(b => getBundleCategoryIds(b, allCourses).has(cat.id)).length;
+          cEl.textContent = cCount + bCount;
+        }
       });
 
       // Filter courses
@@ -376,7 +406,7 @@
         });
       }
 
-      // Filter bundles
+      // Filter bundles (Item 2: show in grade level tabs)
       let filteredBundles = [];
       if (currentFilter === 'all' || currentFilter === 'bundles') {
         filteredBundles = activeBundles
@@ -385,9 +415,19 @@
               b.name.toLowerCase().includes(searchQuery) ||
               (b.description && b.description.toLowerCase().includes(searchQuery));
             return matchesSearch;
-          })
-          .sort((a, b) => (Number(a.order) || 99) - (Number(b.order) || 99));
+          });
+      } else {
+        filteredBundles = activeBundles
+          .filter(b => {
+            const bCats = getBundleCategoryIds(b, allCourses);
+            const matchesCat = bCats.has(currentFilter);
+            const matchesSearch = !searchQuery ||
+              b.name.toLowerCase().includes(searchQuery) ||
+              (b.description && b.description.toLowerCase().includes(searchQuery));
+            return matchesCat && matchesSearch;
+          });
       }
+      filteredBundles.sort((a, b) => (Number(a.order) || 99) - (Number(b.order) || 99));
 
       if (filteredCourses.length === 0 && filteredBundles.length === 0) {
         grid.innerHTML = '';
@@ -536,6 +576,6 @@
       renderCourses();
     }
   </script>
-  <script src="assets/js/main.js?v=20261015-v3"></script>
+  <script src="assets/js/main.js?v=20261015-v4"></script>
 </body>
 </html>

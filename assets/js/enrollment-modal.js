@@ -557,7 +557,51 @@
     const schedContainer = document.getElementById('enrollScheduleList');
     const schedSection = document.getElementById('enrollScheduleSection');
     if (schedContainer) {
-      if (Array.isArray(course.scheduleList) && course.scheduleList.length > 0) {
+      if (course.isBundle && Array.isArray(course.childCourses) && course.childCourses.length > 0) {
+        schedSection.style.display = 'block';
+        schedContainer.innerHTML = course.childCourses.map((cc, cIdx) => {
+          const schedules = Array.isArray(cc.scheduleList) && cc.scheduleList.length > 0
+            ? cc.scheduleList
+            : [{ type: 'รอบเรียนปกติ', time: 'ตามรอบสถาบัน', dates: 'เปิดเทอม' }];
+
+          return `
+            <div class="bundle-course-sched-group" style="background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 14px; padding: 14px 16px; margin-bottom: 14px;">
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; flex-wrap: wrap;">
+                <div style="font-size: 0.95rem; font-weight: 800; color: #0b1e3f; display: flex; align-items: center; gap: 8px;">
+                  <span style="background: #e11d48; color: #ffffff; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.78rem; font-weight: 800;">
+                    ${cIdx + 1}
+                  </span>
+                  <span>เลือกรอบเรียน: <strong>${escapeHtml(cc.title)}</strong></span>
+                  <span class="req-star">*</span>
+                </div>
+                <span style="font-size: 0.76rem; color: #64748b; background: #ffffff; padding: 2px 8px; border-radius: 6px; border: 1px solid #cbd5e1;">
+                  วิชาที่ ${cIdx + 1} จาก ${course.childCourses.length}
+                </span>
+              </div>
+              <div class="enroll-schedule-grid" style="display: grid; gap: 8px;">
+                ${schedules.map((s, idx) => {
+                  const checked = idx === 0 ? 'checked' : '';
+                  const activeClass = idx === 0 ? 'active' : '';
+                  const isItemFull = (s.time && s.time.includes('เต็มแล้ว')) || (s.dates && s.dates.includes('ปิดรับ'));
+                  const radioVal = `${escapeHtml(s.type)} | ${escapeHtml(s.time)} | ${escapeHtml(s.dates)}`;
+                  return `
+                    <label class="enroll-schedule-card ${activeClass} ${isItemFull ? 'disabled' : ''}" onclick="selectEnrollSchedule(this)" style="margin: 0;">
+                      <input type="radio" name="enrollScheduleChoice_${cc.id}" data-course-id="${cc.id}" data-course-title="${escapeHtml(cc.title)}" value="${radioVal}" ${checked} ${isItemFull ? 'disabled' : ''}>
+                      <div class="sched-card-body">
+                        <div class="sched-type-row">
+                          <strong>${escapeHtml(s.type)}</strong>
+                          ${isItemFull ? '<span class="badge badge-seat-full" style="font-size: 0.72rem;">🛑 เต็มแล้ว</span>' : '<span class="sched-time-tag"><i class="fa-regular fa-clock"></i> ' + escapeHtml(s.time) + '</span>'}
+                        </div>
+                        ${s.dates ? `<div class="sched-dates-row"><i class="fa-regular fa-calendar"></i> ${escapeHtml(s.dates)}</div>` : ''}
+                      </div>
+                    </label>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+          `;
+        }).join('');
+      } else if (Array.isArray(course.scheduleList) && course.scheduleList.length > 0) {
         schedSection.style.display = 'block';
         schedContainer.innerHTML = course.scheduleList.map((s, idx) => {
           const checked = idx === 0 ? 'checked' : '';
@@ -638,7 +682,8 @@
 
   window.selectEnrollSchedule = function (cardEl) {
     if (cardEl.classList.contains('disabled')) return;
-    document.querySelectorAll('.enroll-schedule-card').forEach(c => c.classList.remove('active'));
+    const groupGrid = cardEl.closest('.enroll-schedule-grid') || cardEl.closest('#enrollScheduleList') || document;
+    groupGrid.querySelectorAll('.enroll-schedule-card').forEach(c => c.classList.remove('active'));
     cardEl.classList.add('active');
     const radio = cardEl.querySelector('input[type="radio"]');
     if (radio) radio.checked = true;
@@ -726,9 +771,25 @@
       return;
     }
 
-    // Schedule choice
-    const schedSelected = document.querySelector('input[name="enrollScheduleChoice"]:checked');
-    const scheduleChoice = schedSelected ? schedSelected.value : (currentEnrollCourse.scheduleList?.[0]?.type || 'รอบเรียนปกติ');
+    // Schedule choice collection (multi-course support for bundles)
+    let scheduleChoice = '';
+    const childSchedulesMap = {};
+    const isBundle = Boolean(currentEnrollCourse && currentEnrollCourse.isBundle);
+    const childCourseIds = isBundle && Array.isArray(currentEnrollCourse.courseIds) ? currentEnrollCourse.courseIds : [];
+
+    if (isBundle && Array.isArray(currentEnrollCourse.childCourses) && currentEnrollCourse.childCourses.length > 0) {
+      const scheduleLines = [];
+      currentEnrollCourse.childCourses.forEach(cc => {
+        const sel = document.querySelector(`input[name="enrollScheduleChoice_${cc.id}"]:checked`);
+        const val = sel ? sel.value : (cc.scheduleList?.[0]?.type || 'รอบเรียนปกติ');
+        childSchedulesMap[cc.id] = val;
+        scheduleLines.push(`• [${cc.title}]: ${val}`);
+      });
+      scheduleChoice = scheduleLines.join('\n');
+    } else {
+      const schedSelected = document.querySelector('input[name="enrollScheduleChoice"]:checked');
+      scheduleChoice = schedSelected ? schedSelected.value : (currentEnrollCourse.scheduleList?.[0]?.type || 'รอบเรียนปกติ');
+    }
 
     // Learning type
     const typeSelected = document.querySelector('input[name="enrollLearningType"]:checked');
@@ -744,14 +805,12 @@
     const randPart = Math.floor(1000 + Math.random() * 9000);
     const enrollId = `ENR-${todayStr}-${randPart}`;
 
-    const isBundle = Boolean(currentEnrollCourse && currentEnrollCourse.isBundle);
-    const childCourseIds = isBundle && Array.isArray(currentEnrollCourse.courseIds) ? currentEnrollCourse.courseIds : [];
-
     const newEnrollment = {
       id: enrollId,
       courseId: currentEnrollCourse.id,
       courseTitle: currentEnrollCourse.title,
       scheduleChoice: scheduleChoice,
+      childSchedulesMap: childSchedulesMap,
       learningType: learningType,
       studentName: studentName,
       fullName: studentName,
@@ -776,22 +835,24 @@
       if (window.NewGenDB && typeof window.NewGenDB.saveEnrollment === 'function') {
         await window.NewGenDB.saveEnrollment(newEnrollment);
 
-        // Requirement 1: If bundle, send student's name to EVERY course in the bundle!
+        // Requirement 1: If bundle, send student's name to EVERY course in the bundle with their specific chosen schedule!
         if (isBundle && childCourseIds.length > 0) {
           const allCourses = (window.NewGenDB ? window.NewGenDB.getCourses() : (window.courseData || []));
           for (const subId of childCourseIds) {
             const subCourse = allCourses.find(c => c.id === subId);
+            const specificSched = childSchedulesMap[subId] || scheduleChoice;
             const subEnrollment = {
               ...newEnrollment,
               id: `${enrollId}-${subId}`,
               courseId: subId,
               courseTitle: subCourse ? subCourse.title : subId,
+              scheduleChoice: specificSched,
               isBundle: false,
               isFromBundle: true,
               bundleId: currentEnrollCourse.id,
               bundleName: currentEnrollCourse.name || currentEnrollCourse.title,
               parentEnrollId: enrollId,
-              notes: `[สมัครผ่านแพ็คเกจ: ${currentEnrollCourse.name || currentEnrollCourse.title}] ${notes || ''}`.trim()
+              notes: `[สมัครผ่านแพ็คเกจ: ${currentEnrollCourse.name || currentEnrollCourse.title} | รอบที่เลือก: ${specificSched}] ${notes || ''}`.trim()
             };
             await window.NewGenDB.saveEnrollment(subEnrollment);
           }
@@ -806,7 +867,7 @@
     // Populate Step 2 Confirmation Card
     document.getElementById('confAppCode').textContent = `#${enrollId}`;
     document.getElementById('confCourseTitle').textContent = currentEnrollCourse.title;
-    document.getElementById('confScheduleChoice').textContent = scheduleChoice.replace(/\|/g, ' • ');
+    document.getElementById('confScheduleChoice').innerHTML = escapeHtml(scheduleChoice).replace(/\n/g, '<br>');
     document.getElementById('confLearningType').textContent = learningType === 'onsite' ? '🏫 เรียนสด Onsite (ที่สถาบัน The NEW GEN)' : '💻 เรียนสด Online (Zoom)';
     document.getElementById('confStudentName').textContent = `${studentName} (น้อง${nickname}) ชั้น ${grade} - รร. ${school}`;
     document.getElementById('confContact').textContent = `โทร: ${parentPhone} | LINE ID: ${lineId}`;
@@ -854,11 +915,15 @@
       customText = '\n' + lastEnrollmentData.customAnswers.map(ca => `${ca.label}: ${ca.value}`).join('\n');
     }
 
+    const schedFormatted = lastEnrollmentData.scheduleChoice.includes('\n')
+      ? '\n' + lastEnrollmentData.scheduleChoice.split('\n').map(l => l.replace(/\|/g, ' • ')).join('\n')
+      : lastEnrollmentData.scheduleChoice.replace(/\|/g, ' • ');
+
     const textToCopy = `สมัครเรียน The NEW GEN
 -------------------------
 รหัสการสมัคร: ${lastEnrollmentData.id}
 คอร์สเรียน: ${lastEnrollmentData.courseTitle}
-รอบเรียน: ${lastEnrollmentData.scheduleChoice.replace(/\|/g, ' • ')}
+รอบเรียน: ${schedFormatted}
 รูปแบบ: ${lastEnrollmentData.learningType === 'onsite' ? 'Onsite เรียนที่สถาบัน' : 'Online'}
 ชื่อนักเรียน: ${lastEnrollmentData.studentName} (${lastEnrollmentData.nickname})
 ระดับชั้น: ${lastEnrollmentData.grade} | รร. ${lastEnrollmentData.school}
@@ -1093,10 +1158,10 @@ LINE ID: ${lastEnrollmentData.lineId}${customText}
             : (c.cover || c.poster || 'assets/images/course-poster-primary.jpg');
 
           return `
-            <div class="bundle-child-course-card" style="display: flex; gap: 16px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); transition: transform 0.2s, box-shadow 0.2s;">
-              <div style="width: 105px; height: 120px; border-radius: 10px; overflow: hidden; flex-shrink: 0; position: relative; background: #f1f5f9;">
-                <img src="${coverSrc}" alt="${escapeHtml(c.title)}" style="width: 100%; height: 100%; object-fit: cover;">
-                <span style="position: absolute; bottom: 4px; left: 4px; right: 4px; background: rgba(11, 30, 63, 0.85); color: #ffffff; font-size: 0.68rem; padding: 2px 4px; border-radius: 4px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600;">
+            <div class="bundle-child-course-card" style="display: flex; gap: 16px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); transition: transform 0.2s, box-shadow 0.2s; align-items: flex-start;">
+              <div style="width: 125px; height: 165px; border-radius: 12px; overflow: hidden; flex-shrink: 0; position: relative; background: #0b1e3f; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 14px rgba(0,0,0,0.12); border: 1px solid #e2e8f0;">
+                <img src="${coverSrc}" alt="${escapeHtml(c.title)}" style="width: 100%; height: 100%; object-fit: contain; background: #0b1e3f;" loading="lazy">
+                <span style="position: absolute; top: 6px; left: 6px; background: #e11d48; color: #ffffff; font-size: 0.68rem; padding: 2px 8px; border-radius: 6px; font-weight: 800; box-shadow: 0 2px 6px rgba(0,0,0,0.35); z-index: 2;">
                   คอร์สที่ ${idx + 1}
                 </span>
               </div>
