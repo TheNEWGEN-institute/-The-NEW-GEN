@@ -351,27 +351,7 @@ const DEFAULT_ABOUT = {
 };
 
 // Default Bundles (แพ็คเกจคอร์สเรียนโปรโมชั่น)
-const DEFAULT_BUNDLES = [
-  {
-    id: "bundle-primary-combo",
-    name: "แพ็คคู่ประถม ปูพื้นฐาน + ติวสอบเข้า ม.1 (สุดคุ้ม)",
-    badge: "🔥 แพ็คคู่สุดคุ้ม ประหยัดทันที 1,500.-",
-    courseIds: [
-      "course-p4-p5",
-      "course-p6-m1"
-    ],
-    priceOriginal: "9,000",
-    pricePromo: "7,500",
-    priceUnit: "บาท / แพ็คเกจ (2 คอร์ส)",
-    imageMode: "stack",
-    customImage: "",
-    description: "สมัครคอร์สคู่สุดคุ้ม รวม 2 คอร์สหลักประถม ติวเข้มปูพื้นฐานและเจาะลึกแนวข้อสอบจริงสอบเข้า ม.1",
-    showInCourses: true,
-    showInHome: true,
-    active: true,
-    createdAt: "2026-10-15T00:00:00.000Z"
-  }
-];
+const DEFAULT_BUNDLES = [];
 
 // Default Admin Credentials
 const DEFAULT_ADMIN = {
@@ -976,14 +956,21 @@ const NewGenDB = {
   getBundles: () => {
     try {
       const data = localStorage.getItem('newgen_bundles');
-      if (data) {
+      if (data !== null) {
         const parsed = JSON.parse(data);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed)) return parsed;
       }
     } catch (e) {}
-    return (typeof window !== 'undefined' && Array.isArray(window.bundlesData) && window.bundlesData.length > 0)
-      ? window.bundlesData
-      : (typeof DEFAULT_BUNDLES !== 'undefined' ? JSON.parse(JSON.stringify(DEFAULT_BUNDLES)) : []);
+    if (typeof window !== 'undefined' && Array.isArray(window.bundlesData)) {
+      return window.bundlesData;
+    }
+    const initial = (typeof DEFAULT_BUNDLES !== 'undefined' && Array.isArray(DEFAULT_BUNDLES))
+      ? JSON.parse(JSON.stringify(DEFAULT_BUNDLES))
+      : [];
+    try {
+      localStorage.setItem('newgen_bundles', JSON.stringify(initial));
+    } catch (e) {}
+    return initial;
   },
   saveBundles: (bundles) => {
     try {
@@ -994,13 +981,11 @@ const NewGenDB = {
     if (typeof window !== 'undefined') window.bundlesData = bundles;
     try {
       const base = typeof getApiBaseUrl === 'function' ? getApiBaseUrl() : '';
-      if (base) {
-        fetch(`${base}/api/bundles`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(bundles)
-        }).catch(() => {});
-      }
+      fetch(`${base || ''}/api/bundles`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(bundles)
+      }).catch(() => {});
     } catch (err) {}
     return NewGenDB.saveToSupabase('bundles', bundles);
   },
@@ -1012,20 +997,18 @@ const NewGenDB = {
     } else {
       list.push({ ...bundle, createdAt: new Date().toISOString() });
     }
-    await NewGenDB.saveBundles(list);
-    return list;
+    const res = await NewGenDB.saveBundles(list);
+    return res || { success: true, list };
   },
   deleteBundle: async (bundleId) => {
     let list = NewGenDB.getBundles();
     list = list.filter(b => b.id !== bundleId);
-    await NewGenDB.saveBundles(list);
+    const res = await NewGenDB.saveBundles(list);
     try {
       const base = typeof getApiBaseUrl === 'function' ? getApiBaseUrl() : '';
-      if (base) {
-        fetch(`${base}/api/bundles/${bundleId}`, { method: 'DELETE' }).catch(() => {});
-      }
+      fetch(`${base || ''}/api/bundles/${encodeURIComponent(bundleId)}`, { method: 'DELETE' }).catch(() => {});
     } catch (e) {}
-    return list;
+    return res || { success: true, list };
   },
 
   // Enrollments (ระบบรายชื่อผู้สมัครเรียน)
