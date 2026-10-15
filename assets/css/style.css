@@ -9897,6 +9897,47 @@ button {
 /* ===================================================================
    Bundle Detail Modal & Child Cards Luxury Styling
    =================================================================== */
+/* ===================================================================
+   Bundle Detail Modal Styling & Transitions
+   =================================================================== */
+#modalBundleDetail,
+.bundle-detail-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 25, 50, 0.82);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 999998;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  overflow-y: auto;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.28s ease, visibility 0.28s ease;
+}
+
+#modalBundleDetail.active,
+.bundle-detail-modal-backdrop.active {
+  display: flex !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+}
+
+#modalBundleDetail .modal-bundle-box,
+.bundle-detail-modal-backdrop .modal-bundle-box {
+  transform: scale(0.93) translateY(18px);
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+#modalBundleDetail.active .modal-bundle-box,
+.bundle-detail-modal-backdrop.active .modal-bundle-box {
+  transform: scale(1) translateY(0);
+}
+
 #modalBundleDetail .bundle-child-course-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08) !important;

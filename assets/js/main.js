@@ -324,7 +324,9 @@ function initCourseSlider() {
     track.innerHTML = '';
     const allCourses = window.NewGenDB ? window.NewGenDB.getCourses() : (window.courseData || []);
     const allBundles = window.NewGenDB ? window.NewGenDB.getBundles() : (window.bundlesData || []);
-    const homeBundles = allBundles.filter(b => b.active !== false && b.showInHome !== false);
+    const homeBundles = allBundles
+      .filter(b => b.active !== false && b.showInHome !== false)
+      .sort((a, b) => (Number(a.order) || 99) - (Number(b.order) || 99));
     const filteredCourses = allCourses.filter(c => c.isFeatured !== false && !c.isHidden);
 
     if (filteredCourses.length === 0 && homeBundles.length === 0) {
@@ -354,16 +356,21 @@ function initCourseSlider() {
 
       const card = document.createElement('div');
       card.className = 'bundle-card';
-      card.style.cssText = 'flex-shrink: 0; min-width: 320px; max-width: 380px; width: 100%; box-sizing: border-box;';
+      card.style.cssText = 'flex-shrink: 0; min-width: 320px; max-width: 380px; width: 100%; box-sizing: border-box; cursor: pointer;';
+      card.onclick = (e) => {
+        if (!e.target.closest('button')) {
+          openBundleDetailModal(b.id);
+        }
+      };
       card.innerHTML = `
-        <div class="bundle-thumb-area ${isCustom ? 'custom-img' : ''}" onclick="openBundleDetailModal('${b.id}')" style="cursor: pointer;" title="คลิกเพื่อดูรายละเอียดแพ็คเกจ">
+        <div class="bundle-thumb-area ${isCustom ? 'custom-img' : ''}" style="cursor: pointer;" title="คลิกเพื่อดูรายละเอียดแพ็คเกจ">
           ${visualHtml}
           <span class="bundle-badge-promo"><i class="fa-solid fa-fire"></i> ${escapeHtml(b.badge || '🔥 แพ็คเกจโปรโมชั่น')}</span>
           ${savingsVal > 0 ? `<span class="bundle-savings-pill"><i class="fa-solid fa-gift"></i> ประหยัดทันที ${savingsVal.toLocaleString()}.-</span>` : ''}
         </div>
         <div class="bundle-card-body">
           <div>
-            <h3 class="bundle-title" onclick="openBundleDetailModal('${b.id}')" style="cursor: pointer;" title="คลิกเพื่อดูรายละเอียดแพ็คเกจ">${escapeHtml(b.name)}</h3>
+            <h3 class="bundle-title" onclick="event.stopPropagation(); openBundleDetailModal('${b.id}')" style="cursor: pointer;" title="คลิกเพื่อดูรายละเอียดแพ็คเกจ">${escapeHtml(b.name)}</h3>
             <p class="bundle-desc">${escapeHtml(b.description || 'รวมคอร์สเรียนวิชาหลักเข้มข้น สมัครเป็นแพ็คประหยัดยิ่งขึ้น พร้อมติวจัดเต็ม')}</p>
             <div class="bundle-included-list">
               <div class="bundle-included-heading"><i class="fa-solid fa-layer-group"></i> รวม ${childCourses.length} คอร์สเรียนในแพ็คนี้:</div>
@@ -386,10 +393,10 @@ function initCourseSlider() {
               </div>
             </div>
             <div class="course-actions-wrap">
-              <button type="button" class="btn-course-register" onclick="openEnrollmentModal('${b.id}')" title="สมัครแพ็คเกจนี้" style="background: linear-gradient(135deg, #e11d48, #be123c); border-color: #be123c;">
+              <button type="button" class="btn-course-register" onclick="event.stopPropagation(); openEnrollmentModal('${b.id}')" title="สมัครแพ็คเกจนี้" style="background: linear-gradient(135deg, #e11d48, #be123c); border-color: #be123c;">
                 <i class="fa-solid fa-bolt"></i> สมัครแพ็คเกจนี้
               </button>
-              <button type="button" class="btn-detail-link" onclick="openBundleDetailModal('${b.id}')" title="ดูรายละเอียดคอร์สในแพ็คเกจ" style="border: none; cursor: pointer;">
+              <button type="button" class="btn-detail-link" onclick="event.stopPropagation(); openBundleDetailModal('${b.id}')" title="ดูรายละเอียดคอร์สในแพ็คเกจ" style="border: none; cursor: pointer;">
                 รายละเอียด <i class="fa-solid fa-arrow-right"></i>
               </button>
             </div>

@@ -614,13 +614,25 @@
 
     // Show modal
     const modalEl = document.getElementById('modalStudentEnrollment');
-    modalEl.classList.add('active');
+    if (modalEl) {
+      modalEl.classList.add('active');
+      modalEl.style.setProperty('display', 'flex', 'important');
+      modalEl.style.setProperty('opacity', '1', 'important');
+      modalEl.style.setProperty('visibility', 'visible', 'important');
+      modalEl.style.setProperty('pointer-events', 'auto', 'important');
+    }
     document.body.style.overflow = 'hidden';
   };
 
   window.closeEnrollmentModal = function () {
     const modalEl = document.getElementById('modalStudentEnrollment');
-    if (modalEl) modalEl.classList.remove('active');
+    if (modalEl) {
+      modalEl.classList.remove('active');
+      modalEl.style.setProperty('display', 'none', 'important');
+      modalEl.style.setProperty('opacity', '0', 'important');
+      modalEl.style.setProperty('visibility', 'hidden', 'important');
+      modalEl.style.setProperty('pointer-events', 'none', 'important');
+    }
     document.body.style.overflow = '';
   };
 
@@ -878,12 +890,12 @@ LINE ID: ${lastEnrollmentData.lineId}${customText}
     if (document.getElementById('modalBundleDetail')) return;
 
     const modalHtml = `
-      <div class="modal-backdrop" id="modalBundleDetail" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.78); backdrop-filter: blur(8px); z-index: 9999; align-items: center; justify-content: center; padding: 16px; overflow-y: auto;">
-        <div class="modal-bundle-box" style="background: #ffffff; width: 100%; max-width: 840px; border-radius: 24px; box-shadow: 0 30px 70px -15px rgba(0,0,0,0.35); overflow: hidden; position: relative; border: 1px solid rgba(226, 232, 240, 0.8); margin: auto;">
+      <div class="bundle-detail-modal-backdrop" id="modalBundleDetail" role="dialog" aria-modal="true" style="display: none; position: fixed; inset: 0; background: rgba(10, 25, 50, 0.82); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 999998; align-items: center; justify-content: center; padding: 16px; overflow-y: auto;">
+        <div class="modal-bundle-box" style="background: #ffffff; width: 100%; max-width: 840px; border-radius: 24px; box-shadow: 0 30px 70px -15px rgba(0,0,0,0.45); overflow: hidden; position: relative; border: 1px solid rgba(226, 232, 240, 0.8); margin: auto;">
           
           <!-- Header Banner -->
           <div style="background: linear-gradient(135deg, #0b1e3f 0%, #1e3a8a 60%, #be123c 100%); color: #ffffff; padding: 26px 30px 22px; position: relative;">
-            <button type="button" class="btn-close-modal" onclick="closeBundleDetailModal()" aria-label="ปิดหน้าต่าง" style="position: absolute; top: 18px; right: 18px; background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.3); color: #ffffff; width: 36px; height: 36px; border-radius: 50%; font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;">
+            <button type="button" class="btn-close-modal" onclick="closeBundleDetailModal()" aria-label="ปิดหน้าต่าง" style="position: absolute; top: 18px; right: 18px; background: rgba(255,255,255,0.22); border: 1px solid rgba(255,255,255,0.35); color: #ffffff; width: 36px; height: 36px; border-radius: 50%; font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;">
               <i class="fa-solid fa-xmark"></i>
             </button>
             <div id="bundleDetailBadgeWrap" style="margin-bottom: 8px;">
@@ -987,15 +999,20 @@ LINE ID: ${lastEnrollmentData.lineId}${customText}
   window.openBundleDetailModal = function (bundleId) {
     ensureBundleDetailModalDom();
 
+    const actualId = (typeof bundleId === 'object' && bundleId) ? bundleId.id : bundleId;
     const bundles = (window.NewGenDB ? window.NewGenDB.getBundles() : (window.bundlesData || []));
-    let bundleObj = bundles.find(b => b.id === bundleId);
+    let bundleObj = bundles.find(b => b.id === actualId);
 
     // Fallbacks
     if (!bundleObj) {
       try {
         const raw = JSON.parse(localStorage.getItem('newgen_bundles') || '[]');
-        if (Array.isArray(raw)) bundleObj = raw.find(b => b.id === bundleId);
+        if (Array.isArray(raw)) bundleObj = raw.find(b => b.id === actualId);
       } catch (e) {}
+    }
+
+    if (!bundleObj && typeof bundleId === 'object' && bundleId) {
+      bundleObj = bundleId;
     }
 
     if (!bundleObj) {
@@ -1126,7 +1143,12 @@ LINE ID: ${lastEnrollmentData.lineId}${customText}
     // Open Modal
     const modalEl = document.getElementById('modalBundleDetail');
     if (modalEl) {
-      modalEl.style.display = 'flex';
+      modalEl.classList.add('active');
+      modalEl.style.setProperty('display', 'flex', 'important');
+      modalEl.style.setProperty('visibility', 'visible', 'important');
+      modalEl.style.setProperty('opacity', '1', 'important');
+      modalEl.style.setProperty('pointer-events', 'auto', 'important');
+      modalEl.style.setProperty('z-index', '999998', 'important');
       document.body.style.overflow = 'hidden';
     }
   };
@@ -1137,7 +1159,11 @@ LINE ID: ${lastEnrollmentData.lineId}${customText}
   window.closeBundleDetailModal = function () {
     const modalEl = document.getElementById('modalBundleDetail');
     if (modalEl) {
-      modalEl.style.display = 'none';
+      modalEl.classList.remove('active');
+      modalEl.style.setProperty('display', 'none', 'important');
+      modalEl.style.setProperty('visibility', 'hidden', 'important');
+      modalEl.style.setProperty('opacity', '0', 'important');
+      modalEl.style.setProperty('pointer-events', 'none', 'important');
       document.body.style.overflow = '';
     }
   };
@@ -1152,11 +1178,25 @@ LINE ID: ${lastEnrollmentData.lineId}${customText}
       .replace(/'/g, '&#39;');
   }
 
+  // Close modals on Escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      const bModal = document.getElementById('modalBundleDetail');
+      if (bModal && (bModal.classList.contains('active') || bModal.style.display === 'flex')) {
+        closeBundleDetailModal();
+      }
+    }
+  });
+
   // Pre-initialize on DOM ready
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', ensureEnrollmentModalDom);
+    document.addEventListener('DOMContentLoaded', () => {
+      ensureEnrollmentModalDom();
+      ensureBundleDetailModalDom();
+    });
   } else {
     ensureEnrollmentModalDom();
+    ensureBundleDetailModalDom();
   }
 
 })();
