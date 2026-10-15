@@ -351,7 +351,29 @@ const DEFAULT_ABOUT = {
 };
 
 // Default Bundles (แพ็คเกจคอร์สเรียนโปรโมชั่น)
-const DEFAULT_BUNDLES = [];
+const DEFAULT_BUNDLES = [
+  {
+    "id": "bundle-m4-combo",
+    "name": "แพ็คเกจ ม.4 สายวิทย์-คณิต ติวเข้ม 3 วิชาหลัก (ฟิสิกส์-เคมี-คณิต)",
+    "badge": "🔥 แพ็คเกจ ม.4 สุดคุ้ม ประหยัดทันที 3,600.-",
+    "courseIds": [
+      "course-1792005088984",
+      "course-1792064484886",
+      "course-1792064939523"
+    ],
+    "priceOriginal": "13,500",
+    "pricePromo": "9,900",
+    "priceUnit": "บาท / แพ็คเกจ (3 คอร์ส)",
+    "imageMode": "stack",
+    "customImage": "",
+    "description": "รวม 3 คอร์สหลัก ม.4 เทอม 2 ปูพื้นฐานเข้มข้น ฟิสิกส์ เคมี คณิตศาสตร์ พร้อมเจาะลึกแนวข้อสอบจริง",
+    "showInCourses": true,
+    "showInHome": true,
+    "active": true,
+    "order": 1,
+    "createdAt": "2026-10-15T14:53:09.976Z"
+  }
+];
 
 // Default Admin Credentials
 const DEFAULT_ADMIN = {

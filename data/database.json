@@ -2214,7 +2214,8 @@
       "showInCourses": true,
       "showInHome": true,
       "active": true,
-      "createdAt": "2026-10-15T14:53:09.976Z"
+      "createdAt": "2026-10-15T14:53:09.976Z",
+      "order": 1
     }
   ]
 }

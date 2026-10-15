@@ -1443,10 +1443,11 @@ function renderAdminBundles(bundles) {
   const grid = document.getElementById('adminBundlesGrid');
   if (!grid) return;
 
+  const sortedBundles = (bundles || []).slice().sort((a, b) => (Number(a.order) || 99) - (Number(b.order) || 99));
   const courses = (window.NewGenDB ? window.NewGenDB.getCourses() : (window.courseData || []));
   const enrollments = (window.NewGenDB ? window.NewGenDB.getEnrollments() : []);
 
-  grid.innerHTML = bundles.map(b => {
+  grid.innerHTML = sortedBundles.map((b, idx) => {
     const childCourseIds = Array.isArray(b.courseIds) ? b.courseIds : [];
     const childCourses = courses.filter(c => childCourseIds.includes(c.id));
     
@@ -1476,10 +1477,23 @@ function renderAdminBundles(bundles) {
         
         <div style="padding: 18px; flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
           <div>
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 8px;">
-              <span class="badge" style="background: #ffe4e6; color: #e11d48; font-weight: 800; font-size: 0.76rem; border-radius: 99px; padding: 3px 9px;">
-                ${escapeHtml(b.badge || '🔥 แพ็คเกจโปรโมชั่น')}
-              </span>
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap;">
+              <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                <span class="badge" style="background: #ffe4e6; color: #e11d48; font-weight: 800; font-size: 0.76rem; border-radius: 99px; padding: 3px 9px;">
+                  ${escapeHtml(b.badge || '🔥 แพ็คเกจโปรโมชั่น')}
+                </span>
+                <span class="badge" style="background: #0f172a; color: #f8fafc; font-weight: 800; font-size: 0.74rem; border-radius: 6px; padding: 3px 8px;" title="ลำดับการแสดงผลในหน้าเว็บ">
+                  <i class="fa-solid fa-arrow-down-1-9" style="color: #f43f5e;"></i> ลำดับที่ ${b.order || (idx + 1)}
+                </span>
+                <div style="display: inline-flex; gap: 2px;">
+                  <button type="button" onclick="moveBundleOrder('${b.id}', -1)" title="เลื่อนขึ้นอันดับก่อนหน้า" style="padding: 2px 7px; font-size: 0.72rem; border-radius: 4px; border: 1px solid #cbd5e1; background: #f8fafc; color: #334155; cursor: pointer;">
+                    <i class="fa-solid fa-arrow-up"></i>
+                  </button>
+                  <button type="button" onclick="moveBundleOrder('${b.id}', 1)" title="เลื่อนลงอันดับถัดไป" style="padding: 2px 7px; font-size: 0.72rem; border-radius: 4px; border: 1px solid #cbd5e1; background: #f8fafc; color: #334155; cursor: pointer;">
+                    <i class="fa-solid fa-arrow-down"></i>
+                  </button>
+                </div>
+              </div>
               <label style="display: inline-flex; align-items: center; gap: 6px; cursor: pointer; font-size: 0.78rem; font-weight: 700; margin: 0;">
                 <input type="checkbox" ${b.active !== false ? 'checked' : ''} onchange="toggleAdminBundleActive('${b.id}', this.checked)" style="accent-color: #16a34a; width: 15px; height: 15px;">
                 <span style="color: ${b.active !== false ? '#16a34a' : '#64748b'};">${b.active !== false ? 'เปิดขาย' : 'ปิดชั่วคราว'}</span>
@@ -1582,6 +1596,7 @@ function generateBundle3DStackHtml(coursesList, context = 'admin') {
 }
 
 function openAddBundleModal() {
+  const bundles = (window.NewGenDB ? window.NewGenDB.getBundles() : (window.bundlesData || []));
   document.getElementById('modalBundleTitle').innerHTML = '<i class="fa-solid fa-boxes-stacked" style="color: #e11d48;"></i> สร้างแพ็คเกจคอร์สเรียนโปรโมชั่น';
   document.getElementById('editBundleId').value = '';
   document.getElementById('bundleName').value = '';
@@ -1591,6 +1606,8 @@ function openAddBundleModal() {
   document.getElementById('bundlePriceUnit').value = 'บาท / แพ็คเกจ';
   document.getElementById('bundleCustomImageUrl').value = '';
   document.getElementById('bundleDesc').value = '';
+  const orderEl = document.getElementById('bundleOrder');
+  if (orderEl) orderEl.value = bundles.length + 1;
   document.getElementById('bundleShowInCourses').checked = true;
   document.getElementById('bundleShowInHome').checked = true;
   document.getElementById('bundleActive').checked = true;
@@ -1619,6 +1636,8 @@ function openEditBundleModal(bundleId) {
   document.getElementById('bundlePriceUnit').value = b.priceUnit || 'บาท / แพ็คเกจ';
   document.getElementById('bundleCustomImageUrl').value = b.customImage || '';
   document.getElementById('bundleDesc').value = b.description || '';
+  const orderEl = document.getElementById('bundleOrder');
+  if (orderEl) orderEl.value = b.order !== undefined ? b.order : 1;
   document.getElementById('bundleShowInCourses').checked = b.showInCourses !== false;
   document.getElementById('bundleShowInHome').checked = b.showInHome !== false;
   document.getElementById('bundleActive').checked = b.active !== false;
@@ -1798,6 +1817,8 @@ async function handleSaveBundleForm(e) {
   const imageMode = document.querySelector('input[name="bundleImageMode"]:checked')?.value || 'stack';
   const customImage = document.getElementById('bundleCustomImageUrl').value.trim();
   const description = document.getElementById('bundleDesc').value.trim();
+  const orderEl = document.getElementById('bundleOrder');
+  const order = orderEl ? (parseInt(orderEl.value, 10) || 1) : 1;
   const showInCourses = document.getElementById('bundleShowInCourses').checked;
   const showInHome = document.getElementById('bundleShowInHome').checked;
   const active = document.getElementById('bundleActive').checked;
@@ -1813,6 +1834,7 @@ async function handleSaveBundleForm(e) {
     imageMode,
     customImage,
     description,
+    order,
     showInCourses,
     showInHome,
     active
@@ -1824,10 +1846,40 @@ async function handleSaveBundleForm(e) {
   loadAdminBundles();
 
   if (cloudRes && cloudRes.success) {
-    showToast(`✅ บันทึกแพ็คเกจ "${name}" และซิงค์ Cloud เรียบร้อยแล้ว!`, 'success');
+    showToast(`✅ บันทึกแพ็คเกจ "${name}" (ลำดับที่ ${order}) และซิงค์ Cloud เรียบร้อยแล้ว!`, 'success');
   } else {
-    showToast(`✅ บันทึกแพ็คเกจ "${name}" สำเร็จแล้ว!`, 'success');
+    showToast(`✅ บันทึกแพ็คเกจ "${name}" (ลำดับที่ ${order}) สำเร็จแล้ว!`, 'success');
   }
+}
+
+async function moveBundleOrder(bundleId, delta) {
+  const rawList = (window.NewGenDB ? window.NewGenDB.getBundles() : (window.bundlesData || []));
+  const bundles = JSON.parse(JSON.stringify(rawList));
+  bundles.sort((a, b) => (Number(a.order) || 99) - (Number(b.order) || 99));
+
+  // Ensure sequential order 1, 2, 3...
+  bundles.forEach((b, i) => { b.order = i + 1; });
+
+  const idx = bundles.findIndex(b => b.id === bundleId);
+  if (idx === -1) return;
+
+  const targetIdx = idx + delta;
+  if (targetIdx < 0 || targetIdx >= bundles.length) {
+    showToast(delta < 0 ? 'แพ็คเกจนี้อยู่อันดับแรกสุดแล้วครับ' : 'แพ็คเกจนี้อยู่อันดับท้ายสุดแล้วครับ', 'info');
+    return;
+  }
+
+  // Swap order values
+  const temp = bundles[idx].order;
+  bundles[idx].order = bundles[targetIdx].order;
+  bundles[targetIdx].order = temp;
+
+  // Re-sort
+  bundles.sort((a, b) => (Number(a.order) || 99) - (Number(b.order) || 99));
+
+  await window.NewGenDB.saveBundles(bundles);
+  loadAdminBundles();
+  showToast(`✅ ปรับลำดับแพ็คเกจ "${bundles.find(b => b.id === bundleId)?.name}" เป็นลำดับที่ ${bundles.findIndex(b => b.id === bundleId) + 1} แล้ว`, 'success');
 }
 
 async function deleteAdminBundle(bundleId) {
@@ -1858,6 +1910,7 @@ async function toggleAdminBundleActive(bundleId, isActive) {
 window.loadAdminBundles = loadAdminBundles;
 window.openAddBundleModal = openAddBundleModal;
 window.openEditBundleModal = openEditBundleModal;
+window.moveBundleOrder = moveBundleOrder;
 window.calculateBundleSavings = calculateBundleSavings;
 window.toggleBundleImageMode = toggleBundleImageMode;
 window.handleBundleFileUpload = handleBundleFileUpload;
