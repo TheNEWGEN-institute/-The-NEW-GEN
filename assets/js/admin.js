@@ -32,6 +32,8 @@ function initAdminDashboard() {
   try { loadAdminEnrollments(); } catch (e) { console.warn('loadAdminEnrollments error:', e); }
   try { loadAdminEnrollmentConfig(); } catch (e) { console.warn('loadAdminEnrollmentConfig error:', e); }
   try { loadAdminPopupCampaign(); } catch (e) { console.warn('loadAdminPopupCampaign error:', e); }
+  try { loadAdminBundles(); } catch (e) { console.warn('loadAdminBundles error:', e); }
+  try { mountEnrollmentConfigToCampaignTab(); } catch (e) {}
   try { checkSupabaseConnection(false); } catch (e) { console.warn('checkSupabaseConnection error:', e); }
 }
 
@@ -186,7 +188,7 @@ function switchAdminTab(tabKey, btn) {
   if (btn) {
     btn.classList.add('active');
   } else {
-    const navBtn = document.querySelector(`.admin-nav-item[onclick*="'${tabKey}'"]`) || document.getElementById(tabKey === 'system' ? 'navTabSystem' : (tabKey === 'enrollments' ? 'navTabEnrollments' : ''));
+    const navBtn = document.querySelector(`.admin-nav-item[onclick*="'${tabKey}'"]`) || document.getElementById(tabKey === 'bundles' ? 'navTabBundles' : (tabKey === 'system' ? 'navTabSystem' : (tabKey === 'enrollments' ? 'navTabEnrollments' : '')));
     if (navBtn) navBtn.classList.add('active');
   }
 
@@ -195,6 +197,8 @@ function switchAdminTab(tabKey, btn) {
     if (tabKey === 'courses') {
       loadAdminCourses();
       loadPrivilegeBanner();
+    } else if (tabKey === 'bundles') {
+      loadAdminBundles();
     } else if (tabKey === 'enrollments') {
       loadAdminEnrollments();
       loadAdminEnrollmentConfig();
@@ -202,6 +206,7 @@ function switchAdminTab(tabKey, btn) {
       loadHomeSettings();
       loadAdminWhyUs();
       loadAdminPopupCampaign();
+      loadAdminEnrollmentConfig();
     } else if (tabKey === 'tutors') {
       loadAdminTutors();
       loadTutorsQuote();
@@ -242,10 +247,52 @@ function switchHomeSubtab(subtab) {
     loadAdminWhyUs();
   } else if (subtab === 'popup') {
     loadAdminPopupCampaign();
+    loadAdminEnrollmentConfig();
+    mountEnrollmentConfigToCampaignTab();
   } else {
     loadHomeSettings();
   }
 }
+
+function switchCampaignInnerTab(innerTab) {
+  const btnPopup = document.getElementById('btnCampaignInnerPopup');
+  const btnForm = document.getElementById('btnCampaignInnerForm');
+  const secPopup = document.getElementById('campaignInnerPopupSection');
+  const secForm = document.getElementById('campaignInnerFormSection');
+
+  if (btnPopup) btnPopup.classList.toggle('active', innerTab === 'popup');
+  if (btnForm) btnForm.classList.toggle('active', innerTab === 'form');
+
+  if (secPopup) secPopup.style.display = innerTab === 'popup' ? 'block' : 'none';
+  if (secForm) secForm.style.display = innerTab === 'form' ? 'block' : 'none';
+
+  mountEnrollmentConfigToCampaignTab();
+  if (innerTab === 'form') {
+    loadAdminEnrollmentConfig();
+  } else {
+    loadAdminPopupCampaign();
+  }
+}
+
+function goToHomePopupConfigTab(innerTab = 'form') {
+  switchAdminTab('home', document.querySelector('.admin-nav-item[onclick*="\'home\'"]'));
+  switchHomeSubtab('popup');
+  switchCampaignInnerTab(innerTab);
+  mountEnrollmentConfigToCampaignTab();
+}
+
+function mountEnrollmentConfigToCampaignTab() {
+  const editorCard = document.getElementById('cardEnrollConfigEditor');
+  const targetWrap = document.getElementById('campaignInnerFormSection');
+  if (editorCard && targetWrap && editorCard.parentElement !== targetWrap) {
+    targetWrap.innerHTML = '';
+    targetWrap.appendChild(editorCard);
+  }
+}
+
+window.switchCampaignInnerTab = switchCampaignInnerTab;
+window.goToHomePopupConfigTab = goToHomePopupConfigTab;
+window.mountEnrollmentConfigToCampaignTab = mountEnrollmentConfigToCampaignTab;
 
 function switchSystemSubtab(subtab) {
   const btnSecurity = document.getElementById('btnSystemSubtabSecurity');
@@ -1368,6 +1415,457 @@ async function deleteCategory(id) {
     showToast('⚠️ ลบระดับชั้นในเครื่องแล้ว (รอปลดล็อก Supabase RLS)', 'warning');
   }
 }
+
+/* ===================================================================
+   COURSE BUNDLES MANAGEMENT (1.1 จัดการแพ็คคอร์สเรียนโปรโมชั่น)
+   =================================================================== */
+
+function loadAdminBundles() {
+  const bundles = (window.NewGenDB ? window.NewGenDB.getBundles() : (window.bundlesData || []));
+  const countBadge = document.getElementById('navBundlesCountBadge');
+  if (countBadge) countBadge.textContent = bundles.length;
+
+  const grid = document.getElementById('adminBundlesGrid');
+  const emptyState = document.getElementById('adminBundlesEmptyState');
+  if (!grid) return;
+
+  if (bundles.length === 0) {
+    grid.innerHTML = '';
+    if (emptyState) emptyState.style.display = 'block';
+    return;
+  }
+
+  if (emptyState) emptyState.style.display = 'none';
+  renderAdminBundles(bundles);
+}
+
+function renderAdminBundles(bundles) {
+  const grid = document.getElementById('adminBundlesGrid');
+  if (!grid) return;
+
+  const courses = (window.NewGenDB ? window.NewGenDB.getCourses() : (window.courseData || []));
+  const enrollments = (window.NewGenDB ? window.NewGenDB.getEnrollments() : []);
+
+  grid.innerHTML = bundles.map(b => {
+    const childCourseIds = Array.isArray(b.courseIds) ? b.courseIds : [];
+    const childCourses = courses.filter(c => childCourseIds.includes(c.id));
+    
+    // Total applicants for this bundle
+    const bundleApplicants = enrollments.filter(e => e.bundleId === b.id || e.courseId === b.id);
+    const applicantCount = bundleApplicants.filter(e => e.isBundle || !e.isFromBundle).length;
+
+    // Visual: 3D Stack vs Custom Image
+    const isCustom = b.imageMode === 'custom' && b.customImage;
+    const visualHtml = isCustom
+      ? `<div style="position: relative; width: 100%; height: 180px; overflow: hidden; border-radius: 8px 8px 0 0; background: #0b1e3f;">
+          <img src="${escapeHtml(b.customImage)}" alt="${escapeHtml(b.name)}" style="width: 100%; height: 100%; object-fit: cover;">
+          <span class="badge" style="position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.65); color: #fff; font-size: 0.72rem; backdrop-filter: blur(4px);">🖼️ โปสเตอร์เฉพาะ</span>
+        </div>`
+      : `<div class="bundle-admin-stack-box" style="position: relative; width: 100%; height: 180px; overflow: hidden; border-radius: 8px 8px 0 0; background: linear-gradient(135deg, #0b1e3f, #1e3a8a); display: flex; align-items: center; justify-content: center; padding: 10px;">
+          ${generateBundle3DStackHtml(childCourses, 'admin')}
+          <span class="badge" style="position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.65); color: #fff; font-size: 0.72rem; backdrop-filter: blur(4px);">✨ 3D Stack อัตโนมัติ</span>
+        </div>`;
+
+    const origNum = parseInt(String(b.priceOriginal || '0').replace(/[^0-9]/g, ''), 10) || 0;
+    const promoNum = parseInt(String(b.pricePromo || '0').replace(/[^0-9]/g, ''), 10) || 0;
+    const savingsVal = Math.max(0, origNum - promoNum);
+
+    return `
+      <div class="admin-card-luxury" style="border: 1.5px solid ${b.active !== false ? '#fecdd3' : '#e2e8f0'}; border-radius: var(--radius-lg); overflow: hidden; background: #ffffff; box-shadow: 0 4px 18px rgba(0,0,0,0.06); display: flex; flex-direction: column;">
+        ${visualHtml}
+        
+        <div style="padding: 18px; flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 8px;">
+              <span class="badge" style="background: #ffe4e6; color: #e11d48; font-weight: 800; font-size: 0.76rem; border-radius: 99px; padding: 3px 9px;">
+                ${escapeHtml(b.badge || '🔥 แพ็คเกจโปรโมชั่น')}
+              </span>
+              <label style="display: inline-flex; align-items: center; gap: 6px; cursor: pointer; font-size: 0.78rem; font-weight: 700; margin: 0;">
+                <input type="checkbox" ${b.active !== false ? 'checked' : ''} onchange="toggleAdminBundleActive('${b.id}', this.checked)" style="accent-color: #16a34a; width: 15px; height: 15px;">
+                <span style="color: ${b.active !== false ? '#16a34a' : '#64748b'};">${b.active !== false ? 'เปิดขาย' : 'ปิดชั่วคราว'}</span>
+              </label>
+            </div>
+
+            <h3 style="margin: 0 0 10px 0; font-size: 1.05rem; font-weight: 800; color: var(--color-navy); line-height: 1.35;">
+              ${escapeHtml(b.name)}
+            </h3>
+
+            <!-- Child courses list -->
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px; margin-bottom: 14px;">
+              <div style="font-size: 0.75rem; font-weight: 700; color: #64748b; margin-bottom: 6px; text-transform: uppercase;">
+                <i class="fa-solid fa-layer-group" style="color: #2563eb;"></i> รวม ${childCourses.length} คอร์สเรียนในแพ็คนี้:
+              </div>
+              <ul style="margin: 0; padding-left: 18px; font-size: 0.82rem; color: #1e293b; line-height: 1.45;">
+                ${childCourses.map(c => `
+                  <li><strong>${escapeHtml(c.title)}</strong> <small style="color: #64748b;">(ปกติ ${escapeHtml(c.pricePromo || c.priceOriginal || '')}.-)</small></li>
+                `).join('')}
+              </ul>
+            </div>
+
+            <!-- Price & Savings -->
+            <div style="display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; margin-bottom: 10px;">
+              <span style="text-decoration: line-through; color: #94a3b8; font-size: 0.88rem;">ปกติ ${b.priceOriginal || '0'}.-</span>
+              <span style="font-size: 1.4rem; font-weight: 800; color: #e11d48; line-height: 1;">${b.pricePromo || '0'}.-</span>
+              <small style="color: #64748b; font-size: 0.78rem;">${escapeHtml(b.priceUnit || 'บาท / แพ็คเกจ')}</small>
+            </div>
+
+            ${savingsVal > 0 ? `
+              <div style="margin-bottom: 12px;">
+                <span class="badge" style="background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; font-weight: 700; font-size: 0.78rem; padding: 3px 8px; border-radius: 6px;">
+                  <i class="fa-solid fa-gift"></i> น้องประหยัดทันที ${savingsVal.toLocaleString()} บาท
+                </span>
+              </div>
+            ` : ''}
+
+            <!-- Display destinations -->
+            <div style="display: flex; gap: 8px; font-size: 0.72rem; color: #64748b; margin-bottom: 12px; flex-wrap: wrap;">
+              <span style="background: #f1f5f9; padding: 2px 7px; border-radius: 4px;">
+                <i class="fa-solid ${b.showInCourses !== false ? 'fa-circle-check' : 'fa-circle-xmark'}" style="color: ${b.showInCourses !== false ? '#16a34a' : '#94a3b8'};"></i> หน้าคอร์สทั้งหมด
+              </span>
+              <span style="background: #f1f5f9; padding: 2px 7px; border-radius: 4px;">
+                <i class="fa-solid ${b.showInHome !== false ? 'fa-circle-check' : 'fa-circle-xmark'}" style="color: ${b.showInHome !== false ? '#16a34a' : '#94a3b8'};"></i> หน้าแรก (แนะนำ)
+              </span>
+            </div>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #f1f5f9; padding-top: 12px; margin-top: 6px;">
+            <button type="button" class="btn-xs-action" style="background: #eff6ff; color: #1d4ed8; padding: 5px 10px; border-radius: 6px; font-size: 0.78rem; font-weight: 700;" onclick="selectQuickCourseFilter('__bundles__')" title="ดูรายชื่อนักเรียนที่สมัครแพ็คนี้">
+              <i class="fa-solid fa-users"></i> ผู้สมัคร ${applicantCount} คน
+            </button>
+            <div style="display: flex; gap: 6px;">
+              <button type="button" class="btn-action-edit" onclick="openEditBundleModal('${b.id}')" title="แก้ไขแพ็คเกจ" style="padding: 6px 10px; font-size: 0.82rem;">
+                <i class="fa-solid fa-pen-to-square"></i> แก้ไข
+              </button>
+              <button type="button" class="btn-action-del" onclick="deleteAdminBundle('${b.id}')" title="ลบแพ็คเกจ" style="padding: 6px 10px; font-size: 0.82rem;">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function generateBundle3DStackHtml(coursesList, context = 'admin') {
+  if (!coursesList || coursesList.length === 0) {
+    return `<div style="color: rgba(255,255,255,0.7); font-size: 0.85rem;"><i class="fa-solid fa-images"></i> เลือก 2 คอร์สเพื่อดูพรีวิว 3D Stack</div>`;
+  }
+
+  const covers = coursesList.slice(0, 3).map(c => window.resolveMediaUrl ? window.resolveMediaUrl(c.cover || c.poster) : (c.cover || c.poster || 'assets/images/course-poster-primary.jpg'));
+  
+  if (covers.length === 1) {
+    return `<img src="${covers[0]}" style="max-height: 130px; border-radius: 8px; box-shadow: 0 8px 20px rgba(0,0,0,0.4);" alt="Cover">`;
+  }
+
+  return `
+    <div class="bundle-3d-stack-wrap" style="position: relative; width: 170px; height: 135px; perspective: 700px; display: flex; align-items: center; justify-content: center;">
+      ${covers.map((imgUrl, i) => {
+        let transform = '';
+        let zIndex = 3 - i;
+        if (i === 0) {
+          transform = 'translateX(-22px) translateY(6px) rotate(-8deg) scale(0.92)';
+        } else if (i === 1) {
+          transform = 'translateX(18px) translateY(-3px) rotate(6deg) scale(0.96)';
+          zIndex = 4;
+        } else if (i === 2) {
+          transform = 'translateX(0) translateY(-12px) scale(0.86)';
+          zIndex = 2;
+        }
+        return `
+          <img src="${imgUrl}" alt="Card ${i+1}" 
+            style="position: absolute; width: 105px; height: 130px; object-fit: cover; border-radius: 7px; border: 2px solid #ffffff; box-shadow: 0 10px 22px rgba(0,0,0,0.4); transform: ${transform}; z-index: ${zIndex}; transition: transform 0.3s ease;">
+        `;
+      }).join('')}
+    </div>
+  `;
+}
+
+function openAddBundleModal() {
+  document.getElementById('modalBundleTitle').innerHTML = '<i class="fa-solid fa-boxes-stacked" style="color: #e11d48;"></i> สร้างแพ็คเกจคอร์สเรียนโปรโมชั่น';
+  document.getElementById('editBundleId').value = '';
+  document.getElementById('bundleName').value = '';
+  document.getElementById('bundleBadge').value = '🔥 แพ็คคู่สุดคุ้ม ประหยัดสุดขีด';
+  document.getElementById('bundleOriginalPrice').value = '';
+  document.getElementById('bundlePromoPrice').value = '';
+  document.getElementById('bundlePriceUnit').value = 'บาท / แพ็คเกจ';
+  document.getElementById('bundleCustomImageUrl').value = '';
+  document.getElementById('bundleDesc').value = '';
+  document.getElementById('bundleShowInCourses').checked = true;
+  document.getElementById('bundleShowInHome').checked = true;
+  document.getElementById('bundleActive').checked = true;
+
+  const stackRadio = document.querySelector('input[name="bundleImageMode"][value="stack"]');
+  if (stackRadio) stackRadio.checked = true;
+  toggleBundleImageMode('stack');
+
+  populateBundleCoursesChecklist([]);
+  calculateBundleSavings();
+
+  document.getElementById('modalAddBundle').classList.add('active');
+}
+
+function openEditBundleModal(bundleId) {
+  const bundles = (window.NewGenDB ? window.NewGenDB.getBundles() : (window.bundlesData || []));
+  const b = bundles.find(item => item.id === bundleId);
+  if (!b) return;
+
+  document.getElementById('modalBundleTitle').innerHTML = '<i class="fa-solid fa-pen-to-square" style="color: #e11d48;"></i> แก้ไขแพ็คเกจคอร์สเรียนโปรโมชั่น';
+  document.getElementById('editBundleId').value = b.id;
+  document.getElementById('bundleName').value = b.name || '';
+  document.getElementById('bundleBadge').value = b.badge || '';
+  document.getElementById('bundleOriginalPrice').value = b.priceOriginal || '';
+  document.getElementById('bundlePromoPrice').value = b.pricePromo || '';
+  document.getElementById('bundlePriceUnit').value = b.priceUnit || 'บาท / แพ็คเกจ';
+  document.getElementById('bundleCustomImageUrl').value = b.customImage || '';
+  document.getElementById('bundleDesc').value = b.description || '';
+  document.getElementById('bundleShowInCourses').checked = b.showInCourses !== false;
+  document.getElementById('bundleShowInHome').checked = b.showInHome !== false;
+  document.getElementById('bundleActive').checked = b.active !== false;
+
+  const mode = b.imageMode || 'stack';
+  const modeRadio = document.querySelector(`input[name="bundleImageMode"][value="${mode}"]`);
+  if (modeRadio) modeRadio.checked = true;
+  toggleBundleImageMode(mode);
+
+  populateBundleCoursesChecklist(b.courseIds || []);
+  calculateBundleSavings();
+
+  document.getElementById('modalAddBundle').classList.add('active');
+}
+
+function populateBundleCoursesChecklist(selectedIds = []) {
+  const container = document.getElementById('bundleCoursesChecklist');
+  if (!container) return;
+
+  const courses = (window.NewGenDB ? window.NewGenDB.getCourses() : (window.courseData || []));
+  container.innerHTML = courses.map(c => {
+    const isChecked = selectedIds.includes(c.id);
+    const coverUrl = window.resolveMediaUrl ? window.resolveMediaUrl(c.cover || c.poster) : (c.cover || c.poster);
+    const priceDisplay = c.pricePromo || c.priceOriginal || '0';
+    return `
+      <label style="display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 6px; border: 1.5px solid ${isChecked ? '#2563eb' : '#e2e8f0'}; background: ${isChecked ? '#eff6ff' : '#ffffff'}; cursor: pointer; transition: all 0.2s;" class="bundle-check-item">
+        <input type="checkbox" value="${c.id}" ${isChecked ? 'checked' : ''} onchange="onBundleCourseCheckboxChange(this)" style="accent-color: #2563eb; width: 17px; height: 17px; flex-shrink: 0;">
+        <img src="${coverUrl}" alt="${escapeHtml(c.title)}" style="width: 36px; height: 44px; object-fit: cover; border-radius: 4px; flex-shrink: 0;">
+        <div style="flex: 1; min-width: 0;">
+          <div style="font-weight: 700; font-size: 0.82rem; color: var(--color-navy); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+            ${escapeHtml(c.title)}
+          </div>
+          <div style="font-size: 0.72rem; color: #64748b;">
+            ราคาปกติ: <strong style="color: #0369a1;">${priceDisplay}.-</strong>
+          </div>
+        </div>
+      </label>
+    `;
+  }).join('');
+}
+
+function onBundleCourseCheckboxChange(chk) {
+  const label = chk.closest('label');
+  if (label) {
+    label.style.borderColor = chk.checked ? '#2563eb' : '#e2e8f0';
+    label.style.background = chk.checked ? '#eff6ff' : '#ffffff';
+  }
+  calculateBundleSavings(true);
+}
+
+function calculateBundleSavings(autoSumOriginal = false) {
+  const checkedBoxes = document.querySelectorAll('#bundleCoursesChecklist input[type="checkbox"]:checked');
+  const selectedIds = Array.from(checkedBoxes).map(cb => cb.value);
+  const courses = (window.NewGenDB ? window.NewGenDB.getCourses() : (window.courseData || []));
+  const selectedCourses = courses.filter(c => selectedIds.includes(c.id));
+
+  // Count pill
+  const pill = document.getElementById('bundleSelectedCountPill');
+  if (pill) {
+    pill.textContent = `เลือกแล้ว ${selectedIds.length} คอร์ส`;
+    pill.style.background = selectedIds.length >= 2 ? '#16a34a' : '#2563eb';
+  }
+
+  // Auto sum original price if requested or empty
+  const origInput = document.getElementById('bundleOriginalPrice');
+  if (autoSumOriginal || !origInput.value.trim()) {
+    let sum = 0;
+    selectedCourses.forEach(c => {
+      const p = parseInt(String(c.pricePromo || c.priceOriginal || '0').replace(/[^0-9]/g, ''), 10) || 0;
+      sum += p;
+    });
+    if (sum > 0) origInput.value = sum.toLocaleString();
+  }
+
+  const origNum = parseInt(String(origInput.value || '0').replace(/[^0-9]/g, ''), 10) || 0;
+  const promoInput = document.getElementById('bundlePromoPrice');
+  const promoNum = parseInt(String(promoInput.value || '0').replace(/[^0-9]/g, ''), 10) || 0;
+
+  const savings = Math.max(0, origNum - promoNum);
+  const savingsText = document.getElementById('bundleSavingsText');
+  const discountPercent = document.getElementById('bundleDiscountPercent');
+
+  if (origNum > 0 && promoNum > 0 && savings > 0) {
+    const pct = Math.round((savings / origNum) * 100);
+    if (savingsText) savingsText.textContent = `ประหยัดทันที: ${savings.toLocaleString()} บาท`;
+    if (discountPercent) {
+      discountPercent.textContent = `ลด ${pct}%`;
+      discountPercent.style.display = 'inline-block';
+    }
+  } else {
+    if (savingsText) savingsText.textContent = 'ประหยัดทันที: 0 บาท';
+    if (discountPercent) discountPercent.style.display = 'none';
+  }
+
+  // Update Preview Area
+  const mode = document.querySelector('input[name="bundleImageMode"]:checked')?.value || 'stack';
+  const previewArea = document.getElementById('bundlePreviewArea');
+  if (previewArea) {
+    if (mode === 'custom') {
+      const customUrl = document.getElementById('bundleCustomImageUrl')?.value.trim();
+      if (customUrl) {
+        previewArea.innerHTML = `<img src="${customUrl}" alt="Preview" style="max-height: 120px; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">`;
+      } else {
+        previewArea.innerHTML = `<span style="color: #64748b; font-size: 0.82rem;">กรุณากรอก URL หรืออัปโหลดรูปภาพ</span>`;
+      }
+    } else {
+      previewArea.innerHTML = generateBundle3DStackHtml(selectedCourses, 'modal');
+    }
+  }
+}
+
+function toggleBundleImageMode(mode) {
+  const customWrap = document.getElementById('bundleCustomUploadWrap');
+  if (customWrap) customWrap.style.display = mode === 'custom' ? 'block' : 'none';
+  calculateBundleSavings(false);
+}
+
+function handleBundleFileUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const rawData = e.target.result;
+    const img = new Image();
+    img.onload = function() {
+      const maxDim = 1000;
+      let width = img.width;
+      let height = img.height;
+      if (width > maxDim || height > maxDim) {
+        if (width > height) {
+          height = Math.round((height * maxDim) / width);
+          width = maxDim;
+        } else {
+          width = Math.round((width * maxDim) / height);
+          height = maxDim;
+        }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+      const compressed = canvas.toDataURL('image/jpeg', 0.85);
+
+      const urlInput = document.getElementById('bundleCustomImageUrl');
+      if (urlInput) urlInput.value = compressed;
+      calculateBundleSavings(false);
+      showToast('✅ อัปโหลดและบีบอัดภาพโปสเตอร์สำเร็จ!', 'success');
+    };
+    img.src = rawData;
+  };
+  reader.readAsDataURL(file);
+}
+
+function updateBundleCustomPreview(url) {
+  calculateBundleSavings(false);
+}
+
+async function handleSaveBundleForm(e) {
+  e.preventDefault();
+
+  const id = document.getElementById('editBundleId').value.trim();
+  const name = document.getElementById('bundleName').value.trim();
+  const badge = document.getElementById('bundleBadge').value.trim();
+  const checkedBoxes = document.querySelectorAll('#bundleCoursesChecklist input[type="checkbox"]:checked');
+  const courseIds = Array.from(checkedBoxes).map(cb => cb.value);
+
+  if (courseIds.length < 2) {
+    alert('กรุณาเลือกคอร์สเรียนอย่างน้อย 2 คอร์สเพื่อจัดแพ็คเกจโปรโมชั่นครับ');
+    return;
+  }
+
+  const priceOriginal = document.getElementById('bundleOriginalPrice').value.trim();
+  const pricePromo = document.getElementById('bundlePromoPrice').value.trim();
+  const priceUnit = document.getElementById('bundlePriceUnit').value.trim();
+  const imageMode = document.querySelector('input[name="bundleImageMode"]:checked')?.value || 'stack';
+  const customImage = document.getElementById('bundleCustomImageUrl').value.trim();
+  const description = document.getElementById('bundleDesc').value.trim();
+  const showInCourses = document.getElementById('bundleShowInCourses').checked;
+  const showInHome = document.getElementById('bundleShowInHome').checked;
+  const active = document.getElementById('bundleActive').checked;
+
+  const bundleObj = {
+    id: id || `bundle-${Date.now()}`,
+    name,
+    badge,
+    courseIds,
+    priceOriginal,
+    pricePromo,
+    priceUnit,
+    imageMode,
+    customImage,
+    description,
+    showInCourses,
+    showInHome,
+    active
+  };
+
+  const cloudRes = await window.NewGenDB.saveBundle(bundleObj);
+
+  closeModal('modalAddBundle');
+  loadAdminBundles();
+
+  if (cloudRes && cloudRes.success) {
+    showToast(`✅ บันทึกแพ็คเกจ "${name}" และซิงค์ Cloud เรียบร้อยแล้ว!`, 'success');
+  } else {
+    showToast(`✅ บันทึกแพ็คเกจ "${name}" สำเร็จแล้ว!`, 'success');
+  }
+}
+
+async function deleteAdminBundle(bundleId) {
+  const bundles = (window.NewGenDB ? window.NewGenDB.getBundles() : (window.bundlesData || []));
+  const b = bundles.find(item => item.id === bundleId);
+  const bundleName = b ? b.name : 'แพ็คเกจนี้';
+
+  if (!confirm(`คุณแน่ใจหรือไม่ว่าต้องการลบแพ็คเกจ "${bundleName}"?`)) {
+    return;
+  }
+
+  await window.NewGenDB.deleteBundle(bundleId);
+  loadAdminBundles();
+  showToast(`🗑️ ลบแพ็คเกจ "${bundleName}" เรียบร้อยแล้ว`, 'success');
+}
+
+async function toggleAdminBundleActive(bundleId, isActive) {
+  const bundles = (window.NewGenDB ? window.NewGenDB.getBundles() : (window.bundlesData || []));
+  const b = bundles.find(item => item.id === bundleId);
+  if (!b) return;
+
+  b.active = Boolean(isActive);
+  await window.NewGenDB.saveBundles(bundles);
+  loadAdminBundles();
+  showToast(b.active ? `✅ เปิดขายแพ็คเกจ "${b.name}" แล้ว` : `⚪ ปิดแสดงแพ็คเกจ "${b.name}" ชั่วคราวแล้ว`);
+}
+
+window.loadAdminBundles = loadAdminBundles;
+window.openAddBundleModal = openAddBundleModal;
+window.openEditBundleModal = openEditBundleModal;
+window.calculateBundleSavings = calculateBundleSavings;
+window.toggleBundleImageMode = toggleBundleImageMode;
+window.handleBundleFileUpload = handleBundleFileUpload;
+window.updateBundleCustomPreview = updateBundleCustomPreview;
+window.handleSaveBundleForm = handleSaveBundleForm;
+window.deleteAdminBundle = deleteAdminBundle;
+window.toggleAdminBundleActive = toggleAdminBundleActive;
+window.onBundleCourseCheckboxChange = onBundleCourseCheckboxChange;
 
 /* ===================================================================
    HOME SETTINGS & HERO TUTOR PLACEMENT
@@ -3808,9 +4306,14 @@ function renderAdminQuickCoursePills(courses, enrollments, selectedCourseId = 'a
   if (!container) return;
 
   const totalCount = enrollments.length;
+  const bundleEnrollCount = enrollments.filter(e => e.isBundle || e.isFromBundle || e.bundleId).length;
+
   let html = `
     <button type="button" class="quick-course-pill ${selectedCourseId === 'all' ? 'active' : ''}" onclick="selectQuickCourseFilter('all')">
       📚 ทุกคอร์สเรียนทั้งหมด <span class="count">${totalCount}</span>
+    </button>
+    <button type="button" class="quick-course-pill ${selectedCourseId === '__bundles__' ? 'active' : ''}" onclick="selectQuickCourseFilter('__bundles__')" style="border-color: #f43f5e; color: #be123c; font-weight: 700;">
+      📦 สมัครผ่านแพ็คเกจโปรโมชั่น <span class="count" style="background: #e11d48; color: #fff;">${bundleEnrollCount}</span>
     </button>
   `;
 
@@ -3863,13 +4366,16 @@ function loadAdminEnrollments() {
   // 4. Populate course filter dropdown
   const filterSelect = document.getElementById('enrollFilterCourse');
   const currentVal = filterSelect ? (filterSelect.value || 'all') : 'all';
+  const bundles = window.NewGenDB ? window.NewGenDB.getBundles() : [];
   if (filterSelect) {
-    filterSelect.innerHTML = '<option value="all">📚 ทุกคอร์สเรียน (แสดงทั้งหมด)</option>' +
-      courses.map(c => {
-        const count = enrollments.filter(e => e.courseId === c.id).length;
-        return `<option value="${c.id}">${escapeHtml(c.title)} (${count} คน)</option>`;
-      }).join('');
-    if (courses.some(c => c.id === currentVal) || currentVal === 'all') {
+    let opts = '<option value="all">📚 ทุกคอร์สเรียน (แสดงทั้งหมด)</option>';
+    opts += `<option value="__bundles__">📦 สมัครผ่านแพ็คเกจโปรโมชั่น (${enrollments.filter(e => e.isBundle || e.isFromBundle || e.bundleId).length} คน)</option>`;
+    opts += courses.map(c => {
+      const count = enrollments.filter(e => e.courseId === c.id).length;
+      return `<option value="${c.id}">${escapeHtml(c.title)} (${count} คน)</option>`;
+    }).join('');
+    filterSelect.innerHTML = opts;
+    if (courses.some(c => c.id === currentVal) || currentVal === 'all' || currentVal === '__bundles__') {
       filterSelect.value = currentVal;
     }
   }
@@ -3880,9 +4386,17 @@ function loadAdminEnrollments() {
   // 6. Populate modal course dropdown
   const modalCourseSelect = document.getElementById('enCourseId');
   if (modalCourseSelect) {
-    modalCourseSelect.innerHTML = courses.map(c => `
+    let modalOpts = courses.map(c => `
       <option value="${c.id}">${escapeHtml(c.title)} (${escapeHtml(c.categoryLabel || c.category)})</option>
     `).join('');
+    if (bundles.length > 0) {
+      modalOpts += `
+        <optgroup label="📦 แพ็คเกจคอร์สเรียนโปรโมชั่น">
+          ${bundles.map(b => `<option value="${b.id}">[แพ็คเกจ] ${escapeHtml(b.name)}</option>`).join('')}
+        </optgroup>
+      `;
+    }
+    modalCourseSelect.innerHTML = modalOpts;
   }
 
   // 7. Render table according to current filters
@@ -3911,7 +4425,9 @@ function filterAdminEnrollments() {
 
   const filtered = allEnrollments.filter(item => {
     // 1. Filter course
-    if (selectedCourseId !== 'all' && item.courseId !== selectedCourseId) {
+    if (selectedCourseId === '__bundles__') {
+      if (!item.isBundle && !item.isFromBundle && !item.bundleId) return false;
+    } else if (selectedCourseId !== 'all' && item.courseId !== selectedCourseId) {
       return false;
     }
 
@@ -4002,6 +4518,13 @@ function renderEnrollmentsTable(enrollments, courseMap = null) {
           <span style="display: inline-block; background: #f1f5f9; color: #0369a1; padding: 1px 7px; border-radius: 4px; font-size: 0.78rem; font-weight: 700; margin-top: 3px;">
             ชื่อเล่น: ${escapeHtml(en.nickname || '-')}
           </span>
+          ${en.isFromBundle || en.isBundle || en.bundleName ? `
+            <div style="margin-top: 4px;">
+              <span class="badge" style="background: #fff1f2; color: #be123c; border: 1.2px solid #fecdd3; font-weight: 800; font-size: 0.74rem; padding: 2px 8px; border-radius: 99px; display: inline-flex; align-items: center; gap: 4px;">
+                <i class="fa-solid fa-boxes-stacked"></i> ${en.isBundle ? 'สมัครแพ็คเกจ' : 'มาจากแพ็คเกจ'}: ${escapeHtml(en.bundleName || 'โปรโมชั่น')}
+              </span>
+            </div>
+          ` : ''}
           ${en.notes ? `<div style="font-size: 0.75rem; color: #d97706; margin-top: 2px;"><i class="fa-solid fa-note-sticky"></i> ${escapeHtml(en.notes)}</div>` : ''}
           ${Array.isArray(en.customAnswers) && en.customAnswers.length > 0 ? `
             <div style="margin-top: 5px; padding: 4px 8px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px; font-size: 0.75rem; color: #166534; line-height: 1.35;">
@@ -4101,12 +4624,21 @@ function openAddEnrollmentModal(preselectedCourseId = '') {
   document.getElementById('enrollmentEditId').value = '';
 
   const courses = window.NewGenDB ? window.NewGenDB.getCourses() : [];
+  const bundles = window.NewGenDB ? window.NewGenDB.getBundles() : [];
   const modalCourseSelect = document.getElementById('enCourseId');
   if (modalCourseSelect) {
-    modalCourseSelect.innerHTML = courses.map(c => `
+    let opts = courses.map(c => `
       <option value="${c.id}">${escapeHtml(c.title)} (${escapeHtml(c.categoryLabel || c.category)})</option>
     `).join('');
-    if (preselectedCourseId && courses.some(c => c.id === preselectedCourseId)) {
+    if (bundles.length > 0) {
+      opts += `
+        <optgroup label="📦 แพ็คเกจคอร์สเรียนโปรโมชั่น">
+          ${bundles.map(b => `<option value="${b.id}">[แพ็คเกจ] ${escapeHtml(b.name)}</option>`).join('')}
+        </optgroup>
+      `;
+    }
+    modalCourseSelect.innerHTML = opts;
+    if (preselectedCourseId && (courses.some(c => c.id === preselectedCourseId) || bundles.some(b => b.id === preselectedCourseId))) {
       modalCourseSelect.value = preselectedCourseId;
     }
   }
@@ -4135,11 +4667,20 @@ function openEditEnrollmentModal(id) {
   document.getElementById('enrollmentEditId').value = en.id;
 
   const courses = window.NewGenDB ? window.NewGenDB.getCourses() : [];
+  const bundles = window.NewGenDB ? window.NewGenDB.getBundles() : [];
   const modalCourseSelect = document.getElementById('enCourseId');
   if (modalCourseSelect) {
-    modalCourseSelect.innerHTML = courses.map(c => `
+    let opts = courses.map(c => `
       <option value="${c.id}">${escapeHtml(c.title)} (${escapeHtml(c.categoryLabel || c.category)})</option>
     `).join('');
+    if (bundles.length > 0) {
+      opts += `
+        <optgroup label="📦 แพ็คเกจคอร์สเรียนโปรโมชั่น">
+          ${bundles.map(b => `<option value="${b.id}">[แพ็คเกจ] ${escapeHtml(b.name)}</option>`).join('')}
+        </optgroup>
+      `;
+    }
+    modalCourseSelect.innerHTML = opts;
     modalCourseSelect.value = en.courseId || (courses[0] ? courses[0].id : '');
   }
 
@@ -4174,6 +4715,9 @@ async function handleSaveEnrollment(e) {
   const shippingAddress = document.getElementById('enShippingAddress').value.trim();
   const notes = document.getElementById('enNotes').value.trim();
 
+  const bundles = window.NewGenDB ? window.NewGenDB.getBundles() : [];
+  const foundBundle = bundles.find(b => b.id === courseId);
+
   const item = {
     id: id || `enroll-${Date.now()}`,
     courseId,
@@ -4188,6 +4732,10 @@ async function handleSaveEnrollment(e) {
     status,
     shippingAddress,
     notes,
+    isBundle: Boolean(foundBundle),
+    bundleId: foundBundle ? foundBundle.id : null,
+    bundleName: foundBundle ? foundBundle.name : null,
+    bundleCourseIds: foundBundle ? (foundBundle.courseIds || []) : [],
     createdAt: id ? (window.NewGenDB.getEnrollments().find(x => x.id === id)?.createdAt || new Date().toISOString()) : new Date().toISOString()
   };
 
@@ -4199,6 +4747,57 @@ async function handleSaveEnrollment(e) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(item)
   }).catch(() => {});
+
+  // Requirement 1: If manual enrollment is for a bundle, send student to every course in the bundle!
+  if (!id && foundBundle && Array.isArray(foundBundle.courseIds) && foundBundle.courseIds.length > 0) {
+    const allCourses = window.NewGenDB.getCourses();
+    for (const subId of foundBundle.courseIds) {
+      const subCourse = allCourses.find(c => c.id === subId);
+      const subItem = {
+        ...item,
+        id: `${item.id}-${subId}`,
+        courseId: subId,
+        courseTitle: subCourse ? subCourse.title : subId,
+        isBundle: false,
+        isFromBundle: true,
+        bundleId: foundBundle.id,
+        bundleName: foundBundle.name,
+        parentEnrollId: item.id,
+        notes: `[สมัครผ่านแพ็คเกจ: ${foundBundle.name}] ${notes || ''}`.trim()
+      };
+      await window.NewGenDB.saveEnrollment(subItem);
+      fetch('/api/enrollments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(subItem)
+      }).catch(() => {});
+    }
+  } else if (id && (foundBundle || item.isBundle)) {
+    // If editing existing bundle enrollment, synchronize student info to all linked child course records!
+    const allEnrollments = window.NewGenDB ? window.NewGenDB.getEnrollments() : [];
+    const linked = allEnrollments.filter(e => e.parentEnrollId === id);
+    for (const sub of linked) {
+      const updatedSub = {
+        ...sub,
+        studentName: item.studentName,
+        nickname: item.nickname,
+        grade: item.grade,
+        school: item.school,
+        parentPhone: item.parentPhone,
+        studentPhone: item.studentPhone,
+        lineId: item.lineId,
+        status: item.status,
+        shippingAddress: item.shippingAddress,
+        learningType: item.learningType
+      };
+      await window.NewGenDB.saveEnrollment(updatedSub);
+      fetch('/api/enrollments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedSub)
+      }).catch(() => {});
+    }
+  }
 
   loadAdminEnrollments();
   loadAdminCourses();
@@ -4216,7 +4815,14 @@ async function deleteEnrollment(id) {
   const en = enrollments.find(item => item.id === id);
   const studentName = en ? en.studentName : 'ผู้สมัครนี้';
 
-  if (!confirm(`คุณแน่ใจหรือไม่ว่าต้องการลบรายชื่อของ "${studentName}"?`)) {
+  let confirmMsg = `คุณแน่ใจหรือไม่ว่าต้องการลบรายชื่อของ "${studentName}"?`;
+  const isBundleMaster = Boolean(en && en.isBundle);
+
+  if (isBundleMaster) {
+    confirmMsg = `ผู้สมัคร "${studentName}" สมัครผ่านแพ็คเกจคอร์สเรียน\n\nต้องการลบรายชื่อและคืนที่นั่งในทุกคอร์สย่อยที่เชื่อมโยงกับแพ็คเกจนี้ด้วยหรือไม่?`;
+  }
+
+  if (!confirm(confirmMsg)) {
     return;
   }
 
@@ -4226,6 +4832,15 @@ async function deleteEnrollment(id) {
   fetch(`/api/enrollments?id=${encodeURIComponent(id)}`, {
     method: 'DELETE'
   }).catch(() => {});
+
+  // If this was a master bundle application, also delete the child course registrations!
+  if (isBundleMaster) {
+    const linked = enrollments.filter(e => e.parentEnrollId === id);
+    for (const sub of linked) {
+      await window.NewGenDB.deleteEnrollment(sub.id);
+      fetch(`/api/enrollments?id=${encodeURIComponent(sub.id)}`, { method: 'DELETE' }).catch(() => {});
+    }
+  }
 
   loadAdminEnrollments();
   loadAdminCourses();

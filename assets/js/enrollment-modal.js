@@ -425,7 +425,41 @@
     }
 
     const courses = (window.NewGenDB ? window.NewGenDB.getCourses() : (window.courseData || []));
-    const course = courses.find(c => c.id === courseId) || courses[0];
+    let course = courses.find(c => c.id === courseId);
+
+    // If not found in courses, check if courseId is a bundle!
+    if (!course) {
+      const bundles = (window.NewGenDB ? window.NewGenDB.getBundles() : (window.bundlesData || []));
+      const bundleObj = bundles.find(b => b.id === courseId);
+      if (bundleObj) {
+        const childCourses = courses.filter(c => Array.isArray(bundleObj.courseIds) && bundleObj.courseIds.includes(c.id));
+        const childTitles = childCourses.map(c => c.title).join(' + ');
+        course = {
+          id: bundleObj.id,
+          title: `[แพ็คเกจ] ${bundleObj.name}`,
+          name: bundleObj.name,
+          isBundle: true,
+          bundleId: bundleObj.id,
+          bundleName: bundleObj.name,
+          courseIds: bundleObj.courseIds || [],
+          childCourses: childCourses,
+          categoryLabel: `แพ็คเกจโปรโมชั่น (${bundleObj.courseIds ? bundleObj.courseIds.length : 2} คอร์ส)`,
+          subjects: childTitles || bundleObj.description || 'รวมคอร์สโปรโมชั่นพิเศษ',
+          location: 'เรียนสด Onsite หรือ Online (The NEW GEN)',
+          totalHours: childCourses.map(c => c.totalHours || '').filter(Boolean).join(' • ') || 'แพ็คเกจวิชาหลักเข้มข้น',
+          pricePromo: bundleObj.pricePromo || '0',
+          priceUnit: bundleObj.priceUnit || 'บาท / แพ็คเกจ',
+          cover: bundleObj.customImage || (childCourses[0]?.cover || childCourses[0]?.poster || 'assets/images/course-poster-primary.jpg'),
+          poster: bundleObj.customImage || (childCourses[0]?.poster || childCourses[0]?.cover || 'assets/images/course-poster-primary.jpg'),
+          scheduleList: childCourses.flatMap(c => c.scheduleList || []).slice(0, 4),
+          remainingSeats: 99,
+          maxSeats: 99,
+          isFull: false
+        };
+      }
+    }
+
+    if (!course) course = courses[0];
 
     if (!course) {
       alert('ไม่พบคอร์สเรียนที่ต้องการสมัคร กรุณาลองใหม่อีกครั้ง');
@@ -656,6 +690,9 @@
     const randPart = Math.floor(1000 + Math.random() * 9000);
     const enrollId = `ENR-${todayStr}-${randPart}`;
 
+    const isBundle = Boolean(currentEnrollCourse && currentEnrollCourse.isBundle);
+    const childCourseIds = isBundle && Array.isArray(currentEnrollCourse.courseIds) ? currentEnrollCourse.courseIds : [];
+
     const newEnrollment = {
       id: enrollId,
       courseId: currentEnrollCourse.id,
@@ -673,6 +710,10 @@
       shippingAddress: shippingAddress,
       notes: notes,
       customAnswers: customAnswers,
+      isBundle: isBundle,
+      bundleId: isBundle ? currentEnrollCourse.id : null,
+      bundleName: isBundle ? (currentEnrollCourse.name || currentEnrollCourse.title) : null,
+      bundleCourseIds: childCourseIds,
       status: 'pending', // รอตรวจสอบ/ชำระเงินทางไลน์
       createdAt: new Date().toISOString()
     };
@@ -680,6 +721,27 @@
     try {
       if (window.NewGenDB && typeof window.NewGenDB.saveEnrollment === 'function') {
         await window.NewGenDB.saveEnrollment(newEnrollment);
+
+        // Requirement 1: If bundle, send student's name to EVERY course in the bundle!
+        if (isBundle && childCourseIds.length > 0) {
+          const allCourses = (window.NewGenDB ? window.NewGenDB.getCourses() : (window.courseData || []));
+          for (const subId of childCourseIds) {
+            const subCourse = allCourses.find(c => c.id === subId);
+            const subEnrollment = {
+              ...newEnrollment,
+              id: `${enrollId}-${subId}`,
+              courseId: subId,
+              courseTitle: subCourse ? subCourse.title : subId,
+              isBundle: false,
+              isFromBundle: true,
+              bundleId: currentEnrollCourse.id,
+              bundleName: currentEnrollCourse.name || currentEnrollCourse.title,
+              parentEnrollId: enrollId,
+              notes: `[สมัครผ่านแพ็คเกจ: ${currentEnrollCourse.name || currentEnrollCourse.title}] ${notes || ''}`.trim()
+            };
+            await window.NewGenDB.saveEnrollment(subEnrollment);
+          }
+        }
       }
     } catch (err) {
       console.warn('Save enrollment error, proceeding with confirmation:', err);

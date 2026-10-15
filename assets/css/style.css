@@ -1433,8 +1433,15 @@ button {
   display: flex;
   align-items: baseline;
   flex-wrap: wrap;
-  gap: 3px 5px;
+  gap: 3px 6px;
   line-height: 1.15;
+}
+
+.course-price-amount-group {
+  display: inline-flex;
+  align-items: baseline;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .course-price-amount {
@@ -1445,6 +1452,7 @@ button {
   letter-spacing: -0.025em;
   font-variant-numeric: tabular-nums;
   line-height: 1;
+  white-space: nowrap;
 }
 
 .course-price-dash {
@@ -1454,6 +1462,7 @@ button {
   color: #e11d48;
   margin-right: 2px;
   opacity: 0.88;
+  white-space: nowrap;
 }
 
 .course-price-unit-tag {
@@ -3696,6 +3705,7 @@ button {
     align-items: baseline;
     gap: 3px;
     line-height: 1.15;
+    white-space: nowrap;
   }
 
   .cd-msb-num {
@@ -3703,12 +3713,14 @@ button {
     font-weight: 800;
     color: var(--color-red-brand, #e11d48);
     font-family: var(--font-en, sans-serif);
+    white-space: nowrap;
   }
 
   .cd-msb-dash {
     font-size: 1.05rem;
     font-weight: 800;
     color: var(--color-red-brand, #e11d48);
+    white-space: nowrap;
   }
 
   .cd-msb-unit {
@@ -9634,4 +9646,257 @@ button {
     padding: 11px 16px;
   }
 }
+
+/* ===================================================================
+   Course Bundles (แพ็คเกจคอร์สเรียนโปรโมชั่น)
+   =================================================================== */
+.bundle-card {
+  background: #ffffff;
+  border-radius: var(--radius-lg);
+  border: 1.5px solid #fecdd3;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(225, 29, 72, 0.08);
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+}
+
+.bundle-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 16px 36px rgba(225, 29, 72, 0.16);
+  border-color: #f43f5e;
+}
+
+.bundle-card .bundle-thumb-area {
+  position: relative;
+  width: 100%;
+  height: 220px;
+  background: linear-gradient(135deg, #0b1e3f 0%, #1e3a8a 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  text-decoration: none;
+}
+
+.bundle-card .bundle-thumb-area.custom-img {
+  background: #0b1e3f;
+}
+
+.bundle-card .bundle-thumb-area.custom-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.bundle-card:hover .bundle-thumb-area.custom-img img {
+  transform: scale(1.05);
+}
+
+.bundle-badge-promo {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  z-index: 10;
+  background: linear-gradient(135deg, #e11d48, #be123c);
+  color: #ffffff;
+  font-family: var(--font-thai);
+  font-size: 0.78rem;
+  font-weight: 800;
+  padding: 4px 12px;
+  border-radius: 99px;
+  box-shadow: 0 4px 12px rgba(225, 29, 72, 0.4);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.bundle-savings-pill {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  z-index: 10;
+  background: rgba(16, 185, 129, 0.95);
+  backdrop-filter: blur(4px);
+  color: #ffffff;
+  font-size: 0.74rem;
+  font-weight: 800;
+  padding: 3px 10px;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+}
+
+.bundle-card-body {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  justify-content: space-between;
+}
+
+.bundle-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--color-navy);
+  margin: 0 0 10px 0;
+  line-height: 1.35;
+}
+
+.bundle-desc {
+  font-size: 0.86rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+  margin-bottom: 14px;
+}
+
+.bundle-included-list {
+  background: #fff1f2;
+  border: 1px solid #fecdd3;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-bottom: 16px;
+}
+
+.bundle-included-heading {
+  font-size: 0.76rem;
+  font-weight: 800;
+  color: #9f1239;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.bundle-included-item {
+  font-size: 0.84rem;
+  color: #881337;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.bundle-included-item:last-child {
+  margin-bottom: 0;
+}
+
+.bundle-included-item i {
+  color: #e11d48;
+  font-size: 0.75rem;
+}
+
+/* ===================================================================
+   Cute Floating Gift Box Widget (🎁 ติวฟรี! คลิกรับสิทธิ์)
+   =================================================================== */
+.cute-floating-gift-pill {
+  position: fixed;
+  left: 20px;
+  bottom: 24px;
+  z-index: 9990;
+  background: linear-gradient(135deg, #0b1e3f 0%, #1e1b4b 100%);
+  border: 2px solid #f43f5e;
+  border-radius: 9999px;
+  padding: 6px 14px 6px 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 8px 24px rgba(225, 29, 72, 0.4), 0 0 18px rgba(244, 63, 94, 0.35);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  user-select: none;
+  animation: giftBounce 3s infinite ease-in-out;
+}
+
+.cute-floating-gift-pill:hover {
+  transform: translateY(-5px) scale(1.05);
+  box-shadow: 0 12px 30px rgba(225, 29, 72, 0.55), 0 0 25px rgba(244, 63, 94, 0.5);
+  border-color: #fda4af;
+}
+
+@keyframes giftBounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.gift-icon-bubble {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f43f5e, #e11d48);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  box-shadow: 0 4px 10px rgba(225, 29, 72, 0.4);
+  flex-shrink: 0;
+  position: relative;
+}
+
+.gift-sparkle-dot {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #fbbf24;
+  border: 2px solid #0b1e3f;
+  animation: sparklePing 1.6s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+@keyframes sparklePing {
+  75%, 100% {
+    transform: scale(1.8);
+    opacity: 0;
+  }
+}
+
+.gift-content {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.gift-title {
+  font-size: 0.86rem;
+  font-weight: 800;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.gift-subtitle {
+  font-size: 0.72rem;
+  color: #fda4af;
+  font-weight: 600;
+}
+
+@media (max-width: 600px) {
+  .cute-floating-gift-pill {
+    left: 14px;
+    bottom: 18px;
+    padding: 5px 12px 5px 6px;
+  }
+  .gift-icon-bubble {
+    width: 32px;
+    height: 32px;
+    font-size: 1.05rem;
+  }
+  .gift-title {
+    font-size: 0.8rem;
+  }
+  .gift-subtitle {
+    font-size: 0.68rem;
+  }
+}
+
 

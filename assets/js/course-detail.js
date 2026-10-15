@@ -669,7 +669,9 @@ function renderRelatedCourses(currentCourseId) {
             <div class="course-price-wrap">
               <span class="course-price-old">จาก ${c.priceOriginal || ''}</span>
               <div class="course-price-now">
-                <span class="course-price-amount">${c.pricePromo}</span><span class="course-price-dash">.-</span>
+                <span class="course-price-amount-group">
+                  <span class="course-price-amount">${c.pricePromo}</span><span class="course-price-dash">.-</span>
+                </span>
                 <span class="course-price-unit-tag">${c.priceUnit || 'บาท / เทอม'}</span>
               </div>
             </div>

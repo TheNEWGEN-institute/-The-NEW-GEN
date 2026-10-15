@@ -605,14 +605,14 @@
   <!-- ===================================================================
        Campaign Floating Pill (ป้ายลอยเปิดแคมเปญเมื่อปิดไปแล้ว)
        =================================================================== -->
-  <div class="campaign-floating-pill" id="campaignFloatingPill" style="display: none;" onclick="openCampaignPopup(true)" title="คลิกเพื่อดูสิทธิ์โครงการติวฟรี">
-    <div class="pill-pulse-ring"></div>
-    <div class="pill-icon-box">
-      <i class="fa-solid fa-gift"></i>
+  <div class="campaign-floating-pill cute-floating-gift-pill" id="campaignFloatingPill" style="display: none;" onclick="openCampaignPopup(true)" title="คลิกเพื่อดูสิทธิ์โครงการติวฟรี">
+    <div class="gift-icon-bubble">
+      <i class="fa-solid fa-gift" style="color: #ffffff;"></i>
+      <span class="gift-sparkle-dot"></span>
     </div>
-    <div class="pill-content">
-      <span class="pill-label" id="pillBadgeLabel">โครงการติวฟรี!</span>
-      <span class="pill-sub" id="pillSubtitleLabel">คลิกเพื่อรับสิทธิ์ด่วน 🎁</span>
+    <div class="gift-content">
+      <span class="gift-title" id="pillBadgeLabel">โครงการติวฟรี!</span>
+      <span class="gift-subtitle" id="pillSubtitleLabel">คลิกเพื่อรับสิทธิ์ด่วน 🎁</span>
     </div>
     <button type="button" class="pill-close-btn" id="btnPillDismiss" onclick="dismissCampaignFloatingPill(event)" title="ซ่อนป้ายนี้">
       <i class="fa-solid fa-xmark"></i>

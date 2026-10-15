@@ -92,7 +92,7 @@
       "classSize": "กลุ่มเล็ก ดูแลใกล้ชิด ถามได้ทันที",
       "materials": "ฟรี! หนังสือและแนวข้อสอบเก็งพิเศษ",
       "trustGuarantee": "การันตีการสอนโดยทีมติวเตอร์ The NEW GEN",
-      "remainingSeats": 11,
+      "remainingSeats": 10,
       "isFull": false,
       "maxSeats": 12
     },
@@ -193,7 +193,7 @@
       "classSize": "กลุ่มเล็ก ดูแลใกล้ชิด ถามได้ทันที",
       "materials": "ฟรี! หนังสือและแนวข้อสอบเก็งพิเศษ",
       "trustGuarantee": "การันตีการสอนโดยทีมติวเตอร์ The NEW GEN",
-      "remainingSeats": 11,
+      "remainingSeats": 10,
       "isFull": false,
       "maxSeats": 12
     },
@@ -960,6 +960,65 @@
   },
   "enrollments": [
     {
+      "nickname": "น้องปัญญา",
+      "grade": "ป.6",
+      "status": "confirmed",
+      "isBundle": false,
+      "school": "อนุบาลเมือง",
+      "id": "ENR-20261015-8899-course-p6-m1",
+      "lineId": "panya_line",
+      "notes": "[สมัครผ่านแพ็คเกจ: แพ็คคู่ประถม ปูพื้นฐาน + ติวสอบเข้า ม.1 (สุดคุ้ม)] สมัครแพ็คคู่ผ่านหน้าเว็บ",
+      "courseTitle": "คอร์สเปิดเทอม 2/69 (ป.6 ติวสอบเข้า ม.1)",
+      "parentEnrollId": "ENR-20261015-8899",
+      "bundleId": "bundle-primary-combo",
+      "bundleName": "แพ็คคู่ประถม ปูพื้นฐาน + ติวสอบเข้า ม.1 (สุดคุ้ม)",
+      "studentName": "ด.ช. ปัญญา เลิศล้ำ",
+      "isFromBundle": true,
+      "createdAt": "2026-10-15T21:21:27.490Z",
+      "courseId": "course-p6-m1",
+      "parentPhone": "081-234-5678"
+    },
+    {
+      "nickname": "น้องปัญญา",
+      "grade": "ป.6",
+      "status": "confirmed",
+      "isBundle": false,
+      "school": "อนุบาลเมือง",
+      "id": "ENR-20261015-8899-course-p4-p5",
+      "lineId": "panya_line",
+      "notes": "[สมัครผ่านแพ็คเกจ: แพ็คคู่ประถม ปูพื้นฐาน + ติวสอบเข้า ม.1 (สุดคุ้ม)] สมัครแพ็คคู่ผ่านหน้าเว็บ",
+      "courseTitle": "คอร์สเปิดเทอม 2/69 (ป.4 - ป.5)",
+      "parentEnrollId": "ENR-20261015-8899",
+      "bundleId": "bundle-primary-combo",
+      "bundleName": "แพ็คคู่ประถม ปูพื้นฐาน + ติวสอบเข้า ม.1 (สุดคุ้ม)",
+      "studentName": "ด.ช. ปัญญา เลิศล้ำ",
+      "isFromBundle": true,
+      "createdAt": "2026-10-15T21:21:27.490Z",
+      "courseId": "course-p4-p5",
+      "parentPhone": "081-234-5678"
+    },
+    {
+      "id": "ENR-20261015-8899",
+      "notes": "สมัครแพ็คคู่ผ่านหน้าเว็บ",
+      "lineId": "panya_line",
+      "grade": "ป.6",
+      "nickname": "น้องปัญญา",
+      "school": "อนุบาลเมือง",
+      "createdAt": "2026-10-15T21:21:27.488Z",
+      "courseTitle": "[แพ็คเกจ] แพ็คคู่ประถม ปูพื้นฐาน + ติวสอบเข้า ม.1 (สุดคุ้ม)",
+      "status": "confirmed",
+      "bundleId": "bundle-primary-combo",
+      "courseId": "bundle-primary-combo",
+      "bundleName": "แพ็คคู่ประถม ปูพื้นฐาน + ติวสอบเข้า ม.1 (สุดคุ้ม)",
+      "parentPhone": "081-234-5678",
+      "bundleCourseIds": [
+        "course-p4-p5",
+        "course-p6-m1"
+      ],
+      "isBundle": true,
+      "studentName": "ด.ช. ปัญญา เลิศล้ำ"
+    },
+    {
       "id": "enr-17918201",
       "courseId": "course-p4-p5",
       "courseTitle": "คอร์สเปิดเทอม 2/69 (ป.4 - ป.5)",
@@ -1102,5 +1161,26 @@
     "btnLineText": "สอบถามเพิ่มเติมทาง LINE",
     "lineUrl": "https://lin.ee/RXrzi1G",
     "miniBadgeText": "🎁 โครงการติวฟรี! คลิกดูสิทธิ์"
-  }
+  },
+  "bundles": [
+    {
+      "id": "bundle-primary-combo",
+      "name": "แพ็คคู่ประถม ปูพื้นฐาน + ติวสอบเข้า ม.1 (สุดคุ้ม)",
+      "badge": "🔥 แพ็คคู่สุดคุ้ม ประหยัดทันที 1,500.-",
+      "courseIds": [
+        "course-p4-p5",
+        "course-p6-m1"
+      ],
+      "priceOriginal": "9,000",
+      "pricePromo": "7,500",
+      "priceUnit": "บาท / แพ็คเกจ (2 คอร์ส)",
+      "imageMode": "stack",
+      "customImage": "",
+      "description": "สมัครคอร์สคู่สุดคุ้ม รวม 2 คอร์สหลักประถม ติวเข้มปูพื้นฐานและเจาะลึกแนวข้อสอบจริงสอบเข้า ม.1",
+      "showInCourses": true,
+      "showInHome": true,
+      "active": true,
+      "createdAt": "2026-10-15T00:00:00.000Z"
+    }
+  ]
 }

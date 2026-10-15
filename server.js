@@ -25,7 +25,7 @@ function readDatabase() {
   } catch (err) {
     console.error('Error reading database:', err);
   }
-  return { courses: [], tutors: [], reviews: [], videos: [], contact: {}, whyus: {}, popupCampaign: {}, admin: { username: 'admin', password: 'NewGen@2026' } };
+  return { courses: [], tutors: [], reviews: [], videos: [], contact: {}, whyus: {}, popupCampaign: {}, bundles: [], enrollments: [], admin: { username: 'admin', password: 'NewGen@2026' } };
 }
 
 function writeDatabase(data) {
@@ -526,6 +526,41 @@ const server = http.createServer(async (req, res) => {
         writeDatabase(db);
         return sendJson(res, 200, { success: true, popupCampaign: db.popupCampaign });
       }
+    }
+
+    // 16. Bundles API (แพ็คเกจคอร์สเรียนโปรโมชั่น)
+    if (pathname === '/api/bundles') {
+      if (method === 'GET') {
+        return sendJson(res, 200, db.bundles || []);
+      }
+      if (method === 'POST') {
+        const body = await parseRequestBody(req);
+        if (Array.isArray(body)) {
+          db.bundles = body;
+        } else if (body && typeof body === 'object') {
+          if (!db.bundles) db.bundles = [];
+          if (body.customImage && body.customImage.startsWith('data:image/')) {
+            body.customImage = saveBase64ToFile(body.customImage);
+          }
+          const idx = db.bundles.findIndex(b => b.id === body.id);
+          if (idx !== -1) {
+            db.bundles[idx] = { ...db.bundles[idx], ...body, updatedAt: new Date().toISOString() };
+          } else {
+            db.bundles.push({ ...body, createdAt: new Date().toISOString() });
+          }
+        }
+        writeDatabase(db);
+        return sendJson(res, 200, { success: true, bundles: db.bundles });
+      }
+    }
+
+    if (pathname.startsWith('/api/bundles/') && method === 'DELETE') {
+      const bundleId = pathname.replace('/api/bundles/', '');
+      if (db.bundles) {
+        db.bundles = db.bundles.filter(b => b.id !== bundleId);
+        writeDatabase(db);
+      }
+      return sendJson(res, 200, { success: true, bundles: db.bundles || [] });
     }
 
     return sendJson(res, 404, { error: 'API endpoint not found' });
