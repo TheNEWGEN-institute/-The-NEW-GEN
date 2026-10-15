@@ -188,6 +188,17 @@ function initCourseDetailPage() {
           </tr>
         `).join('');
       }
+
+      // หมายเหตุการสำรองที่นั่ง (Editable from Admin Panel)
+      const scheduleNoteEl = document.getElementById('cdScheduleNoteContent');
+      if (scheduleNoteEl) {
+        if (course.scheduleNote && course.scheduleNote.trim()) {
+          const noteLines = course.scheduleNote.split('\n').map(l => l.trim()).filter(Boolean);
+          scheduleNoteEl.innerHTML = `<strong>หมายเหตุการสำรองที่นั่ง:</strong><br>${noteLines.map(l => escapeHtml(l)).join('<br>')}`;
+        } else {
+          scheduleNoteEl.innerHTML = `<strong>หมายเหตุการสำรองที่นั่ง:</strong> เนื่องจากแต่ละกลุ่มเป็นห้องเรียนสด Onsite กลุ่มเล็กเพื่อการดูแลทั่วถึง โควตาในแต่ละรอบจึงมีจำนวนจำกัด หากรอบใดเต็มแล้วจะปิดรับสมัครทันที แนะนำให้ติดต่อสำรองที่นั่งล่วงหน้าครับ`;
+        }
+      }
     } else {
       scheduleCard.style.display = 'none';
       if (scheduleBody) scheduleBody.innerHTML = '';
@@ -259,94 +270,47 @@ function initCourseDetailPage() {
     }
   }
 
-  // 5. Subject Breakdown (Item 5: แยกรายวิชา - Cards Grid + Summary Comparison Table)
+  // 5. Subject Breakdown (Item 5: แยกรายวิชา - Cards Grid) & Bundle Promo Card (Requirement 6)
   const subjectBreakdownCard = document.getElementById('cdSubjectBreakdownCard');
   const subjectsGrid = document.getElementById('cdSubjectsGrid');
-  const summaryBody = document.getElementById('cdSubjectsSummaryTableBody');
-  const summaryFoot = document.getElementById('cdSubjectsSummaryTableFoot');
 
-  if (subjectBreakdownCard && subjectsGrid && summaryBody) {
-    if (course.subjectBreakdown && Array.isArray(course.subjectBreakdown) && course.subjectBreakdown.length > 0) {
-      subjectBreakdownCard.style.display = 'block';
+  const hasSubjects = course.subjectBreakdown && Array.isArray(course.subjectBreakdown) && course.subjectBreakdown.length > 0;
+  
+  if (hasSubjects && subjectsGrid) {
+    if (subjectBreakdownCard) subjectBreakdownCard.style.display = 'block';
 
-      const contact = window.NewGenDB ? window.NewGenDB.getContact() : null;
-      const baseLineUrl = (contact && contact.lineUrl) ? contact.lineUrl : 'https://line.me/R/ti/p/~thenewgen';
-
-      // 5.1 Render Cards Grid
-      subjectsGrid.innerHTML = course.subjectBreakdown.map(sb => {
-        return `
-          <div class="cd-subject-card">
-            <div class="cd-sb-card-top">
-              <div class="cd-sb-icon-badge">
-                <i class="fa-solid ${getSubjectIcon(sb.name)}"></i>
-              </div>
-              <div style="flex: 1;">
-                <h3 class="cd-sb-name">${escapeHtml(sb.name)}</h3>
-                ${sb.tutor ? `<span class="cd-sb-tutor"><i class="fa-solid fa-chalkboard-user"></i> สอนโดย ${escapeHtml(sb.tutor)}</span>` : ''}
-              </div>
+    subjectsGrid.innerHTML = course.subjectBreakdown.map(sb => {
+      return `
+        <div class="cd-subject-card">
+          <div class="cd-sb-card-top">
+            <div class="cd-sb-icon-badge">
+              <i class="fa-solid ${getSubjectIcon(sb.name)}"></i>
             </div>
-
-            <div class="cd-sb-pricing-pill">
-              <span class="price"><i class="fa-solid fa-tag"></i> ${escapeHtml(sb.price || 'สอบถามค่าเรียน')}</span>
-              ${sb.hours ? `<span class="hours"><i class="fa-regular fa-clock"></i> ${escapeHtml(sb.hours)}</span>` : ''}
+            <div style="flex: 1;">
+              <h3 class="cd-sb-name">${escapeHtml(sb.name)}</h3>
+              ${sb.tutor ? `<span class="cd-sb-tutor"><i class="fa-solid fa-chalkboard-user"></i> สอนโดย ${escapeHtml(sb.tutor)}</span>` : ''}
             </div>
-
-            ${sb.details ? `
-              <div class="cd-sb-details">
-                <p><i class="fa-solid fa-circle-info"></i> ${escapeHtml(sb.details)}</p>
-              </div>
-            ` : ''}
           </div>
-        `;
-      }).join('');
 
-      // 5.2 Render Summary Table
-      summaryBody.innerHTML = course.subjectBreakdown.map(sb => {
-        return `
-          <tr>
-            <td>
-              <strong style="color: var(--color-navy); display: flex; align-items: center; gap: 8px;">
-                <i class="fa-solid ${getSubjectIcon(sb.name)}" style="color: var(--color-cyan);"></i>
-                ${escapeHtml(sb.name)}
-              </strong>
-            </td>
-            <td><span style="color: #475569;"><i class="fa-solid fa-user-tie"></i> ${escapeHtml(sb.tutor || 'ทีมติวเตอร์')}</span></td>
-            <td><span class="badge badge-emerald" style="font-weight: 600;"><i class="fa-regular fa-clock"></i> ${escapeHtml(sb.hours || '—')}</span></td>
-            <td style="text-align: right;"><strong style="color: #dc2626; font-size: 1.05rem;">${escapeHtml(sb.price || '—')}</strong></td>
-          </tr>
-        `;
-      }).join('');
+          <div class="cd-sb-pricing-pill">
+            <span class="price"><i class="fa-solid fa-tag"></i> ${escapeHtml(sb.price || 'สอบถามค่าเรียน')}</span>
+            ${sb.hours ? `<span class="hours"><i class="fa-regular fa-clock"></i> ${escapeHtml(sb.hours)}</span>` : ''}
+          </div>
 
-      // 5.3 Summary Table Footer (Bundle Package Promo)
-      if (summaryFoot) {
-        summaryFoot.innerHTML = `
-          <tr class="cd-summary-bundle-row">
-            <td colspan="2">
-              <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                <span class="badge badge-red" style="padding: 5px 12px; font-size: 0.82rem;"><i class="fa-solid fa-fire"></i> PACKAGE สุดคุ้ม</span>
-                <strong style="color: var(--color-navy); font-size: 1rem;">สมัครเหมาครบทุกวิชาในคอร์สนี้</strong>
-              </div>
-              <small style="color: #64748b; display: block; margin-top: 3px;">ประหยัดกว่า และได้รับการดูแลครบถ้วนทุกวิชาพร้อมเอกสารจัดเต็ม</small>
-            </td>
-            <td>
-              <div style="font-size: 0.85rem; color: #94a3b8; text-decoration: line-through;">${escapeHtml(course.priceOriginal || '')}</div>
-              <div style="font-size: 1.25rem; font-weight: 800; color: #16a34a;">${escapeHtml(course.pricePromo)} <span style="font-size: 0.82rem; font-weight: normal; color: #475569;">${escapeHtml(course.priceUnit || 'บาท')}</span></div>
-            </td>
-            <td style="text-align: right;">
-              <a href="${baseLineUrl}" target="_blank" rel="noopener noreferrer" class="btn-primary" style="padding: 8px 16px; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px; border-radius: var(--radius-full); box-shadow: 0 4px 14px rgba(225, 29, 72, 0.25);">
-                <i class="fa-brands fa-line"></i> จองแพ็กเกจรวม
-              </a>
-            </td>
-          </tr>
-        `;
-      }
-    } else {
-      subjectBreakdownCard.style.display = 'none';
-      subjectsGrid.innerHTML = '';
-      summaryBody.innerHTML = '';
-      if (summaryFoot) summaryFoot.innerHTML = '';
-    }
+          ${sb.details ? `
+            <div class="cd-sb-details">
+              <p><i class="fa-solid fa-circle-info"></i> ${escapeHtml(sb.details)}</p>
+            </div>
+          ` : ''}
+        </div>
+      `;
+    }).join('');
+  } else if (subjectsGrid) {
+    subjectsGrid.innerHTML = '';
   }
+
+  // Requirement 6: Render Bundle Promo Card for this grade level instead of summary table
+  renderCourseDetailBundlePromo(course);
 
   // Render Custom Sections (Admin Extensible Topics - ซ่อนหากไม่มีข้อมูล)
   const customSectionsContainer = document.getElementById('cdCustomSectionsContainer');
@@ -634,34 +598,51 @@ function renderRelatedCourses(currentCourseId) {
   if (!relatedGrid) return;
 
   const courses = window.courseData || [];
-  const otherCourses = courses.filter(c => c.id !== currentCourseId && !c.isHidden);
+  const currentCourse = courses.find(c => c.id === currentCourseId) || {};
+
+  // Requirement 5: Show only courses of the same grade level currently viewed
+  let filteredCourses = courses.filter(c => c.id !== currentCourseId && !c.isHidden && c.category === currentCourse.category);
+  
+  // If no other course in exact category, fallback to others so the section isn't completely empty
+  if (filteredCourses.length === 0) {
+    filteredCourses = courses.filter(c => c.id !== currentCourseId && !c.isHidden);
+  }
+
+  // Update subtitle
+  const subtitleEl = document.getElementById('cdRelatedSubtitle');
+  if (subtitleEl) {
+    const gradeName = currentCourse.categoryLabel || currentCourse.category || '';
+    subtitleEl.textContent = `เลือกดูคอร์สเรียนอื่นๆ ในระดับชั้น ${gradeName}`;
+  }
+
   const contact = window.NewGenDB ? window.NewGenDB.getContact() : (window.DEFAULT_CONTACT || null);
   const fmt = window.formatExternalUrl || ((u) => u);
   const baseLineUrl = (contact && contact.lineUrl) ? contact.lineUrl : 'https://lin.ee/RXrzi1G';
 
-  relatedGrid.innerHTML = otherCourses.map(c => {
+  relatedGrid.innerHTML = filteredCourses.map(c => {
     const isFull = Boolean(c.isFull === true || (c.remainingSeats !== null && Number(c.remainingSeats) <= 0));
-    const directUrl = isFull ? 'javascript:void(0)' : (c.registerUrl && c.registerUrl.trim() ? fmt(c.registerUrl) : fmt(baseLineUrl));
     return `
-    <div class="course-card">
+    <div class="course-card" style="min-width: 290px; max-width: 310px; flex: 0 0 295px; margin: 0; display: flex; flex-direction: column;">
       <a href="course-detail.html?id=${c.id}" class="course-thumbnail ${isFull ? 'is-full' : ''}" aria-label="ดูรายละเอียด ${c.title}">
         <img src="${c.cover || c.poster}" alt="${c.title}" loading="lazy">
-        <span class="course-badge-level">${c.category === 'primary' ? 'ประถมศึกษา' : 'มัธยมศึกษาตอนต้น'}</span>
+        <span class="course-badge-level">${escapeHtml(c.categoryLabel || (c.category === 'primary' ? 'ประถมศึกษา' : 'มัธยมศึกษาตอนต้น'))}</span>
         ${window.getCourseSeatBadgeHtml ? window.getCourseSeatBadgeHtml(c) : `<span class="badge ${c.statusClass} course-badge-status">${c.statusBadge}</span>`}
       </a>
-      <div class="course-body">
-        <h3 class="course-title">
-          <a href="course-detail.html?id=${c.id}">${c.title}</a>
-        </h3>
-        <div class="course-subjects"><i class="fa-solid fa-graduation-cap"></i> ${c.subjects}</div>
-        <div class="course-meta-list">
-          <div class="course-meta-item">
-            <i class="fa-regular fa-clock"></i>
-            <span>เวลาเรียน: ${c.totalHours}</span>
-          </div>
-          <div class="course-meta-item">
-            <i class="fa-solid fa-chalkboard-user"></i>
-            <span>เรียนสด Onsite ได้ความรู้เต็มเปี่ยม</span>
+      <div class="course-body" style="flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+          <h3 class="course-title">
+            <a href="course-detail.html?id=${c.id}">${c.title}</a>
+          </h3>
+          <div class="course-subjects"><i class="fa-solid fa-graduation-cap"></i> ${c.subjects}</div>
+          <div class="course-meta-list">
+            <div class="course-meta-item">
+              <i class="fa-regular fa-clock"></i>
+              <span>เวลาเรียน: ${c.totalHours}</span>
+            </div>
+            <div class="course-meta-item">
+              <i class="fa-solid fa-chalkboard-user"></i>
+              <span>เรียนสด Onsite ได้ความรู้เต็มเปี่ยม</span>
+            </div>
           </div>
         </div>
         <div class="course-footer">
@@ -696,6 +677,149 @@ function renderRelatedCourses(currentCourseId) {
   `;
   }).join('');
 }
+
+/**
+ * ฟังก์ชันเลื่อนการ์ดคอร์สเรียนอื่นๆ ซ้าย-ขวา ใน 1 บรรทัด (Requirement 5)
+ */
+function scrollRelatedCourses(direction) {
+  const grid = document.getElementById('cdRelatedGrid');
+  if (!grid) return;
+  const scrollAmount = 315 * direction;
+  grid.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+}
+window.scrollRelatedCourses = scrollRelatedCourses;
+
+/**
+ * แสดงการ์ดแพ็คเกจโปรโมชั่นประจำระดับชั้นนี้ แทนตารางสรุปเดิม (Requirement 6)
+ */
+function renderCourseDetailBundlePromo(course) {
+  const promoSection = document.getElementById('cdBundlePromoSection');
+  if (!promoSection) return;
+
+  const bundles = (window.NewGenDB ? window.NewGenDB.getBundles() : (window.bundlesData || []));
+  const allCourses = window.courseData || (window.NewGenDB ? window.NewGenDB.getCourses() : []);
+
+  // Find matching active bundle for this course's level
+  const matchingBundle = bundles.find(b => {
+    if (b.active === false) return false;
+    // 1. Direct course ID inclusion
+    if (Array.isArray(b.courseIds) && b.courseIds.includes(course.id)) return true;
+    // 2. Explicit categoryIds matching course.category
+    if (Array.isArray(b.categoryIds) && b.categoryIds.includes(course.category)) return true;
+    // 3. Child course has same category
+    if (Array.isArray(b.courseIds)) {
+      const hasSameCatCourse = b.courseIds.some(cid => {
+        const found = allCourses.find(x => x.id === cid);
+        return found && found.category === course.category;
+      });
+      if (hasSameCatCourse) return true;
+    }
+    // 4. Regex grade match on bundle name
+    const catName = String(course.categoryLabel || course.category || '');
+    const m = catName.match(/([ปม]\.[1-6])/i);
+    if (m && new RegExp(m[1].replace('.', '\\.'), 'i').test(b.name || '')) {
+      return true;
+    }
+    return false;
+  });
+
+  const breakdownCard = document.getElementById('cdSubjectBreakdownCard');
+
+  if (!matchingBundle) {
+    // Requirement 6: "ถ้าชั้นไหนไม่มีแพ็ครวม ก็ไม่ต้องใส่ครับ"
+    promoSection.style.display = 'none';
+    promoSection.innerHTML = '';
+    const hasSubjects = course.subjectBreakdown && Array.isArray(course.subjectBreakdown) && course.subjectBreakdown.length > 0;
+    if (!hasSubjects && breakdownCard) {
+      breakdownCard.style.display = 'none';
+    }
+    return;
+  }
+
+  if (breakdownCard) breakdownCard.style.display = 'block';
+  promoSection.style.display = 'block';
+
+  const childCourseIds = Array.isArray(matchingBundle.courseIds) ? matchingBundle.courseIds : [];
+  const childCourses = allCourses.filter(c => childCourseIds.includes(c.id));
+
+  const origNum = parseInt(String(matchingBundle.priceOriginal || '0').replace(/[^0-9]/g, ''), 10) || 0;
+  const promoNum = parseInt(String(matchingBundle.pricePromo || '0').replace(/[^0-9]/g, ''), 10) || 0;
+  const savingsVal = Math.max(0, origNum - promoNum);
+  const savingsPercent = (origNum > 0 && promoNum > 0 && savingsVal > 0) ? Math.round((savingsVal / origNum) * 100) : 0;
+
+  const isCustom = matchingBundle.imageMode === 'custom' && matchingBundle.customImage;
+  let visualHtml = '';
+  if (isCustom) {
+    visualHtml = `
+      <div class="bundle-promo-poster-wrap" style="position: relative; width: 155px; height: 195px; border-radius: 12px; overflow: hidden; background: #0b1e3f; flex-shrink: 0; box-shadow: 0 8px 24px rgba(0,0,0,0.3); border: 2px solid rgba(255,255,255,0.2);">
+        <img src="${escapeHtml(matchingBundle.customImage)}" alt="${escapeHtml(matchingBundle.name)}" style="width: 100%; height: 100%; object-fit: contain;">
+      </div>
+    `;
+  } else {
+    const covers = childCourses.slice(0, 3).map(c => window.resolveMediaUrl ? window.resolveMediaUrl(c.cover || c.poster) : (c.cover || c.poster || 'assets/images/course-poster-primary.jpg'));
+    visualHtml = `
+      <div class="bundle-promo-stack-wrap" style="position: relative; width: 165px; height: 195px; perspective: 700px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+        ${covers.map((imgUrl, i) => {
+          let transform = '';
+          let zIndex = 3 - i;
+          if (i === 0) {
+            transform = 'translateX(-20px) translateY(8px) rotate(-8deg) scale(0.92)';
+          } else if (i === 1) {
+            transform = 'translateX(20px) translateY(-4px) rotate(6deg) scale(0.96)';
+            zIndex = 4;
+          } else if (i === 2) {
+            transform = 'translateX(0) translateY(-12px) scale(0.86)';
+            zIndex = 2;
+          }
+          return `<img src="${imgUrl}" alt="Course" style="position: absolute; width: 110px; height: 145px; object-fit: cover; border-radius: 8px; border: 2px solid #ffffff; box-shadow: 0 10px 24px rgba(0,0,0,0.4); transform: ${transform}; z-index: ${zIndex};">`;
+        }).join('')}
+      </div>
+    `;
+  }
+
+  promoSection.innerHTML = `
+    <div class="cd-bundle-promo-card" style="background: linear-gradient(135deg, #091a3e 0%, #172554 100%); border: 2px solid #3b82f6; border-radius: 16px; padding: 24px; color: #ffffff; box-shadow: 0 12px 30px rgba(15, 23, 42, 0.18); display: flex; gap: 24px; align-items: center; flex-wrap: wrap;">
+      ${visualHtml}
+      <div style="flex: 1; min-width: 260px;">
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap;">
+          <span class="badge" style="background: linear-gradient(135deg, #f43f5e, #be123c); color: #fff; font-weight: 800; font-size: 0.8rem; padding: 4px 12px; border-radius: 99px;">
+            ${escapeHtml(matchingBundle.badge || '🔥 PACKAGE สุดคุ้มรวมทุกวิชา')}
+          </span>
+          ${savingsPercent > 0 ? `
+            <span class="badge" style="background: #16a34a; color: #fff; font-weight: 800; font-size: 0.78rem; padding: 3px 9px; border-radius: 6px;">
+              ประหยัด ${savingsPercent}%
+            </span>
+          ` : ''}
+        </div>
+        <h3 style="font-size: 1.35rem; font-weight: 800; color: #ffffff; margin: 0 0 8px 0; line-height: 1.35;">
+          ${escapeHtml(matchingBundle.name)}
+        </h3>
+        <p style="color: #cbd5e1; font-size: 0.88rem; margin: 0 0 14px 0; line-height: 1.5;">
+          ${escapeHtml(matchingBundle.description || 'สมัครแพ็คเกจรวมวิชาในระดับชั้นนี้ ประหยัดกว่า และได้รับการดูแลครบถ้วนทุกวิชาพร้อมเอกสารจัดเต็ม')}
+        </p>
+        <div style="display: flex; align-items: baseline; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;">
+          ${matchingBundle.priceOriginal ? `<span style="text-decoration: line-through; color: #94a3b8; font-size: 1rem;">ปกติ ${escapeHtml(matchingBundle.priceOriginal)}.-</span>` : ''}
+          <span style="font-size: 1.85rem; font-weight: 800; color: #38bdf8; line-height: 1;">${escapeHtml(matchingBundle.pricePromo)}.-</span>
+          <span style="color: #94a3b8; font-size: 0.82rem;">${escapeHtml(matchingBundle.priceUnit || 'บาท / แพ็คเกจ')}</span>
+          ${savingsVal > 0 ? `
+            <span style="background: rgba(34, 197, 94, 0.2); border: 1px solid rgba(34, 197, 94, 0.4); color: #4ade80; font-size: 0.82rem; font-weight: 700; padding: 3px 8px; border-radius: 6px;">
+              ประหยัดทันที ${savingsVal.toLocaleString()} บ.
+            </span>
+          ` : ''}
+        </div>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+          <button type="button" class="btn-secondary" onclick="openBundleDetailModal('${matchingBundle.id}')" style="background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.3); color: #ffffff; padding: 9px 18px; font-size: 0.88rem; border-radius: 8px;">
+            <i class="fa-solid fa-circle-info"></i> ดูรายละเอียดแพ็คเกจ
+          </button>
+          <button type="button" class="btn-primary" onclick="openEnrollmentModal('${matchingBundle.id}', true)" style="background: linear-gradient(135deg, #e11d48, #be123c); padding: 9px 20px; font-size: 0.88rem; border-radius: 8px; box-shadow: 0 4px 14px rgba(225, 29, 72, 0.35);">
+            <i class="fa-solid fa-bolt-lightning"></i> จองแพ็กเกจรวม
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+window.renderCourseDetailBundlePromo = renderCourseDetailBundlePromo;
 
 /* Lightbox Modal logic */
 function initLightbox() {

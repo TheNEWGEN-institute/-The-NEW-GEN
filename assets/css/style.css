@@ -9970,5 +9970,58 @@ button {
   }
 }
 
+/* ===================================================================
+   Course Detail - Related Courses Horizontal Single-Row Slider (Requirement 5)
+   =================================================================== */
+#cdRelatedGrid {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  gap: 20px !important;
+  scroll-behavior: smooth !important;
+  padding: 8px 4px 18px 4px !important;
+  -webkit-overflow-scrolling: touch !important;
+  scrollbar-width: thin;
+}
+
+#cdRelatedGrid::-webkit-scrollbar {
+  height: 6px;
+}
+
+#cdRelatedGrid::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 99px;
+}
+
+#cdRelatedGrid::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 99px;
+}
+
+#cdRelatedGrid::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+#cdRelatedGrid .course-card {
+  flex: 0 0 300px !important;
+  min-width: 285px !important;
+  max-width: 320px !important;
+  margin: 0 !important;
+}
+
+.btn-slider-arrow:hover {
+  background: #0284c7 !important;
+  color: #ffffff !important;
+  border-color: #0284c7 !important;
+  transform: scale(1.05);
+}
+
+.btn-slider-arrow:active {
+  transform: scale(0.95);
+}
+
+
 
 
