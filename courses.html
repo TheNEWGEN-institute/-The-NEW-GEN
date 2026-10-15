@@ -416,14 +416,14 @@
 
         return `
           <div class="bundle-card">
-            <div class="bundle-thumb-area ${isCustom ? 'custom-img' : ''}">
+            <div class="bundle-thumb-area ${isCustom ? 'custom-img' : ''}" onclick="openBundleDetailModal('${b.id}')" style="cursor: pointer;" title="คลิกเพื่อดูรายละเอียดแพ็คเกจ">
               ${visualHtml}
               <span class="bundle-badge-promo"><i class="fa-solid fa-fire"></i> ${b.badge || '🔥 แพ็คเกจโปรโมชั่น'}</span>
               ${savingsVal > 0 ? `<span class="bundle-savings-pill"><i class="fa-solid fa-gift"></i> ประหยัดทันที ${savingsVal.toLocaleString()}.-</span>` : ''}
             </div>
             <div class="bundle-card-body">
               <div>
-                <h3 class="bundle-title">${b.name}</h3>
+                <h3 class="bundle-title" onclick="openBundleDetailModal('${b.id}')" style="cursor: pointer;" title="คลิกเพื่อดูรายละเอียดแพ็คเกจ">${b.name}</h3>
                 <p class="bundle-desc">${b.description || 'รวมคอร์สเรียนวิชาหลักเข้มข้น สมัครเป็นแพ็คประหยัดยิ่งขึ้น พร้อมติวจัดเต็ม'}</p>
                 <div class="bundle-included-list">
                   <div class="bundle-included-heading"><i class="fa-solid fa-layer-group"></i> รวม ${childCourses.length} คอร์สเรียนในแพ็คนี้:</div>
@@ -448,6 +448,9 @@
                 <div class="course-actions-wrap">
                   <button type="button" class="btn-course-register" onclick="openEnrollmentModal('${b.id}')" title="สมัครแพ็คเกจนี้" style="background: linear-gradient(135deg, #e11d48, #be123c); border-color: #be123c;">
                     <i class="fa-solid fa-bolt"></i> สมัครแพ็คเกจนี้
+                  </button>
+                  <button type="button" class="btn-detail-link" onclick="openBundleDetailModal('${b.id}')" title="ดูรายละเอียดคอร์สในแพ็คเกจ" style="border: none; cursor: pointer;">
+                    รายละเอียด <i class="fa-solid fa-arrow-right"></i>
                   </button>
                 </div>
               </div>

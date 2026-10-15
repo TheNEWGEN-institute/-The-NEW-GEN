@@ -416,9 +416,9 @@
   };
 
   /**
-   * Open Enrollment Modal for specific course
+   * Open Enrollment Modal for specific course or bundle
    */
-  window.openEnrollmentModal = function (courseId) {
+  window.openEnrollmentModal = function (courseId, bundleDataFallback) {
     ensureEnrollmentModalDom();
     if (typeof window.applyEnrollmentConfig === 'function') {
       window.applyEnrollmentConfig();
@@ -430,10 +430,49 @@
     // If not found in courses, check if courseId is a bundle!
     if (!course) {
       const bundles = (window.NewGenDB ? window.NewGenDB.getBundles() : (window.bundlesData || []));
-      const bundleObj = bundles.find(b => b.id === courseId);
+      let bundleObj = bundles.find(b => b.id === courseId);
+
+      // Fallback 1: check bundleDataFallback parameter
+      if (!bundleObj && bundleDataFallback && typeof bundleDataFallback === 'object') {
+        bundleObj = bundleDataFallback;
+      }
+
+      // Fallback 2: check raw localStorage
+      if (!bundleObj) {
+        try {
+          const rawB = JSON.parse(localStorage.getItem('newgen_bundles') || '[]');
+          if (Array.isArray(rawB)) bundleObj = rawB.find(b => b.id === courseId);
+        } catch (e) {}
+      }
+
+      // Fallback 3: check window.bundlesData
+      if (!bundleObj && typeof window !== 'undefined' && Array.isArray(window.bundlesData)) {
+        bundleObj = window.bundlesData.find(b => b.id === courseId);
+      }
+
       if (bundleObj) {
         const childCourses = courses.filter(c => Array.isArray(bundleObj.courseIds) && bundleObj.courseIds.includes(c.id));
-        const childTitles = childCourses.map(c => c.title).join(' + ');
+        const childTitles = childCourses.map(c => c.title).join(' • ');
+
+        // Gather schedules from child courses
+        let schedules = [];
+        childCourses.forEach(c => {
+          if (Array.isArray(c.scheduleList)) {
+            c.scheduleList.forEach(s => {
+              schedules.push({
+                type: `[${c.title}] ${s.type || 'รอบเรียน'}`,
+                dates: s.dates || '',
+                time: s.time || ''
+              });
+            });
+          }
+        });
+        if (schedules.length === 0) {
+          schedules = [
+            { type: 'รอบเรียนแพ็คเกจ (เรียนครบทุกวิชา)', dates: 'เจ้าหน้าที่จะติดต่อประสานงานยืนยันวันเวลากับผู้ปกครอง', time: 'ตามตารางเรียนคอร์สในแพ็ค' }
+          ];
+        }
+
         course = {
           id: bundleObj.id,
           title: `[แพ็คเกจ] ${bundleObj.name}`,
@@ -443,15 +482,16 @@
           bundleName: bundleObj.name,
           courseIds: bundleObj.courseIds || [],
           childCourses: childCourses,
-          categoryLabel: `แพ็คเกจโปรโมชั่น (${bundleObj.courseIds ? bundleObj.courseIds.length : 2} คอร์ส)`,
+          categoryLabel: `แพ็คเกจโปรโมชั่น (${bundleObj.courseIds ? bundleObj.courseIds.length : childCourses.length} คอร์ส)`,
           subjects: childTitles || bundleObj.description || 'รวมคอร์สโปรโมชั่นพิเศษ',
-          location: 'เรียนสด Onsite หรือ Online (The NEW GEN)',
-          totalHours: childCourses.map(c => c.totalHours || '').filter(Boolean).join(' • ') || 'แพ็คเกจวิชาหลักเข้มข้น',
+          location: 'สถาบัน The NEW GEN (เรียนสด Onsite & Online)',
+          totalHours: childCourses.map(c => `${c.title} (${c.totalHours || 'ชั่วโมงตามคอร์ส'})`).join(' • ') || 'แพ็คเกจวิชาหลักเข้มข้น',
           pricePromo: bundleObj.pricePromo || '0',
+          priceOriginal: bundleObj.priceOriginal || '',
           priceUnit: bundleObj.priceUnit || 'บาท / แพ็คเกจ',
           cover: bundleObj.customImage || (childCourses[0]?.cover || childCourses[0]?.poster || 'assets/images/course-poster-primary.jpg'),
           poster: bundleObj.customImage || (childCourses[0]?.poster || childCourses[0]?.cover || 'assets/images/course-poster-primary.jpg'),
-          scheduleList: childCourses.flatMap(c => c.scheduleList || []).slice(0, 4),
+          scheduleList: schedules,
           remainingSeats: 99,
           maxSeats: 99,
           isFull: false
@@ -459,10 +499,8 @@
       }
     }
 
-    if (!course) course = courses[0];
-
     if (!course) {
-      alert('ไม่พบคอร์สเรียนที่ต้องการสมัคร กรุณาลองใหม่อีกครั้ง');
+      alert('ไม่พบคอร์สเรียนหรือแพ็คเกจที่ต้องการสมัคร กรุณาลองใหม่อีกครั้ง');
       return;
     }
 
@@ -507,8 +545,12 @@
     if (unitEl) unitEl.textContent = course.priceUnit || 'บาท / เทอม (แบ่งชำระได้)';
 
     const seatBadgeEl = document.getElementById('enrReviewSeatBadge');
-    if (seatBadgeEl && window.getCourseSeatBadgeHtml) {
-      seatBadgeEl.innerHTML = window.getCourseSeatBadgeHtml(course);
+    if (seatBadgeEl) {
+      if (course.isBundle) {
+        seatBadgeEl.innerHTML = `<span class="badge badge-rose" style="background:#ffe4e6; color:#e11d48; font-weight:700; border:1px solid #fecdd3;"><i class="fa-solid fa-fire"></i> แพ็คเกจโปรโมชั่น</span>`;
+      } else if (window.getCourseSeatBadgeHtml) {
+        seatBadgeEl.innerHTML = window.getCourseSeatBadgeHtml(course);
+      }
     }
 
     // Populate Schedules
@@ -827,6 +869,277 @@ LINE ID: ${lastEnrollmentData.lineId}${customText}
     }).catch(() => {
       alert('ไม่สามารถคัดลอกอัตโนมัติได้ สามารถแคปเจอร์หน้าจอเพื่อส่งให้แอดมินใน LINE ได้เลยครับ');
     });
+  };
+
+  /**
+   * Ensure Bundle Details Modal DOM exists
+   */
+  function ensureBundleDetailModalDom() {
+    if (document.getElementById('modalBundleDetail')) return;
+
+    const modalHtml = `
+      <div class="modal-backdrop" id="modalBundleDetail" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.78); backdrop-filter: blur(8px); z-index: 9999; align-items: center; justify-content: center; padding: 16px; overflow-y: auto;">
+        <div class="modal-bundle-box" style="background: #ffffff; width: 100%; max-width: 840px; border-radius: 24px; box-shadow: 0 30px 70px -15px rgba(0,0,0,0.35); overflow: hidden; position: relative; border: 1px solid rgba(226, 232, 240, 0.8); margin: auto;">
+          
+          <!-- Header Banner -->
+          <div style="background: linear-gradient(135deg, #0b1e3f 0%, #1e3a8a 60%, #be123c 100%); color: #ffffff; padding: 26px 30px 22px; position: relative;">
+            <button type="button" class="btn-close-modal" onclick="closeBundleDetailModal()" aria-label="ปิดหน้าต่าง" style="position: absolute; top: 18px; right: 18px; background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.3); color: #ffffff; width: 36px; height: 36px; border-radius: 50%; font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div id="bundleDetailBadgeWrap" style="margin-bottom: 8px;">
+              <span id="bundleDetailBadge" style="display: inline-flex; align-items: center; gap: 6px; padding: 5px 14px; border-radius: 999px; background: rgba(244, 63, 94, 0.25); border: 1px solid #f43f5e; color: #ffccd5; font-size: 0.84rem; font-weight: 700;">
+                <i class="fa-solid fa-fire"></i> แพ็คเกจโปรโมชั่นสุดคุ้ม
+              </span>
+            </div>
+            <h2 id="bundleDetailTitle" style="font-size: 1.55rem; font-weight: 800; line-height: 1.3; margin: 0 0 6px 0; color: #ffffff;">ชื่อแพ็คเกจคอร์สเรียน</h2>
+            <p id="bundleDetailDesc" style="font-size: 0.92rem; color: #e2e8f0; margin: 0; line-height: 1.5; max-width: 680px;">รายละเอียดสรุปของแพ็คเกจ</p>
+          </div>
+
+          <!-- Price & Savings Ribbon -->
+          <div style="background: #fff1f2; border-bottom: 1px solid #fecdd3; padding: 12px 30px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+            <div style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;">
+              <span style="font-size: 0.9rem; color: #64748b; text-decoration: line-through;" id="bundleDetailPriceOld">จากปกติ 0 บาท</span>
+              <div style="display: flex; align-items: baseline; gap: 4px;">
+                <span style="font-size: 0.85rem; font-weight: 700; color: #be123c;">ราคาแพ็คเกจพิเศษเพียง</span>
+                <span id="bundleDetailPricePromo" style="font-size: 1.7rem; font-weight: 800; color: #e11d48; line-height: 1;">0</span>
+                <span id="bundleDetailPriceUnit" style="font-size: 0.85rem; color: #881337; font-weight: 600;">บาท / แพ็คเกจ</span>
+              </div>
+            </div>
+            <div id="bundleDetailSavingsTag" style="display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #10b981, #059669); color: #ffffff; padding: 6px 14px; border-radius: 999px; font-size: 0.88rem; font-weight: 700; box-shadow: 0 3px 10px rgba(16, 185, 129, 0.3);">
+              <i class="fa-solid fa-gift"></i> ประหยัดทันที 0.-
+            </div>
+          </div>
+
+          <!-- Modal Body Content -->
+          <div style="padding: 22px 30px; max-height: calc(85vh - 220px); overflow-y: auto;">
+            
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+              <h3 style="font-size: 1.12rem; font-weight: 800; color: #0b1e3f; margin: 0; display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-layer-group" style="color: #e11d48;"></i> คอร์สเรียนที่รวมอยู่ในแพ็คเกจนี้ (<span id="bundleDetailCourseCount">0</span> คอร์ส)
+              </h3>
+              <span style="font-size: 0.8rem; color: #166534; background: #dcfce7; padding: 4px 10px; border-radius: 6px; font-weight: 600;">
+                <i class="fa-solid fa-circle-check" style="color: #16a34a;"></i> ได้รับสิทธิ์เรียนครบทุกวิชา
+              </span>
+            </div>
+
+            <!-- List of Child Course Cards -->
+            <div id="bundleDetailCoursesList" style="display: flex; flex-direction: column; gap: 14px; margin-bottom: 20px;">
+              <!-- Dynamic Cards Inserted Here -->
+            </div>
+
+            <!-- Package Perks & Extra Value -->
+            <div style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border: 1px solid #e2e8f0; border-radius: 14px; padding: 16px 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px;">
+              <div style="display: flex; align-items: flex-start; gap: 10px;">
+                <i class="fa-solid fa-book-open" style="color: #2563eb; font-size: 1.15rem; margin-top: 3px;"></i>
+                <div style="font-size: 0.84rem; color: #334155; line-height: 1.4;">
+                  <strong style="color: #0f172a; display: block;">ฟรี! เอกสารครบทุกวิชา</strong>
+                  ชีทสรุปสูตรเก็งข้อสอบและหนังสือเรียนตลอดคอร์ส
+                </div>
+              </div>
+              <div style="display: flex; align-items: flex-start; gap: 10px;">
+                <i class="fa-solid fa-chalkboard-user" style="color: #10b981; font-size: 1.15rem; margin-top: 3px;"></i>
+                <div style="font-size: 0.84rem; color: #334155; line-height: 1.4;">
+                  <strong style="color: #0f172a; display: block;">ติวเตอร์ดูแลใกล้ชิด</strong>
+                  กลุ่มเล็ก ซักถามได้ทันที พร้อมประเมินผลรายบุคคล
+                </div>
+              </div>
+              <div style="display: flex; align-items: flex-start; gap: 10px;">
+                <i class="fa-solid fa-shield-check" style="color: #e11d48; font-size: 1.15rem; margin-top: 3px;"></i>
+                <div style="font-size: 0.84rem; color: #334155; line-height: 1.4;">
+                  <strong style="color: #0f172a; display: block;">การันตีสิทธิ์ราคาโปรโมชั่น</strong>
+                  จ่ายราคาสรุปก้อนเดียว ประหยัดคุ้มค่ากว่าสมัครแยก
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Footer Actions -->
+          <div style="background: #ffffff; border-top: 1px solid #e2e8f0; padding: 14px 30px; display: flex; align-items: center; justify-content: flex-end; gap: 12px; flex-wrap: wrap;">
+            <button type="button" class="btn-modal-cancel" onclick="closeBundleDetailModal()" style="padding: 10px 18px; border-radius: 999px; border: 1px solid #cbd5e1; background: #ffffff; color: #475569; font-weight: 600; cursor: pointer; transition: all 0.2s;">
+              ปิดหน้าต่าง
+            </button>
+            <a href="https://lin.ee/RXrzi1G" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 999px; background: #06c755; color: #ffffff; font-weight: 700; text-decoration: none; font-size: 0.9rem; box-shadow: 0 3px 10px rgba(6, 199, 85, 0.25);">
+              <i class="fa-brands fa-line" style="font-size: 1.15rem;"></i> สอบถามทาง LINE
+            </a>
+            <button type="button" id="btnBundleDetailApplyNow" style="display: inline-flex; align-items: center; gap: 8px; padding: 11px 24px; border-radius: 999px; border: none; background: linear-gradient(135deg, #e11d48, #be123c); color: #ffffff; font-weight: 700; font-size: 0.95rem; cursor: pointer; box-shadow: 0 4px 15px rgba(225, 29, 72, 0.35); transition: all 0.2s;">
+              <i class="fa-solid fa-bolt"></i> สมัครแพ็คเกจนี้ทันที
+            </button>
+          </div>
+
+        </div>
+      </div>
+    `;
+
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+    const modalEl = document.getElementById('modalBundleDetail');
+    if (modalEl) {
+      modalEl.addEventListener('click', (e) => {
+        if (e.target === modalEl) closeBundleDetailModal();
+      });
+    }
+  }
+
+  /**
+   * Open Bundle Detail Modal
+   */
+  window.openBundleDetailModal = function (bundleId) {
+    ensureBundleDetailModalDom();
+
+    const bundles = (window.NewGenDB ? window.NewGenDB.getBundles() : (window.bundlesData || []));
+    let bundleObj = bundles.find(b => b.id === bundleId);
+
+    // Fallbacks
+    if (!bundleObj) {
+      try {
+        const raw = JSON.parse(localStorage.getItem('newgen_bundles') || '[]');
+        if (Array.isArray(raw)) bundleObj = raw.find(b => b.id === bundleId);
+      } catch (e) {}
+    }
+
+    if (!bundleObj) {
+      alert('ไม่พบข้อมูลแพ็คเกจคอร์สที่ต้องการดูรายละเอียด');
+      return;
+    }
+
+    const allCourses = (window.NewGenDB ? window.NewGenDB.getCourses() : (window.courseData || []));
+    const allTutors = (window.NewGenDB ? window.NewGenDB.getTutors() : (window.tutorsData || []));
+    const childCourseIds = Array.isArray(bundleObj.courseIds) ? bundleObj.courseIds : [];
+    const childCourses = allCourses.filter(c => childCourseIds.includes(c.id));
+
+    // Badge & Title
+    const badgeEl = document.getElementById('bundleDetailBadge');
+    if (badgeEl) badgeEl.innerHTML = `<i class="fa-solid fa-fire"></i> ${escapeHtml(bundleObj.badge || '🔥 แพ็คเกจโปรโมชั่นสุดคุ้ม')}`;
+
+    const titleEl = document.getElementById('bundleDetailTitle');
+    if (titleEl) titleEl.textContent = bundleObj.name;
+
+    const descEl = document.getElementById('bundleDetailDesc');
+    if (descEl) descEl.textContent = bundleObj.description || 'รวมคอร์สเรียนวิชาหลักเข้มข้น ปูพื้นฐานและติวเจาะลึกแนวข้อสอบจริง';
+
+    // Pricing
+    const origNum = parseInt(String(bundleObj.priceOriginal || '0').replace(/[^0-9]/g, ''), 10) || 0;
+    const promoNum = parseInt(String(bundleObj.pricePromo || '0').replace(/[^0-9]/g, ''), 10) || 0;
+    const savingsVal = Math.max(0, origNum - promoNum);
+
+    const priceOldEl = document.getElementById('bundleDetailPriceOld');
+    if (priceOldEl) {
+      priceOldEl.textContent = bundleObj.priceOriginal ? `จากปกติ ${bundleObj.priceOriginal} บาท` : (origNum > 0 ? `จากปกติ ${origNum.toLocaleString()} บาท` : '');
+      priceOldEl.style.display = (bundleObj.priceOriginal || origNum > 0) ? 'inline' : 'none';
+    }
+
+    const pricePromoEl = document.getElementById('bundleDetailPricePromo');
+    if (pricePromoEl) pricePromoEl.textContent = bundleObj.pricePromo || '0';
+
+    const priceUnitEl = document.getElementById('bundleDetailPriceUnit');
+    if (priceUnitEl) priceUnitEl.textContent = bundleObj.priceUnit || 'บาท / แพ็คเกจ';
+
+    const savingsTagEl = document.getElementById('bundleDetailSavingsTag');
+    if (savingsTagEl) {
+      if (savingsVal > 0) {
+        savingsTagEl.style.display = 'inline-flex';
+        savingsTagEl.innerHTML = `<i class="fa-solid fa-gift"></i> ประหยัดทันที ${savingsVal.toLocaleString()}.-`;
+      } else {
+        savingsTagEl.style.display = 'none';
+      }
+    }
+
+    const countEl = document.getElementById('bundleDetailCourseCount');
+    if (countEl) countEl.textContent = childCourses.length;
+
+    // Courses List
+    const coursesListEl = document.getElementById('bundleDetailCoursesList');
+    if (coursesListEl) {
+      if (childCourses.length === 0) {
+        coursesListEl.innerHTML = `<div style="text-align: center; color: #94a3b8; padding: 20px;">ไม่พบรายการคอร์สย่อยในแพ็คเกจนี้</div>`;
+      } else {
+        coursesListEl.innerHTML = childCourses.map((c, idx) => {
+          // Tutor details
+          const courseTutors = (c.tutorIds || []).map(tid => allTutors.find(t => t.id === tid)).filter(Boolean);
+          const tutorText = courseTutors.length > 0
+            ? courseTutors.map(t => `${t.nickname ? 'พี่' + t.nickname : t.name} (${t.subject || t.role || ''})`).join(' • ')
+            : 'ทีมติวเตอร์ The NEW GEN';
+
+          // Schedule summaries
+          const schedItems = Array.isArray(c.scheduleList) && c.scheduleList.length > 0
+            ? c.scheduleList.map(s => `
+                <div style="font-size: 0.8rem; color: #475569; display: flex; align-items: baseline; gap: 6px; margin-top: 3px;">
+                  <i class="fa-regular fa-clock" style="color: #64748b; font-size: 0.75rem;"></i>
+                  <span><strong>${escapeHtml(s.type)}:</strong> ${escapeHtml(s.time || '')} <small style="color: #94a3b8;">(${escapeHtml(s.dates || '')})</small></span>
+                </div>
+              `).join('')
+            : `<div style="font-size: 0.8rem; color: #64748b; margin-top: 3px;"><i class="fa-regular fa-calendar-check"></i> ตารางเรียนตามรอบสถาบัน</div>`;
+
+          const coverSrc = window.resolveMediaUrl
+            ? window.resolveMediaUrl(c.cover || c.poster || 'assets/images/course-poster-primary.jpg')
+            : (c.cover || c.poster || 'assets/images/course-poster-primary.jpg');
+
+          return `
+            <div class="bundle-child-course-card" style="display: flex; gap: 16px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); transition: transform 0.2s, box-shadow 0.2s;">
+              <div style="width: 105px; height: 120px; border-radius: 10px; overflow: hidden; flex-shrink: 0; position: relative; background: #f1f5f9;">
+                <img src="${coverSrc}" alt="${escapeHtml(c.title)}" style="width: 100%; height: 100%; object-fit: cover;">
+                <span style="position: absolute; bottom: 4px; left: 4px; right: 4px; background: rgba(11, 30, 63, 0.85); color: #ffffff; font-size: 0.68rem; padding: 2px 4px; border-radius: 4px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600;">
+                  คอร์สที่ ${idx + 1}
+                </span>
+              </div>
+              <div style="flex: 1; min-width: 0;">
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin-bottom: 4px;">
+                  <span style="display: inline-block; font-size: 0.72rem; font-weight: 700; color: #0284c7; background: #e0f2fe; padding: 2px 8px; border-radius: 4px;">
+                    ${escapeHtml(c.categoryLabel || (c.category === 'primary' ? 'ประถม' : 'มัธยม'))}
+                  </span>
+                  <span style="font-size: 0.82rem; font-weight: 700; color: #64748b;">
+                    ราคาปกติเดี่ยว: <span style="color: #0f172a; font-weight: 800;">${escapeHtml(c.pricePromo || c.priceOriginal || '-')}.-</span>
+                  </span>
+                </div>
+                <h4 style="font-size: 1rem; font-weight: 700; color: #0f172a; margin: 0 0 6px 0; line-height: 1.35;">
+                  ${escapeHtml(c.title)}
+                </h4>
+                <div style="font-size: 0.82rem; color: #0284c7; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+                  <i class="fa-solid fa-book-open"></i> <span>${escapeHtml(c.subjects || 'วิชาหลัก')}</span>
+                </div>
+                <div style="font-size: 0.8rem; color: #475569; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                  <span><i class="fa-solid fa-user-graduate" style="color: #8b5cf6;"></i> ติวเตอร์: <strong>${escapeHtml(tutorText)}</strong></span>
+                  ${c.totalHours ? `<span style="color: #cbd5e1;">|</span> <span><i class="fa-regular fa-clock" style="color: #10b981;"></i> ${escapeHtml(c.totalHours)}</span>` : ''}
+                </div>
+                <div style="background: #f8fafc; border-radius: 8px; padding: 6px 10px; border: 1px dashed #cbd5e1;">
+                  ${schedItems}
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    // Apply button click
+    const applyBtn = document.getElementById('btnBundleDetailApplyNow');
+    if (applyBtn) {
+      applyBtn.onclick = function () {
+        closeBundleDetailModal();
+        if (typeof window.openEnrollmentModal === 'function') {
+          window.openEnrollmentModal(bundleObj.id, bundleObj);
+        }
+      };
+    }
+
+    // Open Modal
+    const modalEl = document.getElementById('modalBundleDetail');
+    if (modalEl) {
+      modalEl.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    }
+  };
+
+  /**
+   * Close Bundle Detail Modal
+   */
+  window.closeBundleDetailModal = function () {
+    const modalEl = document.getElementById('modalBundleDetail');
+    if (modalEl) {
+      modalEl.style.display = 'none';
+      document.body.style.overflow = '';
+    }
   };
 
   function escapeHtml(str) {

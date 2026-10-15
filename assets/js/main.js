@@ -310,23 +310,97 @@ function initCourseSlider() {
   const nextBtn = document.getElementById('sliderNext');
   const dotsContainer = document.getElementById('sliderDots');
 
-  const courses = window.NewGenDB ? window.NewGenDB.getCourses() : (window.courseData || []);
-  const filteredCourses = courses.filter(c => c.isFeatured !== false && !c.isHidden);
   let currentIndex = 0;
 
   renderCourses();
 
+  // Listen to Supabase sync event to auto-refresh home courses & bundles
+  document.addEventListener('newgen:synced', () => {
+    renderCourses();
+  });
+  window.renderCourses = renderCourses;
+
   function renderCourses() {
     track.innerHTML = '';
-    const displayList = filteredCourses;
+    const allCourses = window.NewGenDB ? window.NewGenDB.getCourses() : (window.courseData || []);
+    const allBundles = window.NewGenDB ? window.NewGenDB.getBundles() : (window.bundlesData || []);
+    const homeBundles = allBundles.filter(b => b.active !== false && b.showInHome !== false);
+    const filteredCourses = allCourses.filter(c => c.isFeatured !== false && !c.isHidden);
 
-    if (displayList.length === 0) {
+    if (filteredCourses.length === 0 && homeBundles.length === 0) {
       track.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--text-muted); width: 100%;"><p>ยังไม่มีคอร์สเรียนแนะนำในขณะนี้</p></div>';
       updatePagination();
       return;
     }
 
-    displayList.forEach(c => {
+    // 1. Render Home Bundles (if enabled)
+    homeBundles.forEach(b => {
+      const childCourseIds = Array.isArray(b.courseIds) ? b.courseIds : [];
+      const childCourses = allCourses.filter(c => childCourseIds.includes(c.id));
+      const isCustom = b.imageMode === 'custom' && b.customImage;
+
+      const visualHtml = isCustom
+        ? `<img src="${b.customImage}" alt="${escapeHtml(b.name)}">`
+        : `<div class="bundle-3d-stack-wrap" style="position:relative; width:170px; height:135px; perspective:700px; display:flex; align-items:center; justify-content:center;">
+            ${childCourses.slice(0, 3).map((c, i) => `
+              <img src="${c.cover || c.poster || 'assets/images/course-poster-primary.jpg'}" alt="${escapeHtml(c.title)}"
+                style="position:absolute; width:105px; height:130px; object-fit:cover; border-radius:7px; border:2px solid #fff; box-shadow:0 10px 22px rgba(0,0,0,0.4); transform:${i === 0 ? 'translateX(-22px) translateY(6px) rotate(-8deg) scale(0.92)' : (i === 1 ? 'translateX(18px) translateY(-3px) rotate(6deg) scale(0.96)' : 'translateX(0) translateY(-12px) scale(0.86)')}; z-index:${i === 1 ? 4 : (i === 0 ? 3 : 2)};">
+            `).join('')}
+          </div>`;
+
+      const origNum = parseInt(String(b.priceOriginal || '0').replace(/[^0-9]/g, ''), 10) || 0;
+      const promoNum = parseInt(String(b.pricePromo || '0').replace(/[^0-9]/g, ''), 10) || 0;
+      const savingsVal = Math.max(0, origNum - promoNum);
+
+      const card = document.createElement('div');
+      card.className = 'bundle-card';
+      card.style.cssText = 'flex-shrink: 0; min-width: 320px; max-width: 380px; width: 100%; box-sizing: border-box;';
+      card.innerHTML = `
+        <div class="bundle-thumb-area ${isCustom ? 'custom-img' : ''}" onclick="openBundleDetailModal('${b.id}')" style="cursor: pointer;" title="คลิกเพื่อดูรายละเอียดแพ็คเกจ">
+          ${visualHtml}
+          <span class="bundle-badge-promo"><i class="fa-solid fa-fire"></i> ${escapeHtml(b.badge || '🔥 แพ็คเกจโปรโมชั่น')}</span>
+          ${savingsVal > 0 ? `<span class="bundle-savings-pill"><i class="fa-solid fa-gift"></i> ประหยัดทันที ${savingsVal.toLocaleString()}.-</span>` : ''}
+        </div>
+        <div class="bundle-card-body">
+          <div>
+            <h3 class="bundle-title" onclick="openBundleDetailModal('${b.id}')" style="cursor: pointer;" title="คลิกเพื่อดูรายละเอียดแพ็คเกจ">${escapeHtml(b.name)}</h3>
+            <p class="bundle-desc">${escapeHtml(b.description || 'รวมคอร์สเรียนวิชาหลักเข้มข้น สมัครเป็นแพ็คประหยัดยิ่งขึ้น พร้อมติวจัดเต็ม')}</p>
+            <div class="bundle-included-list">
+              <div class="bundle-included-heading"><i class="fa-solid fa-layer-group"></i> รวม ${childCourses.length} คอร์สเรียนในแพ็คนี้:</div>
+              ${childCourses.map(c => `
+                <div class="bundle-included-item">
+                  <i class="fa-solid fa-circle-check"></i>
+                  <span><strong>${escapeHtml(c.title)}</strong> <small style="color:#64748b;">(ปกติ ${escapeHtml(c.pricePromo || c.priceOriginal || '')}.-)</small></span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+          <div class="course-footer">
+            <div class="course-price-wrap">
+              ${b.priceOriginal ? `<span class="course-price-old">จาก ${escapeHtml(b.priceOriginal)}</span>` : ''}
+              <div class="course-price-now">
+                <span class="course-price-amount-group">
+                  <span class="course-price-amount" style="color:#e11d48;">${escapeHtml(b.pricePromo || '0')}</span><span class="course-price-dash" style="color:#e11d48;">.-</span>
+                </span>
+                <span class="course-price-unit-tag">${escapeHtml(b.priceUnit || 'บาท / แพ็คเกจ')}</span>
+              </div>
+            </div>
+            <div class="course-actions-wrap">
+              <button type="button" class="btn-course-register" onclick="openEnrollmentModal('${b.id}')" title="สมัครแพ็คเกจนี้" style="background: linear-gradient(135deg, #e11d48, #be123c); border-color: #be123c;">
+                <i class="fa-solid fa-bolt"></i> สมัครแพ็คเกจนี้
+              </button>
+              <button type="button" class="btn-detail-link" onclick="openBundleDetailModal('${b.id}')" title="ดูรายละเอียดคอร์สในแพ็คเกจ" style="border: none; cursor: pointer;">
+                รายละเอียด <i class="fa-solid fa-arrow-right"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+      track.appendChild(card);
+    });
+
+    // 2. Render Standard Courses
+    filteredCourses.forEach(c => {
       const card = document.createElement('div');
       card.className = 'course-card';
       const isFull = Boolean(c.isFull === true || (c.remainingSeats !== null && Number(c.remainingSeats) <= 0));
@@ -391,8 +465,9 @@ function initCourseSlider() {
     if (!dotsContainer) return;
     dotsContainer.innerHTML = '';
     const visibleCount = getCardsPerView();
-    const displayList = filteredCourses;
-    const maxIndex = Math.max(0, displayList.length - visibleCount);
+    const cards = track.querySelectorAll('.course-card, .bundle-card');
+    const totalCount = cards.length;
+    const maxIndex = Math.max(0, totalCount - visibleCount);
 
     for (let i = 0; i <= maxIndex; i++) {
       const dot = document.createElement('div');
@@ -412,7 +487,7 @@ function initCourseSlider() {
   }
 
   function updateSliderPosition() {
-    const cards = track.querySelectorAll('.course-card');
+    const cards = track.querySelectorAll('.course-card, .bundle-card');
     if (cards.length === 0) return;
     const cardWidth = cards[0].offsetWidth + 24; // including gap
     track.style.transform = `translateX(-${currentIndex * cardWidth}px)`;
@@ -432,8 +507,9 @@ function initCourseSlider() {
 
   nextBtn?.addEventListener('click', () => {
     const visibleCount = getCardsPerView();
-    const displayList = filteredCourses;
-    const maxIndex = Math.max(0, displayList.length - visibleCount);
+    const cards = track.querySelectorAll('.course-card, .bundle-card');
+    const totalCount = cards.length;
+    const maxIndex = Math.max(0, totalCount - visibleCount);
     if (currentIndex < maxIndex) {
       currentIndex++;
       updateSliderPosition();

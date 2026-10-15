@@ -9892,11 +9892,42 @@ button {
     font-size: 1.05rem;
   }
   .gift-title {
-    font-size: 0.8rem;
+}
+
+/* ===================================================================
+   Bundle Detail Modal & Child Cards Luxury Styling
+   =================================================================== */
+#modalBundleDetail .bundle-child-course-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08) !important;
+  border-color: #cbd5e1 !important;
+}
+
+#modalBundleDetail .btn-close-modal:hover {
+  background: rgba(255, 255, 255, 0.35) !important;
+  transform: rotate(90deg);
+}
+
+#btnBundleDetailApplyNow:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(225, 29, 72, 0.55) !important;
+  filter: brightness(1.05);
+}
+
+@media (max-width: 640px) {
+  #modalBundleDetail .modal-bundle-box {
+    width: 96% !important;
+    border-radius: 18px !important;
   }
-  .gift-subtitle {
-    font-size: 0.68rem;
+  #modalBundleDetail .bundle-child-course-card {
+    flex-direction: column !important;
+    gap: 10px !important;
+  }
+  #modalBundleDetail .bundle-child-course-card > div:first-child {
+    width: 100% !important;
+    height: 140px !important;
   }
 }
+
 
 
