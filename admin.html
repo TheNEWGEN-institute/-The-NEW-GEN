@@ -64,12 +64,16 @@
         <button type="button" class="admin-nav-item active" onclick="switchAdminTab('courses', this)">
           <i class="fa-solid fa-graduation-cap"></i> 1. จัดการคอร์สเรียน
         </button>
+        <button type="button" class="admin-nav-item" onclick="switchAdminTab('bundles', this)" id="navTabBundles">
+          <i class="fa-solid fa-boxes-stacked" style="color: #e11d48;"></i> 1.1 จัดการแพ็คคอร์สเรียน
+          <span class="badge" id="navBundlesCountBadge" style="margin-left: auto; font-size: 0.72rem; background: #e11d48; color: #fff; border-radius: 99px; padding: 2px 7px; font-weight: 700;">0</span>
+        </button>
         <button type="button" class="admin-nav-item" onclick="switchAdminTab('enrollments', this)" id="navTabEnrollments">
           <i class="fa-solid fa-users-rectangle"></i> 2. รายชื่อผู้สมัครเรียน
           <span class="badge" id="navEnrollCountBadge" style="margin-left: auto; font-size: 0.72rem; background: #2563eb; color: #fff; border-radius: 99px; padding: 2px 7px; font-weight: 700;">0</span>
         </button>
         <button type="button" class="admin-nav-item" onclick="switchAdminTab('home', this)">
-          <i class="fa-solid fa-house"></i> 3. จัดการหน้าแรก &amp; จุดเด่น
+          <i class="fa-solid fa-house"></i> 3. จัดการหน้าแรก &amp; แคมเปญ/ฟอร์ม
         </button>
         <button type="button" class="admin-nav-item" onclick="switchAdminTab('tutors', this)">
           <i class="fa-solid fa-user-tie"></i> 4. จัดการทีมติวเตอร์ (เรียงลำดับ)
@@ -102,9 +106,12 @@
             <h2><i class="fa-solid fa-graduation-cap" style="color: var(--color-navy);"></i> จัดการคอร์สเรียน (Courses Management)</h2>
             <p>เพิ่มคอร์สใหม่ แก้ไขรูปภาพปก/โปสเตอร์ ราคา รายละเอียด และตารางเรียน</p>
           </div>
-          <div style="display: flex; gap: 10px; align-items: center;">
+          <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
             <button type="button" class="btn-secondary" onclick="openCategoriesModal()">
               <i class="fa-solid fa-tags"></i> จัดการระดับชั้นเรียน
+            </button>
+            <button type="button" class="btn-secondary" onclick="switchAdminTab('bundles', document.getElementById('navTabBundles'))" style="border-color: #f43f5e; color: #e11d48; font-weight: 700;">
+              <i class="fa-solid fa-boxes-stacked"></i> จัดการแพ็คเกจคอร์สโปรโมชั่น
             </button>
             <button type="button" class="btn-primary" onclick="openAddCourseModal()">
               <i class="fa-solid fa-plus"></i> เพิ่มคอร์สเรียนใหม่
@@ -159,6 +166,51 @@
         </div>
       </section>
 
+      <!-- ================= 1.5 BUNDLES TAB (แพ็คเกจคอร์สเรียนโปรโมชั่น) ================= -->
+      <section id="tab-bundles" class="admin-tab-pane">
+        <div class="admin-pane-header">
+          <div>
+            <h2><i class="fa-solid fa-boxes-stacked" style="color: #e11d48;"></i> จัดการแพ็คเกจคอร์สเรียนโปรโมชั่น (Course Bundles Management)</h2>
+            <p>ดึงคอร์สเรียนทั้งหมดมาจัดโปรโมชั่นรวมแพ็คคู่หรือมากกว่า กำหนดราคาพิเศษ คำนวณส่วนลดอัตโนมัติ และแสดงผล 3D Stack บนหน้าเว็บ</p>
+          </div>
+          <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+            <button type="button" class="btn-secondary" onclick="switchAdminTab('courses', document.querySelector('.admin-nav-item[onclick*=\'courses\']'))">
+              <i class="fa-solid fa-graduation-cap"></i> กลับไปจัดการคอร์สเดี่ยว
+            </button>
+            <button type="button" class="btn-primary" onclick="openAddBundleModal()" style="background: linear-gradient(135deg, #e11d48, #be123c);">
+              <i class="fa-solid fa-plus"></i> สร้างแพ็คเกจโปรโมชั่นใหม่
+            </button>
+          </div>
+        </div>
+
+        <!-- Info Card -->
+        <div style="background: #fff1f2; border: 1.5px solid #fecdd3; border-radius: var(--radius-md); padding: 14px 20px; margin-bottom: 22px; display: flex; align-items: center; gap: 14px; color: #9f1239; font-size: 0.88rem;">
+          <i class="fa-solid fa-circle-info" style="font-size: 1.35rem; color: #e11d48; flex-shrink: 0;"></i>
+          <div>
+            <strong>วิธีทำงานของระบบแพ็คเกจ:</strong> เมื่อนักเรียนกดสมัครแพ็คเกจเรียน ข้อมูลการสมัครจะถูกบันทึกและส่งต่อไปยัง <u>ทุกคอร์สเรียนที่อยู่ในแพ็คเกจนั้นทันที</u> (อัปเดตจำนวนที่นั่งและรายชื่อนักเรียนในทุกคอร์สให้อัตโนมัติ)
+          </div>
+        </div>
+
+        <!-- Bundles Grid / Container -->
+        <div id="adminBundlesGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 20px; margin-bottom: 30px;">
+          <!-- Dynamically populated via JS -->
+        </div>
+
+        <!-- Empty State -->
+        <div id="adminBundlesEmptyState" style="display: none; padding: 60px 20px; text-align: center; background: #ffffff; border-radius: var(--radius-lg); border: 2px dashed #e2e8f0;">
+          <div style="width: 72px; height: 72px; border-radius: 50%; background: #ffe4e6; color: #e11d48; display: inline-flex; align-items: center; justify-content: center; font-size: 2rem; margin-bottom: 16px;">
+            <i class="fa-solid fa-box-open"></i>
+          </div>
+          <h3 style="color: var(--color-navy); margin-bottom: 6px;">ยังไม่มีแพ็คเกจคอร์สเรียนโปรโมชั่น</h3>
+          <p style="color: var(--text-muted); font-size: 0.92rem; max-width: 480px; margin: 0 auto 20px auto;">
+            คุณสามารถรวม 2 คอร์สขึ้นไปเพื่อจัดราคาพิเศษ เช่น รวมคณิต + วิทย์ แล้วตั้งราคาลดพิเศษได้เลยครับ
+          </p>
+          <button type="button" class="btn-primary" onclick="openAddBundleModal()" style="background: linear-gradient(135deg, #e11d48, #be123c);">
+            <i class="fa-solid fa-plus"></i> สร้างแพ็คเกจแรกเลย
+          </button>
+        </div>
+      </section>
+
       <!-- ================= 2. ENROLLMENTS & CAPACITY TAB ================= -->
       <section id="tab-enrollments" class="admin-tab-pane">
 <div class="admin-pane-header">
@@ -184,8 +236,8 @@
           <button type="button" class="admin-subtab-btn" id="btnEnrollSubtabRoster" onclick="switchEnrollSubtab('roster')">
             <i class="fa-solid fa-users"></i> 2. รายชื่อนักเรียน (แยกตามคอร์ส &amp; รวมทั้งหมด)
           </button>
-          <button type="button" class="admin-subtab-btn" id="btnEnrollSubtabConfig" onclick="switchEnrollSubtab('config')">
-            <i class="fa-solid fa-pen-to-square"></i> 3. ตั้งค่าข้อความหน้าสมัครเรียน
+          <button type="button" class="admin-subtab-btn" id="btnEnrollSubtabConfig" onclick="goToHomePopupConfigTab()" style="color: #2563eb;">
+            <i class="fa-solid fa-pen-to-square"></i> 3. ตั้งค่าข้อความหน้าสมัครเรียน <small style="background:#dbeafe; color:#1e40af; padding:2px 6px; border-radius:4px; font-size:0.7rem; font-weight:700;">ย้ายไปเมนูแคมเปญ ↗</small>
           </button>
         </div>
 
@@ -336,345 +388,19 @@
 
         <!-- ================= SUB-TAB 3: ENROLLMENT MODAL TEXT CUSTOMIZATION ================= -->
         <div id="subtabEnrollConfig" class="enroll-subtab-content" style="display: none;">
-          <div class="admin-editor-card" style="padding: 24px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 14px;">
-              <div>
-                <h3 style="margin: 0; font-size: 1.25rem; color: var(--color-navy); font-weight: 800;">
-                  <i class="fa-solid fa-pen-to-square" style="color: var(--color-blue-brand);"></i> ปรับแต่งข้อความ &amp; คำพูดหน้าสมัครเรียน (Enrollment Modal Texts)
-                </h3>
-                <small style="color: var(--text-muted); display: block; margin-top: 4px;">
-                  คุณสามารถแก้ไขคำพูด หัวข้อ และคำอธิบายทุกจุดในหน้าสมัครเรียนของนักเรียนได้จากที่นี่ โดยข้อความจะแสดงผลทันทีและบันทึกลงสู่ Cloud แบบถาวร
-                </small>
-              </div>
-              <div style="display: flex; gap: 8px;">
-                <button type="button" class="btn-secondary" onclick="resetAdminEnrollmentConfig()" style="font-size: 0.88rem; padding: 8px 16px;">
-                  <i class="fa-solid fa-rotate-left"></i> คืนค่าเริ่มต้น
-                </button>
-                <button type="button" class="btn-primary" onclick="saveAdminEnrollmentConfig()" style="font-size: 0.88rem; padding: 8px 20px;">
-                  <i class="fa-solid fa-floppy-disk"></i> บันทึกการตั้งค่าข้อความ
-                </button>
-              </div>
+          <div class="admin-editor-card" style="padding: 36px 24px; text-align: center; border-radius: var(--radius-lg); margin-bottom: 20px;">
+            <div style="width: 64px; height: 64px; border-radius: 50%; background: #eff6ff; color: #2563eb; display: inline-flex; align-items: center; justify-content: center; font-size: 1.75rem; margin-bottom: 16px;">
+              <i class="fa-solid fa-pen-to-square"></i>
             </div>
-
-            <form id="formEnrollmentConfig" onsubmit="handleSaveEnrollmentConfig(event)">
-              
-              <!-- SECTION 1: HEADER & TITLE -->
-              <h4 class="editor-section-title"><i class="fa-solid fa-heading"></i> 1. ส่วนหัวหน้าต่างสมัครเรียน (Modal Header)</h4>
-              <div class="form-row-2col">
-                <div class="form-group-luxury">
-                  <label for="cfgModalTitle">หัวข้อหลักบนหน้าต่างสมัคร *</label>
-                  <input type="text" id="cfgModalTitle" required placeholder="เช่น แบบฟอร์มสมัครเรียนออนไลน์">
-                  <small style="color: var(--text-muted);">ข้อความชื่อหัวข้อหลักด้านบนสุดของหน้าต่างสมัคร</small>
-                </div>
-                <div class="form-group-luxury">
-                  <label for="cfgModalSubtitle">หัวข้อย่อย / สโลแกนสถาบัน *</label>
-                  <input type="text" id="cfgModalSubtitle" required placeholder="เช่น สถาบันกวดวิชา The NEW GEN (Onsite & Online)">
-                  <small style="color: var(--text-muted);">ข้อความระบุชื่อสถาบันใต้หัวข้อหลัก</small>
-                </div>
-              </div>
-
-              <!-- SECTION 2: LEARNING TYPES (ONSITE VS ONLINE) -->
-              <h4 class="editor-section-title" style="margin-top: 24px;"><i class="fa-solid fa-chalkboard-user"></i> 2. ตัวเลือกรูปแบบการเรียน (Step 1: Onsite vs Online)</h4>
-              <div class="form-row-2col">
-                <div class="form-group-luxury">
-                  <label for="cfgOnsiteTitle">ชื่อรูปแบบ Onsite *</label>
-                  <input type="text" id="cfgOnsiteTitle" required placeholder="เช่น เรียนสด Onsite ที่สถาบัน">
-                </div>
-                <div class="form-group-luxury">
-                  <label for="cfgOnsiteDesc">คำอธิบายย่อยรูปแบบ Onsite *</label>
-                  <input type="text" id="cfgOnsiteDesc" required placeholder="เช่น ห้องเรียนแอร์กลุ่มเล็ก ติวเตอร์ดูแลใกล้ชิดรายบุคคล">
-                </div>
-              </div>
-              <div class="form-row-2col" style="margin-top: 10px;">
-                <div class="form-group-luxury">
-                  <label for="cfgOnlineTitle">ชื่อรูปแบบ Online *</label>
-                  <input type="text" id="cfgOnlineTitle" required placeholder="เช่น เรียนสด Online (Zoom)">
-                </div>
-                <div class="form-group-luxury">
-                  <label for="cfgOnlineDesc">คำอธิบายย่อยรูปแบบ Online *</label>
-                  <input type="text" id="cfgOnlineDesc" required placeholder="เช่น เรียนสดพร้อมถามตอบได้ทันที จัดส่งหนังสือฟรีถึงบ้าน">
-                </div>
-              </div>
-
-              <!-- SECTION 3: SUBMIT BUTTON -->
-              <h4 class="editor-section-title" style="margin-top: 24px;"><i class="fa-solid fa-paper-plane"></i> 3. ปุ่มส่งใบสมัครเรียน (Step 1)</h4>
-              <div class="form-group-luxury">
-                <label for="cfgSubmitBtnText">ข้อความบนปุ่มยืนยันการสมัคร *</label>
-                <input type="text" id="cfgSubmitBtnText" required placeholder="เช่น ยืนยันการสมัครเรียน (จองที่นั่ง)">
-                <small style="color: var(--text-muted);">ข้อความบนปุ่มสีน้ำเงินด้านล่างสุดของฟอร์มกรอกข้อมูล</small>
-              </div>
-
-              <!-- SECTION 4: STEP 2 CONFIRMATION & SUCCESS -->
-              <h4 class="editor-section-title" style="margin-top: 24px;"><i class="fa-solid fa-circle-check"></i> 4. หน้าแจ้งผลการสมัครสำเร็จ (Step 2: Confirmation View)</h4>
-              <div class="form-row-2col">
-                <div class="form-group-luxury">
-                  <label for="cfgSuccessTitle">หัวข้อเมื่อสมัครสำเร็จ *</label>
-                  <input type="text" id="cfgSuccessTitle" required placeholder="เช่น ลงทะเบียนสมัครเรียนสำเร็จเรียบร้อยแล้ว! 🎉">
-                </div>
-                <div class="form-group-luxury">
-                  <label for="cfgTicketStatusBadge">ป้ายสถานะในบัตรอ้างอิง *</label>
-                  <input type="text" id="cfgTicketStatusBadge" required placeholder="เช่น รอการยืนยันที่นั่ง">
-                </div>
-              </div>
-              <div class="form-group-luxury" style="margin-top: 10px;">
-                <label for="cfgSuccessLead">คำอธิบายใต้หัวข้อแจ้งผล *</label>
-                <textarea id="cfgSuccessLead" rows="2" placeholder="เช่น ระบบได้บันทึกข้อมูลการสมัครเรียนของน้องเข้าสู่ระบบสถาบัน The NEW GEN เรียบร้อยแล้ว"></textarea>
-              </div>
-
-              <!-- SECTION 5: LINE CALLOUT & ACTION BUTTONS -->
-              <h4 class="editor-section-title" style="margin-top: 24px;"><i class="fa-brands fa-line" style="color: #06c755;"></i> 5. กล่องแจ้งเตือนทัก LINE &amp; ปุ่มดำเนินการ (LINE Callout &amp; Actions)</h4>
-              <div class="form-group-luxury">
-                <label for="cfgLineCalloutTitle">หัวข้อกล่องแจ้งเตือนทัก LINE *</label>
-                <input type="text" id="cfgLineCalloutTitle" required placeholder="เช่น ขั้นตอนสุดท้าย: ทักไปยืนยันการสมัครที่ LINE สถาบัน">
-              </div>
-              <div class="form-group-luxury" style="margin-top: 10px;">
-                <label for="cfgLineCalloutBody">ข้อความแนะนำในกล่องทัก LINE *</label>
-                <textarea id="cfgLineCalloutBody" rows="3" placeholder="เช่น กรุณากดปุ่มด้านล่างเพื่อทักไปยืนยันการสมัครและส่งหลักฐานการชำระเงินที่ LINE Official เจ้าหน้าที่จะตรวจสอบและยืนยันที่นั่งให้น้องทันทีครับ"></textarea>
-              </div>
-
-              <div class="form-row-2col" style="margin-top: 10px;">
-                <div class="form-group-luxury">
-                  <label for="cfgLineBtnText">ข้อความบนปุ่มทัก LINE สีเขียว *</label>
-                  <input type="text" id="cfgLineBtnText" required placeholder="เช่น คลิกเพื่อทัก LINE ยืนยันการสมัครทันที">
-                </div>
-                <div class="form-group-luxury">
-                  <label for="cfgLineUrl">ลิงก์ LINE Official (LINE Add Friend URL) *</label>
-                  <input type="text" id="cfgLineUrl" required placeholder="เช่น https://lin.ee/RXrzi1G">
-                </div>
-              </div>
-
-              <div class="form-row-2col" style="margin-top: 10px;">
-                <div class="form-group-luxury">
-                  <label for="cfgCopyBtnText">ข้อความบนปุ่มคัดลอกข้อมูลสรุป *</label>
-                  <input type="text" id="cfgCopyBtnText" required placeholder="เช่น คัดลอกข้อมูลสรุปสำหรับส่งใน LINE">
-                </div>
-                <div class="form-group-luxury">
-                  <label for="cfgDoneBtnText">ข้อความบนปุ่มเสร็จสิ้น / ปิดหน้าต่าง *</label>
-                  <input type="text" id="cfgDoneBtnText" required placeholder="เช่น เสร็จสิ้น / ปิดหน้าต่าง">
-                </div>
-              </div>
-
-              <!-- SECTION 6: FORM QUESTIONS & CUSTOM FIELDS BUILDER -->
-              <div style="margin-top: 32px; padding-top: 24px; border-top: 2px dashed #cbd5e1;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
-                  <div>
-                    <h4 class="editor-section-title" style="margin: 0;">
-                      <i class="fa-solid fa-clipboard-question" style="color: var(--color-blue-brand);"></i> 6. จัดการข้อคำถามในแบบฟอร์มรับสมัคร (Form Questions &amp; Builder)
-                    </h4>
-                    <small style="color: var(--text-muted); display: block; margin-top: 4px;">
-                      คุณสามารถแก้ไขชื่อคำถาม (Label), คำอธิบายตัวอย่างในช่อง (Placeholder), และกำหนดว่าต้องบังคับกรอก (*) หรือไม่ ได้อย่างอิสระ
-                    </small>
-                  </div>
-                </div>
-
-                <!-- 6.1 คำถามมาตรฐาน 9 ข้อ (Standard Questions) -->
-                <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 10px; padding: 18px; margin-bottom: 20px;">
-                  <h5 style="margin: 0 0 12px 0; font-size: 0.95rem; color: var(--color-navy); font-weight: 700;">
-                    <i class="fa-solid fa-list-check" style="color: #2563eb;"></i> ข้อคำถามหลักมาตรฐาน (9 ข้อ)
-                  </h5>
-
-                  <div class="questions-builder-table-wrap" style="overflow-x: auto;">
-                    <table class="admin-data-table" style="font-size: 0.86rem; background: #fff;">
-                      <thead>
-                        <tr>
-                          <th style="width: 40px; text-align: center;">#</th>
-                          <th style="min-width: 170px;">ชื่อข้อคำถาม (Label)</th>
-                          <th style="min-width: 200px;">คำอธิบายตัวอย่าง (Placeholder)</th>
-                          <th style="width: 110px; text-align: center;">จำเป็นต้องกรอก</th>
-                          <th style="width: 90px; text-align: center;">แสดงในฟอร์ม</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <!-- 1. studentName -->
-                        <tr>
-                          <td style="text-align: center; font-weight: 700;">1</td>
-                          <td>
-                            <input type="text" id="qStd_studentName_label" value="ชื่อ - นามสกุลจริง นักเรียน" style="width: 100%; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px;">
-                          </td>
-                          <td>
-                            <input type="text" id="qStd_studentName_ph" value="เช่น ด.ช. ธนภัทร ใจดี" style="width: 100%; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px;">
-                          </td>
-                          <td style="text-align: center;">
-                            <label style="cursor: pointer;"><input type="checkbox" id="qStd_studentName_req" checked> <span style="font-size: 0.78rem;">บังคับ (*)</span></label>
-                          </td>
-                          <td style="text-align: center;">
-                            <label style="cursor: pointer;"><input type="checkbox" id="qStd_studentName_enable" checked> <span style="font-size: 0.78rem;">เปิด</span></label>
-                          </td>
-                        </tr>
-
-                        <!-- 2. nickname -->
-                        <tr>
-                          <td style="text-align: center; font-weight: 700;">2</td>
-                          <td>
-                            <input type="text" id="qStd_nickname_label" value="ชื่อเล่น" style="width: 100%; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px;">
-                          </td>
-                          <td>
-                            <input type="text" id="qStd_nickname_ph" value="เช่น น้องกาย หรือ น้องพรีม" style="width: 100%; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px;">
-                          </td>
-                          <td style="text-align: center;">
-                            <label style="cursor: pointer;"><input type="checkbox" id="qStd_nickname_req" checked> <span style="font-size: 0.78rem;">บังคับ (*)</span></label>
-                          </td>
-                          <td style="text-align: center;">
-                            <label style="cursor: pointer;"><input type="checkbox" id="qStd_nickname_enable" checked> <span style="font-size: 0.78rem;">เปิด</span></label>
-                          </td>
-                        </tr>
-
-                        <!-- 3. grade -->
-                        <tr>
-                          <td style="text-align: center; font-weight: 700;">3</td>
-                          <td>
-                            <input type="text" id="qStd_grade_label" value="ระดับชั้นปัจจุบัน / ที่กำลังจะขึ้น" style="width: 100%; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px;">
-                          </td>
-                          <td>
-                            <input type="text" id="qStd_grade_ph" value="เช่น ป.5 หรือ ป.6 หรือ ม.1" style="width: 100%; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px;">
-                          </td>
-                          <td style="text-align: center;">
-                            <label style="cursor: pointer;"><input type="checkbox" id="qStd_grade_req" checked> <span style="font-size: 0.78rem;">บังคับ (*)</span></label>
-                          </td>
-                          <td style="text-align: center;">
-                            <label style="cursor: pointer;"><input type="checkbox" id="qStd_grade_enable" checked> <span style="font-size: 0.78rem;">เปิด</span></label>
-                          </td>
-                        </tr>
-
-                        <!-- 4. school -->
-                        <tr>
-                          <td style="text-align: center; font-weight: 700;">4</td>
-                          <td>
-                            <input type="text" id="qStd_school_label" value="โรงเรียนปัจจุบัน" style="width: 100%; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px;">
-                          </td>
-                          <td>
-                            <input type="text" id="qStd_school_ph" value="เช่น โรงเรียนอนุบาลเชียงใหม่" style="width: 100%; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px;">
-                          </td>
-                          <td style="text-align: center;">
-                            <label style="cursor: pointer;"><input type="checkbox" id="qStd_school_req" checked> <span style="font-size: 0.78rem;">บังคับ (*)</span></label>
-                          </td>
-                          <td style="text-align: center;">
-                            <label style="cursor: pointer;"><input type="checkbox" id="qStd_school_enable" checked> <span style="font-size: 0.78rem;">เปิด</span></label>
-                          </td>
-                        </tr>
-
-                        <!-- 5. parentPhone -->
-                        <tr>
-                          <td style="text-align: center; font-weight: 700;">5</td>
-                          <td>
-                            <input type="text" id="qStd_parentPhone_label" value="เบอร์โทรศัพท์ผู้ปกครอง" style="width: 100%; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px;">
-                          </td>
-                          <td>
-                            <input type="text" id="qStd_parentPhone_ph" value="เช่น 089-123-4567" style="width: 100%; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px;">
-                          </td>
-                          <td style="text-align: center;">
-                            <label style="cursor: pointer;"><input type="checkbox" id="qStd_parentPhone_req" checked> <span style="font-size: 0.78rem;">บังคับ (*)</span></label>
-                          </td>
-                          <td style="text-align: center;">
-                            <label style="cursor: pointer;"><input type="checkbox" id="qStd_parentPhone_enable" checked> <span style="font-size: 0.78rem;">เปิด</span></label>
-                          </td>
-                        </tr>
-
-                        <!-- 6. lineId -->
-                        <tr>
-                          <td style="text-align: center; font-weight: 700;">6</td>
-                          <td>
-                            <input type="text" id="qStd_lineId_label" value="LINE ID (ผู้ปกครองหรือน้อง)" style="width: 100%; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px;">
-                          </td>
-                          <td>
-                            <input type="text" id="qStd_lineId_ph" value="เช่น newgen_student หรือ เบอร์โทรไลน์" style="width: 100%; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px;">
-                          </td>
-                          <td style="text-align: center;">
-                            <label style="cursor: pointer;"><input type="checkbox" id="qStd_lineId_req" checked> <span style="font-size: 0.78rem;">บังคับ (*)</span></label>
-                          </td>
-                          <td style="text-align: center;">
-                            <label style="cursor: pointer;"><input type="checkbox" id="qStd_lineId_enable" checked> <span style="font-size: 0.78rem;">เปิด</span></label>
-                          </td>
-                        </tr>
-
-                        <!-- 7. studentPhone -->
-                        <tr>
-                          <td style="text-align: center; font-weight: 700;">7</td>
-                          <td>
-                            <input type="text" id="qStd_studentPhone_label" value="เบอร์โทรศัพท์นักเรียน (ถ้ามี)" style="width: 100%; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px;">
-                          </td>
-                          <td>
-                            <input type="text" id="qStd_studentPhone_ph" value="เช่น 095-xxx-xxxx (ไม่บังคับ)" style="width: 100%; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px;">
-                          </td>
-                          <td style="text-align: center;">
-                            <label style="cursor: pointer;"><input type="checkbox" id="qStd_studentPhone_req"> <span style="font-size: 0.78rem;">บังคับ (*)</span></label>
-                          </td>
-                          <td style="text-align: center;">
-                            <label style="cursor: pointer;"><input type="checkbox" id="qStd_studentPhone_enable" checked> <span style="font-size: 0.78rem;">เปิด</span></label>
-                          </td>
-                        </tr>
-
-                        <!-- 8. shippingAddress -->
-                        <tr>
-                          <td style="text-align: center; font-weight: 700;">8</td>
-                          <td>
-                            <input type="text" id="qStd_shippingAddress_label" value="ที่อยู่จัดส่งเอกสารและหนังสือเรียน" style="width: 100%; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px;">
-                          </td>
-                          <td>
-                            <input type="text" id="qStd_shippingAddress_ph" value="บ้านเลขที่ ตำบล อำเภอ จังหวัด รหัสไปรษณีย์" style="width: 100%; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px;">
-                          </td>
-                          <td style="text-align: center;">
-                            <label style="cursor: pointer;"><input type="checkbox" id="qStd_shippingAddress_req"> <span style="font-size: 0.78rem;">บังคับ (*)</span></label>
-                          </td>
-                          <td style="text-align: center;">
-                            <label style="cursor: pointer;"><input type="checkbox" id="qStd_shippingAddress_enable" checked> <span style="font-size: 0.78rem;">เปิด</span></label>
-                          </td>
-                        </tr>
-
-                        <!-- 9. notes -->
-                        <tr>
-                          <td style="text-align: center; font-weight: 700;">9</td>
-                          <td>
-                            <input type="text" id="qStd_notes_label" value="หมายเหตุ / คำถามเพิ่มเติมถึงติวเตอร์ (ถ้ามี)" style="width: 100%; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px;">
-                          </td>
-                          <td>
-                            <input type="text" id="qStd_notes_ph" value="เช่น พื้นฐานวิชาคณิตศาสตร์ยังไม่คล่อง หรือต้องการเน้นเรื่องใดเป็นพิเศษ" style="width: 100%; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px;">
-                          </td>
-                          <td style="text-align: center;">
-                            <label style="cursor: pointer;"><input type="checkbox" id="qStd_notes_req"> <span style="font-size: 0.78rem;">บังคับ (*)</span></label>
-                          </td>
-                          <td style="text-align: center;">
-                            <label style="cursor: pointer;"><input type="checkbox" id="qStd_notes_enable" checked> <span style="font-size: 0.78rem;">เปิด</span></label>
-                          </td>
-                        </tr>
-
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-
-                <!-- 6.2 คำถามเพิ่มเติมที่กำหนดเอง (+ เพิ่มคำถามใหม่) -->
-                <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 18px;">
-                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
-                    <div>
-                      <h5 style="margin: 0; font-size: 0.95rem; color: #166534; font-weight: 700;">
-                        <i class="fa-solid fa-plus-circle" style="color: #16a34a;"></i> ข้อคำถามเพิ่มเติมที่กำหนดเอง (Custom Questions)
-                      </h5>
-                      <small style="color: #15803d;">คุณสามารถเพิ่มคำถามที่ต้องการถามนักเรียนเพิ่มเติมได้ไม่จำกัด เช่น สายการเรียนที่สนใจ, โรงเรียนเป้าหมาย, เกรดเฉลี่ย</small>
-                    </div>
-                    <button type="button" class="btn-primary" onclick="openAddCustomQuestionModal()" style="font-size: 0.82rem; padding: 6px 14px; background: #16a34a; border-color: #16a34a;">
-                      <i class="fa-solid fa-plus"></i> เพิ่มข้อคำถามใหม่
-                    </button>
-                  </div>
-
-                  <div id="adminCustomQuestionsContainer" style="display: flex; flex-direction: column; gap: 10px;">
-                    <!-- Dynamically populated via JS -->
-                  </div>
-                </div>
-
-              </div>
-
-              <!-- Bottom Action Bar -->
-              <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 28px; padding-top: 18px; border-top: 1px solid var(--border-color);">
-                <button type="button" class="btn-secondary" onclick="resetAdminEnrollmentConfig()">
-                  <i class="fa-solid fa-rotate-left"></i> คืนค่าเริ่มต้น (Reset to Default)
-                </button>
-                <button type="submit" class="btn-primary" style="padding: 12px 28px; font-size: 0.95rem;">
-                  <i class="fa-solid fa-floppy-disk"></i> บันทึกการตั้งค่าข้อความหน้าสมัครเรียน
-                </button>
-              </div>
-
-            </form>
+            <h3 style="color: var(--color-navy); margin-bottom: 8px; font-weight: 800; font-size: 1.25rem;">
+              การตั้งค่าแบบฟอร์มสมัครเรียน ย้ายไปรวมกับเมนูแคมเปญแล้วครับ ✨
+            </h3>
+            <p style="color: var(--text-muted); max-width: 560px; margin: 0 auto 24px auto; font-size: 0.95rem; line-height: 1.5;">
+              ตามที่คุณต้องการ เพื่อให้การจัดการทั้ง <b>Pop-up แคมเปญติวฟรี</b> และ <b>ข้อความ/คำถามในแบบฟอร์มที่เด็กต้องสมัคร</b> อยู่ในที่เดียวกันอย่างเป็นระบบ คุณสามารถคลิกปุ่มด้านล่างเพื่อไปยังหน้าตั้งค่าได้ทันที
+            </p>
+            <button type="button" class="btn-primary" onclick="goToHomePopupConfigTab('form')" style="padding: 12px 28px; font-size: 0.95rem;">
+              <i class="fa-solid fa-arrow-right"></i> ไปยังหน้าตั้งค่าข้อความฟอร์มสมัครเรียนทันที ↗
+            </button>
           </div>
         </div>
       </section>
@@ -700,7 +426,7 @@
             <i class="fa-solid fa-star" style="color: var(--color-gold);"></i> 2. จุดเด่น ทำไมต้องเลือก The NEW GEN
           </button>
           <button type="button" class="admin-subtab-btn" id="btnHomeSubtabPopup" onclick="switchHomeSubtab('popup')">
-            <i class="fa-solid fa-bullhorn" style="color: #ef4444;"></i> 3. Pop-up แคมเปญหน้าแรก (โครงการติวฟรี)
+            <i class="fa-solid fa-bullhorn" style="color: #ef4444;"></i> 3. Pop-up แคมเปญ &amp; ฟอร์มรับสมัครเรียน
           </button>
         </div>
 
@@ -876,9 +602,21 @@
           </div>
         </div>
 
-        <!-- SUBTAB 3: CAMPAIGN POPUP (โครงการติวฟรี & ประกาศหน้าแรก) -->
+        <!-- SUBTAB 3: CAMPAIGN POPUP & ENROLLMENT FORM CONFIG -->
         <div id="subtabHomePopup" class="home-subtab-content" style="display: none;">
-          <div class="admin-editor-card" style="margin-bottom: 24px;">
+          <!-- Inner Subtabs to switch between Campaign Pop-up and Enrollment Form Texts -->
+          <div class="admin-enroll-subtabs" style="margin-bottom: 22px;">
+            <button type="button" class="admin-subtab-btn active" id="btnCampaignInnerPopup" onclick="switchCampaignInnerTab('popup')">
+              <i class="fa-solid fa-bullhorn" style="color: #ef4444;"></i> 1. ตั้งค่า Pop-up แคมเปญ (ติวฟรี &amp; ประกาศสำคัญ)
+            </button>
+            <button type="button" class="admin-subtab-btn" id="btnCampaignInnerForm" onclick="switchCampaignInnerTab('form')">
+              <i class="fa-solid fa-pen-to-square" style="color: #2563eb;"></i> 2. ปรับแต่งข้อความ &amp; คำถามในแบบฟอร์มสมัครเรียน
+            </button>
+          </div>
+
+          <!-- Section A: Campaign Popup Settings -->
+          <div id="campaignInnerPopupSection" style="display: block;">
+            <div class="admin-editor-card" style="margin-bottom: 24px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; border-bottom: 1px solid #e2e8f0; padding-bottom: 16px;">
               <div>
                 <h3 style="margin: 0; color: var(--color-navy); font-weight: 800; font-size: 1.15rem;">
@@ -985,7 +723,355 @@
             </div>
           </div>
         </div>
-      </section>
+        <!-- END Section A: Campaign Popup Settings -->
+
+        <!-- Section B: Enrollment Form Customization (Moved here with Campaign) -->
+        <div id="campaignInnerFormSection" style="display: none;">
+          <div id="cardEnrollConfigEditor">
+            <div class="admin-editor-card" style="padding: 24px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 14px;">
+                <div>
+                  <h3 style="margin: 0; font-size: 1.25rem; color: var(--color-navy); font-weight: 800;">
+                    <i class="fa-solid fa-pen-to-square" style="color: var(--color-blue-brand);"></i> ปรับแต่งข้อความ &amp; คำพูดหน้าสมัครเรียน (Enrollment Modal Texts)
+                  </h3>
+                  <small style="color: var(--text-muted); display: block; margin-top: 4px;">
+                    คุณสามารถแก้ไขคำพูด หัวข้อ และคำอธิบายทุกจุดในหน้าสมัครเรียนของนักเรียนได้จากที่นี่ โดยข้อความจะแสดงผลทันทีและบันทึกลงสู่ Cloud แบบถาวร
+                  </small>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                  <button type="button" class="btn-secondary" onclick="resetAdminEnrollmentConfig()" style="font-size: 0.88rem; padding: 8px 16px;">
+                    <i class="fa-solid fa-rotate-left"></i> คืนค่าเริ่มต้น
+                  </button>
+                  <button type="button" class="btn-primary" onclick="saveAdminEnrollmentConfig()" style="font-size: 0.88rem; padding: 8px 20px;">
+                    <i class="fa-solid fa-floppy-disk"></i> บันทึกการตั้งค่าข้อความ
+                  </button>
+                </div>
+              </div>
+
+              <form id="formEnrollmentConfig" onsubmit="handleSaveEnrollmentConfig(event)">
+                
+                <!-- SECTION 1: HEADER & TITLE -->
+                <h4 class="editor-section-title"><i class="fa-solid fa-heading"></i> 1. ส่วนหัวหน้าต่างสมัครเรียน (Modal Header)</h4>
+                <div class="form-row-2col">
+                  <div class="form-group-luxury">
+                    <label for="cfgModalTitle">หัวข้อหลักบนหน้าต่างสมัคร *</label>
+                    <input type="text" id="cfgModalTitle" required placeholder="เช่น แบบฟอร์มสมัครเรียนออนไลน์">
+                    <small style="color: var(--text-muted);">ข้อความชื่อหัวข้อหลักด้านบนสุดของหน้าต่างสมัคร</small>
+                  </div>
+                  <div class="form-group-luxury">
+                    <label for="cfgModalSubtitle">หัวข้อย่อย / สโลแกนสถาบัน *</label>
+                    <input type="text" id="cfgModalSubtitle" required placeholder="เช่น สถาบันกวดวิชา The NEW GEN (Onsite & Online)">
+                    <small style="color: var(--text-muted);">ข้อความระบุชื่อสถาบันใต้หัวข้อหลัก</small>
+                  </div>
+                </div>
+
+                <!-- SECTION 2: LEARNING TYPES (ONSITE VS ONLINE) -->
+                <h4 class="editor-section-title" style="margin-top: 24px;"><i class="fa-solid fa-chalkboard-user"></i> 2. ตัวเลือกรูปแบบการเรียน (Step 1: Onsite vs Online)</h4>
+                <div class="form-row-2col">
+                  <div class="form-group-luxury">
+                    <label for="cfgOnsiteTitle">ชื่อรูปแบบ Onsite *</label>
+                    <input type="text" id="cfgOnsiteTitle" required placeholder="เช่น เรียนสด Onsite ที่สถาบัน">
+                  </div>
+                  <div class="form-group-luxury">
+                    <label for="cfgOnsiteDesc">คำอธิบายย่อยรูปแบบ Onsite *</label>
+                    <input type="text" id="cfgOnsiteDesc" required placeholder="เช่น ห้องเรียนแอร์กลุ่มเล็ก ติวเตอร์ดูแลใกล้ชิดรายบุคคล">
+                  </div>
+                </div>
+                <div class="form-row-2col" style="margin-top: 10px;">
+                  <div class="form-group-luxury">
+                    <label for="cfgOnlineTitle">ชื่อรูปแบบ Online *</label>
+                    <input type="text" id="cfgOnlineTitle" required placeholder="เช่น เรียนสด Online (Zoom)">
+                  </div>
+                  <div class="form-group-luxury">
+                    <label for="cfgOnlineDesc">คำอธิบายย่อยรูปแบบ Online *</label>
+                    <input type="text" id="cfgOnlineDesc" required placeholder="เช่น เรียนสดพร้อมถามตอบได้ทันที จัดส่งหนังสือฟรีถึงบ้าน">
+                  </div>
+                </div>
+
+                <!-- SECTION 3: SUBMIT BUTTON -->
+                <h4 class="editor-section-title" style="margin-top: 24px;"><i class="fa-solid fa-paper-plane"></i> 3. ปุ่มส่งใบสมัครเรียน (Step 1)</h4>
+                <div class="form-group-luxury">
+                  <label for="cfgSubmitBtnText">ข้อความบนปุ่มยืนยันการสมัคร *</label>
+                  <input type="text" id="cfgSubmitBtnText" required placeholder="เช่น ยืนยันการสมัครเรียน (จองที่นั่ง)">
+                  <small style="color: var(--text-muted);">ข้อความบนปุ่มสีน้ำเงินด้านล่างสุดของฟอร์มกรอกข้อมูล</small>
+                </div>
+
+                <!-- SECTION 4: STEP 2 CONFIRMATION & SUCCESS -->
+                <h4 class="editor-section-title" style="margin-top: 24px;"><i class="fa-solid fa-circle-check"></i> 4. หน้าแจ้งผลการสมัครสำเร็จ (Step 2: Confirmation View)</h4>
+                <div class="form-row-2col">
+                  <div class="form-group-luxury">
+                    <label for="cfgSuccessTitle">หัวข้อเมื่อสมัครสำเร็จ *</label>
+                    <input type="text" id="cfgSuccessTitle" required placeholder="เช่น ลงทะเบียนสมัครเรียนสำเร็จเรียบร้อยแล้ว! 🎉">
+                  </div>
+                  <div class="form-group-luxury">
+                    <label for="cfgTicketStatusBadge">ป้ายสถานะในบัตรอ้างอิง *</label>
+                    <input type="text" id="cfgTicketStatusBadge" required placeholder="เช่น รอการยืนยันที่นั่ง">
+                  </div>
+                </div>
+                <div class="form-group-luxury" style="margin-top: 10px;">
+                  <label for="cfgSuccessLead">คำอธิบายใต้หัวข้อแจ้งผล *</label>
+                  <textarea id="cfgSuccessLead" rows="2" placeholder="เช่น ระบบได้บันทึกข้อมูลการสมัครเรียนของน้องเข้าสู่ระบบสถาบัน The NEW GEN เรียบร้อยแล้ว"></textarea>
+                </div>
+
+                <!-- SECTION 5: LINE CALLOUT & ACTION BUTTONS -->
+                <h4 class="editor-section-title" style="margin-top: 24px;"><i class="fa-brands fa-line" style="color: #06c755;"></i> 5. กล่องแจ้งเตือนทัก LINE &amp; ปุ่มดำเนินการ (LINE Callout &amp; Actions)</h4>
+                <div class="form-group-luxury">
+                  <label for="cfgLineCalloutTitle">หัวข้อกล่องแจ้งเตือนทัก LINE *</label>
+                  <input type="text" id="cfgLineCalloutTitle" required placeholder="เช่น ขั้นตอนสุดท้าย: ทักไปยืนยันการสมัครที่ LINE สถาบัน">
+                </div>
+                <div class="form-group-luxury" style="margin-top: 10px;">
+                  <label for="cfgLineCalloutBody">ข้อความแนะนำในกล่องทัก LINE *</label>
+                  <textarea id="cfgLineCalloutBody" rows="3" placeholder="เช่น กรุณากดปุ่มด้านล่างเพื่อทักไปยืนยันการสมัครและส่งหลักฐานการชำระเงินที่ LINE Official เจ้าหน้าที่จะตรวจสอบและยืนยันที่นั่งให้น้องทันทีครับ"></textarea>
+                </div>
+
+                <div class="form-row-2col" style="margin-top: 10px;">
+                  <div class="form-group-luxury">
+                    <label for="cfgLineBtnText">ข้อความบนปุ่มทัก LINE สีเขียว *</label>
+                    <input type="text" id="cfgLineBtnText" required placeholder="เช่น คลิกเพื่อทัก LINE ยืนยันการสมัครทันที">
+                  </div>
+                  <div class="form-group-luxury">
+                    <label for="cfgLineUrl">ลิงก์ LINE Official (LINE Add Friend URL) *</label>
+                    <input type="text" id="cfgLineUrl" required placeholder="เช่น https://lin.ee/RXrzi1G">
+                  </div>
+                </div>
+
+                <div class="form-row-2col" style="margin-top: 10px;">
+                  <div class="form-group-luxury">
+                    <label for="cfgCopyBtnText">ข้อความบนปุ่มคัดลอกข้อมูลสรุป *</label>
+                    <input type="text" id="cfgCopyBtnText" required placeholder="เช่น คัดลอกข้อมูลสรุปสำหรับส่งใน LINE">
+                  </div>
+                  <div class="form-group-luxury">
+                    <label for="cfgDoneBtnText">ข้อความบนปุ่มเสร็จสิ้น / ปิดหน้าต่าง *</label>
+                    <input type="text" id="cfgDoneBtnText" required placeholder="เช่น เสร็จสิ้น / ปิดหน้าต่าง">
+                  </div>
+                </div>
+
+                <!-- SECTION 6: FORM QUESTIONS & CUSTOM FIELDS BUILDER -->
+                <div style="margin-top: 32px; padding-top: 24px; border-top: 2px dashed #cbd5e1;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
+                    <div>
+                      <h4 class="editor-section-title" style="margin: 0;">
+                        <i class="fa-solid fa-clipboard-question" style="color: var(--color-blue-brand);"></i> 6. จัดการข้อคำถามในแบบฟอร์มรับสมัคร (Form Questions &amp; Builder)
+                      </h4>
+                      <small style="color: var(--text-muted); display: block; margin-top: 4px;">
+                        คุณสามารถแก้ไขชื่อคำถาม (Label), คำอธิบายตัวอย่างในช่อง (Placeholder), และกำหนดว่าต้องบังคับกรอก (*) หรือไม่ ได้อย่างอิสระ
+                      </small>
+                    </div>
+                  </div>
+
+                  <!-- 6.1 คำถามมาตรฐาน 9 ข้อ (Standard Questions) -->
+                  <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 10px; padding: 18px; margin-bottom: 20px;">
+                    <h5 style="margin: 0 0 12px 0; font-size: 0.95rem; color: var(--color-navy); font-weight: 700;">
+                      <i class="fa-solid fa-list-check" style="color: #2563eb;"></i> ข้อคำถามหลักมาตรฐาน (9 ข้อ)
+                    </h5>
+
+                    <div class="questions-builder-table-wrap" style="overflow-x: auto;">
+                      <table class="admin-data-table" style="font-size: 0.86rem; background: #fff;">
+                        <thead>
+                          <tr>
+                            <th style="width: 40px; text-align: center;">#</th>
+                            <th style="min-width: 170px;">ชื่อข้อคำถาม (Label)</th>
+                            <th style="min-width: 200px;">คำอธิบายตัวอย่าง (Placeholder)</th>
+                            <th style="width: 110px; text-align: center;">จำเป็นต้องกรอก</th>
+                            <th style="width: 90px; text-align: center;">แสดงในฟอร์ม</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <!-- 1. studentName -->
+                          <tr>
+                            <td style="text-align: center; font-weight: 700;">1</td>
+                            <td>
+                              <input type="text" id="qStd_studentName_label" value="ชื่อ - นามสกุลจริง นักเรียน" style="width: 100%; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px;">
+                            </td>
+                            <td>
+                              <input type="text" id="qStd_studentName_ph" value="เช่น ด.ช. ธนภัทร ใจดี" style="width: 100%; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px;">
+                            </td>
+                            <td style="text-align: center;">
+                              <label style="cursor: pointer;"><input type="checkbox" id="qStd_studentName_req" checked> <span style="font-size: 0.78rem;">บังคับ (*)</span></label>
+                            </td>
+                            <td style="text-align: center;">
+                              <label style="cursor: pointer;"><input type="checkbox" id="qStd_studentName_enable" checked> <span style="font-size: 0.78rem;">เปิด</span></label>
+                            </td>
+                          </tr>
+
+                          <!-- 2. nickname -->
+                          <tr>
+                            <td style="text-align: center; font-weight: 700;">2</td>
+                            <td>
+                              <input type="text" id="qStd_nickname_label" value="ชื่อเล่น" style="width: 100%; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px;">
+                            </td>
+                            <td>
+                              <input type="text" id="qStd_nickname_ph" value="เช่น น้องกาย หรือ น้องพรีม" style="width: 100%; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px;">
+                            </td>
+                            <td style="text-align: center;">
+                              <label style="cursor: pointer;"><input type="checkbox" id="qStd_nickname_req" checked> <span style="font-size: 0.78rem;">บังคับ (*)</span></label>
+                            </td>
+                            <td style="text-align: center;">
+                              <label style="cursor: pointer;"><input type="checkbox" id="qStd_nickname_enable" checked> <span style="font-size: 0.78rem;">เปิด</span></label>
+                            </td>
+                          </tr>
+
+                          <!-- 3. grade -->
+                          <tr>
+                            <td style="text-align: center; font-weight: 700;">3</td>
+                            <td>
+                              <input type="text" id="qStd_grade_label" value="ระดับชั้นปัจจุบัน / ที่กำลังจะขึ้น" style="width: 100%; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px;">
+                            </td>
+                            <td>
+                              <input type="text" id="qStd_grade_ph" value="เช่น ป.5 หรือ ป.6 หรือ ม.1" style="width: 100%; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px;">
+                            </td>
+                            <td style="text-align: center;">
+                              <label style="cursor: pointer;"><input type="checkbox" id="qStd_grade_req" checked> <span style="font-size: 0.78rem;">บังคับ (*)</span></label>
+                            </td>
+                            <td style="text-align: center;">
+                              <label style="cursor: pointer;"><input type="checkbox" id="qStd_grade_enable" checked> <span style="font-size: 0.78rem;">เปิด</span></label>
+                            </td>
+                          </tr>
+
+                          <!-- 4. school -->
+                          <tr>
+                            <td style="text-align: center; font-weight: 700;">4</td>
+                            <td>
+                              <input type="text" id="qStd_school_label" value="โรงเรียนปัจจุบัน" style="width: 100%; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px;">
+                            </td>
+                            <td>
+                              <input type="text" id="qStd_school_ph" value="เช่น โรงเรียนอนุบาลเชียงใหม่" style="width: 100%; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px;">
+                            </td>
+                            <td style="text-align: center;">
+                              <label style="cursor: pointer;"><input type="checkbox" id="qStd_school_req" checked> <span style="font-size: 0.78rem;">บังคับ (*)</span></label>
+                            </td>
+                            <td style="text-align: center;">
+                              <label style="cursor: pointer;"><input type="checkbox" id="qStd_school_enable" checked> <span style="font-size: 0.78rem;">เปิด</span></label>
+                            </td>
+                          </tr>
+
+                          <!-- 5. parentPhone -->
+                          <tr>
+                            <td style="text-align: center; font-weight: 700;">5</td>
+                            <td>
+                              <input type="text" id="qStd_parentPhone_label" value="เบอร์โทรศัพท์ผู้ปกครอง" style="width: 100%; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px;">
+                            </td>
+                            <td>
+                              <input type="text" id="qStd_parentPhone_ph" value="เช่น 089-123-4567" style="width: 100%; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px;">
+                            </td>
+                            <td style="text-align: center;">
+                              <label style="cursor: pointer;"><input type="checkbox" id="qStd_parentPhone_req" checked> <span style="font-size: 0.78rem;">บังคับ (*)</span></label>
+                            </td>
+                            <td style="text-align: center;">
+                              <label style="cursor: pointer;"><input type="checkbox" id="qStd_parentPhone_enable" checked> <span style="font-size: 0.78rem;">เปิด</span></label>
+                            </td>
+                          </tr>
+
+                          <!-- 6. lineId -->
+                          <tr>
+                            <td style="text-align: center; font-weight: 700;">6</td>
+                            <td>
+                              <input type="text" id="qStd_lineId_label" value="LINE ID (ผู้ปกครองหรือน้อง)" style="width: 100%; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px;">
+                            </td>
+                            <td>
+                              <input type="text" id="qStd_lineId_ph" value="เช่น newgen_student หรือ เบอร์โทรไลน์" style="width: 100%; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px;">
+                            </td>
+                            <td style="text-align: center;">
+                              <label style="cursor: pointer;"><input type="checkbox" id="qStd_lineId_req" checked> <span style="font-size: 0.78rem;">บังคับ (*)</span></label>
+                            </td>
+                            <td style="text-align: center;">
+                              <label style="cursor: pointer;"><input type="checkbox" id="qStd_lineId_enable" checked> <span style="font-size: 0.78rem;">เปิด</span></label>
+                            </td>
+                          </tr>
+
+                          <!-- 7. studentPhone -->
+                          <tr>
+                            <td style="text-align: center; font-weight: 700;">7</td>
+                            <td>
+                              <input type="text" id="qStd_studentPhone_label" value="เบอร์โทรศัพท์นักเรียน (ถ้ามี)" style="width: 100%; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px;">
+                            </td>
+                            <td>
+                              <input type="text" id="qStd_studentPhone_ph" value="เช่น 095-xxx-xxxx (ไม่บังคับ)" style="width: 100%; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px;">
+                            </td>
+                            <td style="text-align: center;">
+                              <label style="cursor: pointer;"><input type="checkbox" id="qStd_studentPhone_req"> <span style="font-size: 0.78rem;">บังคับ (*)</span></label>
+                            </td>
+                            <td style="text-align: center;">
+                              <label style="cursor: pointer;"><input type="checkbox" id="qStd_studentPhone_enable" checked> <span style="font-size: 0.78rem;">เปิด</span></label>
+                            </td>
+                          </tr>
+
+                          <!-- 8. shippingAddress -->
+                          <tr>
+                            <td style="text-align: center; font-weight: 700;">8</td>
+                            <td>
+                              <input type="text" id="qStd_shippingAddress_label" value="ที่อยู่จัดส่งเอกสารและหนังสือเรียน" style="width: 100%; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px;">
+                            </td>
+                            <td>
+                              <input type="text" id="qStd_shippingAddress_ph" value="บ้านเลขที่ ตำบล อำเภอ จังหวัด รหัสไปรษณีย์" style="width: 100%; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px;">
+                            </td>
+                            <td style="text-align: center;">
+                              <label style="cursor: pointer;"><input type="checkbox" id="qStd_shippingAddress_req"> <span style="font-size: 0.78rem;">บังคับ (*)</span></label>
+                            </td>
+                            <td style="text-align: center;">
+                              <label style="cursor: pointer;"><input type="checkbox" id="qStd_shippingAddress_enable" checked> <span style="font-size: 0.78rem;">เปิด</span></label>
+                            </td>
+                          </tr>
+
+                          <!-- 9. notes -->
+                          <tr>
+                            <td style="text-align: center; font-weight: 700;">9</td>
+                            <td>
+                              <input type="text" id="qStd_notes_label" value="หมายเหตุ / คำถามเพิ่มเติมถึงติวเตอร์ (ถ้ามี)" style="width: 100%; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px;">
+                            </td>
+                            <td>
+                              <input type="text" id="qStd_notes_ph" value="เช่น พื้นฐานวิชาคณิตศาสตร์ยังไม่คล่อง หรือต้องการเน้นเรื่องใดเป็นพิเศษ" style="width: 100%; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px;">
+                            </td>
+                            <td style="text-align: center;">
+                              <label style="cursor: pointer;"><input type="checkbox" id="qStd_notes_req"> <span style="font-size: 0.78rem;">บังคับ (*)</span></label>
+                            </td>
+                            <td style="text-align: center;">
+                              <label style="cursor: pointer;"><input type="checkbox" id="qStd_notes_enable" checked> <span style="font-size: 0.78rem;">เปิด</span></label>
+                            </td>
+                          </tr>
+
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  <!-- 6.2 คำถามเพิ่มเติมที่กำหนดเอง (+ เพิ่มคำถามใหม่) -->
+                  <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 18px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+                      <div>
+                        <h5 style="margin: 0; font-size: 0.95rem; color: #166534; font-weight: 700;">
+                          <i class="fa-solid fa-plus-circle" style="color: #16a34a;"></i> ข้อคำถามเพิ่มเติมที่กำหนดเอง (Custom Questions)
+                        </h5>
+                        <small style="color: #15803d;">คุณสามารถเพิ่มคำถามที่ต้องการถามนักเรียนเพิ่มเติมได้ไม่จำกัด เช่น สายการเรียนที่สนใจ, โรงเรียนเป้าหมาย, เกรดเฉลี่ย</small>
+                      </div>
+                      <button type="button" class="btn-primary" onclick="openAddCustomQuestionModal()" style="font-size: 0.82rem; padding: 6px 14px; background: #16a34a; border-color: #16a34a;">
+                        <i class="fa-solid fa-plus"></i> เพิ่มข้อคำถามใหม่
+                      </button>
+                    </div>
+
+                    <div id="adminCustomQuestionsContainer" style="display: flex; flex-direction: column; gap: 10px;">
+                      <!-- Dynamically populated via JS -->
+                    </div>
+                  </div>
+
+                </div>
+
+                <!-- Bottom Action Bar -->
+                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 28px; padding-top: 18px; border-top: 1px solid var(--border-color);">
+                  <button type="button" class="btn-secondary" onclick="resetAdminEnrollmentConfig()">
+                    <i class="fa-solid fa-rotate-left"></i> คืนค่าเริ่มต้น (Reset to Default)
+                  </button>
+                  <button type="submit" class="btn-primary" style="padding: 12px 28px; font-size: 0.95rem;">
+                    <i class="fa-solid fa-floppy-disk"></i> บันทึกการตั้งค่าข้อความหน้าสมัครเรียน
+                  </button>
+                </div>
+
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
 
       <!-- ================= 3. TUTORS TAB (แบ่ง 2 ทีม: Onsite ประจำสถาบัน & สอน Online) ================= -->
       <section id="tab-tutors" class="admin-tab-pane">
@@ -2488,6 +2574,156 @@
         <div class="admin-modal-footer">
           <button type="button" class="btn-secondary" onclick="closeModal('modalCustomQuestion')">ยกเลิก</button>
           <button type="submit" class="btn-primary"><i class="fa-solid fa-floppy-disk"></i> บันทึกข้อคำถาม</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= ADD / EDIT BUNDLE MODAL ================= -->
+  <div class="admin-modal-backdrop" id="modalAddBundle" style="z-index: 10002;">
+    <div class="admin-modal" style="max-width: 860px; width: 95%;">
+      <div class="admin-modal-header" style="border-bottom: 1.5px solid var(--border-color); padding-bottom: 16px;">
+        <h3 id="modalBundleTitle" style="display: flex; align-items: center; gap: 10px; margin: 0; color: var(--color-navy); font-weight: 800;">
+          <i class="fa-solid fa-boxes-stacked" style="color: #e11d48;"></i> สร้างแพ็คเกจคอร์สเรียนโปรโมชั่น
+        </h3>
+        <button type="button" class="admin-modal-close" onclick="closeModal('modalAddBundle')">&times;</button>
+      </div>
+
+      <form id="formBundle" onsubmit="handleSaveBundleForm(event)">
+        <input type="hidden" id="editBundleId" value="">
+
+        <div class="admin-modal-body" style="padding: 20px; max-height: calc(85vh - 140px); overflow-y: auto;">
+          
+          <!-- Basic Info -->
+          <div class="form-row-2col">
+            <div class="form-group-luxury">
+              <label for="bundleName">ชื่อแพ็คเกจคอร์สเรียน *</label>
+              <input type="text" id="bundleName" required placeholder="เช่น แพ็คคู่สุดคุ้ม: ตะลุยโจทย์คณิต + วิทย์ ม.3 สอบเข้า ม.4">
+              <small style="color: var(--text-muted);">ชื่อแพ็คเกจที่แสดงบนหน้าเว็บและการ์ดคอร์ส</small>
+            </div>
+            <div class="form-group-luxury">
+              <label for="bundleBadge">ป้ายแท็กกำกับ (Badge)</label>
+              <input type="text" id="bundleBadge" placeholder="เช่น 🔥 แพ็คคู่สุดคุ้ม หรือ ยอดนิยม ประหยัด 500.-">
+              <small style="color: var(--text-muted);">ป้ายแท็กสีสดใสติดมุมบนของการ์ด</small>
+            </div>
+          </div>
+
+          <!-- Select Courses (Checklist) -->
+          <div style="margin: 20px 0; background: #f8fafc; border: 1.5px solid #cbd5e1; border-radius: var(--radius-md); padding: 18px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+              <div>
+                <label style="font-weight: 800; color: var(--color-navy); font-size: 0.95rem; margin: 0; display: block;">
+                  <i class="fa-solid fa-list-check" style="color: #2563eb;"></i> เลือกคอร์สเรียนที่ต้องการรวมในแพ็คเกจ * (อย่างน้อย 2 คอร์ส)
+                </label>
+                <small style="color: var(--text-muted);">ติ๊กเลือกคอร์สเพื่อจัดโปรโมชั่น ระบบจะรวมราคาปกติและเตรียมภาพซ้อนให้อัตโนมัติ</small>
+              </div>
+              <span id="bundleSelectedCountPill" class="badge" style="background: #2563eb; color: #fff; font-weight: 700; font-size: 0.82rem; padding: 4px 10px; border-radius: 99px;">
+                เลือกแล้ว 0 คอร์ส
+              </span>
+            </div>
+
+            <div id="bundleCoursesChecklist" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; max-height: 220px; overflow-y: auto; padding: 8px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px;">
+              <!-- Dynamically populated via JS -->
+            </div>
+          </div>
+
+          <!-- Pricing & Auto Savings Calculation -->
+          <div style="background: #fff1f2; border: 1.5px solid #fecdd3; border-radius: var(--radius-md); padding: 18px; margin-bottom: 20px;">
+            <div class="form-row-3col" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 12px;">
+              <div class="form-group-luxury">
+                <label for="bundleOriginalPrice">ราคาปกติรวม (บาท) *</label>
+                <input type="text" id="bundleOriginalPrice" required placeholder="เช่น 8,000" oninput="calculateBundleSavings()">
+                <small style="color: #9f1239;">คำนวณจากคอร์สที่ติ๊ก (แก้ไขได้)</small>
+              </div>
+              <div class="form-group-luxury">
+                <label for="bundlePromoPrice" style="color: #be123c; font-weight: 800;">ราคาโปรโมชั่นแพ็คเกจ (บาท) *</label>
+                <input type="text" id="bundlePromoPrice" required placeholder="เช่น 7,500" oninput="calculateBundleSavings()" style="border-color: #f43f5e; font-weight: 700; color: #e11d48; font-size: 1.1rem;">
+                <small style="color: #be123c;">ราคาขายจริงที่จะให้เด็กจ่าย</small>
+              </div>
+              <div class="form-group-luxury">
+                <label for="bundlePriceUnit">หน่วยราคา</label>
+                <input type="text" id="bundlePriceUnit" value="บาท / แพ็คเกจ" placeholder="เช่น บาท / แพ็คเกจ">
+                <small style="color: var(--text-muted);">ข้อความต่อท้ายราคา</small>
+              </div>
+            </div>
+
+            <div id="bundleSavingsDisplay" style="background: #ffffff; border: 1.5px solid #f43f5e; border-radius: 8px; padding: 12px 18px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+              <div style="display: flex; align-items: center; gap: 8px; font-weight: 700; color: #be123c; font-size: 0.95rem;">
+                <i class="fa-solid fa-tags" style="color: #e11d48;"></i>
+                <span id="bundleSavingsText">ประหยัดทันที: 0 บาท</span>
+              </div>
+              <span id="bundleDiscountPercent" class="badge" style="background: #16a34a; color: #fff; font-weight: 800; font-size: 0.85rem; padding: 4px 10px; border-radius: 6px;">
+                ลด 0%
+              </span>
+            </div>
+          </div>
+
+          <!-- Cover Image Settings (Hybrid: 3D Stack vs Custom) -->
+          <div style="background: #f8fafc; border: 1.5px solid #cbd5e1; border-radius: var(--radius-md); padding: 18px; margin-bottom: 20px;">
+            <label style="font-weight: 800; color: var(--color-navy); font-size: 0.95rem; margin-bottom: 12px; display: block;">
+              <i class="fa-solid fa-image" style="color: #2563eb;"></i> รูปภาพหน้าปกแพ็คเกจ (Cover Visual)
+            </label>
+
+            <div style="display: flex; gap: 24px; margin-bottom: 16px; flex-wrap: wrap;">
+              <label style="display: flex; align-items: center; gap: 8px; font-weight: 700; cursor: pointer;">
+                <input type="radio" name="bundleImageMode" value="stack" checked onchange="toggleBundleImageMode(this.value)">
+                <span>✨ ระบบสร้างภาพซ้อน 3D Stack อัตโนมัติ (ไม่ต้องทำรูป)</span>
+              </label>
+              <label style="display: flex; align-items: center; gap: 8px; font-weight: 700; cursor: pointer;">
+                <input type="radio" name="bundleImageMode" value="custom" onchange="toggleBundleImageMode(this.value)">
+                <span>🖼️ อัปโหลดรูปโปสเตอร์เฉพาะแพ็คเกจ (Custom Image)</span>
+              </label>
+            </div>
+
+            <!-- Custom Upload Container -->
+            <div id="bundleCustomUploadWrap" style="display: none; margin-bottom: 14px;">
+              <div style="display: flex; gap: 10px; align-items: center;">
+                <input type="text" id="bundleCustomImageUrl" placeholder="URL รูปภาพ หรือกดปุ่มอัปโหลดไฟล์" style="flex: 1;" oninput="updateBundleCustomPreview(this.value)">
+                <button type="button" class="btn-secondary" onclick="document.getElementById('bundleFileInput').click()">
+                  <i class="fa-solid fa-cloud-arrow-up"></i> อัปโหลดรูป
+                </button>
+                <input type="file" id="bundleFileInput" accept="image/*" style="display: none;" onchange="handleBundleFileUpload(event)">
+              </div>
+            </div>
+
+            <!-- Visual Preview Container -->
+            <div style="display: flex; gap: 20px; align-items: center; background: #ffffff; padding: 14px; border-radius: 8px; border: 1px solid #e2e8f0;">
+              <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted); width: 100px;">ตัวอย่างรูป:</div>
+              <div id="bundlePreviewArea" style="flex: 1; min-height: 120px; display: flex; align-items: center; justify-content: center;">
+                <!-- 3D Stack or Custom Img Preview -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Description / Highlights -->
+          <div class="form-group-luxury" style="margin-bottom: 20px;">
+            <label for="bundleDesc">คำอธิบายจุดเด่นของแพ็คเกจ</label>
+            <textarea id="bundleDesc" rows="3" placeholder="เขียนรายละเอียดสั้นๆ เช่น สมัครคู่กัน 2 วิชาหลักสุดคุ้ม ปูพื้นฐานแน่นพร้อมตะลุยโจทย์สอบเข้า ม.4..."></textarea>
+          </div>
+
+          <!-- Display Toggles -->
+          <div style="background: #f1f5f9; padding: 14px 18px; border-radius: var(--radius-md); display: flex; gap: 24px; flex-wrap: wrap; align-items: center;">
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 700; color: var(--color-navy); margin: 0;">
+              <input type="checkbox" id="bundleShowInCourses" checked style="accent-color: #2563eb; width: 18px; height: 18px;">
+              <span>แสดงในหน้าคอร์สเรียนทั้งหมด (courses.html)</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 700; color: var(--color-navy); margin: 0;">
+              <input type="checkbox" id="bundleShowInHome" checked style="accent-color: #2563eb; width: 18px; height: 18px;">
+              <span>แสดงในหน้าแรก / คอร์สแนะนำ (index.html)</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 700; color: #16a34a; margin: 0;">
+              <input type="checkbox" id="bundleActive" checked style="accent-color: #16a34a; width: 18px; height: 18px;">
+              <span>เปิดใช้งานแพ็คเกจนี้ (Active)</span>
+            </label>
+          </div>
+
+        </div>
+
+        <div class="admin-modal-footer" style="padding: 16px 20px; border-top: 1.5px solid var(--border-color); display: flex; justify-content: flex-end; gap: 12px;">
+          <button type="button" class="btn-secondary" onclick="closeModal('modalAddBundle')">ยกเลิก</button>
+          <button type="submit" class="btn-primary" style="background: linear-gradient(135deg, #e11d48, #be123c); padding: 10px 24px;">
+            <i class="fa-solid fa-floppy-disk"></i> บันทึกแพ็คเกจคอร์สเรียน
+          </button>
         </div>
       </form>
     </div>

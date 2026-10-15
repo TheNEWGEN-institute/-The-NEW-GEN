@@ -357,7 +357,9 @@ function initCourseSlider() {
               <div class="course-price-wrap">
                 ${c.priceOriginal ? `<span class="course-price-old">จาก ${escapeHtml(c.priceOriginal)}</span>` : ''}
                 <div class="course-price-now">
-                  <span class="course-price-amount">${escapeHtml(c.pricePromo)}</span><span class="course-price-dash">.-</span>
+                  <span class="course-price-amount-group">
+                    <span class="course-price-amount">${escapeHtml(c.pricePromo)}</span><span class="course-price-dash">.-</span>
+                  </span>
                   <span class="course-price-unit-tag">${escapeHtml(c.priceUnit || 'บาท / เทอม')}</span>
                 </div>
               </div>
@@ -607,7 +609,14 @@ let campaignPopupTimer = null;
 
 function initHomePopupCampaign() {
   const modal = document.getElementById('campaignPopupModal');
-  if (!modal) return; // Not on index.html
+  const campaign = window.NewGenDB ? window.NewGenDB.getPopupCampaign() : null;
+
+  if (!modal) {
+    if (campaign && campaign.enabled !== false && !document.body.classList.contains('page-admin-body')) {
+      ensureCuteFloatingGiftPill(campaign);
+    }
+    return; // Not on index.html
+  }
 
   // Bind close on backdrop click (click outside card)
   modal.addEventListener('click', (e) => {
@@ -619,7 +628,6 @@ function initHomePopupCampaign() {
   // Render content from DB
   renderHomePopupCampaign();
 
-  const campaign = window.NewGenDB ? window.NewGenDB.getPopupCampaign() : null;
   if (!campaign || campaign.enabled === false) {
     return;
   }
@@ -638,6 +646,32 @@ function initHomePopupCampaign() {
       openCampaignPopup(false);
     }, 800);
   }
+}
+
+function ensureCuteFloatingGiftPill(campaign) {
+  if (document.getElementById('campaignFloatingPill')) return;
+  const pill = document.createElement('div');
+  pill.id = 'campaignFloatingPill';
+  pill.className = 'cute-floating-gift-pill';
+  pill.title = 'คลิกเพื่อดูสิทธิ์โครงการติวฟรี';
+  pill.innerHTML = `
+    <div class="gift-icon-bubble">
+      <i class="fa-solid fa-gift" style="color: #ffffff;"></i>
+      <span class="gift-sparkle-dot"></span>
+    </div>
+    <div class="gift-content">
+      <span class="gift-title">${escapeHtml(campaign.title || '🎁 โครงการติวฟรี!')}</span>
+      <span class="gift-subtitle">${escapeHtml(campaign.miniBadgeText || campaign.miniBadge || 'คลิกรับสิทธิ์ด่วน ✨')}</span>
+    </div>
+  `;
+  pill.onclick = () => {
+    if (typeof window.openEnrollmentModal === 'function') {
+      window.handleCampaignRegisterClick();
+    } else {
+      window.location.href = 'index.html#campaign';
+    }
+  };
+  document.body.appendChild(pill);
 }
 
 function renderHomePopupCampaign() {
@@ -724,7 +758,7 @@ function renderHomePopupCampaign() {
 
   // Pill
   if (pillLabel) pillLabel.textContent = campaign.title || 'โครงการติวฟรี!';
-  if (pillSub) pillSub.textContent = 'คลิกเพื่อรับสิทธิ์ด่วน 🎁';
+  if (pillSub) pillSub.textContent = campaign.miniBadgeText || campaign.miniBadge || 'คลิกเพื่อรับสิทธิ์ด่วน 🎁';
 }
 
 function openCampaignPopup(fromPill = false) {

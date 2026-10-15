@@ -350,6 +350,29 @@ const DEFAULT_ABOUT = {
   ]
 };
 
+// Default Bundles (แพ็คเกจคอร์สเรียนโปรโมชั่น)
+const DEFAULT_BUNDLES = [
+  {
+    id: "bundle-primary-combo",
+    name: "แพ็คคู่ประถม ปูพื้นฐาน + ติวสอบเข้า ม.1 (สุดคุ้ม)",
+    badge: "🔥 แพ็คคู่สุดคุ้ม ประหยัดทันที 1,500.-",
+    courseIds: [
+      "course-p4-p5",
+      "course-p6-m1"
+    ],
+    priceOriginal: "9,000",
+    pricePromo: "7,500",
+    priceUnit: "บาท / แพ็คเกจ (2 คอร์ส)",
+    imageMode: "stack",
+    customImage: "",
+    description: "สมัครคอร์สคู่สุดคุ้ม รวม 2 คอร์สหลักประถม ติวเข้มปูพื้นฐานและเจาะลึกแนวข้อสอบจริงสอบเข้า ม.1",
+    showInCourses: true,
+    showInHome: true,
+    active: true,
+    createdAt: "2026-10-15T00:00:00.000Z"
+  }
+];
+
 // Default Admin Credentials
 const DEFAULT_ADMIN = {
   username: 'admin',
@@ -428,7 +451,8 @@ const SUPABASE_KEY_MAPPING = {
   admin: 'newgen_admin_cred',
   enrollments: 'newgen_enrollments',
   enrollmentConfig: 'newgen_enrollment_config',
-  popupCampaign: 'newgen_popup_campaign'
+  popupCampaign: 'newgen_popup_campaign',
+  bundles: 'newgen_bundles'
 };
 
 // Global Store Helper with Integrated Supabase Cloud Sync
@@ -538,6 +562,11 @@ const NewGenDB = {
           window.popupCampaignData = val;
           if (typeof window.renderHomePopupCampaign === 'function') window.renderHomePopupCampaign();
           if (typeof window.loadAdminPopupCampaign === 'function') window.loadAdminPopupCampaign();
+        }
+        if (key === 'bundles' && typeof window !== 'undefined') {
+          window.bundlesData = val;
+          if (typeof window.renderBundlesOnPage === 'function') window.renderBundlesOnPage();
+          if (typeof window.loadAdminBundles === 'function') window.loadAdminBundles();
         }
       });
 
@@ -943,6 +972,62 @@ const NewGenDB = {
     return NewGenDB.saveToSupabase('popupCampaign', popupObj);
   },
 
+  // Bundles (แพ็คเกจคอร์สเรียนโปรโมชั่น)
+  getBundles: () => {
+    try {
+      const data = localStorage.getItem('newgen_bundles');
+      if (data) {
+        const parsed = JSON.parse(data);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {}
+    return (typeof window !== 'undefined' && Array.isArray(window.bundlesData) && window.bundlesData.length > 0)
+      ? window.bundlesData
+      : (typeof DEFAULT_BUNDLES !== 'undefined' ? JSON.parse(JSON.stringify(DEFAULT_BUNDLES)) : []);
+  },
+  saveBundles: (bundles) => {
+    try {
+      localStorage.setItem('newgen_bundles', JSON.stringify(bundles));
+    } catch (e) {
+      console.warn('LocalStorage save error:', e);
+    }
+    if (typeof window !== 'undefined') window.bundlesData = bundles;
+    try {
+      const base = typeof getApiBaseUrl === 'function' ? getApiBaseUrl() : '';
+      if (base) {
+        fetch(`${base}/api/bundles`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(bundles)
+        }).catch(() => {});
+      }
+    } catch (err) {}
+    return NewGenDB.saveToSupabase('bundles', bundles);
+  },
+  saveBundle: async (bundle) => {
+    const list = NewGenDB.getBundles();
+    const idx = list.findIndex(b => b.id === bundle.id);
+    if (idx !== -1) {
+      list[idx] = { ...list[idx], ...bundle, updatedAt: new Date().toISOString() };
+    } else {
+      list.push({ ...bundle, createdAt: new Date().toISOString() });
+    }
+    await NewGenDB.saveBundles(list);
+    return list;
+  },
+  deleteBundle: async (bundleId) => {
+    let list = NewGenDB.getBundles();
+    list = list.filter(b => b.id !== bundleId);
+    await NewGenDB.saveBundles(list);
+    try {
+      const base = typeof getApiBaseUrl === 'function' ? getApiBaseUrl() : '';
+      if (base) {
+        fetch(`${base}/api/bundles/${bundleId}`, { method: 'DELETE' }).catch(() => {});
+      }
+    } catch (e) {}
+    return list;
+  },
+
   // Enrollments (ระบบรายชื่อผู้สมัครเรียน)
   getEnrollments: () => {
     try {
@@ -1267,6 +1352,7 @@ if (typeof window !== 'undefined') {
   window.enrollmentsData = NewGenDB.getEnrollments();
   window.enrollmentConfigData = NewGenDB.getEnrollmentConfig();
   window.DEFAULT_ENROLLMENT_CONFIG = DEFAULT_ENROLLMENT_CONFIG;
+  window.bundlesData = NewGenDB.getBundles();
 
   // Run cloud sync in background immediately
   NewGenDB.syncFromSupabase();
@@ -1326,7 +1412,9 @@ function formatCoursePriceHtml(c) {
     <div class="course-price-wrap">
       ${priceOriginal}
       <div class="course-price-now">
-        <span class="course-price-amount">${pricePromo}</span><span class="course-price-dash">.-</span>
+        <span class="course-price-amount-group">
+          <span class="course-price-amount">${pricePromo}</span><span class="course-price-dash">.-</span>
+        </span>
         <span class="course-price-unit-tag">${escapeHtml(unitText)}</span>
       </div>
       ${installmentBadge}
