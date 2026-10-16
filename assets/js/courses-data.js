@@ -1242,6 +1242,41 @@ if (typeof window !== 'undefined') {
 }
 
 /**
+ * ตรวจสอบว่าแพ็คเกจมีคอร์สย่อยใดที่นั่งเต็มหรือไม่
+ * หากมีคอร์สใดในแพ็คเกจเต็ม จะถือว่าแพ็คเกจนั้นเต็มและไม่สามารถสมัครได้
+ */
+function isBundleFull(bundle, allCourses = null) {
+  if (!bundle) return { isFull: false, fullCourses: [], fullCount: 0 };
+  if (!allCourses) {
+    allCourses = window.NewGenDB ? window.NewGenDB.getCourses() : (window.courseData || []);
+  }
+  const childIds = Array.isArray(bundle.courseIds) ? bundle.courseIds : [];
+  if (childIds.length === 0) return { isFull: false, fullCourses: [], fullCount: 0 };
+
+  const fullCourses = [];
+  childIds.forEach(cid => {
+    const c = allCourses.find(item => item.id === cid);
+    if (c) {
+      const eff = (typeof getCourseEffectiveSeats === 'function')
+        ? getCourseEffectiveSeats(c)
+        : (window.getCourseEffectiveSeats ? window.getCourseEffectiveSeats(c) : { isFull: c.isFull === true || (c.remainingSeats !== null && Number(c.remainingSeats) <= 0) });
+      if (eff.isFull || (eff.remainingSeats !== undefined && eff.remainingSeats !== null && eff.remainingSeats <= 0)) {
+        fullCourses.push(c);
+      }
+    }
+  });
+
+  return {
+    isFull: fullCourses.length > 0,
+    fullCourses: fullCourses,
+    fullCount: fullCourses.length
+  };
+}
+if (typeof window !== 'undefined') {
+  window.isBundleFull = isBundleFull;
+}
+
+/**
  * คำนวณสถานะคอร์สแบบอัตโนมัติ:
  * - ที่นั่งเต็ม (remainingSeats <= 0 หรือ isFull) -> "🛑 เต็มแล้ว"
  * - โควตาใกล้เต็ม (เหลือ 1 - 5 ที่นั่ง หรือเหลือ <= 30%) -> "🔥 โควตาใกล้เต็ม" อัตโนมัติ

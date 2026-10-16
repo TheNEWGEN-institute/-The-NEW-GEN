@@ -777,14 +777,22 @@ function renderCourseDetailBundlePromo(course) {
     `;
   }
 
+  const bundleStatus = window.isBundleFull ? window.isBundleFull(matchingBundle, allCourses) : { isFull: false, fullCourses: [] };
+
   promoSection.innerHTML = `
-    <div class="cd-bundle-promo-card" style="background: linear-gradient(135deg, #091a3e 0%, #172554 100%); border: 2px solid #3b82f6; border-radius: 16px; padding: 24px; color: #ffffff; box-shadow: 0 12px 30px rgba(15, 23, 42, 0.18); display: flex; gap: 24px; align-items: center; flex-wrap: wrap;">
+    <div class="cd-bundle-promo-card ${bundleStatus.isFull ? 'is-full' : ''}" style="background: linear-gradient(135deg, #091a3e 0%, #172554 100%); border: 2px solid ${bundleStatus.isFull ? '#ef4444' : '#3b82f6'}; border-radius: 16px; padding: 24px; color: #ffffff; box-shadow: 0 12px 30px rgba(15, 23, 42, 0.18); display: flex; gap: 24px; align-items: center; flex-wrap: wrap;">
       ${visualHtml}
       <div style="flex: 1; min-width: 260px;">
         <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap;">
-          <span class="badge" style="background: linear-gradient(135deg, #f43f5e, #be123c); color: #fff; font-weight: 800; font-size: 0.8rem; padding: 4px 12px; border-radius: 99px;">
-            ${escapeHtml(matchingBundle.badge || '🔥 PACKAGE สุดคุ้มรวมทุกวิชา')}
-          </span>
+          ${bundleStatus.isFull ? `
+            <span class="badge" style="background: #ef4444; color: #fff; font-weight: 800; font-size: 0.8rem; padding: 4px 12px; border-radius: 99px;">
+              <i class="fa-solid fa-ban"></i> มีคอร์สในแพ็คเกจที่นั่งเต็มแล้ว
+            </span>
+          ` : `
+            <span class="badge" style="background: linear-gradient(135deg, #f43f5e, #be123c); color: #fff; font-weight: 800; font-size: 0.8rem; padding: 4px 12px; border-radius: 99px;">
+              ${escapeHtml(matchingBundle.badge || '🔥 PACKAGE สุดคุ้มรวมทุกวิชา')}
+            </span>
+          `}
           ${savingsPercent > 0 ? `
             <span class="badge" style="background: #16a34a; color: #fff; font-weight: 800; font-size: 0.78rem; padding: 3px 9px; border-radius: 6px;">
               ประหยัด ${savingsPercent}%
@@ -811,9 +819,15 @@ function renderCourseDetailBundlePromo(course) {
           <button type="button" class="btn-secondary" onclick="openBundleDetailModal('${matchingBundle.id}')" style="background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.3); color: #ffffff; padding: 9px 18px; font-size: 0.88rem; border-radius: 8px;">
             <i class="fa-solid fa-circle-info"></i> ดูรายละเอียดแพ็คเกจ
           </button>
-          <button type="button" class="btn-primary" onclick="openEnrollmentModal('${matchingBundle.id}', true)" style="background: linear-gradient(135deg, #e11d48, #be123c); padding: 9px 20px; font-size: 0.88rem; border-radius: 8px; box-shadow: 0 4px 14px rgba(225, 29, 72, 0.35);">
-            <i class="fa-solid fa-bolt-lightning"></i> จองแพ็กเกจรวม
-          </button>
+          ${bundleStatus.isFull ? `
+            <button type="button" class="btn-secondary" onclick="openBundleDetailModal('${matchingBundle.id}')" style="background: #64748b; border: 1.5px solid #475569; color: #ffffff; padding: 9px 20px; font-size: 0.88rem; border-radius: 8px; cursor: not-allowed; box-shadow: none;">
+              <i class="fa-solid fa-ban"></i> ที่นั่งเต็มแล้ว
+            </button>
+          ` : `
+            <button type="button" class="btn-primary" onclick="openEnrollmentModal('${matchingBundle.id}', true)" style="background: linear-gradient(135deg, #e11d48, #be123c); padding: 9px 20px; font-size: 0.88rem; border-radius: 8px; box-shadow: 0 4px 14px rgba(225, 29, 72, 0.35);">
+              <i class="fa-solid fa-bolt-lightning"></i> จองแพ็กเกจรวม
+            </button>
+          `}
         </div>
       </div>
     </div>

@@ -473,6 +473,19 @@
           ];
         }
 
+        const bundleStatus = window.isBundleFull ? window.isBundleFull(bundleObj, courses) : { isFull: false, fullCourses: [] };
+        if (bundleStatus.isFull) {
+          const fullListStr = bundleStatus.fullCourses.map(fc => `• ${fc.title}`).join('\n');
+          const lineUrl = getContactLineUrl();
+          const wantLine = confirm(
+            `ขออภัยครับ ไม่สามารถเปิดรับสมัครแพ็คเกจ "${bundleObj.name}" ได้ในขณะนี้\n\n` +
+            `เนื่องจากมีคอร์สในแพ็คเกจที่นั่งเต็มแล้ว ดังนี้:\n${fullListStr}\n\n` +
+            `ต้องการทัก LINE สถาบันเพื่อสอบถามรอบถัดไป หรือลงชื่อสำรองที่นั่ง (Waiting List) หรือไม่ครับ?`
+          );
+          if (wantLine) window.open(lineUrl, '_blank', 'noopener,noreferrer');
+          return;
+        }
+
         course = {
           id: bundleObj.id,
           title: `[แพ็คเกจ] ${bundleObj.name}`,
@@ -494,7 +507,7 @@
           scheduleList: schedules,
           remainingSeats: 99,
           maxSeats: 99,
-          isFull: false
+          isFull: bundleStatus.isFull
         };
       }
     }
@@ -797,6 +810,18 @@
 
     const submitBtn = document.getElementById('btnEnrollSubmit');
     const origBtnHtml = submitBtn.innerHTML;
+
+    // Safety check for bundle full before saving
+    if (isBundle) {
+      const allCourses = (window.NewGenDB ? window.NewGenDB.getCourses() : (window.courseData || []));
+      const bundleStatus = window.isBundleFull ? window.isBundleFull(currentEnrollCourse, allCourses) : { isFull: false, fullCourses: [] };
+      if (bundleStatus.isFull) {
+        const fullListStr = bundleStatus.fullCourses.map(fc => `• ${fc.title}`).join('\n');
+        alert(`ขออภัยครับ ไม่สามารถบันทึกการสมัครได้ เนื่องจากมีคอร์สในแพ็คเกจนี้ที่นั่งเต็มแล้ว:\n${fullListStr}`);
+        return;
+      }
+    }
+
     submitBtn.disabled = true;
     submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังบันทึกข้อมูล...';
 
@@ -821,7 +846,7 @@
       studentPhone: studentPhone,
       lineId: lineId,
       shippingAddress: shippingAddress,
-      notes: notes,
+      notes: (notes || '').trim(),
       customAnswers: customAnswers,
       isBundle: isBundle,
       bundleId: isBundle ? currentEnrollCourse.id : null,
@@ -852,7 +877,7 @@
               bundleId: currentEnrollCourse.id,
               bundleName: currentEnrollCourse.name || currentEnrollCourse.title,
               parentEnrollId: enrollId,
-              notes: `[สมัครผ่านแพ็คเกจ: ${currentEnrollCourse.name || currentEnrollCourse.title} | รอบที่เลือก: ${specificSched}] ${notes || ''}`.trim()
+              notes: (notes || '').trim()
             };
             await window.NewGenDB.saveEnrollment(subEnrollment);
           }
@@ -1131,17 +1156,31 @@ LINE ID: ${lastEnrollmentData.lineId}${customText}
     if (countEl) countEl.textContent = childCourses.length;
 
     // Courses List
+    const bundleStatus = window.isBundleFull ? window.isBundleFull(bundleObj, allCourses) : { isFull: false, fullCourses: [] };
     const coursesListEl = document.getElementById('bundleDetailCoursesList');
     if (coursesListEl) {
       if (childCourses.length === 0) {
         coursesListEl.innerHTML = `<div style="text-align: center; color: #94a3b8; padding: 20px;">ไม่พบรายการคอร์สย่อยในแพ็คเกจนี้</div>`;
       } else {
-        coursesListEl.innerHTML = childCourses.map((c, idx) => {
+        let listHtml = '';
+        if (bundleStatus.isFull) {
+          listHtml += `
+            <div style="background: #fef2f2; border: 1.5px solid #f87171; border-radius: 12px; padding: 12px 16px; margin-bottom: 14px; display: flex; align-items: center; gap: 10px; color: #991b1b; font-weight: 700; font-size: 0.88rem;">
+              <i class="fa-solid fa-triangle-exclamation" style="font-size: 1.25rem; color: #dc2626;"></i>
+              <div>แพ็คเกจนี้มีบางคอร์สที่นั่งเต็มแล้ว ระบบจึงปิดรับสมัครชั่วคราว</div>
+            </div>
+          `;
+        }
+        listHtml += childCourses.map((c, idx) => {
           // Tutor details
           const courseTutors = (c.tutorIds || []).map(tid => allTutors.find(t => t.id === tid)).filter(Boolean);
           const tutorText = courseTutors.length > 0
             ? courseTutors.map(t => `${t.nickname ? 'พี่' + t.nickname : t.name} (${t.subject || t.role || ''})`).join(' • ')
             : 'ทีมติวเตอร์ The NEW GEN';
+
+          // Check if this specific course is full
+          const cEff = window.getCourseEffectiveSeats ? window.getCourseEffectiveSeats(c) : { isFull: c.isFull === true };
+          const isCourseFull = cEff.isFull || (cEff.remainingSeats !== undefined && cEff.remainingSeats <= 0);
 
           // Schedule summaries
           const schedItems = Array.isArray(c.scheduleList) && c.scheduleList.length > 0
@@ -1158,21 +1197,33 @@ LINE ID: ${lastEnrollmentData.lineId}${customText}
             : (c.cover || c.poster || 'assets/images/course-poster-primary.jpg');
 
           return `
-            <div class="bundle-child-course-card" style="display: flex; gap: 16px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); transition: transform 0.2s, box-shadow 0.2s; align-items: flex-start;">
+            <div class="bundle-child-course-card" style="display: flex; gap: 16px; background: #ffffff; border: 1px solid ${isCourseFull ? '#fca5a5' : '#e2e8f0'}; border-radius: 16px; padding: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); transition: transform 0.2s, box-shadow 0.2s; align-items: flex-start;">
               <div style="width: 125px; height: 165px; border-radius: 12px; overflow: hidden; flex-shrink: 0; position: relative; background: #0b1e3f; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 14px rgba(0,0,0,0.12); border: 1px solid #e2e8f0;">
                 <img src="${coverSrc}" alt="${escapeHtml(c.title)}" style="width: 100%; height: 100%; object-fit: contain; background: #0b1e3f;" loading="lazy">
                 <span style="position: absolute; top: 6px; left: 6px; background: #e11d48; color: #ffffff; font-size: 0.68rem; padding: 2px 8px; border-radius: 6px; font-weight: 800; box-shadow: 0 2px 6px rgba(0,0,0,0.35); z-index: 2;">
                   คอร์สที่ ${idx + 1}
                 </span>
+                ${isCourseFull ? `
+                  <div style="position: absolute; inset: 0; background: rgba(185, 28, 28, 0.7); display: flex; align-items: center; justify-content: center; color: #ffffff; font-weight: 800; font-size: 0.82rem; z-index: 3;">
+                    <i class="fa-solid fa-ban" style="margin-right: 4px;"></i> เต็มแล้ว
+                  </div>
+                ` : ''}
               </div>
               <div style="flex: 1; min-width: 0;">
                 <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin-bottom: 4px;">
                   <span style="display: inline-block; font-size: 0.72rem; font-weight: 700; color: #0284c7; background: #e0f2fe; padding: 2px 8px; border-radius: 4px;">
                     ${escapeHtml(c.categoryLabel || (c.category === 'primary' ? 'ประถม' : 'มัธยม'))}
                   </span>
-                  <span style="font-size: 0.82rem; font-weight: 700; color: #64748b;">
-                    ราคาปกติเดี่ยว: <span style="color: #0f172a; font-weight: 800;">${escapeHtml(c.pricePromo || c.priceOriginal || '-')}.-</span>
-                  </span>
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    ${isCourseFull ? `
+                      <span class="badge" style="background: #fee2e2; color: #dc2626; border: 1px solid #f87171; font-weight: 800; font-size: 0.72rem; padding: 2px 8px; border-radius: 4px;">
+                        <i class="fa-solid fa-ban"></i> ที่นั่งเต็ม
+                      </span>
+                    ` : ''}
+                    <span style="font-size: 0.82rem; font-weight: 700; color: #64748b;">
+                      ราคาปกติเดี่ยว: <span style="color: #0f172a; font-weight: 800;">${escapeHtml(c.pricePromo || c.priceOriginal || '-')}.-</span>
+                    </span>
+                  </div>
                 </div>
                 <h4 style="font-size: 1rem; font-weight: 700; color: #0f172a; margin: 0 0 6px 0; line-height: 1.35;">
                   ${escapeHtml(c.title)}
@@ -1191,18 +1242,42 @@ LINE ID: ${lastEnrollmentData.lineId}${customText}
             </div>
           `;
         }).join('');
+        coursesListEl.innerHTML = listHtml;
       }
     }
 
     // Apply button click
     const applyBtn = document.getElementById('btnBundleDetailApplyNow');
     if (applyBtn) {
-      applyBtn.onclick = function () {
-        closeBundleDetailModal();
-        if (typeof window.openEnrollmentModal === 'function') {
-          window.openEnrollmentModal(bundleObj.id, bundleObj);
-        }
-      };
+      if (bundleStatus.isFull) {
+        applyBtn.style.background = '#94a3b8';
+        applyBtn.style.borderColor = '#94a3b8';
+        applyBtn.style.cursor = 'not-allowed';
+        applyBtn.style.boxShadow = 'none';
+        applyBtn.innerHTML = '<i class="fa-solid fa-ban"></i> ที่นั่งเต็มแล้ว (มีคอร์สในแพ็คเต็ม)';
+        applyBtn.onclick = function () {
+          const fullNames = bundleStatus.fullCourses.map(fc => `• ${fc.title}`).join('\n');
+          const lineUrl = getContactLineUrl();
+          const wantLine = confirm(
+            `ขออภัยครับ ไม่สามารถเปิดรับสมัครแพ็คเกจ "${bundleObj.name}" ได้ในขณะนี้\n\n` +
+            `เนื่องจากมีคอร์สในแพ็คเกจที่นั่งเต็มแล้ว ดังนี้:\n${fullNames}\n\n` +
+            `ต้องการทัก LINE สถาบันเพื่อสอบถามรอบถัดไป หรือลงชื่อสำรองที่นั่ง (Waiting List) หรือไม่ครับ?`
+          );
+          if (wantLine) window.open(lineUrl, '_blank', 'noopener,noreferrer');
+        };
+      } else {
+        applyBtn.style.background = 'linear-gradient(135deg, #e11d48, #be123c)';
+        applyBtn.style.borderColor = '#be123c';
+        applyBtn.style.cursor = 'pointer';
+        applyBtn.style.boxShadow = '0 6px 18px rgba(225, 29, 72, 0.4)';
+        applyBtn.innerHTML = '<i class="fa-solid fa-bolt"></i> สมัครแพ็คเกจนี้ทันที';
+        applyBtn.onclick = function () {
+          closeBundleDetailModal();
+          if (typeof window.openEnrollmentModal === 'function') {
+            window.openEnrollmentModal(bundleObj.id, bundleObj);
+          }
+        };
+      }
     }
 
     // Open Modal

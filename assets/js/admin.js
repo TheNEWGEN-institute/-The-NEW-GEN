@@ -4424,25 +4424,27 @@ function renderAdminQuickCoursePills(courses, enrollments, selectedCourseId = 'a
 
   const totalCount = enrollments.length;
   const bundleEnrollCount = enrollments.filter(e => e.isBundle || e.isFromBundle || e.bundleId).length;
+  const isSpecificCourse = selectedCourseId !== 'all' && selectedCourseId !== '__bundles__';
 
   let html = `
     <button type="button" class="quick-course-pill ${selectedCourseId === 'all' ? 'active' : ''}" onclick="selectQuickCourseFilter('all')">
       📚 ทุกคอร์สเรียนทั้งหมด <span class="count">${totalCount}</span>
     </button>
-    <button type="button" class="quick-course-pill ${selectedCourseId === '__bundles__' ? 'active' : ''}" onclick="selectQuickCourseFilter('__bundles__')" style="border-color: #f43f5e; color: #be123c; font-weight: 700;">
-      📦 สมัครผ่านแพ็คเกจโปรโมชั่น <span class="count" style="background: #e11d48; color: #fff;">${bundleEnrollCount}</span>
+    <button type="button" class="quick-course-pill ${selectedCourseId === '__bundles__' ? 'active' : ''}" onclick="selectQuickCourseFilter('__bundles__')" style="border-color: #f43f5e; color: ${selectedCourseId === '__bundles__' ? '#ffffff' : '#be123c'}; ${selectedCourseId === '__bundles__' ? 'background: #e11d48;' : ''} font-weight: 700;">
+      📦 สมัครผ่านแพ็คเกจโปรโมชั่น <span class="count" style="background: ${selectedCourseId === '__bundles__' ? 'rgba(255,255,255,0.25)' : '#e11d48'}; color: #fff;">${bundleEnrollCount}</span>
     </button>
+    <div class="quick-course-select-wrap">
+      <select id="adminQuickCourseSelect" class="quick-course-select ${isSpecificCourse ? 'active' : ''}" onchange="selectQuickCourseFilter(this.value || 'all')" title="คลิกเพื่อเลือกดูนักเรียนเฉพาะคอร์สเรียน">
+        <option value="">🎓 เลือกดูรายคอร์สเรียน (${courses.length} คอร์ส)...</option>
+        ${courses.map(c => {
+          const count = enrollments.filter(e => e.courseId === c.id).length;
+          const isSelected = selectedCourseId === c.id ? 'selected' : '';
+          return `<option value="${c.id}" ${isSelected}>${escapeHtml(c.title)} (${count} คน)${c.isHidden ? ' [ซ่อน]' : ''}</option>`;
+        }).join('')}
+      </select>
+      <i class="fa-solid fa-chevron-down quick-course-select-arrow" style="pointer-events: none;"></i>
+    </div>
   `;
-
-  courses.forEach(c => {
-    const count = enrollments.filter(e => e.courseId === c.id).length;
-    const isActive = selectedCourseId === c.id ? 'active' : '';
-    html += `
-      <button type="button" class="quick-course-pill ${isActive}" onclick="selectQuickCourseFilter('${c.id}')">
-        ${escapeHtml(c.title)} ${c.isHidden ? '<small style="color:#b91c1c; font-weight:700;">(ซ่อน)</small>' : ''} <span class="count">${count}</span>
-      </button>
-    `;
-  });
 
   container.innerHTML = html;
 }
@@ -4455,7 +4457,7 @@ function selectQuickCourseFilter(courseId) {
   const courses = window.NewGenDB ? window.NewGenDB.getCourses() : [];
   const enrollments = window.NewGenDB ? window.NewGenDB.getEnrollments() : [];
   renderAdminQuickCoursePills(courses, enrollments, courseId);
-  filterAdminEnrollments();
+  filterAdminEnrollments(false); // don't re-render pills again
 }
 
 function loadAdminEnrollments() {
@@ -4520,7 +4522,7 @@ function loadAdminEnrollments() {
   filterAdminEnrollments();
 }
 
-function filterAdminEnrollments() {
+function filterAdminEnrollments(syncPills = true) {
   const filterCourse = document.getElementById('enrollFilterCourse');
   const filterType = document.getElementById('enrollFilterLearningType');
   const searchInput = document.getElementById('enrollSearchKeyword');
@@ -4539,6 +4541,10 @@ function filterAdminEnrollments() {
   const courses = window.NewGenDB ? window.NewGenDB.getCourses() : [];
   const courseMap = {};
   courses.forEach(c => { courseMap[c.id] = c; });
+
+  if (syncPills) {
+    renderAdminQuickCoursePills(courses, allEnrollments, selectedCourseId);
+  }
 
   const filtered = allEnrollments.filter(item => {
     // 1. Filter course
@@ -4625,6 +4631,9 @@ function renderEnrollmentsTable(enrollments, courseMap = null) {
       day: 'numeric'
     }) : '-';
 
+    // Clean notes: strip out any [สมัครผ่านแพ็คเกจ: ...] tag so the orange note sentence is gone
+    const cleanNotes = (en.notes || '').replace(/\[สมัครผ่านแพ็คเกจ:[^\]]*\]\s*/g, '').trim();
+
     return `
       <tr>
         <td style="text-align: center; color: var(--text-muted); font-weight: 700;">${idx + 1}</td>
@@ -4642,7 +4651,7 @@ function renderEnrollmentsTable(enrollments, courseMap = null) {
               </span>
             </div>
           ` : ''}
-          ${en.notes ? `<div style="font-size: 0.75rem; color: #d97706; margin-top: 2px;"><i class="fa-solid fa-note-sticky"></i> ${escapeHtml(en.notes)}</div>` : ''}
+          ${cleanNotes ? `<div style="font-size: 0.75rem; color: #d97706; margin-top: 2px;"><i class="fa-solid fa-note-sticky"></i> ${escapeHtml(cleanNotes)}</div>` : ''}
           ${Array.isArray(en.customAnswers) && en.customAnswers.length > 0 ? `
             <div style="margin-top: 5px; padding: 4px 8px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px; font-size: 0.75rem; color: #166534; line-height: 1.35;">
               <div style="font-weight: 700; color: #15803d; margin-bottom: 2px;"><i class="fa-solid fa-clipboard-question"></i> ข้อมูลเพิ่มเติม:</div>
@@ -4856,6 +4865,16 @@ async function handleSaveEnrollment(e) {
     createdAt: id ? (window.NewGenDB.getEnrollments().find(x => x.id === id)?.createdAt || new Date().toISOString()) : new Date().toISOString()
   };
 
+  if (!id && foundBundle) {
+    const allCourses = window.NewGenDB ? window.NewGenDB.getCourses() : [];
+    const bundleStatus = window.isBundleFull ? window.isBundleFull(foundBundle, allCourses) : { isFull: false, fullCourses: [] };
+    if (bundleStatus.isFull) {
+      const fullList = bundleStatus.fullCourses.map(fc => `• ${fc.title}`).join('\n');
+      const proceed = confirm(`คำเตือน: แพ็คเกจ "${foundBundle.name}" มีคอร์สที่ที่นั่งเต็มแล้ว ดังนี้:\n${fullList}\n\nคุณต้องการบันทึกการสมัครเป็นกรณีพิเศษ (เพิ่มที่นั่งพิเศษ) หรือไม่?`);
+      if (!proceed) return;
+    }
+  }
+
   const res = await window.NewGenDB.saveEnrollment(item);
 
   // Sync with Server API
@@ -4880,7 +4899,7 @@ async function handleSaveEnrollment(e) {
         bundleId: foundBundle.id,
         bundleName: foundBundle.name,
         parentEnrollId: item.id,
-        notes: `[สมัครผ่านแพ็คเกจ: ${foundBundle.name}] ${notes || ''}`.trim()
+        notes: (notes || '').trim()
       };
       await window.NewGenDB.saveEnrollment(subItem);
       fetch('/api/enrollments', {

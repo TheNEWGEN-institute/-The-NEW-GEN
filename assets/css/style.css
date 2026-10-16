@@ -9000,6 +9000,62 @@ button {
   color: #ffffff;
 }
 
+/* Quick Course Dropdown */
+.quick-course-select-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.quick-course-select {
+  padding: 6px 34px 6px 14px;
+  border-radius: 99px;
+  border: 1.5px solid #cbd5e1;
+  background: #ffffff;
+  color: #334155;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s ease;
+  appearance: none;
+  -webkit-appearance: none;
+  min-width: 250px;
+  max-width: 380px;
+}
+
+.quick-course-select:hover {
+  border-color: #94a3b8;
+  background: #f8fafc;
+}
+
+.quick-course-select.active {
+  background: var(--color-navy, #0b1e3f);
+  color: #ffffff;
+  border-color: var(--color-navy, #0b1e3f);
+  box-shadow: 0 4px 12px rgba(11, 30, 63, 0.25);
+}
+
+.quick-course-select.active option {
+  background: #ffffff;
+  color: #1e293b;
+}
+
+.quick-course-select-arrow {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #64748b;
+  font-size: 0.75rem;
+  pointer-events: none;
+  transition: color 0.2s;
+}
+
+.quick-course-select.active + .quick-course-select-arrow {
+  color: #ffffff;
+}
+
 /* Responsive */
 @media (max-width: 640px) {
   .enroll-modal-container {
