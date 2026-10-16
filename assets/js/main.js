@@ -339,6 +339,7 @@ function initCourseSlider() {
     homeBundles.forEach(b => {
       const childCourseIds = Array.isArray(b.courseIds) ? b.courseIds : [];
       const childCourses = allCourses.filter(c => childCourseIds.includes(c.id));
+      const bundleStatus = window.isBundleFull ? window.isBundleFull(b, allCourses) : { isFull: false, fullCourses: [] };
       const isCustom = b.imageMode === 'custom' && b.customImage;
 
       const visualHtml = isCustom
@@ -355,7 +356,7 @@ function initCourseSlider() {
       const savingsVal = Math.max(0, origNum - promoNum);
 
       const card = document.createElement('div');
-      card.className = 'bundle-card';
+      card.className = `bundle-card ${bundleStatus.isFull ? 'is-full' : ''}`;
       card.style.cssText = 'flex-shrink: 0; min-width: 320px; max-width: 380px; width: 100%; box-sizing: border-box; cursor: pointer;';
       card.onclick = (e) => {
         if (!e.target.closest('button')) {
@@ -365,7 +366,10 @@ function initCourseSlider() {
       card.innerHTML = `
         <div class="bundle-thumb-area ${isCustom ? 'custom-img' : ''}" style="cursor: pointer;" title="คลิกเพื่อดูรายละเอียดแพ็คเกจ">
           ${visualHtml}
-          <span class="bundle-badge-promo"><i class="fa-solid fa-fire"></i> ${escapeHtml(b.badge || '🔥 แพ็คเกจโปรโมชั่น')}</span>
+          ${bundleStatus.isFull
+            ? `<span class="bundle-badge-promo" style="background: #ef4444;"><i class="fa-solid fa-ban"></i> ที่นั่งเต็มแล้ว</span>`
+            : `<span class="bundle-badge-promo"><i class="fa-solid fa-fire"></i> ${escapeHtml(b.badge || '🔥 แพ็คเกจโปรโมชั่น')}</span>`
+          }
           ${savingsVal > 0 ? `<span class="bundle-savings-pill"><i class="fa-solid fa-gift"></i> ประหยัดทันที ${savingsVal.toLocaleString()}.-</span>` : ''}
         </div>
         <div class="bundle-card-body">
@@ -374,12 +378,15 @@ function initCourseSlider() {
             <p class="bundle-desc">${escapeHtml(b.description || 'รวมคอร์สเรียนวิชาหลักเข้มข้น สมัครเป็นแพ็คประหยัดยิ่งขึ้น พร้อมติวจัดเต็ม')}</p>
             <div class="bundle-included-list">
               <div class="bundle-included-heading"><i class="fa-solid fa-layer-group"></i> รวม ${childCourses.length} คอร์สเรียนในแพ็คนี้:</div>
-              ${childCourses.map(c => `
-                <div class="bundle-included-item">
-                  <i class="fa-solid fa-circle-check"></i>
-                  <span><strong>${escapeHtml(c.title)}</strong> <small style="color:#64748b;">(ปกติ ${escapeHtml(c.pricePromo || c.priceOriginal || '')}.-)</small></span>
-                </div>
-              `).join('')}
+              ${childCourses.map(c => {
+                const isCFull = bundleStatus.fullCourses.some(fc => fc.id === c.id);
+                return `
+                  <div class="bundle-included-item">
+                    <i class="fa-solid ${isCFull ? 'fa-circle-xmark' : 'fa-circle-check'}" style="${isCFull ? 'color:#ef4444;' : ''}"></i>
+                    <span><strong>${escapeHtml(c.title)}</strong> ${isCFull ? '<span style="color:#ef4444; font-weight:800;">(ที่นั่งเต็ม)</span>' : `<small style="color:#64748b;">(ปกติ ${escapeHtml(c.pricePromo || c.priceOriginal || '')}.-)</small>`}</span>
+                  </div>
+                `;
+              }).join('')}
             </div>
           </div>
           <div class="course-footer">
@@ -393,9 +400,15 @@ function initCourseSlider() {
               </div>
             </div>
             <div class="course-actions-wrap">
-              <button type="button" class="btn-course-register" onclick="event.stopPropagation(); openEnrollmentModal('${b.id}')" title="สมัครแพ็คเกจนี้" style="background: linear-gradient(135deg, #e11d48, #be123c); border-color: #be123c;">
-                <i class="fa-solid fa-bolt"></i> สมัครแพ็คเกจนี้
-              </button>
+              ${bundleStatus.isFull ? `
+                <button type="button" class="btn-course-register disabled" onclick="event.stopPropagation(); openBundleDetailModal('${b.id}')" title="มีคอร์สในแพ็คเกจที่นั่งเต็มแล้ว" style="background: #94a3b8; border-color: #94a3b8; cursor: not-allowed; box-shadow: none;">
+                  <i class="fa-solid fa-ban"></i> ที่นั่งเต็ม
+                </button>
+              ` : `
+                <button type="button" class="btn-course-register" onclick="event.stopPropagation(); openEnrollmentModal('${b.id}')" title="สมัครแพ็คเกจนี้" style="background: linear-gradient(135deg, #e11d48, #be123c); border-color: #be123c;">
+                  <i class="fa-solid fa-bolt"></i> สมัครแพ็คเกจนี้
+                </button>
+              `}
               <button type="button" class="btn-detail-link" onclick="event.stopPropagation(); openBundleDetailModal('${b.id}')" title="ดูรายละเอียดคอร์สในแพ็คเกจ" style="border: none; cursor: pointer;">
                 รายละเอียด <i class="fa-solid fa-arrow-right"></i>
               </button>
