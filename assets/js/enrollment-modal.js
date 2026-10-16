@@ -289,6 +289,18 @@
           <div id="enrollStepConfirmation" class="enroll-modal-view">
             <div class="enroll-success-wrap">
               
+              <!-- PRINT-ONLY OFFICIAL HEADER -->
+              <div class="enroll-print-header">
+                <div class="print-header-left">
+                  <div class="print-brand-title">สถาบันกวดวิชา <span>The NEW GEN</span></div>
+                  <div class="print-brand-subtitle">The NEW GEN Tutoring Institute • เอกสารยืนยันสิทธิ์การลงทะเบียนเรียน</div>
+                </div>
+                <div class="print-header-right">
+                  <div class="print-pass-badge">ENROLLMENT PASS</div>
+                  <div class="print-pass-sub">(ใบยืนยันการสมัครเรียน)</div>
+                </div>
+              </div>
+
               <div class="enroll-success-icon-badge">
                 <i class="fa-solid fa-circle-check"></i>
               </div>
@@ -1161,18 +1173,38 @@
     if (currentStudentImageBase64) {
       try {
         submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังอัปโหลดรูปภาพ...';
-        const uploadRes = await fetch('/api/upload', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            base64Data: currentStudentImageBase64,
-            filename: currentStudentImageFileName || 'student-attachment.jpg'
-          })
-        });
-        if (uploadRes.ok) {
-          const upJson = await uploadRes.json();
-          if (upJson && upJson.url) {
-            studentImageUrl = upJson.url;
+        // 1. Try Supabase Storage upload first for cloud persistence
+        if (window.NewGenDB && typeof window.NewGenDB.uploadImageToSupabase === 'function') {
+          try {
+            const arr = currentStudentImageBase64.split(',');
+            const mime = (arr[0].match(/:(.*?);/) || [])[1] || 'image/jpeg';
+            const bstr = atob(arr[1]);
+            let n = bstr.length;
+            const u8arr = new Uint8Array(n);
+            while (n--) u8arr[n] = bstr.charCodeAt(n);
+            const blob = new Blob([u8arr], { type: mime });
+            const fname = currentStudentImageFileName || `student-${Date.now()}.jpg`;
+            const supaUrl = await window.NewGenDB.uploadImageToSupabase(blob, fname);
+            if (supaUrl) studentImageUrl = supaUrl;
+          } catch (supaErr) {
+            console.warn('Supabase storage upload error:', supaErr);
+          }
+        }
+        // 2. Fallback to /api/upload
+        if (!studentImageUrl) {
+          const uploadRes = await fetch('/api/upload', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              base64Data: currentStudentImageBase64,
+              filename: currentStudentImageFileName || 'student-attachment.jpg'
+            })
+          });
+          if (uploadRes.ok) {
+            const upJson = await uploadRes.json();
+            if (upJson && upJson.url) {
+              studentImageUrl = upJson.url;
+            }
           }
         }
       } catch (upErr) {

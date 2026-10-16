@@ -411,25 +411,32 @@
 
     function getBundleCategoryIds(bundle, allCourses) {
       const catSet = new Set();
-      if (Array.isArray(bundle.categories)) {
-        bundle.categories.forEach(c => catSet.add(c));
+      // 1. Primary authority: bundle.categoryIds explicitly configured by Admin
+      if (Array.isArray(bundle.categoryIds) && bundle.categoryIds.length > 0) {
+        bundle.categoryIds.forEach(c => {
+          if (c) catSet.add(c);
+        });
+        return catSet;
+      }
+      // 2. Secondary: bundle.categories or bundle.category
+      if (Array.isArray(bundle.categories) && bundle.categories.length > 0) {
+        bundle.categories.forEach(c => {
+          if (c) catSet.add(c);
+        });
+        return catSet;
       } else if (bundle.category) {
         catSet.add(bundle.category);
+        return catSet;
       }
+      // 3. Derived strictly from linked child courses
       const childIds = Array.isArray(bundle.courseIds) ? bundle.courseIds : [];
-      (allCourses || []).forEach(c => {
-        if (childIds.includes(c.id) && c.category) {
-          catSet.add(c.category);
-        }
-      });
-      const text = `${bundle.name || ''} ${bundle.description || ''}`;
-      if (/ม\.?\s*4/i.test(text)) catSet.add('highschool4');
-      if (/ม\.?\s*5/i.test(text)) catSet.add('highschool5');
-      if (/ม\.?\s*1/i.test(text)) catSet.add('secondary1');
-      if (/ม\.?\s*2/i.test(text)) catSet.add('secondary2');
-      if (/ม\.?\s*3/i.test(text)) catSet.add('secondary3');
-      if (/ป\.?\s*6/i.test(text)) catSet.add('primary6');
-      if (/ป\.?\s*[45]/i.test(text)) catSet.add('primary45');
+      if (childIds.length > 0 && Array.isArray(allCourses)) {
+        allCourses.forEach(c => {
+          if (childIds.includes(c.id) && c.category) {
+            catSet.add(c.category);
+          }
+        });
+      }
       return catSet;
     }
 
