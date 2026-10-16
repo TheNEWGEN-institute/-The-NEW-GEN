@@ -1566,34 +1566,19 @@ function renderAdminBundles(bundles) {
 
 function generateBundle3DStackHtml(coursesList, context = 'admin') {
   if (!coursesList || coursesList.length === 0) {
-    return `<div style="color: rgba(255,255,255,0.7); font-size: 0.85rem;"><i class="fa-solid fa-images"></i> เลือก 2 คอร์สเพื่อดูพรีวิว 3D Stack</div>`;
+    return `<div style="color: rgba(255,255,255,0.7); font-size: 0.85rem;"><i class="fa-solid fa-images"></i> เลือก 2-4 คอร์สเพื่อดูพรีวิวรูปแพ็คเกจ</div>`;
   }
 
-  const covers = coursesList.slice(0, 3).map(c => window.resolveMediaUrl ? window.resolveMediaUrl(c.cover || c.poster) : (c.cover || c.poster || 'assets/images/course-poster-primary.jpg'));
-  
-  if (covers.length === 1) {
-    return `<img src="${covers[0]}" style="max-height: 130px; border-radius: 8px; box-shadow: 0 8px 20px rgba(0,0,0,0.4);" alt="Cover">`;
-  }
+  const covers = coursesList.slice(0, 4).map(c => window.resolveMediaUrl ? window.resolveMediaUrl(c.cover || c.poster) : (c.cover || c.poster || 'assets/images/course-poster-primary.jpg'));
+  const count = Math.min(covers.length, 4);
 
   return `
-    <div class="bundle-3d-stack-wrap" style="position: relative; width: 170px; height: 135px; perspective: 700px; display: flex; align-items: center; justify-content: center;">
-      ${covers.map((imgUrl, i) => {
-        let transform = '';
-        let zIndex = 3 - i;
-        if (i === 0) {
-          transform = 'translateX(-22px) translateY(6px) rotate(-8deg) scale(0.92)';
-        } else if (i === 1) {
-          transform = 'translateX(18px) translateY(-3px) rotate(6deg) scale(0.96)';
-          zIndex = 4;
-        } else if (i === 2) {
-          transform = 'translateX(0) translateY(-12px) scale(0.86)';
-          zIndex = 2;
-        }
-        return `
-          <img src="${imgUrl}" alt="Card ${i+1}" 
-            style="position: absolute; width: 105px; height: 130px; object-fit: cover; border-radius: 7px; border: 2px solid #ffffff; box-shadow: 0 10px 22px rgba(0,0,0,0.4); transform: ${transform}; z-index: ${zIndex}; transition: transform 0.3s ease;">
-        `;
-      }).join('')}
+    <div class="bundle-promo-grid-wrap count-${count}">
+      ${covers.map((imgUrl, i) => `
+        <div class="bundle-grid-item" title="คอร์สที่ ${i+1}">
+          <img src="${imgUrl}" alt="Card ${i+1}" loading="lazy">
+        </div>
+      `).join('')}
     </div>
   `;
 }

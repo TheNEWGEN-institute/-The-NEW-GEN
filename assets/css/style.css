@@ -9727,7 +9727,9 @@ button {
 .bundle-card .bundle-thumb-area {
   position: relative;
   width: 100%;
-  height: 220px;
+  min-height: 250px;
+  height: auto;
+  padding: 44px 14px 40px;
   background: linear-gradient(135deg, #0b1e3f 0%, #1e3a8a 100%);
   display: flex;
   align-items: center;
@@ -9738,6 +9740,8 @@ button {
 
 .bundle-card .bundle-thumb-area.custom-img {
   background: #0b1e3f;
+  min-height: 220px;
+  padding: 0;
 }
 
 .bundle-card .bundle-thumb-area.custom-img img {
@@ -9749,6 +9753,129 @@ button {
 
 .bundle-card:hover .bundle-thumb-area.custom-img img {
   transform: scale(1.05);
+}
+
+/* ========================================================
+   Bundle Balanced Grid (No Overlap / No Tilt / Clean Visibility)
+   ======================================================== */
+.bundle-grid-wrap {
+  display: grid;
+  grid-template-columns: repeat(2, auto);
+  gap: 8px 12px;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  max-width: 290px;
+  z-index: 2;
+}
+
+.bundle-grid-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.bundle-grid-item:hover {
+  transform: translateY(-2px) scale(1.04);
+  z-index: 5;
+}
+
+.bundle-grid-item img {
+  object-fit: cover;
+  border-radius: 7px;
+  border: 2px solid #ffffff;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.35);
+  display: block;
+}
+
+/* 1 Course: Large Center */
+.bundle-grid-wrap.count-1 {
+  grid-template-columns: auto;
+}
+.bundle-grid-wrap.count-1 .bundle-grid-item img {
+  width: 110px;
+  height: 145px;
+}
+
+/* 2 Courses: 2 Side by Side (Left - Right) */
+.bundle-grid-wrap.count-2 {
+  grid-template-columns: repeat(2, auto);
+  gap: 14px;
+}
+.bundle-grid-wrap.count-2 .bundle-grid-item img {
+  width: 100px;
+  height: 135px;
+}
+
+/* 3 Courses: 2 on Top, 1 Centered on Bottom */
+.bundle-grid-wrap.count-3 {
+  grid-template-columns: repeat(2, auto);
+  gap: 8px 12px;
+}
+.bundle-grid-wrap.count-3 .bundle-grid-item img {
+  width: 84px;
+  height: 98px;
+}
+.bundle-grid-wrap.count-3 .bundle-grid-item:nth-child(3) {
+  grid-column: 1 / -1;
+  justify-self: center;
+}
+
+/* 4 Courses: 2 on Top, 2 on Bottom (2x2 Grid) */
+.bundle-grid-wrap.count-4 {
+  grid-template-columns: repeat(2, auto);
+  gap: 8px 12px;
+}
+.bundle-grid-wrap.count-4 .bundle-grid-item img {
+  width: 84px;
+  height: 98px;
+}
+
+/* For Course Detail Bundle Promo Section */
+.bundle-promo-grid-wrap {
+  display: grid;
+  grid-template-columns: repeat(2, auto);
+  gap: 6px 10px;
+  justify-content: center;
+  align-items: center;
+  width: 175px;
+  flex-shrink: 0;
+}
+.bundle-promo-grid-wrap.count-1 {
+  grid-template-columns: auto;
+}
+.bundle-promo-grid-wrap.count-1 .bundle-grid-item img {
+  width: 110px;
+  height: 145px;
+}
+.bundle-promo-grid-wrap.count-2 {
+  grid-template-columns: repeat(2, auto);
+  gap: 8px;
+}
+.bundle-promo-grid-wrap.count-2 .bundle-grid-item img {
+  width: 78px;
+  height: 105px;
+}
+.bundle-promo-grid-wrap.count-3 {
+  grid-template-columns: repeat(2, auto);
+  gap: 6px 8px;
+}
+.bundle-promo-grid-wrap.count-3 .bundle-grid-item img {
+  width: 72px;
+  height: 86px;
+}
+.bundle-promo-grid-wrap.count-3 .bundle-grid-item:nth-child(3) {
+  grid-column: 1 / -1;
+  justify-self: center;
+}
+.bundle-promo-grid-wrap.count-4 {
+  grid-template-columns: repeat(2, auto);
+  gap: 6px 8px;
+}
+.bundle-promo-grid-wrap.count-4 .bundle-grid-item img {
+  width: 72px;
+  height: 86px;
 }
 
 .bundle-badge-promo {

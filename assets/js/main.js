@@ -340,14 +340,14 @@ function initCourseSlider() {
       const childCourseIds = Array.isArray(b.courseIds) ? b.courseIds : [];
       const childCourses = allCourses.filter(c => childCourseIds.includes(c.id));
       const bundleStatus = window.isBundleFull ? window.isBundleFull(b, allCourses) : { isFull: false, fullCourses: [] };
-      const isCustom = b.imageMode === 'custom' && b.customImage;
-
+      const count = Math.min(childCourses.length, 4);
       const visualHtml = isCustom
         ? `<img src="${b.customImage}" alt="${escapeHtml(b.name)}">`
-        : `<div class="bundle-3d-stack-wrap" style="position:relative; width:170px; height:135px; perspective:700px; display:flex; align-items:center; justify-content:center;">
-            ${childCourses.slice(0, 3).map((c, i) => `
-              <img src="${c.cover || c.poster || 'assets/images/course-poster-primary.jpg'}" alt="${escapeHtml(c.title)}"
-                style="position:absolute; width:105px; height:130px; object-fit:cover; border-radius:7px; border:2px solid #fff; box-shadow:0 10px 22px rgba(0,0,0,0.4); transform:${i === 0 ? 'translateX(-22px) translateY(6px) rotate(-8deg) scale(0.92)' : (i === 1 ? 'translateX(18px) translateY(-3px) rotate(6deg) scale(0.96)' : 'translateX(0) translateY(-12px) scale(0.86)')}; z-index:${i === 1 ? 4 : (i === 0 ? 3 : 2)};">
+        : `<div class="bundle-grid-wrap count-${count}">
+            ${childCourses.slice(0, 4).map((c, i) => `
+              <div class="bundle-grid-item" title="${escapeHtml(c.title)}">
+                <img src="${c.cover || c.poster || 'assets/images/course-poster-primary.jpg'}" alt="${escapeHtml(c.title)}" loading="lazy">
+              </div>
             `).join('')}
           </div>`;
 
