@@ -6437,19 +6437,21 @@ button {
 }
 
 .btn-danger-outline {
-  background: #ffffff;
-  border: 1.5px solid var(--color-red-brand);
-  color: var(--color-red-brand);
+  background: #fef2f2;
+  border: 1.5px solid #f87171;
+  color: #dc2626;
   padding: 10px 20px;
   border-radius: var(--radius-full);
   font-weight: 700;
   font-size: 0.88rem;
   cursor: pointer;
   white-space: nowrap;
+  transition: all 0.2s ease;
 }
 
 .btn-danger-outline:hover {
   background: var(--color-red-brand);
+  border-color: var(--color-red-brand);
   color: #ffffff;
 }
 
@@ -9227,9 +9229,9 @@ button {
 .admin-subtab-btn {
   flex: 1;
   padding: 10px 16px;
-  border: none;
-  background: transparent;
-  color: #64748b;
+  border: 1.5px solid transparent;
+  background: #f1f5f9;
+  color: #475569;
   font-weight: 700;
   font-size: 0.92rem;
   border-radius: 8px;
@@ -9241,10 +9243,16 @@ button {
   transition: all 0.2s ease;
 }
 
+.admin-subtab-btn:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
 .admin-subtab-btn.active {
-  background: #ffffff;
-  color: var(--color-navy, #0b1e3f);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  background: var(--color-navy, #0b1e3f);
+  color: #ffffff;
+  border-color: var(--color-navy, #0b1e3f);
+  box-shadow: 0 3px 10px rgba(11, 30, 63, 0.22);
 }
 
 .course-capacity-grid {
@@ -9393,11 +9401,11 @@ button {
 }
 
 .quick-course-pill {
-  padding: 6px 12px;
+  padding: 6px 14px;
   border-radius: 99px;
-  border: 1.5px solid #cbd5e1;
-  background: #ffffff;
-  color: #475569;
+  border: 1.5px solid #94a3b8;
+  background: #f1f5f9;
+  color: #0f172a;
   font-size: 0.82rem;
   font-weight: 700;
   cursor: pointer;
@@ -9408,8 +9416,9 @@ button {
 }
 
 .quick-course-pill:hover {
-  border-color: #94a3b8;
-  background: #f8fafc;
+  border-color: #64748b;
+  background: #e2e8f0;
+  color: #0284c7;
 }
 
 .quick-course-pill.active {
@@ -9419,14 +9428,16 @@ button {
 }
 
 .quick-course-pill .count {
-  background: rgba(0, 0, 0, 0.08);
-  padding: 1px 6px;
+  background: #cbd5e1;
+  color: #0f172a;
+  padding: 1px 7px;
   border-radius: 99px;
   font-size: 0.72rem;
+  font-weight: 800;
 }
 
 .quick-course-pill.active .count {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.25);
   color: #ffffff;
 }
 
@@ -9440,9 +9451,9 @@ button {
 .quick-course-select {
   padding: 6px 34px 6px 14px;
   border-radius: 99px;
-  border: 1.5px solid #cbd5e1;
-  background: #ffffff;
-  color: #334155;
+  border: 1.5px solid #94a3b8;
+  background: #f1f5f9;
+  color: #0f172a;
   font-size: 0.82rem;
   font-weight: 700;
   cursor: pointer;
@@ -9455,8 +9466,8 @@ button {
 }
 
 .quick-course-select:hover {
-  border-color: #94a3b8;
-  background: #f8fafc;
+  border-color: #64748b;
+  background: #e2e8f0;
 }
 
 .quick-course-select.active {
@@ -11043,3 +11054,171 @@ button {
 
 
 
+
+
+
+/* ===================================================================
+   ADMIN DASHBOARD: HIGH-CONTRAST BUTTON STYLING (FIX WHITE-ON-WHITE)
+   =================================================================== */
+
+/* 1. Base Admin Secondary Button Override (Replaces transparent/white hero styling) */
+.page-admin-body .btn-secondary,
+.admin-modal-card .btn-secondary,
+.admin-modal-footer .btn-secondary {
+  background: #f1f5f9;
+  border: 1.5px solid #94a3b8;
+  color: #0f172a !important;
+  font-weight: 700;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  transition: all 0.2s ease;
+}
+
+.page-admin-body .btn-secondary:hover,
+.admin-modal-card .btn-secondary:hover,
+.admin-modal-footer .btn-secondary:hover {
+  background: #e2e8f0;
+  border-color: #64748b;
+  color: #0284c7 !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+}
+
+.page-admin-body .btn-secondary:active,
+.admin-modal-card .btn-secondary:active,
+.admin-modal-footer .btn-secondary:active {
+  transform: translateY(0);
+  background: #cbd5e1;
+}
+
+/* 2. Top Header Secondary Action Buttons (e.g. จัดการระดับชั้นเรียน, ส่งออกข้อมูล Excel / CSV) */
+.admin-pane-header .btn-secondary {
+  background: #eff6ff !important;
+  border: 1.5px solid #93c5fd !important;
+  color: #0369a1 !important;
+}
+
+.admin-pane-header .btn-secondary:hover {
+  background: #0284c7 !important;
+  border-color: #0284c7 !important;
+  color: #ffffff !important;
+}
+
+/* 3. Modal Cancel / Close Secondary Buttons */
+.admin-modal-footer .btn-secondary,
+.admin-modal-actions .btn-secondary {
+  background: #f1f5f9 !important;
+  border: 1.5px solid #cbd5e1 !important;
+  color: #334155 !important;
+}
+
+.admin-modal-footer .btn-secondary:hover,
+.admin-modal-actions .btn-secondary:hover {
+  background: #e2e8f0 !important;
+  border-color: #94a3b8 !important;
+  color: #0f172a !important;
+}
+
+/* 4. Reset & Clear Buttons (Distinct warm rose tint so users clearly know it's a reset action) */
+.page-admin-body button[onclick*="reset"],
+.page-admin-body button[onclick*="Reset"],
+.page-admin-body button[title*="ล้างตัวกรอง"],
+.page-admin-body button[onclick*="cancelEditCategory"] {
+  background: #fff1f2 !important;
+  border: 1.5px solid #fecdd3 !important;
+  color: #be123c !important;
+}
+
+.page-admin-body button[onclick*="reset"]:hover,
+.page-admin-body button[onclick*="Reset"]:hover,
+.page-admin-body button[title*="ล้างตัวกรอง"]:hover,
+.page-admin-body button[onclick*="cancelEditCategory"]:hover {
+  background: #f43f5e !important;
+  border-color: #f43f5e !important;
+  color: #ffffff !important;
+}
+
+/* 5. File Upload Selector Buttons (Soft sky blue theme) */
+.page-admin-body button[onclick*="FileInput"],
+.page-admin-body button[onclick*="fileInput"] {
+  background: #eff6ff !important;
+  border: 1.5px solid #93c5fd !important;
+  color: #0284c7 !important;
+}
+
+.page-admin-body button[onclick*="FileInput"]:hover,
+.page-admin-body button[onclick*="fileInput"]:hover {
+  background: #0284c7 !important;
+  border-color: #0284c7 !important;
+  color: #ffffff !important;
+}
+
+/* 6. Add Row / Item Buttons (Crisp mint green theme) */
+.page-admin-body button[onclick*="addRow"],
+.page-admin-body button[onclick*="addPhone"],
+.page-admin-body button[onclick*="addAboutGallery"],
+.page-admin-body button[onclick*="addCustomSection"] {
+  background: #f0fdf4 !important;
+  border: 1.5px solid #86efac !important;
+  color: #15803d !important;
+}
+
+.page-admin-body button[onclick*="addRow"]:hover,
+.page-admin-body button[onclick*="addPhone"]:hover,
+.page-admin-body button[onclick*="addAboutGallery"]:hover,
+.page-admin-body button[onclick*="addCustomSection"]:hover {
+  background: #16a34a !important;
+  border-color: #16a34a !important;
+  color: #ffffff !important;
+}
+
+/* 7. Preview Campaign Popup Button (Distinct purple theme) */
+.page-admin-body button[onclick*="previewCampaignPopup"] {
+  background: #faf5ff !important;
+  border: 1.5px solid #d8b4fe !important;
+  color: #7e22ce !important;
+}
+
+.page-admin-body button[onclick*="previewCampaignPopup"]:hover {
+  background: #9333ea !important;
+  border-color: #9333ea !important;
+  color: #ffffff !important;
+}
+
+/* 8. Table Action Buttons (Category modal edit/delete buttons) */
+.btn-table-action {
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.2s ease;
+}
+
+.btn-table-action.edit {
+  color: #0284c7;
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+}
+
+.btn-table-action.edit:hover {
+  background: #0284c7;
+  border-color: #0284c7;
+  color: #ffffff;
+}
+
+.btn-table-action.delete {
+  color: #dc2626;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+}
+
+.btn-table-action.delete:hover {
+  background: #dc2626;
+  border-color: #dc2626;
+  color: #ffffff;
+}

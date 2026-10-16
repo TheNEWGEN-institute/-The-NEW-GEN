@@ -2339,7 +2339,7 @@ function renderAdminCampaignSubjectsTable() {
           <button type="button" class="btn-secondary" onclick="openEditCampaignSubjectModal(${idx})" style="padding: 5px 10px; font-size: 0.8rem;" title="แก้ไขวิชานี้">
             <i class="fa-solid fa-pen-to-square"></i> แก้ไข
           </button>
-          <button type="button" class="btn-secondary" onclick="deleteCampaignSubject(${idx})" style="padding: 5px 10px; font-size: 0.8rem; color: #dc2626; border-color: #fecaca;" title="ลบวิชานี้">
+          <button type="button" class="btn-secondary" onclick="deleteCampaignSubject(${idx})" style="padding: 5px 10px; font-size: 0.8rem; background: #fef2f2; color: #dc2626; border-color: #fecaca;" title="ลบวิชานี้">
             <i class="fa-solid fa-trash-can"></i> ลบ
           </button>
         </div>
@@ -2458,7 +2458,7 @@ function renderAdminCampaignCustomQuestionsList() {
           <button type="button" class="btn-secondary" onclick="openEditCampaignQuestionModal(${idx})" style="padding: 5px 10px; font-size: 0.8rem;">
             <i class="fa-solid fa-pen-to-square"></i> แก้ไข
           </button>
-          <button type="button" class="btn-secondary" onclick="deleteCampaignQuestion(${idx})" style="padding: 5px 10px; font-size: 0.8rem; color: #dc2626; border-color: #fecaca;">
+          <button type="button" class="btn-secondary" onclick="deleteCampaignQuestion(${idx})" style="padding: 5px 10px; font-size: 0.8rem; background: #fef2f2; color: #dc2626; border-color: #fecaca;">
             <i class="fa-solid fa-trash-can"></i> ลบ
           </button>
         </div>
