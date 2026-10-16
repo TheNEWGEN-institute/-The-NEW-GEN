@@ -8,6 +8,69 @@
 
   let currentEnrollCourse = null;
   let lastEnrollmentData = null;
+  let currentStudentImageBase64 = null;
+  let currentStudentImageFileName = '';
+
+  window.handleStudentImageSelect = function (e) {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+
+    if (file.size > 10 * 1024 * 1024) {
+      alert('ขออภัยครับ ขนาดไฟล์รูปภาพเกิน 10MB กรุณาเลือกรูปภาพที่มีขนาดเล็กลง');
+      e.target.value = '';
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function (evt) {
+      currentStudentImageBase64 = evt.target.result;
+      currentStudentImageFileName = file.name;
+
+      const previewImg = document.getElementById('enrUploadPreviewImg');
+      const fileNameEl = document.getElementById('enrUploadFileName');
+      const promptEl = document.getElementById('enrUploadPrompt');
+      const previewWrap = document.getElementById('enrUploadPreviewWrap');
+
+      if (previewImg) previewImg.src = currentStudentImageBase64;
+      if (fileNameEl) fileNameEl.textContent = file.name;
+      if (promptEl) promptEl.style.display = 'none';
+      if (previewWrap) previewWrap.style.display = 'flex';
+    };
+    reader.readAsDataURL(file);
+  };
+
+  window.setStudentUploadedImage = function (base64, fileName = 'attachment.png') {
+    currentStudentImageBase64 = base64;
+    currentStudentImageFileName = fileName;
+    const previewImg = document.getElementById('enrUploadPreviewImg');
+    const fileNameEl = document.getElementById('enrUploadFileName');
+    const promptEl = document.getElementById('enrUploadPrompt');
+    const previewWrap = document.getElementById('enrUploadPreviewWrap');
+    if (previewImg) previewImg.src = base64;
+    if (fileNameEl) fileNameEl.textContent = fileName;
+    if (promptEl) promptEl.style.display = 'none';
+    if (previewWrap) previewWrap.style.display = 'flex';
+  };
+
+  window.removeStudentUploadedImage = function (e) {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    currentStudentImageBase64 = null;
+    currentStudentImageFileName = '';
+
+    const input = document.getElementById('enrInputStudentImage');
+    if (input) input.value = '';
+
+    const promptEl = document.getElementById('enrUploadPrompt');
+    const previewWrap = document.getElementById('enrUploadPreviewWrap');
+    const previewImg = document.getElementById('enrUploadPreviewImg');
+
+    if (previewImg) previewImg.src = '';
+    if (promptEl) promptEl.style.display = 'flex';
+    if (previewWrap) previewWrap.style.display = 'none';
+  };
 
   function ensureEnrollmentModalDom() {
     if (document.getElementById('modalStudentEnrollment')) return;
@@ -173,6 +236,34 @@
                 </div>
               </div>
 
+              <!-- 4.1 แนบรูปภาพประกอบการสมัคร (เช่น ภาพถ่ายผลการเรียน หรือ ภาพแชร์โพสต์กิจกรรม) -->
+              <div class="enroll-section-block" id="wrapFieldStudentImage" style="display: none; margin-top: 14px;">
+                <label class="enroll-section-label">
+                  <i class="fa-solid fa-camera" style="color: var(--color-blue-brand);"></i>
+                  <strong id="lblFieldStudentImage">แนบรูปภาพประกอบการสมัคร</strong>
+                  <span class="req-star" id="starFieldStudentImage" style="display: none;">*</span>
+                </label>
+                <div class="enr-upload-zone" id="enrUploadZone" onclick="document.getElementById('enrInputStudentImage').click()">
+                  <input type="file" id="enrInputStudentImage" accept="image/*" style="display: none;" onchange="handleStudentImageSelect(event)">
+                  <div id="enrUploadPrompt" class="enr-upload-prompt">
+                    <i class="fa-solid fa-cloud-arrow-up enr-upload-icon"></i>
+                    <div class="enr-upload-text">
+                      <span class="enr-upload-title">แตะหรือคลิกเพื่ออัปโหลดรูปภาพ</span>
+                      <span class="enr-upload-help" id="helpFieldStudentImage">รองรับไฟล์ภาพ JPG, PNG ขนาดไม่เกิน 10MB</span>
+                    </div>
+                  </div>
+                  <div id="enrUploadPreviewWrap" class="enr-upload-preview-wrap" style="display: none;">
+                    <img id="enrUploadPreviewImg" src="" alt="ภาพที่แนบ">
+                    <div class="enr-upload-preview-info">
+                      <span id="enrUploadFileName" class="enr-upload-filename">ภาพที่เลือก</span>
+                      <button type="button" class="btn-remove-upload" onclick="removeStudentUploadedImage(event)" title="ลบรูปนี้">
+                        <i class="fa-solid fa-trash-can"></i> ลบรูป
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <!-- 5. คำถามเพิ่มเติมที่กำหนดเอง (Custom Questions) -->
               <div class="enroll-section-block" id="enrollCustomSection" style="display: none;">
                 <label class="enroll-section-label">
@@ -237,6 +328,10 @@
                   <div class="ticket-row">
                     <span class="ticket-k"><i class="fa-solid fa-phone"></i> เบอร์ติดต่อ / LINE:</span>
                     <span class="ticket-v" id="confContact">-</span>
+                  </div>
+                  <div class="ticket-row" id="confAttachmentRow" style="display: none;">
+                    <span class="ticket-k"><i class="fa-solid fa-camera"></i> รูปภาพแนบ:</span>
+                    <span class="ticket-v" id="confAttachmentVal">-</span>
                   </div>
                   <div id="confCustomAnswersWrap"></div>
                 </div>
@@ -418,7 +513,7 @@
   /**
    * Open Enrollment Modal for specific course or bundle
    */
-  window.openEnrollmentModal = function (courseId, bundleDataFallback) {
+  window.openEnrollmentModal = function (courseId, bundleDataFallback, campaignFallback) {
     ensureEnrollmentModalDom();
     if (typeof window.applyEnrollmentConfig === 'function') {
       window.applyEnrollmentConfig();
@@ -512,6 +607,34 @@
       }
     }
 
+    // If not found in courses or bundles, check if it's Campaign!
+    if (!course) {
+      const camp = campaignFallback || (window.NewGenDB ? window.NewGenDB.getPopupCampaign() : null);
+      if (courseId === 'campaign' || (!courseId && camp) || (camp && camp.enabled !== false)) {
+        course = {
+          id: 'campaign-free',
+          title: camp ? (camp.title || 'โครงการติวฟรี The NEW GEN') : 'โครงการติวฟรี The NEW GEN',
+          name: camp ? (camp.title || 'โครงการติวฟรี') : 'โครงการติวฟรี',
+          isCampaign: true,
+          categoryLabel: camp ? (camp.badge || 'โครงการพิเศษ • ติวฟรี 100%') : 'โครงการพิเศษ • ติวฟรี 100%',
+          subjects: 'ติวสด Onsite กลุ่มเล็ก & Online ตะลุยโจทย์พิชิตเกรด 4 และสอบเข้า รร. ดัง',
+          location: 'สถาบัน The NEW GEN (เรียนสด Onsite & Online)',
+          totalHours: 'หลักสูตรติวพิเศษโครงการ',
+          pricePromo: '0',
+          priceOriginal: '',
+          priceUnit: 'บาท (ฟรี! ไม่มีค่าใช้จ่าย)',
+          cover: (camp && camp.image) ? camp.image : 'assets/images/course-poster-primary.jpg',
+          poster: (camp && camp.image) ? camp.image : 'assets/images/course-poster-primary.jpg',
+          scheduleList: [
+            { type: 'รอบเรียนโครงการติวฟรี (เรียนสด Onsite & Online)', dates: 'เจ้าหน้าที่จะติดต่อประสานงานยืนยันรอบเรียนกับผู้ปกครอง', time: 'ตามรอบที่สถาบันแจ้งทาง LINE' }
+          ],
+          remainingSeats: 30,
+          maxSeats: 30,
+          isFull: false
+        };
+      }
+    }
+
     if (!course) {
       alert('ไม่พบคอร์สเรียนหรือแพ็คเกจที่ต้องการสมัคร กรุณาลองใหม่อีกครั้ง');
       return;
@@ -559,11 +682,53 @@
 
     const seatBadgeEl = document.getElementById('enrReviewSeatBadge');
     if (seatBadgeEl) {
-      if (course.isBundle) {
+      if (course.isCampaign) {
+        seatBadgeEl.innerHTML = `<span class="badge" style="background:#fef2f2; color:#dc2626; font-weight:800; border:1.2px solid #fecaca;"><i class="fa-solid fa-gift"></i> สิทธิ์เรียนฟรี 100%</span>`;
+      } else if (course.isBundle) {
         seatBadgeEl.innerHTML = `<span class="badge badge-rose" style="background:#ffe4e6; color:#e11d48; font-weight:700; border:1px solid #fecdd3;"><i class="fa-solid fa-fire"></i> แพ็คเกจโปรโมชั่น</span>`;
       } else if (window.getCourseSeatBadgeHtml) {
         seatBadgeEl.innerHTML = window.getCourseSeatBadgeHtml(course);
       }
+    }
+
+    // Configure Student Image Upload Field Visibility & Labels
+    const wrapImg = document.getElementById('wrapFieldStudentImage');
+    const lblImg = document.getElementById('lblFieldStudentImage');
+    const starImg = document.getElementById('starFieldStudentImage');
+    const helpImg = document.getElementById('helpFieldStudentImage');
+
+    if (typeof window.removeStudentUploadedImage === 'function') {
+      window.removeStudentUploadedImage();
+    }
+
+    const campObj = window.NewGenDB ? window.NewGenDB.getPopupCampaign() : null;
+    const isCamp = Boolean(course.isCampaign || courseId === 'campaign');
+    const cfgObj = (window.NewGenDB && typeof window.NewGenDB.getEnrollmentConfig === 'function')
+      ? window.NewGenDB.getEnrollmentConfig()
+      : (window.enrollmentConfigData || {});
+
+    const isUploadEnabled = isCamp
+      ? (campObj ? campObj.studentUploadEnabled !== false : true)
+      : Boolean(cfgObj && cfgObj.studentUploadEnabled);
+
+    const isUploadRequired = isCamp
+      ? Boolean(campObj && campObj.studentUploadRequired)
+      : Boolean(cfgObj && cfgObj.studentUploadRequired);
+
+    const uploadLabelText = isCamp
+      ? ((campObj && campObj.studentUploadLabel) ? campObj.studentUploadLabel : 'แนบรูปภาพหลักฐาน เช่น ภาพถ่ายการแชร์โพสต์กิจกรรม หรือ ใบแสดงผลการเรียนล่าสุด')
+      : ((cfgObj && cfgObj.studentUploadLabel) ? cfgObj.studentUploadLabel : 'แนบรูปภาพประกอบการสมัคร (เช่น ภาพถ่ายผลการเรียน)');
+
+    const uploadHelpText = isCamp
+      ? ((campObj && campObj.studentUploadHelp) ? campObj.studentUploadHelp : 'รองรับไฟล์ภาพ JPG, PNG ขนาดไม่เกิน 10MB')
+      : ((cfgObj && cfgObj.studentUploadHelp) ? cfgObj.studentUploadHelp : 'รองรับไฟล์ภาพ JPG, PNG ขนาดไม่เกิน 10MB');
+
+    if (wrapImg) {
+      wrapImg.style.display = isUploadEnabled ? 'block' : 'none';
+      wrapImg.dataset.required = isUploadRequired ? 'true' : 'false';
+      if (lblImg) lblImg.textContent = uploadLabelText;
+      if (starImg) starImg.style.display = isUploadRequired ? 'inline' : 'none';
+      if (helpImg) helpImg.textContent = uploadHelpText;
     }
 
     // Populate Schedules
@@ -822,8 +987,46 @@
       }
     }
 
+    // Validation for Student Uploaded Image
+    const wrapImg = document.getElementById('wrapFieldStudentImage');
+    const isImgRequired = wrapImg && wrapImg.dataset.required === 'true';
+    const isImgVisible = wrapImg && wrapImg.style.display !== 'none';
+
+    if (isImgVisible && isImgRequired && !currentStudentImageBase64) {
+      const lbl = document.getElementById('lblFieldStudentImage')?.textContent || 'รูปภาพประกอบการสมัคร';
+      alert(`กรุณาแนบรูปภาพ: "${lbl}" ให้เรียบร้อยก่อนกดยืนยัน`);
+      return;
+    }
+
     submitBtn.disabled = true;
     submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังบันทึกข้อมูล...';
+
+    // If student selected an image, upload to server
+    let studentImageUrl = '';
+    if (currentStudentImageBase64) {
+      try {
+        submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังอัปโหลดรูปภาพ...';
+        const uploadRes = await fetch('/api/upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            base64Data: currentStudentImageBase64,
+            filename: currentStudentImageFileName || 'student-attachment.jpg'
+          })
+        });
+        if (uploadRes.ok) {
+          const upJson = await uploadRes.json();
+          if (upJson && upJson.url) {
+            studentImageUrl = upJson.url;
+          }
+        }
+      } catch (upErr) {
+        console.warn('Student image upload error, using direct dataUrl:', upErr);
+      }
+      if (!studentImageUrl) {
+        studentImageUrl = currentStudentImageBase64;
+      }
+    }
 
     // Generate readable application ID
     const todayStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
@@ -848,6 +1051,9 @@
       shippingAddress: shippingAddress,
       notes: (notes || '').trim(),
       customAnswers: customAnswers,
+      studentImageUrl: studentImageUrl,
+      hasAttachment: Boolean(studentImageUrl),
+      isCampaign: Boolean(currentEnrollCourse.isCampaign),
       isBundle: isBundle,
       bundleId: isBundle ? currentEnrollCourse.id : null,
       bundleName: isBundle ? (currentEnrollCourse.name || currentEnrollCourse.title) : null,
@@ -896,6 +1102,17 @@
     document.getElementById('confLearningType').textContent = learningType === 'onsite' ? '🏫 เรียนสด Onsite (ที่สถาบัน The NEW GEN)' : '💻 เรียนสด Online (Zoom)';
     document.getElementById('confStudentName').textContent = `${studentName} (น้อง${nickname}) ชั้น ${grade} - รร. ${school}`;
     document.getElementById('confContact').textContent = `โทร: ${parentPhone} | LINE ID: ${lineId}`;
+
+    const confAttRow = document.getElementById('confAttachmentRow');
+    const confAttVal = document.getElementById('confAttachmentVal');
+    if (confAttRow && confAttVal) {
+      if (studentImageUrl) {
+        confAttRow.style.display = 'flex';
+        confAttVal.innerHTML = `<a href="${studentImageUrl}" target="_blank" rel="noopener noreferrer" style="color:#2563eb; text-decoration:underline; font-weight:700;"><i class="fa-solid fa-paperclip"></i> คลิกดูรูปภาพที่แนบ</a>`;
+      } else {
+        confAttRow.style.display = 'none';
+      }
+    }
 
     // Populate Custom Answers in Step 2 ticket
     const customRowsWrap = document.getElementById('confCustomAnswersWrap');
@@ -953,7 +1170,7 @@
 ชื่อนักเรียน: ${lastEnrollmentData.studentName} (${lastEnrollmentData.nickname})
 ระดับชั้น: ${lastEnrollmentData.grade} | รร. ${lastEnrollmentData.school}
 เบอร์ผู้ปกครอง: ${lastEnrollmentData.parentPhone}
-LINE ID: ${lastEnrollmentData.lineId}${customText}
+LINE ID: ${lastEnrollmentData.lineId}${customText}${lastEnrollmentData.studentImageUrl ? `\nรูปภาพแนบ: ${lastEnrollmentData.studentImageUrl}` : ''}
 -------------------------
 หนู/ผมได้สมัครในระบบแล้ว ขอส่งข้อมูลเพื่อยืนยันที่นั่งครับ`;
 

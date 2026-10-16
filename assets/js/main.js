@@ -918,8 +918,8 @@ function handleCampaignRegisterClick() {
 
   // Open enrollment modal for free tutoring or target course
   if (typeof window.openEnrollmentModal === 'function') {
-    const courseId = campaign && campaign.courseId ? campaign.courseId : null;
-    window.openEnrollmentModal(courseId);
+    const courseId = campaign && campaign.courseId ? campaign.courseId : 'campaign';
+    window.openEnrollmentModal(courseId, null, campaign);
 
     // Pre-populate note if empty
     setTimeout(() => {

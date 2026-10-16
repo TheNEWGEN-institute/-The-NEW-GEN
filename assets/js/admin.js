@@ -2134,6 +2134,16 @@ function loadAdminPopupCampaign() {
   if (btnRegInput) btnRegInput.value = popup.btnRegisterText || 'สมัครเข้าเรียนฟรีทันที';
   if (btnLineInput) btnLineInput.value = popup.btnLineText || 'สอบถามเพิ่มเติมทาง LINE';
   if (lineUrlInput) lineUrlInput.value = popup.lineUrl || 'https://lin.ee/RXrzi1G';
+
+  const uploadEnabledInput = document.getElementById('popupCampaignUploadEnabled');
+  const uploadRequiredInput = document.getElementById('popupCampaignUploadRequired');
+  const uploadLabelInput = document.getElementById('popupCampaignUploadLabel');
+  const uploadHelpInput = document.getElementById('popupCampaignUploadHelp');
+
+  if (uploadEnabledInput) uploadEnabledInput.checked = popup.studentUploadEnabled !== false;
+  if (uploadRequiredInput) uploadRequiredInput.checked = popup.studentUploadRequired === true;
+  if (uploadLabelInput) uploadLabelInput.value = popup.studentUploadLabel || 'แนบรูปภาพหลักฐาน เช่น ภาพแชร์โพสต์กิจกรรม / บัตรนักเรียน / ผลการเรียน';
+  if (uploadHelpInput) uploadHelpInput.value = popup.studentUploadHelp || 'รองรับไฟล์ภาพ JPG, PNG ขนาดไม่เกิน 10MB';
 }
 
 function togglePopupCampaignEnabledStatus(checked) {
@@ -2279,6 +2289,11 @@ async function saveAdminPopupCampaignForm() {
   const btnLineText = (document.getElementById('popupCampaignBtnLine')?.value || '').trim();
   const lineUrl = (document.getElementById('popupCampaignLineUrl')?.value || '').trim();
 
+  const studentUploadEnabled = document.getElementById('popupCampaignUploadEnabled')?.checked !== false;
+  const studentUploadRequired = document.getElementById('popupCampaignUploadRequired')?.checked === true;
+  const studentUploadLabel = (document.getElementById('popupCampaignUploadLabel')?.value || '').trim() || 'แนบรูปภาพหลักฐาน เช่น ภาพแชร์โพสต์กิจกรรม / บัตรนักเรียน / ผลการเรียน';
+  const studentUploadHelp = (document.getElementById('popupCampaignUploadHelp')?.value || '').trim() || 'รองรับไฟล์ภาพ JPG, PNG ขนาดไม่เกิน 10MB';
+
   if (!title) {
     showToast('⚠️ กรุณาระบุหัวข้อแคมเปญ (Title)', 'warning');
     return;
@@ -2297,6 +2312,10 @@ async function saveAdminPopupCampaignForm() {
     btnRegisterText: btnRegisterText || 'สมัครเข้าเรียนฟรีทันที',
     btnLineText: btnLineText || 'สอบถามเพิ่มเติมทาง LINE',
     lineUrl: lineUrl || 'https://lin.ee/RXrzi1G',
+    studentUploadEnabled,
+    studentUploadRequired,
+    studentUploadLabel,
+    studentUploadHelp,
     updatedAt: new Date().toISOString()
   };
 
@@ -2332,7 +2351,11 @@ function resetPopupCampaignDefaults() {
       btnRegisterText: "สมัครเข้าเรียนฟรีทันที",
       btnLineText: "สอบถามเพิ่มเติมทาง LINE",
       lineUrl: "https://lin.ee/RXrzi1G",
-      miniBadgeText: "🎁 โครงการติวฟรี! คลิกดูสิทธิ์"
+      miniBadgeText: "🎁 โครงการติวฟรี! คลิกดูสิทธิ์",
+      studentUploadEnabled: true,
+      studentUploadRequired: false,
+      studentUploadLabel: "แนบรูปภาพหลักฐาน เช่น ภาพแชร์โพสต์กิจกรรม / บัตรนักเรียน / ผลการเรียน",
+      studentUploadHelp: "รองรับไฟล์ภาพ JPG, PNG ขนาดไม่เกิน 10MB"
     };
     window.NewGenDB.savePopupCampaign(defaultData);
     loadAdminPopupCampaign();
@@ -4643,6 +4666,13 @@ function renderEnrollmentsTable(enrollments, courseMap = null) {
               ${en.customAnswers.map(a => `<div>• <b>${escapeHtml(a.label)}:</b> ${escapeHtml(a.value || '-')}</div>`).join('')}
             </div>
           ` : ''}
+          ${en.studentImageUrl ? `
+            <div style="margin-top: 6px;">
+              <button type="button" class="btn-secondary" onclick="previewAttachmentModal('${escapeHtml(en.studentImageUrl)}', '${escapeHtml(en.studentName)}')" style="display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; font-size: 0.78rem; font-weight: 700; color: #0284c7; background: #e0f2fe; border: 1px solid #7dd3fc; border-radius: 6px; cursor: pointer;">
+                <i class="fa-solid fa-image"></i> ตรวจสอบรูปที่แนบ
+              </button>
+            </div>
+          ` : ''}
         </td>
         <td>
           <div style="font-weight: 600; color: #334155; font-size: 0.88rem;">${escapeHtml(en.grade || '-')}</div>
@@ -4766,6 +4796,9 @@ function openAddEnrollmentModal(preselectedCourseId = '') {
   document.getElementById('enShippingAddress').value = '';
   document.getElementById('enNotes').value = '';
 
+  const wrapImage = document.getElementById('wrapEnStudentImage');
+  if (wrapImage) wrapImage.style.display = 'none';
+
   document.getElementById('modalEnrollment').classList.add('active');
 }
 
@@ -4807,8 +4840,53 @@ function openEditEnrollmentModal(id) {
   document.getElementById('enShippingAddress').value = en.shippingAddress || '';
   document.getElementById('enNotes').value = en.notes || '';
 
+  const wrapImage = document.getElementById('wrapEnStudentImage');
+  const imgPreview = document.getElementById('enStudentImagePreview');
+  const imgLink = document.getElementById('enStudentImageLink');
+  if (wrapImage) {
+    if (en.studentImageUrl) {
+      wrapImage.style.display = 'block';
+      const resolvedUrl = window.resolveMediaUrl ? window.resolveMediaUrl(en.studentImageUrl) : en.studentImageUrl;
+      if (imgPreview) {
+        imgPreview.src = resolvedUrl;
+        imgPreview.setAttribute('data-full-url', resolvedUrl);
+        imgPreview.setAttribute('data-student-name', en.studentName || '');
+      }
+      if (imgLink) imgLink.href = resolvedUrl;
+    } else {
+      wrapImage.style.display = 'none';
+    }
+  }
+
   document.getElementById('modalEnrollment').classList.add('active');
 }
+
+function previewAttachmentModal(url, studentName = '') {
+  if (!url) return;
+  const modal = document.getElementById('modalStudentAttachmentPreview');
+  const imgEl = document.getElementById('attachmentModalImg');
+  const titleEl = document.getElementById('attachmentModalTitle');
+  const linkEl = document.getElementById('attachmentModalOpenLink');
+  const resolvedUrl = window.resolveMediaUrl ? window.resolveMediaUrl(url) : url;
+
+  if (titleEl) {
+    titleEl.innerHTML = `<i class="fa-solid fa-image" style="color: #2563eb;"></i> รูปภาพที่นักเรียนแนบ ${studentName ? `(${escapeHtml(studentName)})` : ''}`;
+  }
+  if (imgEl) imgEl.src = resolvedUrl;
+  if (linkEl) linkEl.href = resolvedUrl;
+  if (modal) modal.classList.add('active');
+}
+
+function previewStudentAttachmentInModal() {
+  const imgPreview = document.getElementById('enStudentImagePreview');
+  if (!imgPreview) return;
+  const url = imgPreview.getAttribute('data-full-url') || imgPreview.src;
+  const studentName = imgPreview.getAttribute('data-student-name') || '';
+  previewAttachmentModal(url, studentName);
+}
+
+window.previewAttachmentModal = previewAttachmentModal;
+window.previewStudentAttachmentInModal = previewStudentAttachmentInModal;
 
 async function handleSaveEnrollment(e) {
   e.preventDefault();
@@ -4828,6 +4906,7 @@ async function handleSaveEnrollment(e) {
 
   const bundles = window.NewGenDB ? window.NewGenDB.getBundles() : [];
   const foundBundle = bundles.find(b => b.id === courseId);
+  const existingEn = id ? (window.NewGenDB.getEnrollments().find(x => x.id === id)) : null;
 
   const item = {
     id: id || `enroll-${Date.now()}`,
@@ -4843,11 +4922,13 @@ async function handleSaveEnrollment(e) {
     status,
     shippingAddress,
     notes,
+    studentImageUrl: existingEn ? (existingEn.studentImageUrl || null) : null,
+    customAnswers: existingEn ? (existingEn.customAnswers || []) : [],
     isBundle: Boolean(foundBundle),
     bundleId: foundBundle ? foundBundle.id : null,
     bundleName: foundBundle ? foundBundle.name : null,
     bundleCourseIds: foundBundle ? (foundBundle.courseIds || []) : [],
-    createdAt: id ? (window.NewGenDB.getEnrollments().find(x => x.id === id)?.createdAt || new Date().toISOString()) : new Date().toISOString()
+    createdAt: id ? (existingEn?.createdAt || new Date().toISOString()) : new Date().toISOString()
   };
 
   if (!id && foundBundle) {
@@ -5101,6 +5182,7 @@ function confirmExportEnrollments() {
     headers.push(q.label || `คำถามเพิ่มเติม (${q.id})`);
   });
 
+  headers.push('รูปภาพที่แนบ (URL)');
   headers.push('สถานะการสมัคร');
 
   // สร้างแถวข้อมูล (Rows)
@@ -5138,6 +5220,7 @@ function confirmExportEnrollments() {
       row.push(csvEscape(foundAnswer ? foundAnswer.value : ''));
     });
 
+    row.push(csvEscape(en.studentImageUrl || ''));
     row.push(csvEscape(statusLabel));
     return row.join(',');
   });
