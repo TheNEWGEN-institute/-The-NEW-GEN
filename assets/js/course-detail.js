@@ -756,22 +756,16 @@ function renderCourseDetailBundlePromo(course) {
       </div>
     `;
   } else {
-    const covers = childCourses.slice(0, 3).map(c => window.resolveMediaUrl ? window.resolveMediaUrl(c.cover || c.poster) : (c.cover || c.poster || 'assets/images/course-poster-primary.jpg'));
+    const count = Math.min(childCourses.length, 4);
     visualHtml = `
-      <div class="bundle-promo-stack-wrap" style="position: relative; width: 165px; height: 195px; perspective: 700px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-        ${covers.map((imgUrl, i) => {
-          let transform = '';
-          let zIndex = 3 - i;
-          if (i === 0) {
-            transform = 'translateX(-20px) translateY(8px) rotate(-8deg) scale(0.92)';
-          } else if (i === 1) {
-            transform = 'translateX(20px) translateY(-4px) rotate(6deg) scale(0.96)';
-            zIndex = 4;
-          } else if (i === 2) {
-            transform = 'translateX(0) translateY(-12px) scale(0.86)';
-            zIndex = 2;
-          }
-          return `<img src="${imgUrl}" alt="Course" style="position: absolute; width: 110px; height: 145px; object-fit: cover; border-radius: 8px; border: 2px solid #ffffff; box-shadow: 0 10px 24px rgba(0,0,0,0.4); transform: ${transform}; z-index: ${zIndex};">`;
+      <div class="bundle-promo-grid-wrap count-${count}">
+        ${childCourses.slice(0, 4).map((c, i) => {
+          const coverUrl = window.resolveMediaUrl ? window.resolveMediaUrl(c.cover || c.poster) : (c.cover || c.poster || 'assets/images/course-poster-primary.jpg');
+          return `
+            <div class="bundle-grid-item" title="${escapeHtml(c.title)}">
+              <img src="${coverUrl}" alt="${escapeHtml(c.title)}" loading="lazy">
+            </div>
+          `;
         }).join('')}
       </div>
     `;
