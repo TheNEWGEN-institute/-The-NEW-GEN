@@ -3928,16 +3928,20 @@ button {
    =================================================================== */
 .courses-layout-container {
   display: grid;
-  grid-template-columns: 280px 1fr;
+  grid-template-columns: 280px minmax(0, 1fr);
   gap: 32px;
   align-items: start;
   margin-bottom: 40px;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .courses-sidebar {
   position: sticky;
   top: 96px;
   z-index: 10;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .sidebar-filter-card {
@@ -3946,6 +3950,9 @@ button {
   border: 1.5px solid #e2e8f0;
   box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05);
   padding: 20px 16px;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .sidebar-filter-header {
@@ -3982,6 +3989,9 @@ button {
   flex-direction: column;
   gap: 6px;
   width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .sidebar-filter-card .filter-pill {
@@ -3999,6 +4009,7 @@ button {
   cursor: pointer;
   transition: all 0.2s ease;
   text-align: left;
+  box-sizing: border-box;
 }
 
 .sidebar-filter-card .filter-pill .filter-pill-label {
@@ -4081,6 +4092,7 @@ button {
 /* Right Main Column */
 .courses-main-column {
   min-width: 0;
+  max-width: 100%;
   display: flex;
   flex-direction: column;
 }
@@ -4104,6 +4116,7 @@ button {
 
 .courses-search-bar-wrap .search-input {
   width: 100%;
+  box-sizing: border-box;
   padding: 12px 18px 12px 48px;
   border: 1.5px solid var(--border-medium);
   border-radius: var(--radius-md);
@@ -4123,22 +4136,31 @@ button {
 
 .all-courses-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 26px;
   margin-bottom: 40px;
+  min-width: 0;
+  max-width: 100%;
 }
 
 /* Mobile & Tablet Responsiveness */
 @media (max-width: 991px) {
   .courses-layout-container {
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
     gap: 16px;
+    min-width: 0;
+    max-width: 100%;
+    width: 100%;
   }
 
   .courses-sidebar {
     position: static;
     top: 0;
     margin-bottom: 4px;
+    min-width: 0;
+    max-width: 100%;
+    width: 100%;
   }
 
   .sidebar-filter-card {
@@ -4147,6 +4169,9 @@ button {
     border: none;
     box-shadow: none;
     border-radius: 0;
+    min-width: 0;
+    max-width: 100%;
+    width: 100%;
   }
 
   .sidebar-filter-header {
@@ -4154,11 +4179,17 @@ button {
   }
 
   .sidebar-filter-card .filter-pill-group {
+    display: flex;
     flex-direction: row;
     flex-wrap: nowrap;
     overflow-x: auto;
+    overflow-y: hidden;
     gap: 8px;
     padding: 4px 2px 10px 2px;
+    min-width: 0;
+    max-width: 100%;
+    width: 100%;
+    box-sizing: border-box;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: thin;
   }
@@ -4178,6 +4209,52 @@ button {
   .sidebar-filter-card .filter-pill:hover,
   .sidebar-filter-card .filter-pill.active {
     transform: none;
+  }
+
+  .courses-main-column {
+    min-width: 0;
+    max-width: 100%;
+    width: 100%;
+  }
+
+  .all-courses-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+  }
+}
+
+@media (max-width: 640px) {
+  .all-courses-grid {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+
+  .all-courses-grid .course-card,
+  .all-courses-grid .bundle-card {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .container {
+    padding: 0 16px;
+  }
+
+  .courses-search-bar-wrap {
+    margin-bottom: 16px;
+  }
+
+  .courses-search-bar-wrap .search-input {
+    font-size: 0.9rem;
+    padding: 10px 16px 10px 42px;
+  }
+
+  .subpage-hero {
+    padding: calc(var(--header-h) + 16px) 0 20px;
+  }
+
+  .subpage-hero-title {
+    font-size: 1.85rem;
   }
 }
 
