@@ -9075,6 +9075,10 @@ button {
   letter-spacing: 0.5px;
 }
 
+.enroll-print-header {
+  display: none;
+}
+
 .ticket-code {
   font-size: 1.15rem;
   font-weight: 900;
@@ -10883,43 +10887,306 @@ button {
   transform: translateY(-2px);
 }
 
-/* Dedicated Print Styles for Ticket PDF Export */
+/* ===================================================================
+   Dedicated Print Styles for Ticket PDF Export (Strict 1-Page A4)
+   =================================================================== */
+@page {
+  size: A4 portrait;
+  margin: 12mm 16mm 10mm 16mm;
+}
+
 @media print {
-  body * {
-    visibility: hidden;
+  *, *::before, *::after {
+    box-sizing: border-box !important;
   }
-  #modalStudentEnrollment,
-  #modalStudentEnrollment .enroll-modal-box,
-  #enrollStepConfirmation,
-  #enrollTicketCard,
-  #enrollTicketCard * {
-    visibility: visible !important;
-  }
-  #modalStudentEnrollment {
-    position: absolute !important;
-    left: 0 !important;
-    top: 0 !important;
-    width: 100% !important;
+
+  html, body {
     background: #ffffff !important;
+    color: #0f172a !important;
+    margin: 0 !important;
     padding: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
-  #modalStudentEnrollment .enroll-modal-box {
-    box-shadow: none !important;
-    border: none !important;
-    max-width: 100% !important;
-    width: 100% !important;
-    padding: 10px !important;
-  }
-  .enroll-modal-header,
-  .enroll-line-callout,
-  .enroll-ticket-actions,
-  .enroll-success-footer,
-  .btn-modal-close-icon {
+
+  /* 1. Hide all main site containers from flow */
+  header, nav, footer, section,
+  .hero-section, .navbar, .top-header,
+  .admin-topbar, .admin-layout, .campaign-floating-badge,
+  .toast, .toast-container,
+  #modalBundleDetail, .bundle-detail-modal-backdrop,
+  body > *:not(#modalStudentEnrollment) {
     display: none !important;
   }
-  #enrollTicketCard {
-    border: 2px solid #0284c7 !important;
+
+  /* 2. Modal becomes clean root document flow */
+  #modalStudentEnrollment {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
     box-shadow: none !important;
+    border: none !important;
+    overflow: visible !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    z-index: 1 !important;
+  }
+
+  #modalStudentEnrollment .enroll-modal-container,
+  #modalStudentEnrollment .enroll-modal-box {
+    position: static !important;
+    display: block !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    transform: none !important;
+    overflow: visible !important;
+  }
+
+  #enrollStepConfirmation {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* 3. Hide non-printable modal elements */
+  #enrollStepForm,
+  .enroll-modal-topbar,
+  .enroll-modal-header,
+  .enroll-modal-close,
+  .btn-modal-close-icon,
+  .enroll-ticket-actions,
+  .enroll-success-footer,
+  .enroll-line-actions,
+  .enroll-success-icon-badge {
+    display: none !important;
+  }
+
+  /* 4. Official Print Header (Pass / Certificate Style) */
+  .enroll-print-header {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding-bottom: 10px !important;
+    margin-bottom: 12px !important;
+    border-bottom: 2px solid #0284c7 !important;
+  }
+
+  .enroll-print-header .print-header-left {
+    display: flex !important;
+    flex-direction: column !important;
+    text-align: left !important;
+  }
+
+  .enroll-print-header .print-brand-title {
+    font-size: 1.35rem !important;
+    font-weight: 900 !important;
+    color: #0b1e3f !important;
+    line-height: 1.2 !important;
+  }
+
+  .enroll-print-header .print-brand-title span {
+    color: #0284c7 !important;
+  }
+
+  .enroll-print-header .print-brand-subtitle {
+    font-size: 0.78rem !important;
+    color: #64748b !important;
+    margin-top: 3px !important;
+  }
+
+  .enroll-print-header .print-header-right {
+    text-align: right !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-end !important;
+  }
+
+  .enroll-print-header .print-pass-badge {
+    display: inline-block !important;
+    background: #0284c7 !important;
+    color: #ffffff !important;
+    font-weight: 800 !important;
+    font-size: 0.8rem !important;
+    padding: 4px 12px !important;
+    border-radius: 4px !important;
+    letter-spacing: 0.5px !important;
+  }
+
+  .enroll-print-header .print-pass-sub {
+    font-size: 0.72rem !important;
+    color: #64748b !important;
+    margin-top: 3px !important;
+  }
+
+  /* 5. Title & Lead */
+  .enroll-success-wrap {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .enroll-success-title {
+    font-size: 1.2rem !important;
+    color: #0b1e3f !important;
+    margin: 0 0 4px 0 !important;
+    text-align: center !important;
+    font-weight: 800 !important;
+  }
+
+  .enroll-success-lead {
+    font-size: 0.82rem !important;
+    color: #475569 !important;
+    margin: 0 0 10px 0 !important;
+    text-align: center !important;
+  }
+
+  /* 6. Clean Ticket Card */
+  #enrollTicketCard {
+    border: 1.5px solid #0284c7 !important;
+    border-radius: 8px !important;
+    background: #ffffff !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 0 10px 0 !important;
+    overflow: hidden !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  .enroll-ticket-header {
+    background: #f0f9ff !important;
+    border-bottom: 1.5px solid #bae6fd !important;
+    padding: 8px 14px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+  }
+
+  .ticket-code {
+    color: #0369a1 !important;
+    font-size: 1.1rem !important;
+    font-weight: 800 !important;
+  }
+
+  .ticket-label {
+    font-size: 0.72rem !important;
+    color: #475569 !important;
+    font-weight: 600 !important;
+  }
+
+  #confStatusBadge {
+    background: #ecfdf5 !important;
+    color: #047857 !important;
+    border: 1px solid #a7f3d0 !important;
+    font-size: 0.78rem !important;
+    font-weight: 800 !important;
+    padding: 3px 8px !important;
+    border-radius: 99px !important;
+  }
+
+  .enroll-ticket-body {
+    padding: 10px 14px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 6px !important;
+  }
+
+  .ticket-row {
+    display: flex !important;
+    align-items: flex-start !important;
+    justify-content: space-between !important;
+    border-bottom: 1px dashed #e2e8f0 !important;
+    padding-bottom: 5px !important;
+    font-size: 0.84rem !important;
+  }
+
+  .ticket-row:last-child {
+    border-bottom: none !important;
+    padding-bottom: 0 !important;
+  }
+
+  .ticket-k {
+    color: #475569 !important;
+    font-weight: 600 !important;
+    min-width: 140px !important;
+  }
+
+  .ticket-v {
+    color: #0b1e3f !important;
+    font-weight: 700 !important;
+    text-align: right !important;
+  }
+
+  /* 7. Campaign highlight box */
+  #confCampaignHighlight {
+    background: #fff1f2 !important;
+    border: 1.5px solid #fecdd3 !important;
+    border-radius: 8px !important;
+    padding: 8px 12px !important;
+    margin-top: 6px !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* 8. LINE Callout box in Print */
+  .enroll-line-callout {
+    background: #f0fdf4 !important;
+    border: 1.5px solid #86efac !important;
+    border-radius: 8px !important;
+    padding: 8px 12px !important;
+    margin: 0 0 8px 0 !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  .enroll-line-callout .callout-header {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+  }
+
+  .enroll-line-callout h4 {
+    font-size: 0.88rem !important;
+    color: #15803d !important;
+    margin: 0 0 2px 0 !important;
+    font-weight: 800 !important;
+  }
+
+  .enroll-line-callout p {
+    font-size: 0.78rem !important;
+    color: #166534 !important;
+    margin: 0 !important;
+    line-height: 1.35 !important;
+  }
+
+  /* 9. Printable Footer */
+  .enroll-success-wrap::after {
+    content: "สถาบันกวดวิชา The NEW GEN • อาคาร The NEW GEN Tutor • LINE: @thenewgen • สอบถามข้อมูลโทร 095-472-1072, 098-532-2791";
+    display: block !important;
+    text-align: center !important;
+    font-size: 0.72rem !important;
+    color: #64748b !important;
+    margin-top: 8px !important;
+    padding-top: 6px !important;
+    border-top: 1px solid #e2e8f0 !important;
   }
 }
 

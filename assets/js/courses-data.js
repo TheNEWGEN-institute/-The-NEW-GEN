@@ -374,6 +374,7 @@ const DEFAULT_BUNDLES = [
     "description": "รวม 3 คอร์สหลัก ม.4 เทอม 2 ปูพื้นฐานเข้มข้น ฟิสิกส์ เคมี คณิตศาสตร์ พร้อมเจาะลึกแนวข้อสอบจริง",
     "showInCourses": true,
     "showInHome": true,
+    "categoryIds": ["highschool4"],
     "active": true,
     "order": 1,
     "createdAt": "2026-10-15T14:53:09.976Z"

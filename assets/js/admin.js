@@ -311,10 +311,26 @@ function switchSystemSubtab(subtab) {
   }
 }
 
+function openModal(modalId) {
+  const modal = document.getElementById(modalId);
+  if (modal) {
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+}
+
 function closeModal(modalId) {
   const modal = document.getElementById(modalId);
-  if (modal) modal.classList.remove('active');
+  if (modal) {
+    modal.classList.remove('active');
+    if (!document.querySelector('.admin-modal-backdrop.active')) {
+      document.body.style.overflow = '';
+    }
+  }
 }
+
+window.openModal = openModal;
+window.closeModal = closeModal;
 
 function previewUploadImage(event, previewId, inputTargetId, statusId) {
   const file = event.target.files[0];
@@ -2548,6 +2564,16 @@ function deleteCampaignQuestion(idx) {
     showToast('ลบคำถามเรียบร้อยแล้ว อย่าลืมกด "บันทึกและซิงค์ Cloud" ด้านล่างครับ');
   }
 }
+
+window.openAddCampaignSubjectModal = openAddCampaignSubjectModal;
+window.openEditCampaignSubjectModal = openEditCampaignSubjectModal;
+window.handleSaveCampaignSubject = handleSaveCampaignSubject;
+window.deleteCampaignSubject = deleteCampaignSubject;
+window.toggleCampaignSubjectActive = toggleCampaignSubjectActive;
+window.openAddCampaignQuestionModal = openAddCampaignQuestionModal;
+window.openEditCampaignQuestionModal = openEditCampaignQuestionModal;
+window.handleSaveCampaignQuestion = handleSaveCampaignQuestion;
+window.deleteCampaignQuestion = deleteCampaignQuestion;
 
 async function saveAdminPopupCampaignForm() {
   const enabled = document.getElementById('popupCampaignEnabled')?.checked !== false;
@@ -5206,9 +5232,25 @@ function previewAttachmentModal(url, studentName = '') {
   if (titleEl) {
     titleEl.innerHTML = `<i class="fa-solid fa-image" style="color: #2563eb;"></i> รูปภาพที่นักเรียนแนบ ${studentName ? `(${escapeHtml(studentName)})` : ''}`;
   }
-  if (imgEl) imgEl.src = resolvedUrl;
+  if (imgEl) {
+    imgEl.style.opacity = '0.3';
+    imgEl.src = resolvedUrl;
+    imgEl.onload = () => { imgEl.style.opacity = '1'; };
+    imgEl.onerror = () => {
+      // If relative URL failed, try Supabase storage fallback
+      if (!resolvedUrl.startsWith('http') && window.SUPABASE_CONFIG?.url) {
+        imgEl.src = `${window.SUPABASE_CONFIG.url}/storage/v1/object/public/uploads/${resolvedUrl.replace(/^uploads\//, '')}`;
+        imgEl.onload = () => { imgEl.style.opacity = '1'; };
+      } else {
+        imgEl.style.opacity = '1';
+      }
+    };
+  }
   if (linkEl) linkEl.href = resolvedUrl;
-  if (modal) modal.classList.add('active');
+  if (modal) {
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
 }
 
 function previewStudentAttachmentInModal() {
