@@ -334,7 +334,26 @@
                     <span class="ticket-v" id="confAttachmentVal">-</span>
                   </div>
                   <div id="confCustomAnswersWrap"></div>
+
+                  <!-- Campaign Chosen Subjects & Schedule Highlight Box -->
+                  <div id="confCampaignHighlight" style="display: none; margin-top: 12px; padding: 12px 14px; background: #fff1f2; border: 1.5px solid #fecdd3; border-radius: 10px;">
+                    <div style="font-weight: 800; color: #be123c; font-size: 0.88rem; margin-bottom: 6px;">
+                      <i class="fa-solid fa-gift"></i> สรุปวิชาและวันเวลาเรียนโครงการติวฟรีที่เลือก:
+                    </div>
+                    <div id="confCampaignSubjectsList" style="font-size: 0.82rem; color: #1e293b; display: flex; flex-direction: column; gap: 6px;">
+                    </div>
+                  </div>
                 </div>
+              </div>
+
+              <!-- Ticket Action Buttons (📸 Save Image & 📄 Save PDF) -->
+              <div class="enroll-ticket-actions" id="enrollTicketActions">
+                <button type="button" class="btn-save-ticket-img" id="btnSaveTicketImg" onclick="saveEnrollmentConfirmationImage()">
+                  <i class="fa-solid fa-camera"></i> 📸 บันทึกภาพลงมือถือ (Save Image)
+                </button>
+                <button type="button" class="btn-save-ticket-pdf" id="btnSaveTicketPdf" onclick="printEnrollmentConfirmationPdf()">
+                  <i class="fa-solid fa-file-pdf"></i> 📄 บันทึกเป็น PDF / สั่งพิมพ์
+                </button>
               </div>
 
               <!-- LINE Confirmation Callout Box (เด่นชัดมาก) -->
@@ -617,7 +636,7 @@
           name: camp ? (camp.title || 'โครงการติวฟรี') : 'โครงการติวฟรี',
           isCampaign: true,
           categoryLabel: camp ? (camp.badge || 'โครงการพิเศษ • ติวฟรี 100%') : 'โครงการพิเศษ • ติวฟรี 100%',
-          subjects: 'ติวสด Onsite กลุ่มเล็ก & Online ตะลุยโจทย์พิชิตเกรด 4 และสอบเข้า รร. ดัง',
+          subjects: '',
           location: 'สถาบัน The NEW GEN (เรียนสด Onsite & Online)',
           totalHours: 'หลักสูตรติวพิเศษโครงการ',
           pricePromo: '0',
@@ -665,8 +684,16 @@
     const catEl = document.getElementById('enrReviewCategory');
     if (catEl) catEl.textContent = course.categoryLabel || (course.category === 'primary' ? 'ระดับประถมศึกษา' : 'ระดับมัธยมศึกษา');
 
+    // Requirement 1: In campaign mode, completely hide the review phrase
     const subEl = document.getElementById('enrReviewSubjects');
-    if (subEl) subEl.innerHTML = `<i class="fa-solid fa-book-open"></i> ${course.subjects || 'วิทยาศาสตร์ • คณิตศาสตร์ • ภาษาอังกฤษ'}`;
+    if (subEl) {
+      if (course.isCampaign) {
+        subEl.style.display = 'none';
+      } else {
+        subEl.style.display = '';
+        subEl.innerHTML = `<i class="fa-solid fa-book-open"></i> ${course.subjects || 'วิทยาศาสตร์ • คณิตศาสตร์ • ภาษาอังกฤษ'}`;
+      }
+    }
 
     const locEl = document.getElementById('enrReviewLocation');
     if (locEl) locEl.textContent = course.location || 'เรียนสด Onsite สถาบัน The NEW GEN';
@@ -731,76 +758,174 @@
       if (helpImg) helpImg.textContent = uploadHelpText;
     }
 
-    // Populate Schedules
+    // Populate Schedules or Campaign Subjects
     const schedContainer = document.getElementById('enrollScheduleList');
     const schedSection = document.getElementById('enrollScheduleSection');
     if (schedContainer) {
-      if (course.isBundle && Array.isArray(course.childCourses) && course.childCourses.length > 0) {
+      if (course.isCampaign) {
+        // Requirement 2: Free campaign subjects multi-selection with date, time, and details
         schedSection.style.display = 'block';
-        schedContainer.innerHTML = course.childCourses.map((cc, cIdx) => {
-          const schedules = Array.isArray(cc.scheduleList) && cc.scheduleList.length > 0
-            ? cc.scheduleList
-            : [{ type: 'รอบเรียนปกติ', time: 'ตามรอบสถาบัน', dates: 'เปิดเทอม' }];
+        const schedLabel = schedSection.querySelector('.enroll-section-label');
+        if (schedLabel) {
+          schedLabel.innerHTML = `<i class="fa-solid fa-list-check" style="color: #e11d48;"></i> <strong>เลือกวิชาที่ต้องการสมัครเรียนฟรี (เลือกได้มากกว่า 1 วิชา)</strong> <span class="req-star">*</span>`;
+        }
 
-          return `
-            <div class="bundle-course-sched-group" style="background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 14px; padding: 14px 16px; margin-bottom: 14px;">
-              <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; flex-wrap: wrap;">
-                <div style="font-size: 0.95rem; font-weight: 800; color: #0b1e3f; display: flex; align-items: center; gap: 8px;">
-                  <span style="background: #e11d48; color: #ffffff; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.78rem; font-weight: 800;">
-                    ${cIdx + 1}
-                  </span>
-                  <span>เลือกรอบเรียน: <strong>${escapeHtml(cc.title)}</strong></span>
-                  <span class="req-star">*</span>
-                </div>
-                <span style="font-size: 0.76rem; color: #64748b; background: #ffffff; padding: 2px 8px; border-radius: 6px; border: 1px solid #cbd5e1;">
-                  วิชาที่ ${cIdx + 1} จาก ${course.childCourses.length}
-                </span>
-              </div>
-              <div class="enroll-schedule-grid" style="display: grid; gap: 8px;">
-                ${schedules.map((s, idx) => {
-                  const checked = idx === 0 ? 'checked' : '';
-                  const activeClass = idx === 0 ? 'active' : '';
-                  const isItemFull = (s.time && s.time.includes('เต็มแล้ว')) || (s.dates && s.dates.includes('ปิดรับ'));
-                  const radioVal = `${escapeHtml(s.type)} | ${escapeHtml(s.time)} | ${escapeHtml(s.dates)}`;
-                  return `
-                    <label class="enroll-schedule-card ${activeClass} ${isItemFull ? 'disabled' : ''}" onclick="selectEnrollSchedule(this)" style="margin: 0;">
-                      <input type="radio" name="enrollScheduleChoice_${cc.id}" data-course-id="${cc.id}" data-course-title="${escapeHtml(cc.title)}" value="${radioVal}" ${checked} ${isItemFull ? 'disabled' : ''}>
-                      <div class="sched-card-body">
-                        <div class="sched-type-row">
-                          <strong>${escapeHtml(s.type)}</strong>
-                          ${isItemFull ? '<span class="badge badge-seat-full" style="font-size: 0.72rem;">🛑 เต็มแล้ว</span>' : '<span class="sched-time-tag"><i class="fa-regular fa-clock"></i> ' + escapeHtml(s.time) + '</span>'}
-                        </div>
-                        ${s.dates ? `<div class="sched-dates-row"><i class="fa-regular fa-calendar"></i> ${escapeHtml(s.dates)}</div>` : ''}
+        const campData = campaignFallback || (window.NewGenDB ? window.NewGenDB.getPopupCampaign() : null);
+        const subjects = (campData && Array.isArray(campData.subjects) && campData.subjects.length > 0)
+          ? campData.subjects.filter(s => s.active !== false && s.enabled !== false)
+          : ((window.DEFAULT_POPUP_CAMPAIGN && window.DEFAULT_POPUP_CAMPAIGN.subjects) || []);
+
+        if (subjects.length > 0) {
+          schedContainer.innerHTML = `
+            <div class="campaign-subjects-grid">
+              ${subjects.map((s, idx) => {
+                const checked = idx === 0 ? 'checked' : '';
+                const activeClass = idx === 0 ? 'active' : '';
+                return `
+                  <label class="campaign-subject-card ${activeClass}" onclick="toggleCampaignSubjectCard(this, event)">
+                    <input type="checkbox" name="campaignSubjectChoices" value="${escapeHtml(s.id)}" data-name="${escapeHtml(s.name)}" data-grade="${escapeHtml(s.grade || '')}" data-date="${escapeHtml(s.date || '')}" data-time="${escapeHtml(s.time || '')}" data-detail="${escapeHtml(s.detail || '')}" ${checked} onchange="syncCampaignSubjectCard(this)">
+                    <div class="campaign-subject-info">
+                      <div class="campaign-subject-header">
+                        <span class="campaign-subject-title">${escapeHtml(s.name)}</span>
+                        ${s.grade ? `<span class="campaign-subject-grade">${escapeHtml(s.grade)}</span>` : ''}
                       </div>
-                    </label>
-                  `;
-                }).join('')}
-              </div>
+                      ${(s.date || s.time) ? `
+                        <div class="campaign-subject-time">
+                          <i class="fa-regular fa-clock"></i>
+                          <span>${escapeHtml(s.date || '')} ${escapeHtml(s.time || '')}</span>
+                        </div>
+                      ` : ''}
+                      ${s.detail ? `<div class="campaign-subject-detail">${escapeHtml(s.detail)}</div>` : ''}
+                    </div>
+                  </label>
+                `;
+              }).join('')}
             </div>
           `;
-        }).join('');
-      } else if (Array.isArray(course.scheduleList) && course.scheduleList.length > 0) {
-        schedSection.style.display = 'block';
-        schedContainer.innerHTML = course.scheduleList.map((s, idx) => {
-          const checked = idx === 0 ? 'checked' : '';
-          const activeClass = idx === 0 ? 'active' : '';
-          const isItemFull = (s.time && s.time.includes('เต็มแล้ว')) || (s.dates && s.dates.includes('ปิดรับ'));
-          return `
-            <label class="enroll-schedule-card ${activeClass} ${isItemFull ? 'disabled' : ''}" onclick="selectEnrollSchedule(this)">
-              <input type="radio" name="enrollScheduleChoice" value="${escapeHtml(s.type)} | ${escapeHtml(s.time)} | ${escapeHtml(s.dates)}" ${checked} ${isItemFull ? 'disabled' : ''}>
-              <div class="sched-card-body">
-                <div class="sched-type-row">
-                  <strong>${escapeHtml(s.type)}</strong>
-                  ${isItemFull ? '<span class="badge badge-seat-full" style="font-size: 0.72rem;">🛑 เต็มแล้ว</span>' : '<span class="sched-time-tag"><i class="fa-regular fa-clock"></i> ' + escapeHtml(s.time) + '</span>'}
-                </div>
-                ${s.dates ? `<div class="sched-dates-row"><i class="fa-regular fa-calendar"></i> ${escapeHtml(s.dates)}</div>` : ''}
-              </div>
-            </label>
-          `;
-        }).join('');
+        } else {
+          schedContainer.innerHTML = `<div style="padding: 12px 14px; background: #fff1f2; border: 1.5px solid #fecdd3; border-radius: 8px; color: #be123c; font-size: 0.88rem;">เปิดรับสมัครโครงการติวฟรีทุกรายวิชา (ทีมงานจะประสานงานแจ้งรอบเรียนให้ทราบ)</div><input type="hidden" name="campaignSubjectChoices" value="all" data-name="ทุกวิชาโครงการติวฟรี">`;
+        }
       } else {
-        schedSection.style.display = 'none';
-        schedContainer.innerHTML = `<input type="hidden" name="enrollScheduleChoice" value="ตารางเรียนมาตรฐานตามรอบคอร์ส">`;
+        const schedLabel = schedSection.querySelector('.enroll-section-label');
+        if (schedLabel) {
+          schedLabel.innerHTML = `<i class="fa-regular fa-calendar-check" style="color: var(--color-blue-brand);"></i> <strong>เลือกรอบ / วันเวลาเรียนที่ต้องการ</strong> <span class="req-star">*</span>`;
+        }
+
+        if (course.isBundle && Array.isArray(course.childCourses) && course.childCourses.length > 0) {
+          schedSection.style.display = 'block';
+          schedContainer.innerHTML = course.childCourses.map((cc, cIdx) => {
+            const schedules = Array.isArray(cc.scheduleList) && cc.scheduleList.length > 0
+              ? cc.scheduleList
+              : [{ type: 'รอบเรียนปกติ', time: 'ตามรอบสถาบัน', dates: 'เปิดเทอม' }];
+
+            return `
+              <div class="bundle-course-sched-group" style="background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 14px; padding: 14px 16px; margin-bottom: 14px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; flex-wrap: wrap;">
+                  <div style="font-size: 0.95rem; font-weight: 800; color: #0b1e3f; display: flex; align-items: center; gap: 8px;">
+                    <span style="background: #e11d48; color: #ffffff; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.78rem; font-weight: 800;">
+                      ${cIdx + 1}
+                    </span>
+                    <span>เลือกรอบเรียน: <strong>${escapeHtml(cc.title)}</strong></span>
+                    <span class="req-star">*</span>
+                  </div>
+                  <span style="font-size: 0.76rem; color: #64748b; background: #ffffff; padding: 2px 8px; border-radius: 6px; border: 1px solid #cbd5e1;">
+                    วิชาที่ ${cIdx + 1} จาก ${course.childCourses.length}
+                  </span>
+                </div>
+                <div class="enroll-schedule-grid" style="display: grid; gap: 8px;">
+                  ${schedules.map((s, idx) => {
+                    const checked = idx === 0 ? 'checked' : '';
+                    const activeClass = idx === 0 ? 'active' : '';
+                    const isItemFull = (s.time && s.time.includes('เต็มแล้ว')) || (s.dates && s.dates.includes('ปิดรับ'));
+                    const radioVal = `${escapeHtml(s.type)} | ${escapeHtml(s.time)} | ${escapeHtml(s.dates)}`;
+                    return `
+                      <label class="enroll-schedule-card ${activeClass} ${isItemFull ? 'disabled' : ''}" onclick="selectEnrollSchedule(this)" style="margin: 0;">
+                        <input type="radio" name="enrollScheduleChoice_${cc.id}" data-course-id="${cc.id}" data-course-title="${escapeHtml(cc.title)}" value="${radioVal}" ${checked} ${isItemFull ? 'disabled' : ''}>
+                        <div class="sched-card-body">
+                          <div class="sched-type-row">
+                            <strong>${escapeHtml(s.type)}</strong>
+                            ${isItemFull ? '<span class="badge badge-seat-full" style="font-size: 0.72rem;">🛑 เต็มแล้ว</span>' : '<span class="sched-time-tag"><i class="fa-regular fa-clock"></i> ' + escapeHtml(s.time) + '</span>'}
+                          </div>
+                          ${s.dates ? `<div class="sched-dates-row"><i class="fa-regular fa-calendar"></i> ${escapeHtml(s.dates)}</div>` : ''}
+                        </div>
+                      </label>
+                    `;
+                  }).join('')}
+                </div>
+              </div>
+            `;
+          }).join('');
+        } else if (Array.isArray(course.scheduleList) && course.scheduleList.length > 0) {
+          schedSection.style.display = 'block';
+          schedContainer.innerHTML = course.scheduleList.map((s, idx) => {
+            const checked = idx === 0 ? 'checked' : '';
+            const activeClass = idx === 0 ? 'active' : '';
+            const isItemFull = (s.time && s.time.includes('เต็มแล้ว')) || (s.dates && s.dates.includes('ปิดรับ'));
+            return `
+              <label class="enroll-schedule-card ${activeClass} ${isItemFull ? 'disabled' : ''}" onclick="selectEnrollSchedule(this)">
+                <input type="radio" name="enrollScheduleChoice" value="${escapeHtml(s.type)} | ${escapeHtml(s.time)} | ${escapeHtml(s.dates)}" ${checked} ${isItemFull ? 'disabled' : ''}>
+                <div class="sched-card-body">
+                  <div class="sched-type-row">
+                    <strong>${escapeHtml(s.type)}</strong>
+                    ${isItemFull ? '<span class="badge badge-seat-full" style="font-size: 0.72rem;">🛑 เต็มแล้ว</span>' : '<span class="sched-time-tag"><i class="fa-regular fa-clock"></i> ' + escapeHtml(s.time) + '</span>'}
+                  </div>
+                  ${s.dates ? `<div class="sched-dates-row"><i class="fa-regular fa-calendar"></i> ${escapeHtml(s.dates)}</div>` : ''}
+                </div>
+              </label>
+            `;
+          }).join('');
+        } else {
+          schedSection.style.display = 'none';
+          schedContainer.innerHTML = `<input type="hidden" name="enrollScheduleChoice" value="ตารางเรียนมาตรฐานตามรอบคอร์ส">`;
+        }
+      }
+    }
+
+    // Configure Custom Questions (Campaign Specific or General)
+    const customSection = document.getElementById('enrollCustomSection');
+    const customContainer = document.getElementById('enrCustomFieldsContainer');
+    if (course.isCampaign) {
+      const campData = campaignFallback || (window.NewGenDB ? window.NewGenDB.getPopupCampaign() : null);
+      if (campData && Array.isArray(campData.customQuestions) && campData.customQuestions.length > 0) {
+        if (customSection && customContainer) {
+          customSection.style.display = 'block';
+          customContainer.innerHTML = campData.customQuestions.map((q, idx) => {
+            const req = q.required ? '<span class="req-star">*</span>' : '';
+            const reqAttr = q.required ? 'required' : '';
+            if (q.type === 'textarea') {
+              return `
+                <div class="enr-form-field">
+                  <label>${escapeHtml(q.label)} ${req}</label>
+                  <textarea name="campaignCustomQ_${idx}" data-qid="${escapeHtml(q.id || idx)}" data-label="${escapeHtml(q.label)}" placeholder="${escapeHtml(q.placeholder || '')}" ${reqAttr} rows="2"></textarea>
+                </div>
+              `;
+            } else if (q.type === 'select' && Array.isArray(q.options) && q.options.length > 0) {
+              return `
+                <div class="enr-form-field">
+                  <label>${escapeHtml(q.label)} ${req}</label>
+                  <select name="campaignCustomQ_${idx}" data-qid="${escapeHtml(q.id || idx)}" data-label="${escapeHtml(q.label)}" ${reqAttr}>
+                    <option value="">${escapeHtml(q.placeholder || '-- กรุณาเลือก --')}</option>
+                    ${q.options.map(opt => `<option value="${escapeHtml(opt)}">${escapeHtml(opt)}</option>`).join('')}
+                  </select>
+                </div>
+              `;
+            } else {
+              return `
+                <div class="enr-form-field">
+                  <label>${escapeHtml(q.label)} ${req}</label>
+                  <input type="text" name="campaignCustomQ_${idx}" data-qid="${escapeHtml(q.id || idx)}" data-label="${escapeHtml(q.label)}" placeholder="${escapeHtml(q.placeholder || '')}" ${reqAttr}>
+                </div>
+              `;
+            }
+          }).join('');
+        }
+      } else {
+        if (customSection) customSection.style.display = 'none';
+        if (customContainer) customContainer.innerHTML = '';
+      }
+    } else {
+      if (typeof window.applyEnrollmentConfig === 'function') {
+        window.applyEnrollmentConfig();
       }
     }
 
@@ -949,13 +1074,43 @@
       return;
     }
 
-    // Schedule choice collection (multi-course support for bundles)
+    // Schedule choice collection (multi-course support for bundles and free campaign)
     let scheduleChoice = '';
     const childSchedulesMap = {};
     const isBundle = Boolean(currentEnrollCourse && currentEnrollCourse.isBundle);
     const childCourseIds = isBundle && Array.isArray(currentEnrollCourse.courseIds) ? currentEnrollCourse.courseIds : [];
+    let selectedSubjects = [];
 
-    if (isBundle && Array.isArray(currentEnrollCourse.childCourses) && currentEnrollCourse.childCourses.length > 0) {
+    if (currentEnrollCourse && currentEnrollCourse.isCampaign) {
+      const checkedBoxes = Array.from(document.querySelectorAll('input[name="campaignSubjectChoices"]:checked'));
+      if (checkedBoxes.length === 0) {
+        alert('⚠️ กรุณาเลือกวิชาที่ต้องการสมัครเรียนฟรีอย่างน้อย 1 วิชาครับ');
+        return;
+      }
+      selectedSubjects = checkedBoxes.map(cb => ({
+        id: cb.value,
+        name: cb.dataset.name || cb.value,
+        grade: cb.dataset.grade || '',
+        date: cb.dataset.date || '',
+        time: cb.dataset.time || '',
+        detail: cb.dataset.detail || ''
+      }));
+      scheduleChoice = selectedSubjects.map(s => `${s.name} (${s.date} ${s.time})`).join(' | ');
+
+      // Collect Campaign Custom Questions if any
+      const campQInputs = document.querySelectorAll('[name^="campaignCustomQ_"]');
+      campQInputs.forEach(inp => {
+        const label = inp.dataset.label || 'คำถามพิเศษ';
+        const val = (inp.value || '').trim();
+        if (val) {
+          customAnswers.push({
+            id: inp.dataset.qid,
+            label: label,
+            value: val
+          });
+        }
+      });
+    } else if (isBundle && Array.isArray(currentEnrollCourse.childCourses) && currentEnrollCourse.childCourses.length > 0) {
       const scheduleLines = [];
       currentEnrollCourse.childCourses.forEach(cc => {
         const sel = document.querySelector(`input[name="enrollScheduleChoice_${cc.id}"]:checked`);
@@ -1054,6 +1209,8 @@
       studentImageUrl: studentImageUrl,
       hasAttachment: Boolean(studentImageUrl),
       isCampaign: Boolean(currentEnrollCourse.isCampaign),
+      selectedSubjects: selectedSubjects,
+      subjectsChosen: selectedSubjects.length > 0 ? selectedSubjects.map(s => s.name).join(', ') : '',
       isBundle: isBundle,
       bundleId: isBundle ? currentEnrollCourse.id : null,
       bundleName: isBundle ? (currentEnrollCourse.name || currentEnrollCourse.title) : null,
@@ -1098,7 +1255,7 @@
     // Populate Step 2 Confirmation Card
     document.getElementById('confAppCode').textContent = `#${enrollId}`;
     document.getElementById('confCourseTitle').textContent = currentEnrollCourse.title;
-    document.getElementById('confScheduleChoice').innerHTML = escapeHtml(scheduleChoice).replace(/\n/g, '<br>');
+    document.getElementById('confScheduleChoice').innerHTML = escapeHtml(scheduleChoice).replace(/\|/g, '<br>• ');
     document.getElementById('confLearningType').textContent = learningType === 'onsite' ? '🏫 เรียนสด Onsite (ที่สถาบัน The NEW GEN)' : '💻 เรียนสด Online (Zoom)';
     document.getElementById('confStudentName').textContent = `${studentName} (น้อง${nickname}) ชั้น ${grade} - รร. ${school}`;
     document.getElementById('confContact').textContent = `โทร: ${parentPhone} | LINE ID: ${lineId}`;
@@ -1127,6 +1284,41 @@
       } else {
         customRowsWrap.innerHTML = '';
       }
+    }
+
+    // Requirement 7: For campaign enrollments, customize Step 2 Confirmation
+    const lineCalloutTitle = document.getElementById('confLineCalloutTitle');
+    const lineCalloutBody = document.getElementById('confLineCalloutBody');
+    const btnConfLineText = document.getElementById('btnConfLineText');
+    const confCampHighlight = document.getElementById('confCampaignHighlight');
+    const confCampSubjectsList = document.getElementById('confCampaignSubjectsList');
+
+    if (currentEnrollCourse && currentEnrollCourse.isCampaign) {
+      if (lineCalloutTitle) lineCalloutTitle.textContent = '🎉 บันทึกสิทธิ์โครงการติวฟรีสำเร็จ!';
+      if (lineCalloutBody) lineCalloutBody.textContent = 'น้องสามารถกดปุ่ม "📸 บันทึกภาพลงมือถือ" ด้านบน เพื่อเก็บหลักฐานนี้ไว้ได้เลยครับ และหากมีข้อสงสัยตรงไหน สามารถสอบถามพี่ ๆ ทาง LINE ได้ตลอดเลยครับ';
+      if (btnConfLineText) btnConfLineText.textContent = '💬 สอบถามเพิ่มเติมทาง LINE';
+
+      if (confCampHighlight && confCampSubjectsList) {
+        confCampHighlight.style.display = 'block';
+        if (selectedSubjects.length > 0) {
+          confCampSubjectsList.innerHTML = selectedSubjects.map((s, idx) => `
+            <div style="background: #ffffff; padding: 8px 12px; border-radius: 8px; border: 1px solid #fecdd3; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px;">
+              <div>
+                <strong style="color: #0b1e3f; font-size: 0.9rem;">${idx + 1}. ${escapeHtml(s.name)}</strong>
+                ${s.detail ? `<div style="font-size: 0.76rem; color: #64748b; margin-top: 2px;">${escapeHtml(s.detail)}</div>` : ''}
+              </div>
+              <span style="font-size: 0.78rem; font-weight: 700; color: #e11d48; background: #fff1f2; padding: 3px 10px; border-radius: 99px; border: 1px solid #fecdd3;">
+                <i class="fa-regular fa-clock"></i> ${escapeHtml(s.date)} ${escapeHtml(s.time)}
+              </span>
+            </div>
+          `).join('');
+        }
+      }
+    } else {
+      if (confCampHighlight) confCampHighlight.style.display = 'none';
+      if (lineCalloutTitle) lineCalloutTitle.textContent = (cfg && cfg.lineCalloutTitle) ? cfg.lineCalloutTitle : 'ขั้นตอนสุดท้าย: ทักไปยืนยันการสมัครที่ LINE สถาบัน';
+      if (lineCalloutBody) lineCalloutBody.textContent = (cfg && cfg.lineCalloutBody) ? cfg.lineCalloutBody : 'กรุณากดปุ่มด้านล่างเพื่อทักไปยืนยันการสมัครและส่งหลักฐานการชำระเงินที่ LINE Official เจ้าหน้าที่จะตรวจสอบและยืนยันที่นั่งให้น้องทันทีครับ';
+      if (btnConfLineText) btnConfLineText.textContent = (cfg && cfg.lineBtnText) ? cfg.lineBtnText : 'คลิกเพื่อทัก LINE ยืนยันการสมัครทันที';
     }
 
     const lineUrl = (cfg && cfg.lineUrl) ? cfg.lineUrl : getContactLineUrl();
@@ -1544,6 +1736,215 @@ LINE ID: ${lastEnrollmentData.lineId}${customText}${lastEnrollmentData.studentIm
       }
     }
   });
+
+  /**
+   * Helper functions for Campaign Subject Selection Checkboxes
+   */
+  window.toggleCampaignSubjectCard = function (labelEl, event) {
+    if (event && event.target && (event.target.tagName.toLowerCase() === 'input')) return;
+    const cb = labelEl.querySelector('input[type="checkbox"]');
+    if (cb) {
+      cb.checked = !cb.checked;
+      syncCampaignSubjectCard(cb);
+    }
+  };
+
+  window.syncCampaignSubjectCard = function (cb) {
+    const card = cb.closest('.campaign-subject-card');
+    if (card) {
+      if (cb.checked) {
+        card.classList.add('active');
+      } else {
+        card.classList.remove('active');
+      }
+    }
+  };
+
+  /**
+   * Requirement 6: Save Enrollment Confirmation Pass as High-Res Image (Canvas)
+   */
+  window.saveEnrollmentConfirmationImage = function () {
+    if (!lastEnrollmentData) {
+      alert('ไม่พบข้อมูลการสมัครเรียน');
+      return;
+    }
+
+    const isCamp = Boolean(lastEnrollmentData.isCampaign || lastEnrollmentData.courseId === 'campaign-free' || lastEnrollmentData.courseId === 'campaign');
+    const subjectsCount = Array.isArray(lastEnrollmentData.selectedSubjects) ? lastEnrollmentData.selectedSubjects.length : 0;
+    const width = 1000;
+    const baseH = isCamp ? (1150 + Math.min(300, subjectsCount * 45)) : 1100;
+    const height = baseH;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      window.print();
+      return;
+    }
+
+    // 1. Overall Background
+    ctx.fillStyle = '#f8fafc';
+    ctx.fillRect(0, 0, width, height);
+
+    // 2. Header Gradient Banner
+    const grad = ctx.createLinearGradient(0, 0, width, 240);
+    if (isCamp) {
+      grad.addColorStop(0, '#0b1e3f');
+      grad.addColorStop(0.55, '#1e1b4b');
+      grad.addColorStop(1, '#be123c');
+    } else {
+      grad.addColorStop(0, '#0b1e3f');
+      grad.addColorStop(0.65, '#1e3a8a');
+      grad.addColorStop(1, '#0284c7');
+    }
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, width, 230);
+
+    // Top Brand Gold Accent Strip
+    ctx.fillStyle = '#f59e0b';
+    ctx.fillRect(0, 0, width, 8);
+
+    // Brand Logo & Title (Left Header)
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 36px "Prompt", "Plus Jakarta Sans", sans-serif';
+    ctx.fillText('The NEW GEN TUTOR', 50, 75);
+
+    ctx.fillStyle = '#93c5fd';
+    ctx.font = '20px "Prompt", sans-serif';
+    ctx.fillText('สถาบันกวดวิชาคุณภาพ Onsite & Online', 50, 112);
+
+    // Pass Type Badge Pill
+    ctx.fillStyle = isCamp ? '#f43f5e' : '#0284c7';
+    ctx.beginPath();
+    ctx.roundRect(50, 138, isCamp ? 385 : 345, 42, 21);
+    ctx.fill();
+
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 18px "Prompt", sans-serif';
+    ctx.fillText(isCamp ? '🎁 บัตรรับสิทธิ์โครงการติวฟรี 100%' : '🎓 บัตรยืนยันการสมัครเรียน (PASS)', 72, 165);
+
+    // Application ID Box (Right Header)
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.12)';
+    ctx.beginPath();
+    ctx.roundRect(width - 390, 50, 340, 130, 14);
+    ctx.fill();
+
+    ctx.fillStyle = '#cbd5e1';
+    ctx.font = '15px "Prompt", sans-serif';
+    ctx.fillText('รหัสอ้างอิงการสมัคร (APPLICATION ID)', width - 370, 85);
+
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 26px "Plus Jakarta Sans", sans-serif';
+    ctx.fillText(`#${lastEnrollmentData.id}`, width - 370, 124);
+
+    ctx.fillStyle = '#34d399';
+    ctx.font = 'bold 17px "Prompt", sans-serif';
+    ctx.fillText('● บันทึกเข้าระบบเรียบร้อย', width - 370, 158);
+
+    // 3. Main Ticket Card Container
+    const cardY = 265;
+    const cardH = height - 340;
+    ctx.fillStyle = '#ffffff';
+    ctx.strokeStyle = '#e2e8f0';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.roundRect(40, cardY, width - 80, cardH, 20);
+    ctx.fill();
+    ctx.stroke();
+
+    // Field Row Drawer Helper
+    let y = cardY + 50;
+    const drawRow = (icon, label, value, isBold = false, valColor = '#0f172a') => {
+      ctx.fillStyle = '#64748b';
+      ctx.font = '19px "Prompt", sans-serif';
+      ctx.fillText(`${label}:`, 75, y);
+
+      ctx.fillStyle = valColor;
+      ctx.font = (isBold ? 'bold ' : '') + '21px "Prompt", sans-serif';
+
+      const maxW = width - 420;
+      const valStr = String(value || '-');
+      if (ctx.measureText(valStr).width > maxW) {
+        ctx.fillText(valStr.substring(0, 48) + '...', 350, y);
+      } else {
+        ctx.fillText(valStr, 350, y);
+      }
+      y += 48;
+    };
+
+    drawRow('🎓', 'คอร์สเรียน / โครงการ', lastEnrollmentData.courseTitle, true, isCamp ? '#be123c' : '#1e3a8a');
+    drawRow('🏫', 'รูปแบบการเรียน', lastEnrollmentData.learningType === 'onsite' ? 'เรียนสด Onsite (ที่สถาบัน The NEW GEN)' : 'เรียนสด Online (Zoom)');
+    drawRow('👤', 'ชื่อ - สกุล นักเรียน', `${lastEnrollmentData.studentName} (น้อง${lastEnrollmentData.nickname || '-'})`, true);
+    drawRow('📚', 'ระดับชั้น / โรงเรียน', `ชั้น ${lastEnrollmentData.grade || '-'} | รร. ${lastEnrollmentData.school || '-'}`);
+    drawRow('📞', 'เบอร์ติดต่อผู้ปกครอง', lastEnrollmentData.parentPhone || '-');
+    drawRow('💬', 'LINE ID', lastEnrollmentData.lineId || '-');
+
+    // If Campaign: Render Selected Subjects Highlight Box
+    if (isCamp && Array.isArray(lastEnrollmentData.selectedSubjects) && lastEnrollmentData.selectedSubjects.length > 0) {
+      y += 8;
+      const boxH = Math.min(270, lastEnrollmentData.selectedSubjects.length * 44 + 50);
+      ctx.fillStyle = '#fff1f2';
+      ctx.strokeStyle = '#fecdd3';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.roundRect(75, y, width - 150, boxH, 12);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = '#be123c';
+      ctx.font = 'bold 19px "Prompt", sans-serif';
+      ctx.fillText('📚 รายวิชาและเวลาเรียนโครงการติวฟรีที่เลือก:', 95, y + 32);
+
+      let subY = y + 68;
+      lastEnrollmentData.selectedSubjects.forEach((s, idx) => {
+        if (subY < y + boxH - 10) {
+          ctx.fillStyle = '#0b1e3f';
+          ctx.font = 'bold 18px "Prompt", sans-serif';
+          ctx.fillText(`${idx + 1}. ${s.name}`, 105, subY);
+
+          ctx.fillStyle = '#e11d48';
+          ctx.font = '16px "Prompt", sans-serif';
+          ctx.fillText(`${s.date} ${s.time}`, width - 380, subY);
+          subY += 40;
+        }
+      });
+      y += boxH + 20;
+    } else {
+      drawRow('📅', 'รอบ / วันเวลาเรียน', lastEnrollmentData.scheduleChoice || 'ตามรอบที่สถาบันแจ้ง');
+    }
+
+    // 4. Footer
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '16px "Prompt", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('สถาบันกวดวิชา The NEW GEN • สอบถามข้อมูลเพิ่มเติม LINE: @thenewgen หรือโทร 089-123-4567', width / 2, height - 35);
+    ctx.textAlign = 'left';
+
+    // Trigger PNG Download
+    try {
+      const dataUrl = canvas.toDataURL('image/png');
+      const a = document.createElement('a');
+      a.href = dataUrl;
+      a.download = `NEWGEN-PASS-${lastEnrollmentData.id}.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+
+      alert('📸 บันทึกภาพบัตรยืนยันการสมัครเรียนเรียบร้อยแล้ว!\nน้องสามารถนำภาพนี้บันทึกไว้ในเครื่อง หรือทักส่งทาง LINE ได้เลยครับ');
+    } catch (err) {
+      console.warn('Canvas export failed, falling back to print:', err);
+      window.print();
+    }
+  };
+
+  /**
+   * Requirement 6: Save Enrollment Confirmation Pass as PDF / Print
+   */
+  window.printEnrollmentConfirmationPdf = function () {
+    window.print();
+  };
 
   // Pre-initialize on DOM ready
   if (document.readyState === 'loading') {

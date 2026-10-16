@@ -746,6 +746,8 @@ function initHomePopupCampaign() {
 
 function ensureCuteFloatingGiftPill(campaign) {
   if (document.getElementById('campaignFloatingPill')) return;
+  if (sessionStorage.getItem('newgen_campaign_dismissed') === 'true') return;
+
   const pill = document.createElement('div');
   pill.id = 'campaignFloatingPill';
   pill.className = 'cute-floating-gift-pill';
@@ -759,6 +761,9 @@ function ensureCuteFloatingGiftPill(campaign) {
       <span class="gift-title">${escapeHtml(campaign.title || '🎁 โครงการติวฟรี!')}</span>
       <span class="gift-subtitle">${escapeHtml(campaign.miniBadgeText || campaign.miniBadge || 'คลิกรับสิทธิ์ด่วน ✨')}</span>
     </div>
+    <button type="button" class="gift-pill-close-btn" onclick="event.stopPropagation(); dismissCampaignFloatingPill()" title="ซ่อนป้ายนี้">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
   `;
   pill.onclick = () => {
     if (typeof window.openEnrollmentModal === 'function') {
@@ -769,6 +774,19 @@ function ensureCuteFloatingGiftPill(campaign) {
   };
   document.body.appendChild(pill);
 }
+
+function dismissCampaignFloatingPill() {
+  const pill = document.getElementById('campaignFloatingPill');
+  if (pill) {
+    pill.style.opacity = '0';
+    pill.style.transform = 'scale(0.8) translateY(20px)';
+    setTimeout(() => {
+      pill.style.display = 'none';
+    }, 250);
+  }
+  sessionStorage.setItem('newgen_campaign_dismissed', 'true');
+}
+window.dismissCampaignFloatingPill = dismissCampaignFloatingPill;
 
 function renderHomePopupCampaign() {
   const modal = document.getElementById('campaignPopupModal');

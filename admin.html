@@ -739,6 +739,44 @@
               </div>
             </div>
 
+            <!-- การจัดการรายวิชาในโครงการติวฟรี (Campaign Subjects & Times) -->
+            <div style="background: #ffffff; border: 1.5px solid #fecdd3; border-radius: 12px; padding: 18px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(225, 29, 72, 0.05);">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
+                <div>
+                  <div style="font-weight: 800; color: #be123c; display: flex; align-items: center; gap: 8px; font-size: 1.05rem;">
+                    <i class="fa-solid fa-book-open"></i> จัดการรายวิชาในโครงการติวฟรี (ที่ให้นักเรียนเลือกสมัคร)
+                  </div>
+                  <small style="color: #64748b;">คุณสามารถเพิ่ม ลบ หรือแก้ไขวิชาที่เปิดให้ติวฟรี พร้อมระบุวันเวลาเรียน และคำอธิบายเนื้อหาได้ตามต้องการ</small>
+                </div>
+                <button type="button" class="btn-primary" onclick="openAddCampaignSubjectModal()" style="font-size: 0.85rem; padding: 7px 16px; background: linear-gradient(135deg, #e11d48, #be123c); border: none;">
+                  <i class="fa-solid fa-plus"></i> เพิ่มวิชาใหม่
+                </button>
+              </div>
+
+              <div id="adminCampaignSubjectsContainer" style="display: flex; flex-direction: column; gap: 8px;">
+                <!-- Dynamically populated via JS -->
+              </div>
+            </div>
+
+            <!-- คำถามพิเศษเฉพาะโครงการติวฟรี (Campaign Custom Questions) -->
+            <div style="background: #f0fdf4; border: 1.5px solid #bbf7d0; border-radius: 12px; padding: 18px; margin-bottom: 20px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
+                <div>
+                  <div style="font-weight: 800; color: #166534; display: flex; align-items: center; gap: 8px; font-size: 1.05rem;">
+                    <i class="fa-solid fa-clipboard-question"></i> คำถามพิเศษเฉพาะโครงการติวฟรี (Campaign Custom Questions)
+                  </div>
+                  <small style="color: #15803d;">คำถามที่จะปรากฏเฉพาะตอนที่นักเรียนกดสมัครโครงการติวฟรีนี้</small>
+                </div>
+                <button type="button" class="btn-primary" onclick="openAddCampaignQuestionModal()" style="font-size: 0.85rem; padding: 7px 16px; background: #16a34a; border-color: #16a34a;">
+                  <i class="fa-solid fa-plus"></i> เพิ่มคำถามติวฟรี
+                </button>
+              </div>
+
+              <div id="adminCampaignQuestionsContainer" style="display: flex; flex-direction: column; gap: 8px;">
+                <!-- Dynamically populated via JS -->
+              </div>
+            </div>
+
             <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 20px;">
               <button type="button" class="btn-secondary" onclick="resetPopupCampaignDefaults()">
                 <i class="fa-solid fa-rotate-left"></i> คืนค่าเริ่มต้นแคมเปญ
@@ -2474,6 +2512,15 @@
             <textarea id="enShippingAddress" rows="3" required placeholder="ระบุเลขที่บ้าน หมู่ ซอย ถนน ตำบล อำเภอ จังหวัด และรหัสไปรษณีย์ ให้ชัดเจนเพื่อการจัดส่งหนังสือ..."></textarea>
           </div>
 
+          <!-- Campaign Information Wrap (if student enrolled via campaign) -->
+          <div id="wrapEnCampaignInfo" style="display: none; background: #fdf2f8; border: 1.5px solid #fbcfe8; border-radius: var(--radius-md); padding: 14px; margin-bottom: 16px;">
+            <div style="color: #be185d; font-weight: 800; display: flex; align-items: center; gap: 6px; margin-bottom: 6px; font-size: 0.92rem;">
+              <i class="fa-solid fa-gift"></i> ข้อมูลการสมัครโครงการติวฟรี (Campaign)
+            </div>
+            <div id="enCampaignSubjectsList" style="font-size: 0.88rem; color: #831843; font-weight: 600; margin-bottom: 6px;"></div>
+            <div id="enCampaignAnswersList" style="font-size: 0.82rem; color: #475569; line-height: 1.4;"></div>
+          </div>
+
           <!-- Student Uploaded Image (Attachment) -->
           <div id="wrapEnStudentImage" style="display: none; background: #eff6ff; border: 1.5px solid #bfdbfe; border-radius: var(--radius-md); padding: 14px; margin-bottom: 16px;">
             <label style="color: #1e40af; font-weight: 800; display: block; margin-bottom: 8px;">
@@ -2869,6 +2916,112 @@
         </a>
         <button type="button" class="btn-secondary" onclick="closeModal('modalStudentAttachmentPreview')">ปิด</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Modal Add/Edit Campaign Subject -->
+  <div class="admin-modal-backdrop" id="modalCampaignSubject" style="z-index: 10006;">
+    <div class="admin-modal-card" style="max-width: 580px;">
+      <div class="admin-modal-header" style="background: linear-gradient(135deg, #be123c, #9f1239); color: #fff;">
+        <h3 id="campaignSubjectModalTitle" style="color: #fff;"><i class="fa-solid fa-book-open"></i> เพิ่มวิชาใหม่ในโครงการติวฟรี</h3>
+        <button type="button" class="admin-modal-close" onclick="closeModal('modalCampaignSubject')" style="color: #fff;"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form id="formCampaignSubject" onsubmit="handleSaveCampaignSubject(event)" style="padding: 22px;">
+        <input type="hidden" id="csId">
+        
+        <div class="form-row-2col">
+          <div class="form-group-luxury">
+            <label for="csName">ชื่อวิชา *</label>
+            <input type="text" id="csName" required placeholder="เช่น คณิตศาสตร์ ม.4">
+          </div>
+          <div class="form-group-luxury">
+            <label for="csGrade">ระดับชั้น</label>
+            <input type="text" id="csGrade" placeholder="เช่น ม.4 หรือ ม.5 หรือ ป.6">
+          </div>
+        </div>
+
+        <div class="form-row-2col">
+          <div class="form-group-luxury">
+            <label for="csDate">วันที่เรียน</label>
+            <input type="text" id="csDate" placeholder="เช่น วันเสาร์ หรือ 8 มี.ค. 69">
+          </div>
+          <div class="form-group-luxury">
+            <label for="csTime">เวลาเรียน</label>
+            <input type="text" id="csTime" placeholder="เช่น 09:00 - 11:00 น.">
+          </div>
+        </div>
+
+        <div class="form-group-luxury">
+          <label for="csDetail">คำอธิบายรายละเอียดวิชา / เนื้อหาที่ติว</label>
+          <textarea id="csDetail" rows="2" placeholder="เช่น ตะลุยโจทย์พิชิตเกรด 4 ติวเข้มปูพื้นฐานสู่มหาวิทยาลัย"></textarea>
+        </div>
+
+        <div style="background: #f8fafc; padding: 12px 16px; border-radius: 8px; border: 1px solid #e2e8f0; margin-top: 10px;">
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 700; color: #1e293b; margin: 0;">
+            <input type="checkbox" id="csActive" checked style="width: 18px; height: 18px; accent-color: #16a34a;">
+            <span>เปิดรับสมัครวิชานี้ (Active)</span>
+          </label>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+          <button type="button" class="btn-secondary" onclick="closeModal('modalCampaignSubject')">ยกเลิก</button>
+          <button type="submit" class="btn-primary" style="background: #be123c; border-color: #be123c;">
+            <i class="fa-solid fa-floppy-disk"></i> บันทึกวิชา
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Add/Edit Campaign Custom Question -->
+  <div class="admin-modal-backdrop" id="modalCampaignQuestion" style="z-index: 10006;">
+    <div class="admin-modal-card" style="max-width: 580px;">
+      <div class="admin-modal-header" style="background: linear-gradient(135deg, #15803d, #166534); color: #fff;">
+        <h3 id="campaignQuestionModalTitle" style="color: #fff;"><i class="fa-solid fa-clipboard-question"></i> เพิ่มคำถามพิเศษโครงการติวฟรี</h3>
+        <button type="button" class="admin-modal-close" onclick="closeModal('modalCampaignQuestion')" style="color: #fff;"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form id="formCampaignQuestion" onsubmit="handleSaveCampaignQuestion(event)" style="padding: 22px;">
+        <input type="hidden" id="cqId">
+
+        <div class="form-group-luxury">
+          <label for="cqLabel">ข้อความคำถาม *</label>
+          <input type="text" id="cqLabel" required placeholder="เช่น โรงเรียนเป้าหมายที่น้องต้องการสอบเข้า หรือ เป้าหมายในการติวครั้งนี้">
+        </div>
+
+        <div class="form-row-2col">
+          <div class="form-group-luxury">
+            <label for="cqType">ประเภทของช่องตอบคำถาม *</label>
+            <select id="cqType" onchange="toggleCampaignQuestionOptions(this.value)">
+              <option value="text">ข้อความสั้น (Single line text)</option>
+              <option value="textarea">ข้อความยาวหลายบรรทัด (Textarea)</option>
+              <option value="select">ตัวเลือก Dropdown (Select)</option>
+            </select>
+          </div>
+          <div class="form-group-luxury">
+            <label for="cqPlaceholder">คำอธิบายตัวอย่างในช่อง (Placeholder)</label>
+            <input type="text" id="cqPlaceholder" placeholder="เช่น ระบุชื่อโรงเรียน หรือความคาดหวัง">
+          </div>
+        </div>
+
+        <div class="form-group-luxury" id="wrapCqOptions" style="display: none;">
+          <label for="cqOptions">รายการตัวเลือก (พิมพ์บรรทัดละ 1 ตัวเลือก) *</label>
+          <textarea id="cqOptions" rows="3" placeholder="ตัวเลือก 1&#10;ตัวเลือก 2&#10;ตัวเลือก 3"></textarea>
+        </div>
+
+        <div style="background: #f8fafc; padding: 12px 16px; border-radius: 8px; border: 1px solid #e2e8f0; margin-top: 10px;">
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 700; color: #b91c1c; margin: 0;">
+            <input type="checkbox" id="cqRequired" style="width: 18px; height: 18px; accent-color: #dc2626;">
+            <span>บังคับให้นักเรียนต้องตอบคำถามนี้ (*)</span>
+          </label>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+          <button type="button" class="btn-secondary" onclick="closeModal('modalCampaignQuestion')">ยกเลิก</button>
+          <button type="submit" class="btn-primary" style="background: #15803d; border-color: #15803d;">
+            <i class="fa-solid fa-floppy-disk"></i> บันทึกคำถาม
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 
