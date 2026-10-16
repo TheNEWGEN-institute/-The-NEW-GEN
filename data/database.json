@@ -2129,6 +2129,37 @@
       "status": "pending",
       "notes": "เรียนสด Online ผ่าน Zoom จัดส่งหนังสือทางไปรษณีย์",
       "createdAt": "2026-10-14T06:50:00Z"
+    },
+    {
+      "id": "enr-test-1792161308769",
+      "courseId": "campaign-free",
+      "courseTitle": "โครงการติวฟรี The NEW GEN (Onsite & Online)",
+      "isCampaign": true,
+      "learningType": "onsite",
+      "studentName": "น้องทดสอบ สุดยอดวิชา",
+      "nickname": "ยอด",
+      "grade": "ม.4",
+      "school": "ชลราษฎรอำรุง",
+      "parentPhone": "081-234-5678",
+      "studentPhone": "090-123-4567",
+      "lineId": "yod_thebest",
+      "shippingAddress": "123/45 ถนนสุขุมวิท ต.เสม็ด อ.เมือง จ.ชลบุรี 20000",
+      "notes": "ทดสอบการสมัครโครงการติวฟรีระบบใหม่",
+      "selectedSubjects": [
+        "คณิตศาสตร์ ม.4 (ตรีโกณมิติและฟังก์ชัน)",
+        "ฟิสิกส์ ม.4 (การเคลื่อนที่แนวตรงและกฎนิวตัน)"
+      ],
+      "subjectsChosen": "คณิตศาสตร์ ม.4 (ตรีโกณมิติและฟังก์ชัน), ฟิสิกส์ ม.4 (การเคลื่อนที่แนวตรงและกฎนิวตัน)",
+      "scheduleChoice": "เสาร์ 25 พ.ย. 09:00 - 12:00 น. | อาทิตย์ 26 พ.ย. 09:00 - 12:00 น.",
+      "customAnswers": [
+        {
+          "label": "เป้าหมายการสอบ / มหาวิทยาลัยในฝัน",
+          "value": "เตรียมทหาร / วิศวะ จุฬาฯ"
+        }
+      ],
+      "studentImageUrl": "assets/images/logo.png",
+      "status": "confirmed",
+      "createdAt": "2026-10-16T14:35:08.769Z"
     }
   ],
   "enrollmentConfig": {
@@ -2222,7 +2253,58 @@
     "studentUploadEnabled": true,
     "studentUploadRequired": false,
     "studentUploadLabel": "แนบรูปภาพหลักฐาน เช่น ภาพถ่ายการแชร์โพสต์กิจกรรม หรือ ใบแสดงผลการเรียนล่าสุด",
-    "studentUploadHelp": "รองรับไฟล์ภาพ JPG, PNG ขนาดไม่เกิน 10MB"
+    "studentUploadHelp": "รองรับไฟล์ภาพ JPG, PNG ขนาดไม่เกิน 10MB",
+    "subjects": [
+      {
+        "id": "camp-subj-m4-math",
+        "name": "คณิตศาสตร์ ม.4",
+        "time": "10.30 - 12.00 น.",
+        "date": "วันเสาร์ที่ 31 ต.ค. 2569",
+        "detail": "ติวสด Onsite & Online โดย พี่แม็ค",
+        "enabled": true
+      },
+      {
+        "id": "camp-subj-m4-chem",
+        "name": "เคมี ม.4",
+        "time": "13.00 - 14.30 น.",
+        "date": "วันเสาร์ที่ 31 ต.ค. 2569",
+        "detail": "ติวสด Onsite & Online โดย พี่นนท์",
+        "enabled": true
+      },
+      {
+        "id": "camp-subj-m4-phys",
+        "name": "ฟิสิกส์ ม.4",
+        "time": "14.45 - 16.10 น.",
+        "date": "วันเสาร์ที่ 31 ต.ค. 2569",
+        "detail": "ติวสด Onsite & Online โดย พี่อู๋",
+        "enabled": true
+      },
+      {
+        "id": "camp-subj-m5-chem",
+        "name": "เคมี ม.5",
+        "time": "10.30 - 12.00 น.",
+        "date": "วันเสาร์ที่ 31 ต.ค. 2569",
+        "detail": "ติวสด Onsite & Online โดย พี่นนท์",
+        "enabled": true
+      },
+      {
+        "id": "camp-subj-m5-phys",
+        "name": "ฟิสิกส์ ม.5",
+        "time": "13.00 - 14.30 น.",
+        "date": "วันเสาร์ที่ 31 ต.ค. 2569",
+        "detail": "ติวสด Onsite & Online โดย พี่อู๋",
+        "enabled": true
+      },
+      {
+        "id": "camp-subj-m5-math",
+        "name": "คณิตศาสตร์ ม.5",
+        "time": "14.45 - 16.10 น.",
+        "date": "วันเสาร์ที่ 31 ต.ค. 2569",
+        "detail": "ติวสด Onsite & Online โดย พี่แม็ค",
+        "enabled": true
+      }
+    ],
+    "customQuestions": []
   },
   "bundles": [
     {

@@ -409,7 +409,16 @@ const DEFAULT_POPUP_CAMPAIGN = {
   studentUploadEnabled: true,
   studentUploadRequired: false,
   studentUploadLabel: "แนบรูปภาพหลักฐาน เช่น ภาพแชร์โพสต์กิจกรรม / บัตรนักเรียน / ผลการเรียน",
-  studentUploadHelp: "รองรับไฟล์ภาพ JPG, PNG ขนาดไม่เกิน 10MB"
+  studentUploadHelp: "รองรับไฟล์ภาพ JPG, PNG ขนาดไม่เกิน 10MB",
+  subjects: [
+    { id: "camp-subj-m4-math", name: "คณิตศาสตร์ ม.4", time: "10.30 - 12.00 น.", date: "วันเสาร์ที่ 31 ต.ค. 2569", detail: "ติวสด Onsite & Online โดย พี่แม็ค", enabled: true },
+    { id: "camp-subj-m4-chem", name: "เคมี ม.4", time: "13.00 - 14.30 น.", date: "วันเสาร์ที่ 31 ต.ค. 2569", detail: "ติวสด Onsite & Online โดย พี่นนท์", enabled: true },
+    { id: "camp-subj-m4-phys", name: "ฟิสิกส์ ม.4", time: "14.45 - 16.10 น.", date: "วันเสาร์ที่ 31 ต.ค. 2569", detail: "ติวสด Onsite & Online โดย พี่อู๋", enabled: true },
+    { id: "camp-subj-m5-chem", name: "เคมี ม.5", time: "10.30 - 12.00 น.", date: "วันเสาร์ที่ 31 ต.ค. 2569", detail: "ติวสด Onsite & Online โดย พี่นนท์", enabled: true },
+    { id: "camp-subj-m5-phys", name: "ฟิสิกส์ ม.5", time: "13.00 - 14.30 น.", date: "วันเสาร์ที่ 31 ต.ค. 2569", detail: "ติวสด Onsite & Online โดย พี่อู๋", enabled: true },
+    { id: "camp-subj-m5-math", name: "คณิตศาสตร์ ม.5", time: "14.45 - 16.10 น.", date: "วันเสาร์ที่ 31 ต.ค. 2569", detail: "ติวสด Onsite & Online โดย พี่แม็ค", enabled: true }
+  ],
+  customQuestions: []
 };
 
 // Default Enrollment Modal Text Configuration (สามารถปรับแก้ได้จากระบบหลังบ้าน)

@@ -10665,18 +10665,251 @@ button {
   font-weight: 600;
 }
 
+.gift-pill-close-btn {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.18);
+  border: none;
+  color: rgba(255, 255, 255, 0.85);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  cursor: pointer;
+  margin-left: 2px;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.gift-pill-close-btn:hover {
+  background: rgba(244, 63, 94, 0.9);
+  color: #ffffff;
+  transform: scale(1.12);
+}
+
 @media (max-width: 600px) {
   .cute-floating-gift-pill {
-    left: 14px;
-    bottom: 18px;
-    padding: 5px 12px 5px 6px;
+    left: 10px;
+    bottom: 12px;
+    padding: 3px 8px 3px 4px;
+    gap: 6px;
+    border-width: 1.5px;
+    max-width: 195px;
+    box-shadow: 0 4px 16px rgba(225, 29, 72, 0.35);
   }
   .gift-icon-bubble {
-    width: 32px;
-    height: 32px;
-    font-size: 1.05rem;
+    width: 26px;
+    height: 26px;
+    font-size: 0.85rem;
+  }
+  .gift-sparkle-dot {
+    width: 7px;
+    height: 7px;
   }
   .gift-title {
+    font-size: 0.72rem;
+    font-weight: 800;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 110px;
+  }
+  .gift-subtitle {
+    font-size: 0.6rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 110px;
+  }
+  .gift-pill-close-btn {
+    width: 18px;
+    height: 18px;
+    font-size: 0.62rem;
+  }
+}
+
+/* ===================================================================
+   Campaign Subjects Selection Styles (Multi-select Checkboxes)
+   =================================================================== */
+.campaign-subjects-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.campaign-subject-card {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  background: #ffffff;
+  border: 1.8px solid #e2e8f0;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+}
+
+.campaign-subject-card:hover {
+  border-color: #f43f5e;
+  background: #fff5f7;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(244, 63, 94, 0.12);
+}
+
+.campaign-subject-card.active {
+  border-color: #e11d48;
+  background: #fff1f2;
+  box-shadow: 0 4px 16px rgba(225, 29, 72, 0.2);
+}
+
+.campaign-subject-card input[type="checkbox"] {
+  width: 19px;
+  height: 19px;
+  accent-color: #e11d48;
+  margin-top: 2px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.campaign-subject-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.campaign-subject-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-bottom: 3px;
+}
+
+.campaign-subject-title {
+  font-size: 0.94rem;
+  font-weight: 800;
+  color: #0b1e3f;
+}
+
+.campaign-subject-grade {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 99px;
+  background: #e0e7ff;
+  color: #3730a3;
+  white-space: nowrap;
+}
+
+.campaign-subject-time {
+  font-size: 0.78rem;
+  color: #e11d48;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 4px;
+}
+
+.campaign-subject-detail {
+  font-size: 0.76rem;
+  color: #64748b;
+  line-height: 1.35;
+}
+
+/* ===================================================================
+   Step 2 Ticket Action Buttons (📸 Save Image & 📄 Save PDF)
+   =================================================================== */
+.enroll-ticket-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.btn-save-ticket-img,
+.btn-save-ticket-pdf {
+  flex: 1;
+  min-width: 180px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 16px;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.btn-save-ticket-img {
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
+}
+
+.btn-save-ticket-img:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(2, 132, 199, 0.45);
+  filter: brightness(1.08);
+}
+
+.btn-save-ticket-pdf {
+  background: #ffffff;
+  color: #0b1e3f;
+  border: 1.5px solid #cbd5e1;
+}
+
+.btn-save-ticket-pdf:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+  transform: translateY(-2px);
+}
+
+/* Dedicated Print Styles for Ticket PDF Export */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #modalStudentEnrollment,
+  #modalStudentEnrollment .enroll-modal-box,
+  #enrollStepConfirmation,
+  #enrollTicketCard,
+  #enrollTicketCard * {
+    visibility: visible !important;
+  }
+  #modalStudentEnrollment {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    background: #ffffff !important;
+    padding: 0 !important;
+  }
+  #modalStudentEnrollment .enroll-modal-box {
+    box-shadow: none !important;
+    border: none !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    padding: 10px !important;
+  }
+  .enroll-modal-header,
+  .enroll-line-callout,
+  .enroll-ticket-actions,
+  .enroll-success-footer,
+  .btn-modal-close-icon {
+    display: none !important;
+  }
+  #enrollTicketCard {
+    border: 2px solid #0284c7 !important;
+    box-shadow: none !important;
+  }
 }
 
 /* ===================================================================

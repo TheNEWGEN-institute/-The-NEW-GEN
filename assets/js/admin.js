@@ -2083,6 +2083,9 @@ async function saveHomeSettingsForm() {
   }
 }
 
+let _campaignSubjectsList = [];
+let _campaignCustomQuestionsList = [];
+
 /* ===================================================================
    POPUP CAMPAIGN MANAGEMENT (โครงการติวฟรี & ประกาศหน้าแรก)
    =================================================================== */
@@ -2144,6 +2147,20 @@ function loadAdminPopupCampaign() {
   if (uploadRequiredInput) uploadRequiredInput.checked = popup.studentUploadRequired === true;
   if (uploadLabelInput) uploadLabelInput.value = popup.studentUploadLabel || 'แนบรูปภาพหลักฐาน เช่น ภาพแชร์โพสต์กิจกรรม / บัตรนักเรียน / ผลการเรียน';
   if (uploadHelpInput) uploadHelpInput.value = popup.studentUploadHelp || 'รองรับไฟล์ภาพ JPG, PNG ขนาดไม่เกิน 10MB';
+
+  // Requirement 2: Populate Campaign Subjects
+  _campaignSubjectsList = Array.isArray(popup.subjects)
+    ? JSON.parse(JSON.stringify(popup.subjects))
+    : (window.DEFAULT_POPUP_CAMPAIGN && Array.isArray(window.DEFAULT_POPUP_CAMPAIGN.subjects)
+        ? JSON.parse(JSON.stringify(window.DEFAULT_POPUP_CAMPAIGN.subjects))
+        : []);
+  renderAdminCampaignSubjectsTable();
+
+  // Requirement 2: Populate Campaign Custom Questions
+  _campaignCustomQuestionsList = Array.isArray(popup.customQuestions)
+    ? JSON.parse(JSON.stringify(popup.customQuestions))
+    : [];
+  renderAdminCampaignCustomQuestionsList();
 }
 
 function togglePopupCampaignEnabledStatus(checked) {
@@ -2277,6 +2294,261 @@ function previewCampaignPopupInAdmin() {
   if (modal) modal.classList.add('active');
 }
 
+// ================= CAMPAIGN SUBJECTS CRUD =================
+function renderAdminCampaignSubjectsTable() {
+  const container = document.getElementById('adminCampaignSubjectsContainer');
+  if (!container) return;
+
+  if (_campaignSubjectsList.length === 0) {
+    container.innerHTML = `
+      <div style="text-align: center; color: #94a3b8; padding: 20px; background: #f8fafc; border-radius: 8px; border: 1px dashed #cbd5e1;">
+        <i class="fa-solid fa-book-open" style="font-size: 1.5rem; margin-bottom: 6px; display: block; color: #cbd5e1;"></i>
+        ยังไม่มีรายวิชาในโครงการติวฟรี กดปุ่ม <b>"+ เพิ่มวิชาใหม่"</b> ด้านบนเพื่อเริ่มเพิ่มวิชา
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = _campaignSubjectsList.map((sub, idx) => {
+    return `
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; background: #ffffff; border: 1.5px solid ${sub.active !== false ? '#fecdd3' : '#e2e8f0'}; border-radius: 10px; gap: 12px; flex-wrap: wrap;">
+        <div style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 220px;">
+          <span style="width: 28px; height: 28px; border-radius: 50%; background: ${sub.active !== false ? '#be123c' : '#94a3b8'}; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.82rem; font-weight: 800; flex-shrink: 0;">
+            ${idx + 1}
+          </span>
+          <div>
+            <div style="font-weight: 800; color: #0b1e3f; font-size: 0.95rem; display: flex; align-items: center; gap: 8px;">
+              <span>${escapeHtml(sub.name)}</span>
+              ${sub.grade ? `<span style="font-size: 0.72rem; background: #e0e7ff; color: #3730a3; padding: 1px 7px; border-radius: 99px; font-weight: 700;">${escapeHtml(sub.grade)}</span>` : ''}
+              ${sub.active === false ? `<span style="font-size: 0.7rem; background: #fee2e2; color: #dc2626; padding: 1px 6px; border-radius: 4px; font-weight: 700;">ปิดรับ</span>` : ''}
+            </div>
+            ${(sub.date || sub.time) ? `
+              <div style="font-size: 0.78rem; color: #e11d48; font-weight: 700; margin-top: 2px;">
+                <i class="fa-regular fa-clock"></i> ${escapeHtml(sub.date || '')} ${escapeHtml(sub.time || '')}
+              </div>
+            ` : ''}
+            ${sub.detail ? `<div style="font-size: 0.76rem; color: #64748b; margin-top: 2px;">${escapeHtml(sub.detail)}</div>` : ''}
+          </div>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 700; color: #334155; margin: 0; background: #f8fafc; padding: 5px 10px; border-radius: 6px; border: 1px solid #cbd5e1;">
+            <input type="checkbox" ${sub.active !== false ? 'checked' : ''} onchange="toggleCampaignSubjectActive(${idx}, this.checked)" style="accent-color: #16a34a; width: 16px; height: 16px;">
+            <span>เปิดรับ</span>
+          </label>
+          <button type="button" class="btn-secondary" onclick="openEditCampaignSubjectModal(${idx})" style="padding: 5px 10px; font-size: 0.8rem;" title="แก้ไขวิชานี้">
+            <i class="fa-solid fa-pen-to-square"></i> แก้ไข
+          </button>
+          <button type="button" class="btn-secondary" onclick="deleteCampaignSubject(${idx})" style="padding: 5px 10px; font-size: 0.8rem; color: #dc2626; border-color: #fecaca;" title="ลบวิชานี้">
+            <i class="fa-solid fa-trash-can"></i> ลบ
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function openAddCampaignSubjectModal() {
+  document.getElementById('formCampaignSubject').reset();
+  document.getElementById('csId').value = '';
+  document.getElementById('csActive').checked = true;
+  document.getElementById('campaignSubjectModalTitle').innerHTML = '<i class="fa-solid fa-book-open"></i> เพิ่มวิชาใหม่ในโครงการติวฟรี';
+  openModal('modalCampaignSubject');
+}
+
+function openEditCampaignSubjectModal(idx) {
+  const sub = _campaignSubjectsList[idx];
+  if (!sub) return;
+  document.getElementById('csId').value = idx;
+  document.getElementById('csName').value = sub.name || '';
+  document.getElementById('csGrade').value = sub.grade || '';
+  document.getElementById('csDate').value = sub.date || '';
+  document.getElementById('csTime').value = sub.time || '';
+  document.getElementById('csDetail').value = sub.detail || '';
+  document.getElementById('csActive').checked = sub.active !== false;
+  document.getElementById('campaignSubjectModalTitle').innerHTML = '<i class="fa-solid fa-pen-to-square"></i> แก้ไขวิชาโครงการติวฟรี';
+  openModal('modalCampaignSubject');
+}
+
+function handleSaveCampaignSubject(e) {
+  e.preventDefault();
+  const idVal = document.getElementById('csId').value;
+  const name = document.getElementById('csName').value.trim();
+  const grade = document.getElementById('csGrade').value.trim();
+  const date = document.getElementById('csDate').value.trim();
+  const time = document.getElementById('csTime').value.trim();
+  const detail = document.getElementById('csDetail').value.trim();
+  const active = document.getElementById('csActive').checked;
+
+  if (!name) {
+    alert('กรุณาระบุชื่อวิชา');
+    return;
+  }
+
+  const subjectObj = {
+    id: idVal !== '' && _campaignSubjectsList[idVal] ? _campaignSubjectsList[idVal].id : `camp-sub-${Date.now()}`,
+    name,
+    grade,
+    date,
+    time,
+    detail,
+    active
+  };
+
+  if (idVal !== '' && !isNaN(idVal)) {
+    _campaignSubjectsList[parseInt(idVal, 10)] = subjectObj;
+  } else {
+    _campaignSubjectsList.push(subjectObj);
+  }
+
+  renderAdminCampaignSubjectsTable();
+  closeModal('modalCampaignSubject');
+  showToast('บันทึกวิชาเรียบร้อยแล้ว อย่าลืมกด "บันทึกและซิงค์ Cloud" ด้านล่างครับ');
+}
+
+function deleteCampaignSubject(idx) {
+  if (confirm(`คุณต้องการลบวิชา "${_campaignSubjectsList[idx]?.name}" ออกจากโครงการติวฟรีหรือไม่?`)) {
+    _campaignSubjectsList.splice(idx, 1);
+    renderAdminCampaignSubjectsTable();
+    showToast('ลบวิชาเรียบร้อยแล้ว อย่าลืมกด "บันทึกและซิงค์ Cloud" ด้านล่างครับ');
+  }
+}
+
+function toggleCampaignSubjectActive(idx, checked) {
+  if (_campaignSubjectsList[idx]) {
+    _campaignSubjectsList[idx].active = checked;
+    renderAdminCampaignSubjectsTable();
+  }
+}
+
+// ================= CAMPAIGN CUSTOM QUESTIONS CRUD =================
+function renderAdminCampaignCustomQuestionsList() {
+  const container = document.getElementById('adminCampaignQuestionsContainer');
+  if (!container) return;
+
+  if (_campaignCustomQuestionsList.length === 0) {
+    container.innerHTML = `
+      <div style="text-align: center; color: #94a3b8; padding: 20px; background: #f8fafc; border-radius: 8px; border: 1px dashed #bbf7d0;">
+        <i class="fa-solid fa-clipboard-question" style="font-size: 1.5rem; margin-bottom: 6px; display: block; color: #cbd5e1;"></i>
+        ยังไม่มีคำถามพิเศษสำหรับโครงการติวฟรี (กดปุ่ม <b>"+ เพิ่มคำถามติวฟรี"</b> ด้านบนเพื่อเพิ่มคำถาม)
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = _campaignCustomQuestionsList.map((q, idx) => {
+    return `
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; background: #ffffff; border: 1.5px solid #bbf7d0; border-radius: 10px; gap: 12px; flex-wrap: wrap;">
+        <div style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 220px;">
+          <span style="width: 28px; height: 28px; border-radius: 50%; background: #16a34a; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.82rem; font-weight: 800; flex-shrink: 0;">
+            ${idx + 1}
+          </span>
+          <div>
+            <div style="font-weight: 800; color: #166534; font-size: 0.95rem;">
+              ${escapeHtml(q.label)} ${q.required ? '<span style="color: #dc2626;">*</span>' : ''}
+            </div>
+            <div style="font-size: 0.78rem; color: #64748b; margin-top: 2px;">
+              ประเภท: <strong>${q.type === 'textarea' ? 'ข้อความยาว' : (q.type === 'select' ? 'ตัวเลือก Dropdown' : 'ข้อความสั้น')}</strong>
+              ${q.placeholder ? ` • ตัวอย่าง: "${escapeHtml(q.placeholder)}"` : ''}
+            </div>
+          </div>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <button type="button" class="btn-secondary" onclick="openEditCampaignQuestionModal(${idx})" style="padding: 5px 10px; font-size: 0.8rem;">
+            <i class="fa-solid fa-pen-to-square"></i> แก้ไข
+          </button>
+          <button type="button" class="btn-secondary" onclick="deleteCampaignQuestion(${idx})" style="padding: 5px 10px; font-size: 0.8rem; color: #dc2626; border-color: #fecaca;">
+            <i class="fa-solid fa-trash-can"></i> ลบ
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function openAddCampaignQuestionModal() {
+  document.getElementById('formCampaignQuestion').reset();
+  document.getElementById('cqId').value = '';
+  document.getElementById('wrapCqOptions').style.display = 'none';
+  document.getElementById('campaignQuestionModalTitle').innerHTML = '<i class="fa-solid fa-clipboard-question"></i> เพิ่มคำถามพิเศษโครงการติวฟรี';
+  openModal('modalCampaignQuestion');
+}
+
+function openEditCampaignQuestionModal(idx) {
+  const q = _campaignCustomQuestionsList[idx];
+  if (!q) return;
+  document.getElementById('cqId').value = idx;
+  document.getElementById('cqLabel').value = q.label || '';
+  document.getElementById('cqType').value = q.type || 'text';
+  document.getElementById('cqPlaceholder').value = q.placeholder || '';
+  document.getElementById('cqRequired').checked = q.required === true;
+
+  const wrapOpt = document.getElementById('wrapCqOptions');
+  if (q.type === 'select') {
+    wrapOpt.style.display = 'block';
+    document.getElementById('cqOptions').value = Array.isArray(q.options) ? q.options.join('\n') : '';
+  } else {
+    wrapOpt.style.display = 'none';
+  }
+
+  document.getElementById('campaignQuestionModalTitle').innerHTML = '<i class="fa-solid fa-pen-to-square"></i> แก้ไขคำถามพิเศษโครงการติวฟรี';
+  openModal('modalCampaignQuestion');
+}
+
+function toggleCampaignQuestionOptions(type) {
+  const wrapOpt = document.getElementById('wrapCqOptions');
+  if (wrapOpt) {
+    wrapOpt.style.display = type === 'select' ? 'block' : 'none';
+  }
+}
+
+function handleSaveCampaignQuestion(e) {
+  e.preventDefault();
+  const idVal = document.getElementById('cqId').value;
+  const label = document.getElementById('cqLabel').value.trim();
+  const type = document.getElementById('cqType').value;
+  const placeholder = document.getElementById('cqPlaceholder').value.trim();
+  const required = document.getElementById('cqRequired').checked;
+
+  if (!label) {
+    alert('กรุณาระบุข้อความคำถาม');
+    return;
+  }
+
+  let options = [];
+  if (type === 'select') {
+    options = document.getElementById('cqOptions').value.split('\n').map(l => l.trim()).filter(Boolean);
+  }
+
+  const qObj = {
+    id: idVal !== '' && _campaignCustomQuestionsList[idVal] ? _campaignCustomQuestionsList[idVal].id : `camp-q-${Date.now()}`,
+    label,
+    type,
+    placeholder,
+    options,
+    required
+  };
+
+  if (idVal !== '' && !isNaN(idVal)) {
+    _campaignCustomQuestionsList[parseInt(idVal, 10)] = qObj;
+  } else {
+    _campaignCustomQuestionsList.push(qObj);
+  }
+
+  renderAdminCampaignCustomQuestionsList();
+  closeModal('modalCampaignQuestion');
+  showToast('บันทึกคำถามเรียบร้อยแล้ว อย่าลืมกด "บันทึกและซิงค์ Cloud" ด้านล่างครับ');
+}
+
+function deleteCampaignQuestion(idx) {
+  if (confirm(`คุณต้องการลบคำถาม "${_campaignCustomQuestionsList[idx]?.label}" หรือไม่?`)) {
+    _campaignCustomQuestionsList.splice(idx, 1);
+    renderAdminCampaignCustomQuestionsList();
+    showToast('ลบคำถามเรียบร้อยแล้ว อย่าลืมกด "บันทึกและซิงค์ Cloud" ด้านล่างครับ');
+  }
+}
+
 async function saveAdminPopupCampaignForm() {
   const enabled = document.getElementById('popupCampaignEnabled')?.checked !== false;
   const image = (document.getElementById('popupCampaignImgUrl')?.value || '').trim();
@@ -2316,6 +2588,8 @@ async function saveAdminPopupCampaignForm() {
     studentUploadRequired,
     studentUploadLabel,
     studentUploadHelp,
+    subjects: _campaignSubjectsList,
+    customQuestions: _campaignCustomQuestionsList,
     updatedAt: new Date().toISOString()
   };
 
@@ -2337,26 +2611,28 @@ async function saveAdminPopupCampaignForm() {
 
 function resetPopupCampaignDefaults() {
   if (confirm('คุณต้องการคืนค่าเริ่มต้นของ Pop-up แคมเปญ (โครงการติวฟรี) หรือไม่?')) {
-    const defaultData = {
-      enabled: true,
-      title: "โครงการติวฟรี ตะลุยโจทย์พิชิตเกรด 4 & สอบเข้า ม.1 / ม.4",
-      badge: "🔥 โครงการติวฟรี โควตาจำกัด 30 ที่นั่ง",
-      image: "https://wdazilhmlttnurpfewlk.supabase.co/storage/v1/object/public/uploads/img-1791819087634-e5ri.png",
-      description: "สัมผัสเทคนิคการสอนจริงโดยทีมติวเตอร์ The NEW GEN ฟรี! ไม่มีค่าใช้จ่าย พร้อมรับเอกสารสรุปสูตรเก็งข้อสอบจริง และแนวคิดลัดที่นำไปใช้สอบได้ทันที",
-      highlights: [
-        "- เรียนสด Onsite กลุ่มเล็ก ติวเตอร์ประกบดูแลใกล้ชิด ซักถามได้ทันที",
-        "- ฟรี! ชุดเอกสารแบบฝึกหัดและแนวข้อสอบเก็งพิเศษตลอดโครงการ",
-        "- วิเคราะห์จุดอ่อนรายบุคคล พร้อมแนะแนววางแผนสอบเข้า รร. ดัง"
-      ],
-      btnRegisterText: "สมัครเข้าเรียนฟรีทันที",
-      btnLineText: "สอบถามเพิ่มเติมทาง LINE",
-      lineUrl: "https://lin.ee/RXrzi1G",
-      miniBadgeText: "🎁 โครงการติวฟรี! คลิกดูสิทธิ์",
-      studentUploadEnabled: true,
-      studentUploadRequired: false,
-      studentUploadLabel: "แนบรูปภาพหลักฐาน เช่น ภาพแชร์โพสต์กิจกรรม / บัตรนักเรียน / ผลการเรียน",
-      studentUploadHelp: "รองรับไฟล์ภาพ JPG, PNG ขนาดไม่เกิน 10MB"
-    };
+    const defaultData = (window.DEFAULT_POPUP_CAMPAIGN)
+      ? JSON.parse(JSON.stringify(window.DEFAULT_POPUP_CAMPAIGN))
+      : {
+          enabled: true,
+          title: "โครงการติวฟรี ตะลุยโจทย์พิชิตเกรด 4 & สอบเข้า ม.1 / ม.4",
+          badge: "🔥 โครงการติวฟรี โควตาจำกัด 30 ที่นั่ง",
+          image: "https://wdazilhmlttnurpfewlk.supabase.co/storage/v1/object/public/uploads/img-1791819087634-e5ri.png",
+          description: "สัมผัสเทคนิคการสอนจริงโดยทีมติวเตอร์ The NEW GEN ฟรี! ไม่มีค่าใช้จ่าย พร้อมรับเอกสารสรุปสูตรเก็งข้อสอบจริง และแนวคิดลัดที่นำไปใช้สอบได้ทันที",
+          highlights: [
+            "- เรียนสด Onsite กลุ่มเล็ก ติวเตอร์ประกบดูแลใกล้ชิด ซักถามได้ทันที",
+            "- ฟรี! ชุดเอกสารแบบฝึกหัดและแนวข้อสอบเก็งพิเศษตลอดโครงการ",
+            "- วิเคราะห์จุดอ่อนรายบุคคล พร้อมแนะแนววางแผนสอบเข้า รร. ดัง"
+          ],
+          btnRegisterText: "สมัครเข้าเรียนฟรีทันที",
+          btnLineText: "สอบถามเพิ่มเติมทาง LINE",
+          lineUrl: "https://lin.ee/RXrzi1G",
+          miniBadgeText: "🎁 โครงการติวฟรี! คลิกดูสิทธิ์",
+          studentUploadEnabled: true,
+          studentUploadRequired: false,
+          studentUploadLabel: "แนบรูปภาพหลักฐาน เช่น ภาพแชร์โพสต์กิจกรรม / บัตรนักเรียน / ผลการเรียน",
+          studentUploadHelp: "รองรับไฟล์ภาพ JPG, PNG ขนาดไม่เกิน 10MB"
+        };
     window.NewGenDB.savePopupCampaign(defaultData);
     loadAdminPopupCampaign();
     showToast('รีเซ็ตข้อมูล Pop-up แคมเปญกลับสู่ค่าเริ่มต้นเรียบร้อยแล้ว');
@@ -4432,11 +4708,15 @@ function renderAdminQuickCoursePills(courses, enrollments, selectedCourseId = 'a
 
   const totalCount = enrollments.length;
   const bundleEnrollCount = enrollments.filter(e => e.isBundle || e.isFromBundle || e.bundleId).length;
-  const isSpecificCourse = selectedCourseId !== 'all' && selectedCourseId !== '__bundles__';
+  const campaignEnrollCount = enrollments.filter(e => e.isCampaign || e.courseId === 'campaign-free' || e.courseId === 'campaign' || (e.courseTitle || '').includes('ติวฟรี')).length;
+  const isSpecificCourse = selectedCourseId !== 'all' && selectedCourseId !== '__bundles__' && selectedCourseId !== '__campaign__';
 
   let html = `
     <button type="button" class="quick-course-pill ${selectedCourseId === 'all' ? 'active' : ''}" onclick="selectQuickCourseFilter('all')">
       📚 ทุกคอร์สเรียนทั้งหมด <span class="count">${totalCount}</span>
+    </button>
+    <button type="button" class="quick-course-pill ${selectedCourseId === '__campaign__' ? 'active' : ''}" onclick="selectQuickCourseFilter('__campaign__')" style="border-color: #ec4899; color: ${selectedCourseId === '__campaign__' ? '#ffffff' : '#be185d'}; ${selectedCourseId === '__campaign__' ? 'background: linear-gradient(135deg, #ec4899, #f43f5e); box-shadow: 0 2px 6px rgba(244,63,94,0.3);' : ''} font-weight: 700;">
+      🎁 โครงการติวฟรี <span class="count" style="background: ${selectedCourseId === '__campaign__' ? 'rgba(255,255,255,0.25)' : '#f43f5e'}; color: #fff;">${campaignEnrollCount}</span>
     </button>
     <button type="button" class="quick-course-pill ${selectedCourseId === '__bundles__' ? 'active' : ''}" onclick="selectQuickCourseFilter('__bundles__')" style="border-color: #f43f5e; color: ${selectedCourseId === '__bundles__' ? '#ffffff' : '#be123c'}; ${selectedCourseId === '__bundles__' ? 'background: #e11d48;' : ''} font-weight: 700;">
       📦 สมัครผ่านแพ็คเกจโปรโมชั่น <span class="count" style="background: ${selectedCourseId === '__bundles__' ? 'rgba(255,255,255,0.25)' : '#e11d48'}; color: #fff;">${bundleEnrollCount}</span>
@@ -4444,6 +4724,8 @@ function renderAdminQuickCoursePills(courses, enrollments, selectedCourseId = 'a
     <div class="quick-course-select-wrap">
       <select id="adminQuickCourseSelect" class="quick-course-select ${isSpecificCourse ? 'active' : ''}" onchange="selectQuickCourseFilter(this.value || 'all')" title="คลิกเพื่อเลือกดูนักเรียนเฉพาะคอร์สเรียน">
         <option value="">🎓 เลือกดูรายคอร์สเรียน (${courses.length} คอร์ส)...</option>
+        <option value="__campaign__" ${selectedCourseId === '__campaign__' ? 'selected' : ''}>🎁 โครงการติวฟรี / แคมเปญติวฟรี (${campaignEnrollCount} คน)</option>
+        <option value="__bundles__" ${selectedCourseId === '__bundles__' ? 'selected' : ''}>📦 แพ็คเกจโปรโมชั่น (${bundleEnrollCount} คน)</option>
         ${courses.map(c => {
           const count = enrollments.filter(e => e.courseId === c.id).length;
           const isSelected = selectedCourseId === c.id ? 'selected' : '';
@@ -4494,15 +4776,17 @@ function loadAdminEnrollments() {
   const filterSelect = document.getElementById('enrollFilterCourse');
   const currentVal = filterSelect ? (filterSelect.value || 'all') : 'all';
   const bundles = window.NewGenDB ? window.NewGenDB.getBundles() : [];
+  const campaignEnrollCount = enrollments.filter(e => e.isCampaign || e.courseId === 'campaign-free' || e.courseId === 'campaign' || (e.courseTitle || '').includes('ติวฟรี')).length;
   if (filterSelect) {
     let opts = '<option value="all">📚 ทุกคอร์สเรียน (แสดงทั้งหมด)</option>';
+    opts += `<option value="__campaign__">🎁 โครงการติวฟรี / แคมเปญติวฟรี (${campaignEnrollCount} คน)</option>`;
     opts += `<option value="__bundles__">📦 สมัครผ่านแพ็คเกจโปรโมชั่น (${enrollments.filter(e => e.isBundle || e.isFromBundle || e.bundleId).length} คน)</option>`;
     opts += courses.map(c => {
       const count = enrollments.filter(e => e.courseId === c.id).length;
       return `<option value="${c.id}">${escapeHtml(c.title)} (${count} คน)</option>`;
     }).join('');
     filterSelect.innerHTML = opts;
-    if (courses.some(c => c.id === currentVal) || currentVal === 'all' || currentVal === '__bundles__') {
+    if (courses.some(c => c.id === currentVal) || currentVal === 'all' || currentVal === '__bundles__' || currentVal === '__campaign__') {
       filterSelect.value = currentVal;
     }
   }
@@ -4558,6 +4842,8 @@ function filterAdminEnrollments(syncPills = true) {
     // 1. Filter course
     if (selectedCourseId === '__bundles__') {
       if (!item.isBundle && !item.isFromBundle && !item.bundleId) return false;
+    } else if (selectedCourseId === '__campaign__') {
+      if (!item.isCampaign && item.courseId !== 'campaign-free' && item.courseId !== 'campaign' && !(item.courseTitle || '').includes('ติวฟรี')) return false;
     } else if (selectedCourseId !== 'all' && item.courseId !== selectedCourseId) {
       return false;
     }
@@ -4581,6 +4867,8 @@ function filterAdminEnrollments(syncPills = true) {
         item.shippingAddress || '',
         item.notes || '',
         item.scheduleChoice || '',
+        item.subjectsChosen || '',
+        Array.isArray(item.selectedSubjects) ? item.selectedSubjects.join(' ') : '',
         courseTitle
       ].join(' ').toLowerCase();
 
@@ -4616,7 +4904,10 @@ function renderEnrollmentsTable(enrollments, courseMap = null) {
 
   tbody.innerHTML = enrollments.map((en, idx) => {
     const c = courseMap[en.courseId];
-    const courseTitle = c ? c.title : (en.courseTitle || en.courseId || 'ไม่ระบุคอร์ส');
+    const isCampaign = en.isCampaign || en.courseId === 'campaign-free' || en.courseId === 'campaign' || (en.courseTitle || '').includes('ติวฟรี');
+    const courseTitle = isCampaign
+      ? (en.courseTitle || '🎁 โครงการติวฟรี The NEW GEN')
+      : (c ? c.title : (en.courseTitle || en.courseId || 'ไม่ระบุคอร์ส'));
     const isOnline = (en.learningType || '').toLowerCase() === 'online';
 
     // Status Badge
@@ -4652,13 +4943,19 @@ function renderEnrollmentsTable(enrollments, courseMap = null) {
           <span style="display: inline-block; background: #f1f5f9; color: #0369a1; padding: 1px 7px; border-radius: 4px; font-size: 0.78rem; font-weight: 700; margin-top: 3px;">
             ชื่อเล่น: ${escapeHtml(en.nickname || '-')}
           </span>
-          ${en.isFromBundle || en.isBundle || en.bundleName ? `
+          ${isCampaign ? `
+            <div style="margin-top: 4px;">
+              <span class="badge" style="background: linear-gradient(135deg, #ec4899, #f43f5e); color: #ffffff; border: none; font-weight: 800; font-size: 0.74rem; padding: 2px 8px; border-radius: 99px; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 2px 5px rgba(244,63,94,0.25);">
+                <i class="fa-solid fa-gift"></i> โครงการติวฟรี
+              </span>
+            </div>
+          ` : (en.isFromBundle || en.isBundle || en.bundleName ? `
             <div style="margin-top: 4px;">
               <span class="badge" style="background: #fff1f2; color: #be123c; border: 1.2px solid #fecdd3; font-weight: 800; font-size: 0.74rem; padding: 2px 8px; border-radius: 99px; display: inline-flex; align-items: center; gap: 4px;">
                 <i class="fa-solid fa-boxes-stacked"></i> ${en.isBundle ? 'สมัครแพ็คเกจ' : 'มาจากแพ็คเกจ'}: ${escapeHtml(en.bundleName || 'โปรโมชั่น')}
               </span>
             </div>
-          ` : ''}
+          ` : '')}
           ${cleanNotes ? `<div style="font-size: 0.75rem; color: #d97706; margin-top: 2px;"><i class="fa-solid fa-note-sticky"></i> ${escapeHtml(cleanNotes)}</div>` : ''}
           ${Array.isArray(en.customAnswers) && en.customAnswers.length > 0 ? `
             <div style="margin-top: 5px; padding: 4px 8px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px; font-size: 0.75rem; color: #166534; line-height: 1.35;">
@@ -4679,11 +4976,20 @@ function renderEnrollmentsTable(enrollments, courseMap = null) {
           <small style="color: var(--text-muted);">${escapeHtml(en.school || '-')}</small>
         </td>
         <td>
-          <div style="font-weight: 700; color: #1e3a8a; font-size: 0.88rem; max-width: 240px; line-height: 1.3;">
+          <div style="font-weight: 700; color: ${isCampaign ? '#be185d' : '#1e3a8a'}; font-size: 0.88rem; max-width: 240px; line-height: 1.3;">
             ${escapeHtml(courseTitle)}
           </div>
+          ${en.subjectsChosen ? `
+            <div style="margin-top: 5px; display: flex; flex-wrap: wrap; gap: 4px;">
+              ${(Array.isArray(en.selectedSubjects) ? en.selectedSubjects : en.subjectsChosen.split(',')).map(s => `
+                <span style="font-size: 0.72rem; background: #fdf2f8; color: #be185d; border: 1px solid #fbcfe8; padding: 2px 6px; border-radius: 4px; font-weight: 700;">
+                  <i class="fa-solid fa-book-open"></i> ${escapeHtml(s.trim())}
+                </span>
+              `).join('')}
+            </div>
+          ` : ''}
           ${en.scheduleChoice ? `
-            <div style="font-size: 0.75rem; color: #0284c7; margin-top: 3px; font-weight: 600;">
+            <div style="font-size: 0.75rem; color: #0284c7; margin-top: 4px; font-weight: 600;">
               <i class="fa-regular fa-calendar-check"></i> ${escapeHtml(en.scheduleChoice.replace(/\|/g, ' • '))}
             </div>
           ` : ''}
@@ -4768,7 +5074,8 @@ function openAddEnrollmentModal(preselectedCourseId = '') {
   const bundles = window.NewGenDB ? window.NewGenDB.getBundles() : [];
   const modalCourseSelect = document.getElementById('enCourseId');
   if (modalCourseSelect) {
-    let opts = courses.map(c => `
+    let opts = '<option value="campaign-free">🎁 โครงการติวฟรี (แคมเปญพิเศษ)</option>';
+    opts += courses.map(c => `
       <option value="${c.id}">${escapeHtml(c.title)} (${escapeHtml(c.categoryLabel || c.category)})</option>
     `).join('');
     if (bundles.length > 0) {
@@ -4824,8 +5131,35 @@ function openEditEnrollmentModal(id) {
         </optgroup>
       `;
     }
-    modalCourseSelect.innerHTML = opts;
-    modalCourseSelect.value = en.courseId || (courses[0] ? courses[0].id : '');
+    modalCourseSelect.innerHTML = '<option value="campaign-free">🎁 โครงการติวฟรี (แคมเปญพิเศษ)</option>' + opts;
+    if (en.isCampaign || en.courseId === 'campaign-free' || en.courseId === 'campaign') {
+      modalCourseSelect.value = 'campaign-free';
+    } else {
+      modalCourseSelect.value = en.courseId || (courses[0] ? courses[0].id : '');
+    }
+  }
+
+  // Populate campaign info container
+  const wrapCampaign = document.getElementById('wrapEnCampaignInfo');
+  const subjectsListEl = document.getElementById('enCampaignSubjectsList');
+  const answersListEl = document.getElementById('enCampaignAnswersList');
+  if (wrapCampaign) {
+    if (en.isCampaign || en.courseId === 'campaign-free' || (en.selectedSubjects && en.selectedSubjects.length) || (en.customAnswers && en.customAnswers.length)) {
+      wrapCampaign.style.display = 'block';
+      if (subjectsListEl) {
+        const subs = Array.isArray(en.selectedSubjects) ? en.selectedSubjects.join(', ') : (en.subjectsChosen || '-');
+        subjectsListEl.innerHTML = `<strong>วิชาที่สมัคร:</strong> ${escapeHtml(subs)}`;
+      }
+      if (answersListEl) {
+        if (Array.isArray(en.customAnswers) && en.customAnswers.length > 0) {
+          answersListEl.innerHTML = en.customAnswers.map(a => `<div>• <b>${escapeHtml(a.label)}:</b> ${escapeHtml(a.value || '-')}</div>`).join('');
+        } else {
+          answersListEl.innerHTML = '';
+        }
+      }
+    } else {
+      wrapCampaign.style.display = 'none';
+    }
   }
 
   document.getElementById('enLearningType').value = en.learningType || 'onsite';
