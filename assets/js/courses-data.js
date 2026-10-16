@@ -405,7 +405,11 @@ const DEFAULT_POPUP_CAMPAIGN = {
   btnRegisterText: "สมัครเข้าเรียนฟรีทันที",
   btnLineText: "สอบถามเพิ่มเติมทาง LINE",
   lineUrl: "https://lin.ee/RXrzi1G",
-  miniBadgeText: "🎁 โครงการติวฟรี! คลิกดูสิทธิ์"
+  miniBadgeText: "🎁 โครงการติวฟรี! คลิกดูสิทธิ์",
+  studentUploadEnabled: true,
+  studentUploadRequired: false,
+  studentUploadLabel: "แนบรูปภาพหลักฐาน เช่น ภาพแชร์โพสต์กิจกรรม / บัตรนักเรียน / ผลการเรียน",
+  studentUploadHelp: "รองรับไฟล์ภาพ JPG, PNG ขนาดไม่เกิน 10MB"
 };
 
 // Default Enrollment Modal Text Configuration (สามารถปรับแก้ได้จากระบบหลังบ้าน)

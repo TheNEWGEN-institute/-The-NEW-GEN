@@ -2218,7 +2218,11 @@
     "btnRegisterText": "สมัครเข้าเรียนฟรีทันที",
     "btnLineText": "สอบถามเพิ่มเติมทาง LINE",
     "lineUrl": "https://lin.ee/RXrzi1G",
-    "miniBadgeText": "🎁 โครงการติวฟรี! คลิกดูสิทธิ์"
+    "miniBadgeText": "🎁 โครงการติวฟรี! คลิกดูสิทธิ์",
+    "studentUploadEnabled": true,
+    "studentUploadRequired": false,
+    "studentUploadLabel": "แนบรูปภาพหลักฐาน เช่น ภาพถ่ายการแชร์โพสต์กิจกรรม หรือ ใบแสดงผลการเรียนล่าสุด",
+    "studentUploadHelp": "รองรับไฟล์ภาพ JPG, PNG ขนาดไม่เกิน 10MB"
   },
   "bundles": [
     {

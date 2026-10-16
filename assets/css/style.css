@@ -9604,8 +9604,8 @@ button {
 }
 
 .campaign-popup-dialog {
-  max-width: 860px;
-  width: 100%;
+  max-width: 960px;
+  width: 95%;
   max-height: calc(100vh - 40px);
   display: flex;
   position: relative;
@@ -9669,11 +9669,11 @@ button {
   box-shadow: 0 4px 14px rgba(239, 68, 68, 0.4);
 }
 
-/* Grid Layout */
+/* Grid Layout: Desktop 2-Column Vertical Poster (Left) + Content (Right) */
 .campaign-popup-layout {
   display: grid;
-  grid-template-columns: 340px 1fr;
-  min-height: 460px;
+  grid-template-columns: minmax(360px, 440px) 1fr;
+  min-height: 480px;
   max-height: calc(100vh - 60px);
   overflow: hidden;
 }
@@ -9686,14 +9686,15 @@ button {
   display: none !important;
 }
 
-/* Media / Poster Column */
+/* Media / Poster Column: Vertical Poster Uncropped */
 .campaign-media-col {
   position: relative;
-  background: #060b14;
+  background: #070e1b;
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 18px 14px 18px 18px;
 }
 
 .campaign-image-wrapper {
@@ -9704,25 +9705,26 @@ button {
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  border-radius: 16px;
 }
 
 .campaign-popup-img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  object-position: center top;
-  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  max-height: calc(100vh - 90px);
+  object-fit: contain;
+  object-position: center;
+  border-radius: 14px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .campaign-image-wrapper:hover .campaign-popup-img {
-  transform: scale(1.05);
+  transform: scale(1.03);
 }
 
 .campaign-img-glow {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, rgba(13, 22, 41, 0.1) 0%, rgba(13, 22, 41, 0.8) 100%);
-  pointer-events: none;
+  display: none;
 }
 
 .campaign-image-badge {
@@ -10062,24 +10064,49 @@ button {
    Responsive Mobile Adjustments for Campaign Popup & Floating Pill
    =================================================================== */
 @media (max-width: 820px) {
+  .campaign-popup-dialog {
+    max-width: 480px;
+    width: 94%;
+    max-height: calc(100vh - 30px);
+    margin: auto;
+  }
+
   .campaign-popup-layout {
-    grid-template-columns: 1fr;
-    max-height: calc(100vh - 40px);
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100vh - 30px);
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .campaign-media-col {
-    height: 220px;
-    max-height: 220px;
+    width: 100%;
+    height: auto;
+    max-height: none;
     flex-shrink: 0;
+    padding: 16px 16px 0 16px;
+    background: transparent;
+  }
+
+  .campaign-image-wrapper {
+    width: 100%;
+    height: auto;
+    display: flex;
+    justify-content: center;
+    border-radius: 14px;
   }
 
   .campaign-popup-img {
-    object-position: center;
+    width: 100%;
+    height: auto;
+    max-height: 52vh;
+    object-fit: contain;
+    border-radius: 12px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
   }
 
   .campaign-details-col {
-    padding: 22px 20px 20px;
+    padding: 16px 18px 24px;
     max-height: none;
     overflow-y: visible;
   }
@@ -10119,7 +10146,14 @@ button {
   }
 
   .campaign-media-col {
-    height: 180px;
+    height: auto;
+    max-height: none;
+    padding: 12px 12px 0 12px;
+  }
+
+  .campaign-popup-img {
+    max-height: 48vh;
+    object-fit: contain;
   }
 
   .btn-campaign-register {
@@ -10128,6 +10162,124 @@ button {
   }
 
   .btn-campaign-line {
+    font-size: 0.92rem;
+    padding: 10px 16px;
+  }
+}
+
+/* ===================================================================
+   Enrollment Modal: Student Image Upload Zone Styling
+   =================================================================== */
+.enr-upload-zone {
+  border: 2px dashed #93c5fd;
+  background: #f8fafc;
+  border-radius: 14px;
+  padding: 18px 16px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.enr-upload-zone:hover {
+  background: #eff6ff;
+  border-color: #2563eb;
+  transform: translateY(-1px);
+}
+
+.enr-upload-prompt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.enr-upload-icon {
+  font-size: 2rem;
+  color: #2563eb;
+  background: #dbeafe;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease;
+}
+
+.enr-upload-zone:hover .enr-upload-icon {
+  transform: scale(1.08);
+}
+
+.enr-upload-title {
+  font-size: 0.94rem;
+  font-weight: 700;
+  color: var(--color-navy);
+}
+
+.enr-upload-help {
+  font-size: 0.78rem;
+  color: #64748b;
+}
+
+.enr-upload-preview-wrap {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: #ffffff;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1.5px solid #bfdbfe;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.08);
+}
+
+.enr-upload-preview-wrap img {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.enr-upload-preview-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+.enr-upload-filename {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--color-navy);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.btn-remove-upload {
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: #dc2626;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  padding: 3px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.btn-remove-upload:hover {
+  background: #dc2626;
+  color: #ffffff;
+}
     font-size: 0.88rem;
     padding: 11px 16px;
   }
