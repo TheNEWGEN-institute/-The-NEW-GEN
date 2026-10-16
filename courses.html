@@ -79,31 +79,52 @@
   <main class="page-content-wrapper">
     <div class="container">
       
-      <!-- Filter and Search Toolbar -->
-      <div class="courses-toolbar">
-        <div class="filter-pill-group" id="courseFilterGroup">
-          <button type="button" class="filter-pill active" data-filter="all">
-            <i class="fa-solid fa-layer-group"></i> ทั้งหมด (<span id="countAll">0</span>)
-          </button>
+      <!-- 2-Column Layout: Left Sidebar Filter + Right Courses Grid -->
+      <div class="courses-layout-container">
+
+        <!-- Left Sidebar: Level Filter -->
+        <aside class="courses-sidebar" id="coursesSidebar">
+          <div class="sidebar-filter-card">
+            <div class="sidebar-filter-header">
+              <h3 class="sidebar-filter-title">
+                <i class="fa-solid fa-filter" style="color: var(--color-red-brand);"></i> เลือกระดับชั้นเรียน
+              </h3>
+              <span class="sidebar-filter-badge" id="sidebarTotalBadge">16 รายการ</span>
+            </div>
+
+            <div class="filter-pill-group" id="courseFilterGroup">
+              <button type="button" class="filter-pill active" data-filter="all">
+                <span class="filter-pill-label"><i class="fa-solid fa-layer-group"></i> ทั้งหมด</span>
+                <span class="filter-pill-count" id="countAll">0</span>
+              </button>
+            </div>
+          </div>
+        </aside>
+
+        <!-- Right Main Column: Search + Grid -->
+        <div class="courses-main-column">
+          <!-- Search Toolbar -->
+          <div class="courses-search-bar-wrap">
+            <div class="search-box-wrap">
+              <i class="fa-solid fa-magnifying-glass search-icon"></i>
+              <input type="text" id="courseSearchInput" placeholder="ค้นหาชื่อคอร์ส หรือวิชาที่เปิดสอน..." class="search-input">
+            </div>
+          </div>
+
+          <!-- Courses Grid -->
+          <div class="all-courses-grid" id="allCoursesGrid">
+            <!-- Dynamically injected via JS -->
+          </div>
+
+          <!-- Empty State -->
+          <div class="courses-empty" id="coursesEmpty" style="display: none;">
+            <i class="fa-solid fa-circle-exclamation empty-icon"></i>
+            <h3>ไม่พบคอร์สเรียนที่ตรงกับคำค้นหา</h3>
+            <p>ลองค้นหาด้วยคำอื่น หรือกดดูทุกระดับชั้น</p>
+            <button type="button" class="btn-primary" onclick="resetFilters()">แสดงคอร์สทั้งหมด</button>
+          </div>
         </div>
 
-        <div class="search-box-wrap">
-          <i class="fa-solid fa-magnifying-glass search-icon"></i>
-          <input type="text" id="courseSearchInput" placeholder="ค้นหาชื่อคอร์ส หรือวิชาที่เปิดสอน..." class="search-input">
-        </div>
-      </div>
-
-      <!-- Courses Grid -->
-      <div class="all-courses-grid" id="allCoursesGrid">
-        <!-- Dynamically injected via JS -->
-      </div>
-
-      <!-- Empty State -->
-      <div class="courses-empty" id="coursesEmpty" style="display: none;">
-        <i class="fa-solid fa-circle-exclamation empty-icon"></i>
-        <h3>ไม่พบคอร์สเรียนที่ตรงกับคำค้นหา</h3>
-        <p>ลองค้นหาด้วยคำอื่น หรือกดดูทุกระดับชั้น</p>
-        <button type="button" class="btn-primary" onclick="resetFilters()">แสดงคอร์สทั้งหมด</button>
       </div>
 
       <!-- Feature Highlight Banner -->
@@ -329,16 +350,22 @@
       const allBundles = window.NewGenDB ? window.NewGenDB.getBundles() : (window.bundlesData || []);
       const activeBundles = allBundles.filter(b => b.active !== false && b.showInCourses !== false);
 
+      const totalCount = courses.length + activeBundles.length;
+      const totalBadge = document.getElementById('sidebarTotalBadge');
+      if (totalBadge) totalBadge.textContent = `${totalCount} รายการ`;
+
       let html = `
         <button type="button" class="filter-pill ${currentFilter === 'all' ? 'active' : ''}" data-filter="all">
-          <i class="fa-solid fa-layer-group"></i> ทั้งหมด (<span id="countAll">${courses.length + activeBundles.length}</span>)
+          <span class="filter-pill-label"><i class="fa-solid fa-layer-group"></i> ทั้งหมด</span>
+          <span class="filter-pill-count" id="countAll">${totalCount}</span>
         </button>
       `;
 
       if (activeBundles.length > 0) {
         html += `
-          <button type="button" class="filter-pill ${currentFilter === 'bundles' ? 'active' : ''}" data-filter="bundles" style="border-color: #f43f5e; color: #be123c; font-weight: 700;">
-            <i class="fa-solid fa-boxes-stacked" style="color: #e11d48;"></i> แพ็คเกจโปรโมชั่นสุดคุ้ม (<span id="count_bundles">${activeBundles.length}</span>)
+          <button type="button" class="filter-pill filter-pill-bundle ${currentFilter === 'bundles' ? 'active' : ''}" data-filter="bundles">
+            <span class="filter-pill-label"><i class="fa-solid fa-fire"></i> แพ็คเกจโปรโมชั่น</span>
+            <span class="filter-pill-count" id="count_bundles">${activeBundles.length}</span>
           </button>
         `;
       }
@@ -349,7 +376,8 @@
         const total = cCount + bCount;
         html += `
           <button type="button" class="filter-pill ${currentFilter === cat.id ? 'active' : ''}" data-filter="${cat.id}">
-            <i class="${cat.icon || 'fa-solid fa-graduation-cap'}"></i> ${cat.name} (<span id="count_${cat.id}">${total}</span>)
+            <span class="filter-pill-label"><i class="${cat.icon || 'fa-solid fa-graduation-cap'}"></i> ${cat.name}</span>
+            <span class="filter-pill-count" id="count_${cat.id}">${total}</span>
           </button>
         `;
       });
@@ -472,7 +500,6 @@
             <div class="bundle-card-body">
               <div>
                 <h3 class="bundle-title" onclick="event.stopPropagation(); openBundleDetailModal('${b.id}')" style="cursor: pointer;" title="คลิกเพื่อดูรายละเอียดแพ็คเกจ">${b.name}</h3>
-                <p class="bundle-desc">${b.description || 'รวมคอร์สเรียนวิชาหลักเข้มข้น สมัครเป็นแพ็คประหยัดยิ่งขึ้น พร้อมติวจัดเต็ม'}</p>
                 <div class="bundle-included-list">
                   <div class="bundle-included-heading"><i class="fa-solid fa-layer-group"></i> รวม ${childCourses.length} คอร์สเรียนในแพ็คนี้:</div>
                   ${childCourses.map(c => {
@@ -480,7 +507,7 @@
                     return `
                       <div class="bundle-included-item">
                         <i class="fa-solid ${isCFull ? 'fa-circle-xmark' : 'fa-circle-check'}" style="${isCFull ? 'color:#ef4444;' : ''}"></i>
-                        <span><strong>${c.title}</strong> ${isCFull ? '<span style="color:#ef4444; font-weight:800;">(ที่นั่งเต็ม)</span>' : `<small style="color:#64748b;">(ปกติ ${c.pricePromo || c.priceOriginal || ''}.-)</small>`}</span>
+                        <span><strong>${c.title}</strong> ${isCFull ? '<span style="color:#ef4444; font-weight:800;">(ที่นั่งเต็ม)</span>' : ''}</span>
                       </div>
                     `;
                   }).join('')}

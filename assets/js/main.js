@@ -376,7 +376,6 @@ function initCourseSlider() {
         <div class="bundle-card-body">
           <div>
             <h3 class="bundle-title" onclick="event.stopPropagation(); openBundleDetailModal('${b.id}')" style="cursor: pointer;" title="คลิกเพื่อดูรายละเอียดแพ็คเกจ">${escapeHtml(b.name)}</h3>
-            <p class="bundle-desc">${escapeHtml(b.description || 'รวมคอร์สเรียนวิชาหลักเข้มข้น สมัครเป็นแพ็คประหยัดยิ่งขึ้น พร้อมติวจัดเต็ม')}</p>
             <div class="bundle-included-list">
               <div class="bundle-included-heading"><i class="fa-solid fa-layer-group"></i> รวม ${childCourses.length} คอร์สเรียนในแพ็คนี้:</div>
               ${childCourses.map(c => {
@@ -384,7 +383,7 @@ function initCourseSlider() {
                 return `
                   <div class="bundle-included-item">
                     <i class="fa-solid ${isCFull ? 'fa-circle-xmark' : 'fa-circle-check'}" style="${isCFull ? 'color:#ef4444;' : ''}"></i>
-                    <span><strong>${escapeHtml(c.title)}</strong> ${isCFull ? '<span style="color:#ef4444; font-weight:800;">(ที่นั่งเต็ม)</span>' : `<small style="color:#64748b;">(ปกติ ${escapeHtml(c.pricePromo || c.priceOriginal || '')}.-)</small>`}</span>
+                    <span><strong>${escapeHtml(c.title)}</strong> ${isCFull ? '<span style="color:#ef4444; font-weight:800;">(ที่นั่งเต็ม)</span>' : ''}</span>
                   </div>
                 `;
               }).join('')}
