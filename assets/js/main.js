@@ -340,6 +340,7 @@ function initCourseSlider() {
       const childCourseIds = Array.isArray(b.courseIds) ? b.courseIds : [];
       const childCourses = allCourses.filter(c => childCourseIds.includes(c.id));
       const bundleStatus = window.isBundleFull ? window.isBundleFull(b, allCourses) : { isFull: false, fullCourses: [] };
+      const isCustom = b.imageMode === 'custom' && b.customImage;
       const count = Math.min(childCourses.length, 4);
       const visualHtml = isCustom
         ? `<img src="${b.customImage}" alt="${escapeHtml(b.name)}">`
