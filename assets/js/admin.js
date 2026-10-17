@@ -1562,7 +1562,7 @@ function renderAdminBundles(bundles) {
           </div>
 
           <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #f1f5f9; padding-top: 12px; margin-top: 6px;">
-            <button type="button" class="btn-xs-action" style="background: #eff6ff; color: #1d4ed8; padding: 5px 10px; border-radius: 6px; font-size: 0.78rem; font-weight: 700;" onclick="selectQuickCourseFilter('__bundles__')" title="ดูรายชื่อนักเรียนที่สมัครแพ็คนี้">
+            <button type="button" class="btn-xs-action" style="background: #eff6ff; color: #1d4ed8; padding: 5px 10px; border-radius: 6px; font-size: 0.78rem; font-weight: 700;" onclick="viewCourseEnrollments('__bundles__')" title="ดูรายชื่อนักเรียนที่สมัครแพ็คนี้">
               <i class="fa-solid fa-users"></i> ผู้สมัคร ${applicantCount} คน
             </button>
             <div style="display: flex; gap: 6px;">
@@ -4894,7 +4894,9 @@ function filterAdminEnrollments(syncPills = true) {
         item.notes || '',
         item.scheduleChoice || '',
         item.subjectsChosen || '',
-        Array.isArray(item.selectedSubjects) ? item.selectedSubjects.join(' ') : '',
+        Array.isArray(item.selectedSubjects)
+          ? item.selectedSubjects.map(s => typeof s === 'object' && s ? (s.name || s.title || '') : String(s || '')).join(' ')
+          : '',
         courseTitle
       ].join(' ').toLowerCase();
 
@@ -5005,11 +5007,14 @@ function renderEnrollmentsTable(enrollments, courseMap = null) {
           <div style="font-weight: 700; color: ${isCampaign ? '#be185d' : '#1e3a8a'}; font-size: 0.88rem; max-width: 240px; line-height: 1.3;">
             ${escapeHtml(courseTitle)}
           </div>
-          ${en.subjectsChosen ? `
+          ${(en.subjectsChosen || (Array.isArray(en.selectedSubjects) && en.selectedSubjects.length > 0)) ? `
             <div style="margin-top: 5px; display: flex; flex-wrap: wrap; gap: 4px;">
-              ${(Array.isArray(en.selectedSubjects) ? en.selectedSubjects : en.subjectsChosen.split(',')).map(s => `
+              ${(Array.isArray(en.selectedSubjects) && en.selectedSubjects.length > 0
+                ? en.selectedSubjects.map(s => typeof s === 'object' && s ? (s.name || s.title || '') : String(s || '').trim())
+                : (typeof en.subjectsChosen === 'string' ? en.subjectsChosen.split(',').map(s => s.trim()) : [])
+              ).filter(Boolean).map(subjText => `
                 <span style="font-size: 0.72rem; background: #fdf2f8; color: #be185d; border: 1px solid #fbcfe8; padding: 2px 6px; border-radius: 4px; font-weight: 700;">
-                  <i class="fa-solid fa-book-open"></i> ${escapeHtml(s.trim())}
+                  <i class="fa-solid fa-book-open"></i> ${escapeHtml(subjText)}
                 </span>
               `).join('')}
             </div>
@@ -5173,7 +5178,9 @@ function openEditEnrollmentModal(id) {
     if (en.isCampaign || en.courseId === 'campaign-free' || (en.selectedSubjects && en.selectedSubjects.length) || (en.customAnswers && en.customAnswers.length)) {
       wrapCampaign.style.display = 'block';
       if (subjectsListEl) {
-        const subs = Array.isArray(en.selectedSubjects) ? en.selectedSubjects.join(', ') : (en.subjectsChosen || '-');
+        const subs = Array.isArray(en.selectedSubjects) && en.selectedSubjects.length > 0
+          ? en.selectedSubjects.map(s => typeof s === 'object' && s ? (s.name || s.title || '') : String(s || '')).filter(Boolean).join(', ')
+          : (typeof en.subjectsChosen === 'string' ? en.subjectsChosen : '-');
         subjectsListEl.innerHTML = `<strong>วิชาที่สมัคร:</strong> ${escapeHtml(subs)}`;
       }
       if (answersListEl) {

@@ -10295,10 +10295,6 @@ button {
   background: #dc2626;
   color: #ffffff;
 }
-    font-size: 0.88rem;
-    padding: 11px 16px;
-  }
-}
 
 /* ===================================================================
    Course Bundles (แพ็คเกจคอร์สเรียนโปรโมชั่น)
@@ -10306,9 +10302,9 @@ button {
 .bundle-card {
   background: #ffffff;
   border-radius: var(--radius-lg);
-  border: 1.5px solid #fecdd3;
+  border: 2px solid #fecdd3;
   overflow: hidden;
-  box-shadow: 0 4px 20px rgba(225, 29, 72, 0.08);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25), 0 0 16px rgba(225, 29, 72, 0.12);
   display: flex;
   flex-direction: column;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
@@ -10316,8 +10312,8 @@ button {
 }
 
 .bundle-card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 16px 36px rgba(225, 29, 72, 0.16);
+  transform: translateY(-8px);
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.4), 0 0 24px rgba(225, 29, 72, 0.28);
   border-color: #f43f5e;
 }
 
@@ -10534,6 +10530,7 @@ button {
   flex-direction: column;
   flex: 1;
   justify-content: space-between;
+  background: #ffffff;
 }
 
 .bundle-title {
