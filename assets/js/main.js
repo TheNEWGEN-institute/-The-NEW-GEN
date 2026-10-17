@@ -409,7 +409,7 @@ function initCourseSlider() {
                   <i class="fa-solid fa-bolt"></i> สมัครแพ็คเกจนี้
                 </button>
               `}
-              <button type="button" class="btn-detail-link" onclick="event.stopPropagation(); openBundleDetailModal('${b.id}')" title="ดูรายละเอียดคอร์สในแพ็คเกจ" style="border: none; cursor: pointer;">
+              <button type="button" class="btn-detail-link" onclick="event.stopPropagation(); openBundleDetailModal('${b.id}')" title="ดูรายละเอียดคอร์สในแพ็คเกจ" style="cursor: pointer;">
                 รายละเอียด <i class="fa-solid fa-arrow-right"></i>
               </button>
             </div>
