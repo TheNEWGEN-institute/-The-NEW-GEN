@@ -33,6 +33,9 @@ function initAdminDashboard() {
   try { loadAdminEnrollmentConfig(); } catch (e) { console.warn('loadAdminEnrollmentConfig error:', e); }
   try { loadAdminPopupCampaign(); } catch (e) { console.warn('loadAdminPopupCampaign error:', e); }
   try { loadAdminBundles(); } catch (e) { console.warn('loadAdminBundles error:', e); }
+  try {
+    if (document.getElementById('tab-analytics')?.classList.contains('active')) loadAdminAnalytics();
+  } catch (e) { console.warn('loadAdminAnalytics error:', e); }
   try { mountEnrollmentConfigToCampaignTab(); } catch (e) {}
   try { checkSupabaseConnection(false); } catch (e) { console.warn('checkSupabaseConnection error:', e); }
 }
@@ -202,6 +205,8 @@ function switchAdminTab(tabKey, btn) {
     } else if (tabKey === 'enrollments') {
       loadAdminEnrollments();
       loadAdminEnrollmentConfig();
+    } else if (tabKey === 'analytics') {
+      loadAdminAnalytics();
     } else if (tabKey === 'home') {
       loadHomeSettings();
       loadAdminWhyUs();
@@ -4728,6 +4733,129 @@ function renderCourseCapacityCards(courses, enrollments) {
   }).join('');
 }
 
+/* ==========================================================================
+   CAMPAIGN ROSTER FILTER (ดูรายชื่อติวฟรีแยกชั้น & แยกวิชา)
+   ========================================================================== */
+let _campaignGradeFilter = 'all';
+let _campaignSubjectFilter = 'all';
+
+function isCampaignEnrollment(en) {
+  return Boolean(en.isCampaign || en.courseId === 'campaign-free' || en.courseId === 'campaign' || (en.courseTitle || '').includes('ติวฟรี'));
+}
+
+// แยกชื่อวิชาติวฟรี เช่น "เคมี ม.4" → { subject: "เคมี", grade: "ม.4" }
+function parseCampaignSubject(s) {
+  const name = (typeof s === 'object' && s ? (s.name || s.title || '') : String(s || '')).trim();
+  const gradeRe = /(ม|ป)\.\s*(\d)/;
+  const gradeSource = (typeof s === 'object' && s && s.grade ? String(s.grade) : '') || name;
+  const m = gradeSource.match(gradeRe);
+  const grade = m ? `${m[1]}.${m[2]}` : (typeof s === 'object' && s && s.grade ? String(s.grade).trim() : '');
+  const subject = name.replace(/(ม|ป)\.\s*\d/g, '').replace(/[()[\]]/g, ' ').replace(/\s+/g, ' ').trim() || name;
+  return { name, subject, grade };
+}
+
+function getEnrollmentCampaignSubjects(en) {
+  const raw = Array.isArray(en.selectedSubjects) && en.selectedSubjects.length > 0
+    ? en.selectedSubjects
+    : (typeof en.subjectsChosen === 'string' && en.subjectsChosen.trim() ? en.subjectsChosen.split(',') : []);
+  return raw.map(parseCampaignSubject).filter(s => s.name);
+}
+
+function campaignSubjectMatches(s, grade, subject) {
+  return (grade === 'all' || s.grade === grade) && (subject === 'all' || s.subject === subject);
+}
+
+function isCampaignSubjectFilterActive() {
+  return _campaignGradeFilter !== 'all' || _campaignSubjectFilter !== 'all';
+}
+
+// เรียงชั้น ป.1 → ป.6 → ม.1 → ม.6
+function compareGradeLabels(a, b) {
+  const rank = g => {
+    const m = String(g).match(/(ป|ม)\.?\s*(\d)/);
+    return m ? (m[1] === 'ป' ? 0 : 10) + Number(m[2]) : 100;
+  };
+  return rank(a) - rank(b) || String(a).localeCompare(String(b), 'th');
+}
+
+function renderCampaignRosterFilter(allEnrollments, visible) {
+  const box = document.getElementById('campaignRosterFilter');
+  if (!box) return;
+  if (!visible) {
+    box.style.display = 'none';
+    box.innerHTML = '';
+    return;
+  }
+
+  const campEnrollments = allEnrollments.filter(isCampaignEnrollment);
+  const subjectsPerEn = campEnrollments.map(getEnrollmentCampaignSubjects);
+  const camp = window.NewGenDB && typeof window.NewGenDB.getPopupCampaign === 'function' ? window.NewGenDB.getPopupCampaign() : null;
+  const configSubjects = (camp && Array.isArray(camp.subjects) ? camp.subjects : []).map(parseCampaignSubject);
+  const allSubjects = configSubjects.concat(...subjectsPerEn);
+
+  const grades = [...new Set(allSubjects.map(s => s.grade).filter(Boolean))].sort(compareGradeLabels);
+  const subjects = [...new Set(allSubjects.map(s => s.subject).filter(Boolean))];
+
+  // ตัวเลือกที่เคยเลือกไว้ถูกลบออกจากโครงการแล้ว → กลับเป็นทั้งหมด
+  if (_campaignGradeFilter !== 'all' && !grades.includes(_campaignGradeFilter)) _campaignGradeFilter = 'all';
+  if (_campaignSubjectFilter !== 'all' && !subjects.includes(_campaignSubjectFilter)) _campaignSubjectFilter = 'all';
+
+  const countWhere = (g, s) => (g === 'all' && s === 'all')
+    ? campEnrollments.length
+    : subjectsPerEn.filter(list => list.some(x => campaignSubjectMatches(x, g, s))).length;
+
+  const pill = (type, value, label, count) => {
+    const active = (type === 'grade' ? _campaignGradeFilter : _campaignSubjectFilter) === value;
+    return `
+      <button type="button" class="campaign-filter-pill ${active ? 'active' : ''}" data-type="${type}" data-value="${escapeHtml(value)}" onclick="setCampaignRosterFilter(this.dataset.type, this.dataset.value)">
+        ${escapeHtml(label)} <span class="count">${count}</span>
+      </button>
+    `;
+  };
+
+  const gradePills = [pill('grade', 'all', 'ทุกชั้น', countWhere('all', _campaignSubjectFilter))]
+    .concat(grades.map(g => pill('grade', g, g, countWhere(g, _campaignSubjectFilter)))).join('');
+  const subjectPills = [pill('subject', 'all', 'ทุกวิชา', countWhere(_campaignGradeFilter, 'all'))]
+    .concat(subjects.map(s => pill('subject', s, s, countWhere(_campaignGradeFilter, s)))).join('');
+
+  const scopeParts = [];
+  if (_campaignGradeFilter !== 'all') scopeParts.push(_campaignGradeFilter);
+  if (_campaignSubjectFilter !== 'all') scopeParts.push(_campaignSubjectFilter);
+
+  box.style.display = 'block';
+  box.innerHTML = `
+    <div class="campaign-filter-row">
+      <span class="campaign-filter-label"><i class="fa-solid fa-layer-group"></i> แยกชั้น:</span>
+      <div class="campaign-filter-pills">${gradePills}</div>
+    </div>
+    <div class="campaign-filter-row">
+      <span class="campaign-filter-label"><i class="fa-solid fa-book-open"></i> แยกวิชา:</span>
+      <div class="campaign-filter-pills">${subjectPills}</div>
+    </div>
+    <div class="campaign-filter-caption">
+      ${scopeParts.length
+        ? `กำลังแสดงนักเรียนที่สมัครวิชา <b>${escapeHtml(scopeParts.join(' • '))}</b> จำนวน <b>${countWhere(_campaignGradeFilter, _campaignSubjectFilter)}</b> คน
+           <button type="button" class="campaign-filter-clear" onclick="clearCampaignRosterFilter()">ล้าง</button>`
+        : `นักเรียน 1 คนอาจสมัครหลายวิชา จึงจะแสดงอยู่ในทุกวิชาที่สมัคร`}
+    </div>
+  `;
+}
+
+function setCampaignRosterFilter(type, value) {
+  if (type === 'grade') _campaignGradeFilter = value || 'all';
+  else _campaignSubjectFilter = value || 'all';
+  filterAdminEnrollments();
+}
+
+function clearCampaignRosterFilter() {
+  _campaignGradeFilter = 'all';
+  _campaignSubjectFilter = 'all';
+  filterAdminEnrollments();
+}
+
+window.setCampaignRosterFilter = setCampaignRosterFilter;
+window.clearCampaignRosterFilter = clearCampaignRosterFilter;
+
 function renderAdminQuickCoursePills(courses, enrollments, selectedCourseId = 'all') {
   const container = document.getElementById('adminQuickCoursePills');
   if (!container) return;
@@ -4864,12 +4992,29 @@ function filterAdminEnrollments(syncPills = true) {
     renderAdminQuickCoursePills(courses, allEnrollments, selectedCourseId);
   }
 
+  const isCampaignView = selectedCourseId === '__campaign__';
+  if (!isCampaignView) {
+    _campaignGradeFilter = 'all';
+    _campaignSubjectFilter = 'all';
+  }
+  renderCampaignRosterFilter(allEnrollments, isCampaignView);
+
+  // Campaign view: subjects-only column, no shipping address column
+  const thCourse = document.getElementById('thEnrollCourse');
+  const thAddress = document.getElementById('thEnrollAddress');
+  if (thCourse) thCourse.textContent = isCampaignView ? 'วิชาที่สมัคร' : 'คอร์สที่สมัคร & รอบเรียน';
+  if (thAddress) thAddress.style.display = isCampaignView ? 'none' : '';
+
   const filtered = allEnrollments.filter(item => {
     // 1. Filter course
     if (selectedCourseId === '__bundles__') {
       if (!item.isBundle && !item.isFromBundle && !item.bundleId) return false;
-    } else if (selectedCourseId === '__campaign__') {
-      if (!item.isCampaign && item.courseId !== 'campaign-free' && item.courseId !== 'campaign' && !(item.courseTitle || '').includes('ติวฟรี')) return false;
+    } else if (isCampaignView) {
+      if (!isCampaignEnrollment(item)) return false;
+      if (isCampaignSubjectFilterActive() &&
+          !getEnrollmentCampaignSubjects(item).some(s => campaignSubjectMatches(s, _campaignGradeFilter, _campaignSubjectFilter))) {
+        return false;
+      }
     } else if (selectedCourseId !== 'all' && item.courseId !== selectedCourseId) {
       return false;
     }
@@ -4908,10 +5053,32 @@ function filterAdminEnrollments(syncPills = true) {
     return true;
   });
 
-  renderEnrollmentsTable(filtered, courseMap);
+  renderEnrollmentsTable(filtered, courseMap, { campaignView: isCampaignView });
 }
 
-function renderEnrollmentsTable(enrollments, courseMap = null) {
+// ติวฟรี: แสดงเฉพาะวิชาที่สมัคร (ไม่แสดงชื่อโครงการและวันเวลา) — วิชาที่ตรงกับตัวกรองชั้น/วิชาจะถูกเน้น
+function renderCampaignSubjectCell(en, fallbackTitle) {
+  const subjects = getEnrollmentCampaignSubjects(en);
+  if (subjects.length === 0) {
+    return `<span style="font-size: 0.8rem; color: var(--text-muted);">${escapeHtml(fallbackTitle || 'ไม่ระบุวิชา')}</span>`;
+  }
+  const filterActive = isCampaignSubjectFilterActive();
+  return `
+    <div style="display: flex; flex-wrap: wrap; gap: 4px; max-width: 260px;">
+      ${subjects.map(s => {
+        const dim = filterActive && !campaignSubjectMatches(s, _campaignGradeFilter, _campaignSubjectFilter);
+        return `
+          <span style="font-size: 0.78rem; background: #fdf2f8; color: #be185d; border: 1px solid #fbcfe8; padding: 3px 8px; border-radius: 4px; font-weight: 700; ${dim ? 'opacity: 0.4;' : ''}">
+            <i class="fa-solid fa-book-open"></i> ${escapeHtml(s.name)}
+          </span>
+        `;
+      }).join('')}
+    </div>
+  `;
+}
+
+function renderEnrollmentsTable(enrollments, courseMap = null, options = {}) {
+  const campaignView = Boolean(options.campaignView);
   const tbody = document.getElementById('adminEnrollmentsTableBody');
   const emptyState = document.getElementById('enrollmentsEmptyState');
   if (!tbody) return;
@@ -4932,7 +5099,7 @@ function renderEnrollmentsTable(enrollments, courseMap = null) {
 
   tbody.innerHTML = enrollments.map((en, idx) => {
     const c = courseMap[en.courseId];
-    const isCampaign = en.isCampaign || en.courseId === 'campaign-free' || en.courseId === 'campaign' || (en.courseTitle || '').includes('ติวฟรี');
+    const isCampaign = isCampaignEnrollment(en);
     const courseTitle = isCampaign
       ? (en.courseTitle || '🎁 โครงการติวฟรี The NEW GEN')
       : (c ? c.title : (en.courseTitle || en.courseId || 'ไม่ระบุคอร์ส'));
@@ -5004,7 +5171,8 @@ function renderEnrollmentsTable(enrollments, courseMap = null) {
           <small style="color: var(--text-muted);">${escapeHtml(en.school || '-')}</small>
         </td>
         <td>
-          <div style="font-weight: 700; color: ${isCampaign ? '#be185d' : '#1e3a8a'}; font-size: 0.88rem; max-width: 240px; line-height: 1.3;">
+          ${isCampaign ? renderCampaignSubjectCell(en, courseTitle) : `
+          <div style="font-weight: 700; color: #1e3a8a; font-size: 0.88rem; max-width: 240px; line-height: 1.3;">
             ${escapeHtml(courseTitle)}
           </div>
           ${(en.subjectsChosen || (Array.isArray(en.selectedSubjects) && en.selectedSubjects.length > 0)) ? `
@@ -5024,6 +5192,7 @@ function renderEnrollmentsTable(enrollments, courseMap = null) {
               <i class="fa-regular fa-calendar-check"></i> ${escapeHtml(en.scheduleChoice.replace(/\|/g, ' • '))}
             </div>
           ` : ''}
+          `}
         </td>
         <td style="text-align: center;">
           ${isOnline
@@ -5046,11 +5215,13 @@ function renderEnrollmentsTable(enrollments, courseMap = null) {
             <i class="fa-brands fa-line" style="font-size: 0.95rem;"></i> ${escapeHtml(en.lineId || '-')}
           </span>
         </td>
+        ${campaignView ? '' : `
         <td style="max-width: 220px;">
           <div style="font-size: 0.82rem; color: #475569; line-height: 1.35; max-height: 60px; overflow-y: auto;" title="${escapeHtml(en.shippingAddress || '')}">
             <i class="fa-solid fa-location-dot" style="color: #ea580c; font-size: 0.75rem;"></i> ${escapeHtml(en.shippingAddress || 'ไม่ระบุ')}
           </div>
         </td>
+        `}
         <td style="text-align: right; white-space: nowrap;">
           <button type="button" class="btn-action-edit" onclick="openEditEnrollmentModal('${en.id}')" title="แก้ไขข้อมูล">
             <i class="fa-solid fa-pen-to-square"></i>
@@ -5133,12 +5304,37 @@ function openAddEnrollmentModal(preselectedCourseId = '') {
   document.getElementById('enStatus').value = 'confirmed';
   document.getElementById('enShippingAddress').value = '';
   document.getElementById('enNotes').value = '';
+  document.getElementById('enPaidAmount').value = '';
 
   const wrapImage = document.getElementById('wrapEnStudentImage');
   if (wrapImage) wrapImage.style.display = 'none';
 
+  updateEnrollmentModalForCourse();
   document.getElementById('modalEnrollment').classList.add('active');
 }
+
+// ปรับฟอร์มตามคอร์สที่เลือก: ติวฟรีไม่มีที่อยู่/ยอดชำระ, คอร์สปกติแสดงราคาอัตโนมัติเป็นคำใบ้
+function updateEnrollmentModalForCourse() {
+  const courseId = document.getElementById('enCourseId')?.value || '';
+  const isCampaign = courseId === 'campaign-free' || courseId === 'campaign';
+  const wrapAddress = document.getElementById('wrapEnShippingAddress');
+  const wrapPaid = document.getElementById('wrapEnPaidAmount');
+  const paidInput = document.getElementById('enPaidAmount');
+  if (wrapAddress) wrapAddress.style.display = isCampaign ? 'none' : '';
+  if (wrapPaid) wrapPaid.style.display = isCampaign ? 'none' : '';
+  if (paidInput && !isCampaign) {
+    const editId = document.getElementById('enrollmentEditId')?.value || '';
+    const existing = editId ? (window.NewGenDB ? window.NewGenDB.getEnrollments() : []).find(x => x.id === editId) : null;
+    const autoPrice = existing && existing.courseId === courseId && typeof existing.price === 'number'
+      ? existing.price
+      : getCurrentListPrice(courseId);
+    paidInput.placeholder = autoPrice
+      ? `เว้นว่าง = ใช้ราคาคอร์ส ${autoPrice.toLocaleString('th-TH')} บาท`
+      : 'เว้นว่าง = ใช้ราคาคอร์สอัตโนมัติ';
+  }
+}
+
+window.updateEnrollmentModalForCourse = updateEnrollmentModalForCourse;
 
 function openEditEnrollmentModal(id) {
   const enrollments = window.NewGenDB ? window.NewGenDB.getEnrollments() : [];
@@ -5206,6 +5402,8 @@ function openEditEnrollmentModal(id) {
   document.getElementById('enStatus').value = en.status || 'confirmed';
   document.getElementById('enShippingAddress').value = en.shippingAddress || '';
   document.getElementById('enNotes').value = en.notes || '';
+  document.getElementById('enPaidAmount').value = parsePaidAmount(en.paidAmount) ?? '';
+  updateEnrollmentModalForCourse();
 
   const wrapImage = document.getElementById('wrapEnStudentImage');
   const imgPreview = document.getElementById('enStudentImagePreview');
@@ -5286,10 +5484,15 @@ async function handleSaveEnrollment(e) {
   const status = document.getElementById('enStatus').value;
   const shippingAddress = document.getElementById('enShippingAddress').value.trim();
   const notes = document.getElementById('enNotes').value.trim();
+  const isCampaignCourse = courseId === 'campaign-free' || courseId === 'campaign';
+  const paidAmount = isCampaignCourse ? null : parsePaidAmount(document.getElementById('enPaidAmount').value);
 
   const bundles = window.NewGenDB ? window.NewGenDB.getBundles() : [];
   const foundBundle = bundles.find(b => b.id === courseId);
   const existingEn = id ? (window.NewGenDB.getEnrollments().find(x => x.id === id)) : null;
+  // เก็บราคา ณ วันที่สมัครไว้ ถ้าเปลี่ยนคอร์สค่อยใช้ราคาปัจจุบันของคอร์สใหม่
+  const keepPrice = existingEn && existingEn.courseId === courseId && typeof existingEn.price === 'number';
+  const price = isCampaignCourse ? 0 : (keepPrice ? existingEn.price : getCurrentListPrice(courseId));
 
   const item = {
     id: id || `enroll-${Date.now()}`,
@@ -5303,8 +5506,10 @@ async function handleSaveEnrollment(e) {
     studentPhone,
     lineId,
     status,
-    shippingAddress,
+    shippingAddress: isCampaignCourse ? '' : shippingAddress,
     notes,
+    price,
+    paidAmount,
     studentImageUrl: existingEn ? (existingEn.studentImageUrl || null) : null,
     customAnswers: existingEn ? (existingEn.customAnswers || []) : [],
     isBundle: Boolean(foundBundle),
@@ -5637,5 +5842,618 @@ window.openExportEnrollmentsModal = openExportEnrollmentsModal;
 window.toggleExportCourseSelect = toggleExportCourseSelect;
 window.confirmExportEnrollments = confirmExportEnrollments;
 window.exportEnrollmentsCsv = exportEnrollmentsCsv;
+
+/* ==========================================================================
+   ANALYTICS TAB (สรุปสถิติการสมัคร & รายได้)
+   ========================================================================== */
+let _analyticsRange = 'all';
+const _anaCharts = {};
+
+// Chart palette (validated categorical slots + ordinal step; see dataviz reference palette)
+const ANA_COLORS = {
+  series1: '#2a78d6',      // คอร์สเรียน / ยืนยันแล้ว / Onsite
+  series1Light: '#86b6ef', // รายได้คาดการณ์ (ขั้นสว่างของสีเดียวกัน)
+  series2: '#eb6834',      // ติวฟรี / Online
+  surface: '#ffffff',
+  textSecondary: '#52514e',
+  textMuted: '#898781',
+  grid: '#e1e0d9',
+  good: '#0ca30c',
+  warning: '#fab219',
+  critical: '#d03b3b'
+};
+
+function parsePaidAmount(val) {
+  if (val === null || val === undefined || String(val).trim() === '') return null;
+  const n = Number(String(val).replace(/[^0-9.]/g, ''));
+  return Number.isFinite(n) ? n : null;
+}
+
+function parsePriceText(val) {
+  return parseInt(String(val || '').replace(/[^0-9]/g, ''), 10) || 0;
+}
+
+// ราคาปัจจุบันของคอร์สหรือแพ็คเกจ (ใช้กับใบสมัครเก่าที่ยังไม่ได้บันทึกราคาไว้)
+function getCurrentListPrice(id) {
+  if (!id || id === 'campaign-free' || id === 'campaign') return 0;
+  const course = (window.NewGenDB ? window.NewGenDB.getCourses() : []).find(c => c.id === id);
+  if (course) return parsePriceText(course.pricePromo);
+  const bundle = (window.NewGenDB ? window.NewGenDB.getBundles() : []).find(b => b.id === id);
+  return bundle ? parsePriceText(bundle.pricePromo) : 0;
+}
+
+// ยอดเงินของใบสมัคร: ยอดชำระจริง > ราคา ณ วันที่สมัคร > ราคาปัจจุบัน (แพ็คเกจนับที่ใบหลักครั้งเดียว)
+function getEnrollmentAmount(en) {
+  if (isCampaignEnrollment(en) || en.isFromBundle) return 0;
+  const paid = parsePaidAmount(en.paidAmount);
+  if (paid !== null) return paid;
+  if (typeof en.price === 'number') return en.price;
+  return getCurrentListPrice(en.isBundle ? (en.bundleId || en.courseId) : en.courseId);
+}
+
+function getEnrollmentStatusGroup(en) {
+  if (en.status === 'confirmed' || en.status === 'materials_sent') return 'confirmed';
+  if (en.status === 'cancelled') return 'cancelled';
+  return 'pending';
+}
+
+function normalizeGradeLabel(grade) {
+  const m = String(grade || '').match(/(ป|ม)\.?\s*(\d)/);
+  return m ? `${m[1]}.${m[2]}` : 'อื่น ๆ';
+}
+
+function normalizeSchoolName(school) {
+  return String(school || '').trim().replace(/^(โรงเรียน|ร\.ร\.|รร\.?)\s*/, '').replace(/\s+/g, ' ').trim();
+}
+
+function formatBaht(n) {
+  return `฿${Math.round(n || 0).toLocaleString('th-TH')}`;
+}
+
+function setAnalyticsRange(range) {
+  _analyticsRange = range;
+  document.querySelectorAll('#anaRangeButtons .ana-range-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.range === range);
+  });
+  loadAdminAnalytics();
+}
+
+function getAnalyticsWindow(range, enrollments) {
+  const now = new Date();
+  if (range === 'all') {
+    const times = enrollments.map(e => new Date(e.createdAt).getTime()).filter(t => Number.isFinite(t));
+    const start = times.length ? new Date(Math.min(...times)) : now;
+    return { start, end: now, prevStart: null, prevEnd: null };
+  }
+  const days = Number(range);
+  const start = new Date(now.getTime() - days * 86400000);
+  return { start, end: now, prevStart: new Date(start.getTime() - days * 86400000), prevEnd: start };
+}
+
+function inWindow(en, start, end) {
+  const t = new Date(en.createdAt).getTime();
+  if (!Number.isFinite(t)) return start === null; // ไม่มีวันที่ → นับเฉพาะมุมมอง "ทั้งหมด"
+  return (!start || t >= start.getTime()) && (!end || t <= end.getTime());
+}
+
+function loadAdminAnalytics() {
+  const pane = document.getElementById('tab-analytics');
+  if (!pane) return;
+
+  const allEnrollments = window.NewGenDB ? window.NewGenDB.getEnrollments() : [];
+  const courses = window.NewGenDB ? window.NewGenDB.getCourses() : [];
+  const bundles = window.NewGenDB ? window.NewGenDB.getBundles() : [];
+
+  const win = getAnalyticsWindow(_analyticsRange, allEnrollments);
+  const scoped = allEnrollments.filter(en => inWindow(en, _analyticsRange === 'all' ? null : win.start, win.end));
+  const previous = win.prevStart ? allEnrollments.filter(en => inWindow(en, win.prevStart, win.prevEnd)) : null;
+
+  const caption = document.getElementById('anaRangeCaption');
+  if (caption) {
+    const fmt = d => d.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' });
+    caption.textContent = `${fmt(win.start)} – ${fmt(win.end)}`;
+  }
+
+  renderAnalyticsKpis(scoped, previous);
+  renderAnalyticsTop3(scoped, courses);
+  renderAnalyticsTrend(scoped, win);
+  renderAnalyticsRevenue(scoped, courses, bundles);
+  renderAnalyticsCourseCounts(scoped, courses);
+  renderAnalyticsSplits(scoped);
+  renderAnalyticsGrades(scoped);
+  renderAnalyticsSchools(scoped);
+  renderAnalyticsFillRate(allEnrollments, courses);
+}
+
+// ใบสมัคร 1 ใบต่อการสมัคร 1 ครั้ง (ไม่นับใบย่อยที่ระบบแตกออกจากแพ็คเกจ)
+function getApplications(list) {
+  return list.filter(en => !en.isFromBundle);
+}
+
+function renderAnalyticsKpis(scoped, previous) {
+  const grid = document.getElementById('anaKpiGrid');
+  if (!grid) return;
+
+  const summarize = list => {
+    const apps = getApplications(list);
+    const courseApps = apps.filter(en => !isCampaignEnrollment(en));
+    const active = courseApps.filter(en => getEnrollmentStatusGroup(en) !== 'cancelled');
+    return {
+      courseCount: active.length,
+      campaignCount: apps.filter(en => isCampaignEnrollment(en) && getEnrollmentStatusGroup(en) !== 'cancelled').length,
+      revenueConfirmed: courseApps.filter(en => getEnrollmentStatusGroup(en) === 'confirmed').reduce((s, en) => s + getEnrollmentAmount(en), 0),
+      revenuePending: courseApps.filter(en => getEnrollmentStatusGroup(en) === 'pending').reduce((s, en) => s + getEnrollmentAmount(en), 0),
+      confirmedCount: courseApps.filter(en => getEnrollmentStatusGroup(en) === 'confirmed').length,
+      totalCourseApps: courseApps.length,
+      cancelledCount: apps.filter(en => getEnrollmentStatusGroup(en) === 'cancelled').length
+    };
+  };
+
+  const cur = summarize(scoped);
+  const prev = previous ? summarize(previous) : null;
+
+  const delta = (now, before) => {
+    if (!prev) return '';
+    if (before === 0) return now > 0 ? '<span class="ana-delta up"><i class="fa-solid fa-arrow-up"></i> ใหม่</span>' : '<span class="ana-delta flat">– ไม่เปลี่ยนแปลง</span>';
+    const pct = Math.round(((now - before) / before) * 100);
+    if (pct === 0) return '<span class="ana-delta flat">– ไม่เปลี่ยนแปลง</span>';
+    return pct > 0
+      ? `<span class="ana-delta up"><i class="fa-solid fa-arrow-up"></i> ${pct}% จากช่วงก่อน</span>`
+      : `<span class="ana-delta down"><i class="fa-solid fa-arrow-down"></i> ${Math.abs(pct)}% จากช่วงก่อน</span>`;
+  };
+
+  const confirmRate = cur.totalCourseApps ? Math.round((cur.confirmedCount / cur.totalCourseApps) * 100) : 0;
+
+  const tiles = [
+    { icon: 'fa-user-graduate', label: 'ใบสมัครคอร์สเรียน', value: cur.courseCount.toLocaleString('th-TH'), sub: delta(cur.courseCount, prev?.courseCount) || 'ไม่รวมติวฟรีและที่ยกเลิก' },
+    { icon: 'fa-gift', label: 'ผู้สมัครโครงการติวฟรี', value: cur.campaignCount.toLocaleString('th-TH'), sub: delta(cur.campaignCount, prev?.campaignCount) || 'ไม่รวมที่ยกเลิก' },
+    { icon: 'fa-sack-dollar', label: 'รายได้ยืนยันแล้ว', value: formatBaht(cur.revenueConfirmed), sub: delta(cur.revenueConfirmed, prev?.revenueConfirmed) || 'ยืนยันที่นั่ง + ส่งเอกสารแล้ว' },
+    { icon: 'fa-hourglass-half', label: 'รายได้คาดการณ์', value: formatBaht(cur.revenuePending), sub: 'จากใบสมัครที่รอตรวจสอบ' },
+    { icon: 'fa-circle-check', label: 'อัตรายืนยันที่นั่ง', value: `${confirmRate}%`, sub: `ยืนยันแล้ว ${cur.confirmedCount} จาก ${cur.totalCourseApps} ใบ` },
+    { icon: 'fa-ban', label: 'ยกเลิกการสมัคร', value: cur.cancelledCount.toLocaleString('th-TH'), sub: 'รวมทุกคอร์สและติวฟรี' }
+  ];
+
+  grid.innerHTML = tiles.map(t => `
+    <div class="ana-kpi">
+      <div class="ana-kpi-label"><i class="fa-solid ${t.icon}"></i> ${t.label}</div>
+      <div class="ana-kpi-value">${t.value}</div>
+      <div class="ana-kpi-sub">${t.sub}</div>
+    </div>
+  `).join('');
+}
+
+// นับจำนวนผู้สมัครต่อคอร์ส (รวมใบย่อยจากแพ็คเกจ ไม่รวมใบหลักแพ็คเกจ/ติวฟรี/ยกเลิก)
+function countByCourse(list, courses) {
+  const courseIds = new Set(courses.map(c => c.id));
+  const counts = {};
+  list.forEach(en => {
+    if (en.isBundle || isCampaignEnrollment(en) || getEnrollmentStatusGroup(en) === 'cancelled') return;
+    if (!courseIds.has(en.courseId)) return;
+    if (!counts[en.courseId]) counts[en.courseId] = { total: 0, fromBundle: 0 };
+    counts[en.courseId].total++;
+    if (en.isFromBundle) counts[en.courseId].fromBundle++;
+  });
+  return counts;
+}
+
+function renderAnalyticsTop3(scoped, courses) {
+  const box = document.getElementById('anaTop3');
+  if (!box) return;
+  const counts = countByCourse(scoped, courses);
+  const ranked = courses
+    .filter(c => counts[c.id])
+    .map(c => ({ course: c, ...counts[c.id] }))
+    .sort((a, b) => b.total - a.total)
+    .slice(0, 3);
+
+  if (ranked.length === 0) {
+    box.innerHTML = '<div class="ana-empty">ยังไม่มีผู้สมัครคอร์สเรียนในช่วงเวลานี้</div>';
+    return;
+  }
+
+  const medals = ['🥇', '🥈', '🥉'];
+  // แสดงแบบแท่นรางวัล: อันดับ 2 – 1 – 3
+  const order = ranked.length === 3 ? [1, 0, 2] : ranked.map((_, i) => i);
+  box.innerHTML = order.map(i => {
+    const r = ranked[i];
+    return `
+      <div class="ana-podium-item rank-${i + 1}">
+        <div class="ana-podium-medal">${medals[i]}</div>
+        <div class="ana-podium-title">${escapeHtml(r.course.title)}</div>
+        <div class="ana-podium-count">${r.total.toLocaleString('th-TH')} <span>คน</span></div>
+        <div class="ana-podium-sub">${r.fromBundle ? `มาจากแพ็คเกจ ${r.fromBundle} คน` : 'สมัครคอร์สเดี่ยวทั้งหมด'}</div>
+        <div class="ana-podium-base">อันดับ ${i + 1}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function destroyAnaChart(key) {
+  if (_anaCharts[key]) {
+    _anaCharts[key].destroy();
+    delete _anaCharts[key];
+  }
+}
+
+function anaChartsAvailable(canvasId) {
+  if (typeof Chart !== 'undefined') return true;
+  const canvas = document.getElementById(canvasId);
+  if (canvas && canvas.parentElement) {
+    canvas.parentElement.innerHTML = '<div class="ana-empty">โหลดไลบรารีกราฟไม่สำเร็จ (ตรวจสอบอินเทอร์เน็ต) — ดูตัวเลขได้ในตารางด้านล่าง</div>';
+  }
+  return false;
+}
+
+function anaBaseOptions(extra = {}) {
+  Chart.defaults.font.family = "'Prompt', system-ui, sans-serif";
+  Chart.defaults.color = ANA_COLORS.textSecondary;
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: { duration: 250 },
+    plugins: {
+      legend: { position: 'top', align: 'start', labels: { boxWidth: 10, boxHeight: 10, useBorderRadius: true, borderRadius: 2 } },
+      tooltip: { backgroundColor: '#0f172a', padding: 10, cornerRadius: 6, titleFont: { weight: '700' } }
+    },
+    ...extra
+  };
+}
+
+function renderAnalyticsTrend(scoped, win) {
+  if (!anaChartsAvailable('anaTrendChart')) return;
+  destroyAnaChart('trend');
+
+  const spanDays = Math.max(1, Math.ceil((win.end - win.start) / 86400000));
+  const unit = spanDays <= 45 ? 'day' : (spanDays <= 120 ? 'week' : 'month');
+  const captionEl = document.getElementById('anaTrendCaption');
+  if (captionEl) captionEl.textContent = `จำนวนใบสมัครราย${unit === 'day' ? 'วัน' : unit === 'week' ? 'สัปดาห์' : 'เดือน'} (ไม่นับใบย่อยจากแพ็คเกจ)`;
+
+  const bucketStart = d => {
+    const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    if (unit === 'week') x.setDate(x.getDate() - ((x.getDay() + 6) % 7)); // เริ่มวันจันทร์
+    if (unit === 'month') x.setDate(1);
+    return x;
+  };
+  const step = d => {
+    const x = new Date(d);
+    if (unit === 'day') x.setDate(x.getDate() + 1);
+    else if (unit === 'week') x.setDate(x.getDate() + 7);
+    else x.setMonth(x.getMonth() + 1);
+    return x;
+  };
+
+  const buckets = [];
+  for (let d = bucketStart(win.start); d <= win.end; d = step(d)) buckets.push(d.getTime());
+  const idxOf = t => {
+    const b = bucketStart(new Date(t)).getTime();
+    return buckets.indexOf(b);
+  };
+
+  const courseSeries = new Array(buckets.length).fill(0);
+  const campaignSeries = new Array(buckets.length).fill(0);
+  getApplications(scoped).forEach(en => {
+    const t = new Date(en.createdAt).getTime();
+    if (!Number.isFinite(t)) return;
+    const i = idxOf(t);
+    if (i === -1) return;
+    if (isCampaignEnrollment(en)) campaignSeries[i]++;
+    else courseSeries[i]++;
+  });
+
+  const labels = buckets.map(t => {
+    const d = new Date(t);
+    return unit === 'month'
+      ? d.toLocaleDateString('th-TH', { month: 'short', year: '2-digit' })
+      : d.toLocaleDateString('th-TH', { day: 'numeric', month: 'short' });
+  });
+
+  const lineDataset = (label, data, color) => ({
+    label, data,
+    borderColor: color,
+    backgroundColor: color,
+    borderWidth: 2,
+    cubicInterpolationMode: 'monotone', // โค้งเรียบแต่ไม่เลยต่ำกว่า 0
+    pointRadius: buckets.length <= 1 ? 4 : 0,
+    pointHoverRadius: 5,
+    pointHoverBorderWidth: 2,
+    pointHoverBorderColor: ANA_COLORS.surface
+  });
+
+  _anaCharts.trend = new Chart(document.getElementById('anaTrendChart'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        lineDataset('คอร์สเรียน', courseSeries, ANA_COLORS.series1),
+        lineDataset('ติวฟรี', campaignSeries, ANA_COLORS.series2)
+      ]
+    },
+    options: anaBaseOptions({
+      interaction: { mode: 'index', intersect: false },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: ANA_COLORS.textMuted, maxRotation: 0, autoSkip: true, maxTicksLimit: 10 } },
+        y: { beginAtZero: true, ticks: { precision: 0, color: ANA_COLORS.textMuted }, grid: { color: ANA_COLORS.grid }, border: { display: false } }
+      }
+    })
+  });
+}
+
+function renderAnalyticsRevenue(scoped, courses, bundles) {
+  const rows = {};
+  const ensureRow = (key, label, unitText) => {
+    if (!rows[key]) rows[key] = { key, label, unitText, apps: 0, confirmed: 0, pending: 0, price: getCurrentListPrice(key) };
+    return rows[key];
+  };
+
+  getApplications(scoped).forEach(en => {
+    if (isCampaignEnrollment(en)) return;
+    const group = getEnrollmentStatusGroup(en);
+    if (group === 'cancelled') return;
+    const key = en.isBundle ? (en.bundleId || en.courseId) : en.courseId;
+    const course = courses.find(c => c.id === key);
+    const bundle = bundles.find(b => b.id === key);
+    const label = course ? course.title : (bundle ? `[แพ็คเกจ] ${bundle.name}` : (en.bundleName ? `[แพ็คเกจ] ${en.bundleName}` : (en.courseTitle || key || 'ไม่ระบุคอร์ส')));
+    const unitText = (course ? course.priceUnit : (bundle ? bundle.priceUnit : '')) || '';
+    const row = ensureRow(key, label, unitText);
+    row.apps++;
+    row[group] += getEnrollmentAmount(en);
+  });
+
+  const list = Object.values(rows).sort((a, b) => (b.confirmed + b.pending) - (a.confirmed + a.pending));
+
+  // Table (also the accessible table view of the chart)
+  const tbody = document.getElementById('anaRevenueTableBody');
+  if (tbody) {
+    if (list.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" class="ana-empty">ยังไม่มีใบสมัครคอร์สเรียนในช่วงเวลานี้</td></tr>';
+    } else {
+      const totals = list.reduce((t, r) => ({ apps: t.apps + r.apps, confirmed: t.confirmed + r.confirmed, pending: t.pending + r.pending }), { apps: 0, confirmed: 0, pending: 0 });
+      tbody.innerHTML = list.map(r => {
+        const monthly = r.unitText.includes('เดือน');
+        return `
+          <tr>
+            <td style="font-weight: 600; color: var(--color-navy);">
+              ${escapeHtml(r.label)}
+              ${monthly ? '<span class="ana-tag">รายเดือน • นับ 1 เดือน/ใบ</span>' : ''}
+            </td>
+            <td class="num">${r.apps.toLocaleString('th-TH')}</td>
+            <td class="num">${r.price ? `${r.price.toLocaleString('th-TH')}${monthly ? ' / เดือน' : ''}` : '-'}</td>
+            <td class="num">${formatBaht(r.confirmed)}</td>
+            <td class="num" style="color: var(--text-muted);">${formatBaht(r.pending)}</td>
+            <td class="num" style="font-weight: 700;">${formatBaht(r.confirmed + r.pending)}</td>
+          </tr>
+        `;
+      }).join('') + `
+        <tr class="ana-total-row">
+          <td>รวมทั้งหมด</td>
+          <td class="num">${totals.apps.toLocaleString('th-TH')}</td>
+          <td class="num"></td>
+          <td class="num">${formatBaht(totals.confirmed)}</td>
+          <td class="num">${formatBaht(totals.pending)}</td>
+          <td class="num">${formatBaht(totals.confirmed + totals.pending)}</td>
+        </tr>
+      `;
+    }
+  }
+
+  if (!anaChartsAvailable('anaRevenueChart')) return;
+  destroyAnaChart('revenue');
+  const box = document.getElementById('anaRevenueChartBox');
+  if (box) box.style.height = `${Math.max(180, list.length * 38 + 70)}px`;
+
+  _anaCharts.revenue = new Chart(document.getElementById('anaRevenueChart'), {
+    type: 'bar',
+    data: {
+      labels: list.map(r => r.label),
+      datasets: [
+        { label: 'ยืนยันแล้ว', data: list.map(r => r.confirmed), backgroundColor: ANA_COLORS.series1, borderColor: ANA_COLORS.surface, borderWidth: { right: 2 }, borderRadius: 4, borderSkipped: 'start', maxBarThickness: 22 },
+        { label: 'คาดการณ์ (รอตรวจสอบ)', data: list.map(r => r.pending), backgroundColor: ANA_COLORS.series1Light, borderRadius: 4, borderSkipped: 'start', maxBarThickness: 22 }
+      ]
+    },
+    options: anaBaseOptions({
+      indexAxis: 'y',
+      plugins: {
+        ...anaBaseOptions().plugins,
+        tooltip: { ...anaBaseOptions().plugins.tooltip, callbacks: { label: ctx => `${ctx.dataset.label}: ${formatBaht(ctx.raw)}` } }
+      },
+      scales: {
+        x: { stacked: true, beginAtZero: true, grid: { color: ANA_COLORS.grid }, border: { display: false }, ticks: { color: ANA_COLORS.textMuted, callback: v => formatBaht(v) } },
+        y: { stacked: true, grid: { display: false }, ticks: { color: ANA_COLORS.textSecondary, callback: function (v) { const l = this.getLabelForValue(v); return l.length > 28 ? `${l.slice(0, 27)}…` : l; } } }
+      }
+    })
+  });
+}
+
+function renderAnalyticsCourseCounts(scoped, courses) {
+  if (!anaChartsAvailable('anaCourseCountChart')) return;
+  destroyAnaChart('courseCount');
+  const counts = countByCourse(scoped, courses);
+  const list = courses
+    .filter(c => counts[c.id])
+    .map(c => ({ label: c.title, total: counts[c.id].total }))
+    .sort((a, b) => b.total - a.total);
+
+  const box = document.getElementById('anaCourseCountChartBox');
+  if (box) box.style.height = `${Math.max(180, list.length * 34 + 50)}px`;
+
+  _anaCharts.courseCount = new Chart(document.getElementById('anaCourseCountChart'), {
+    type: 'bar',
+    data: {
+      labels: list.map(r => r.label),
+      datasets: [{ label: 'ผู้สมัคร', data: list.map(r => r.total), backgroundColor: ANA_COLORS.series1, borderRadius: 4, borderSkipped: 'start', maxBarThickness: 22 }]
+    },
+    options: anaBaseOptions({
+      indexAxis: 'y',
+      plugins: {
+        legend: { display: false },
+        tooltip: { ...anaBaseOptions().plugins.tooltip, callbacks: { label: ctx => `ผู้สมัคร ${ctx.raw} คน` } }
+      },
+      scales: {
+        x: { beginAtZero: true, ticks: { precision: 0, color: ANA_COLORS.textMuted }, grid: { color: ANA_COLORS.grid }, border: { display: false } },
+        y: { grid: { display: false }, ticks: { color: ANA_COLORS.textSecondary, callback: function (v) { const l = this.getLabelForValue(v); return l.length > 28 ? `${l.slice(0, 27)}…` : l; } } }
+      }
+    })
+  });
+}
+
+// แถบสัดส่วน 2 ส่วนแบบ HTML (ใช้แทนโดนัท 2 ชิ้น)
+function renderSplitBar(containerId, parts) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  const total = parts.reduce((s, p) => s + p.value, 0);
+  if (total === 0) {
+    el.innerHTML = '<div class="ana-empty">ยังไม่มีข้อมูล</div>';
+    return;
+  }
+  el.innerHTML = `
+    <div class="ana-split-bar">
+      ${parts.filter(p => p.value > 0).map(p => `<div style="flex: ${p.value}; background: ${p.color};" title="${escapeHtml(p.label)}: ${p.value}"></div>`).join('')}
+    </div>
+    <div class="ana-split-legend">
+      ${parts.map(p => `
+        <div class="ana-split-item">
+          <span class="ana-swatch" style="background: ${p.color};"></span>
+          <span class="ana-split-name">${escapeHtml(p.label)}</span>
+          <span class="ana-split-val">${p.value.toLocaleString('th-TH')} <small>(${Math.round((p.value / total) * 100)}%)</small></span>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function renderAnalyticsSplits(scoped) {
+  const apps = getApplications(scoped);
+  const active = apps.filter(en => getEnrollmentStatusGroup(en) !== 'cancelled');
+
+  renderSplitBar('anaLearningSplit', [
+    { label: 'Onsite (ที่สถาบัน)', value: active.filter(en => (en.learningType || 'onsite').toLowerCase() !== 'online').length, color: ANA_COLORS.series1 },
+    { label: 'Online', value: active.filter(en => (en.learningType || '').toLowerCase() === 'online').length, color: ANA_COLORS.series2 }
+  ]);
+
+  const courseApps = active.filter(en => !isCampaignEnrollment(en));
+  renderSplitBar('anaBundleSplit', [
+    { label: 'คอร์สเดี่ยว', value: courseApps.filter(en => !en.isBundle).length, color: ANA_COLORS.series1 },
+    { label: 'แพ็คเกจโปรโมชั่น', value: courseApps.filter(en => en.isBundle).length, color: ANA_COLORS.series2 }
+  ]);
+
+  // สถานะ: สีสถานะคู่กับไอคอนและข้อความเสมอ
+  const statusDefs = [
+    { key: 'confirmed', label: 'ยืนยันที่นั่งแล้ว', icon: 'fa-circle-check', color: ANA_COLORS.good },
+    { key: 'materials_sent', label: 'ส่งเอกสารแล้ว', icon: 'fa-box', color: ANA_COLORS.series1 },
+    { key: 'pending', label: 'รอตรวจสอบ / รอชำระ', icon: 'fa-clock', color: ANA_COLORS.warning },
+    { key: 'cancelled', label: 'ยกเลิก', icon: 'fa-circle-xmark', color: ANA_COLORS.critical }
+  ];
+  const statusOf = en => (['confirmed', 'materials_sent', 'cancelled'].includes(en.status) ? en.status : 'pending');
+  const max = Math.max(1, ...statusDefs.map(d => apps.filter(en => statusOf(en) === d.key).length));
+  const statusEl = document.getElementById('anaStatusList');
+  if (statusEl) {
+    statusEl.innerHTML = apps.length === 0 ? '<div class="ana-empty">ยังไม่มีข้อมูล</div>' : statusDefs.map(d => {
+      const n = apps.filter(en => statusOf(en) === d.key).length;
+      return `
+        <div class="ana-status-row">
+          <div class="ana-status-head">
+            <span><i class="fa-solid ${d.icon}" style="color: ${d.color};"></i> ${d.label}</span>
+            <b>${n.toLocaleString('th-TH')}</b>
+          </div>
+          <div class="ana-bar-track"><div class="ana-bar-fill" style="width: ${(n / max) * 100}%; background: ${d.color};"></div></div>
+        </div>
+      `;
+    }).join('');
+  }
+}
+
+function renderAnalyticsGrades(scoped) {
+  if (!anaChartsAvailable('anaGradeChart')) return;
+  destroyAnaChart('grade');
+  const counts = {};
+  getApplications(scoped).forEach(en => {
+    if (getEnrollmentStatusGroup(en) === 'cancelled') return;
+    const g = normalizeGradeLabel(en.grade);
+    counts[g] = (counts[g] || 0) + 1;
+  });
+  const labels = Object.keys(counts).sort(compareGradeLabels);
+
+  _anaCharts.grade = new Chart(document.getElementById('anaGradeChart'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{ label: 'ผู้สมัคร', data: labels.map(l => counts[l]), backgroundColor: ANA_COLORS.series1, borderRadius: 4, borderSkipped: 'start', maxBarThickness: 36 }]
+    },
+    options: anaBaseOptions({
+      plugins: {
+        legend: { display: false },
+        tooltip: { ...anaBaseOptions().plugins.tooltip, callbacks: { label: ctx => `ผู้สมัคร ${ctx.raw} คน` } }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: ANA_COLORS.textSecondary } },
+        y: { beginAtZero: true, ticks: { precision: 0, color: ANA_COLORS.textMuted }, grid: { color: ANA_COLORS.grid }, border: { display: false } }
+      }
+    })
+  });
+}
+
+function renderRankList(containerId, rows, emptyText, scaleMax = null) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  if (rows.length === 0) {
+    el.innerHTML = `<div class="ana-empty">${emptyText}</div>`;
+    return;
+  }
+  const max = scaleMax || Math.max(1, ...rows.map(r => r.barValue));
+  el.innerHTML = rows.map((r, i) => `
+    <div class="ana-rank-row">
+      <span class="ana-rank-no">${i + 1}</span>
+      <div class="ana-rank-body">
+        <div class="ana-rank-head">
+          <span class="ana-rank-name" title="${escapeHtml(r.label)}">${escapeHtml(r.label)}</span>
+          <span class="ana-rank-val">${r.valueHtml}</span>
+        </div>
+        <div class="ana-bar-track"><div class="ana-bar-fill" style="width: ${Math.min(100, (r.barValue / max) * 100)}%; background: ${r.color || ANA_COLORS.series1};"></div></div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderAnalyticsSchools(scoped) {
+  const students = {};
+  getApplications(scoped).forEach(en => {
+    if (getEnrollmentStatusGroup(en) === 'cancelled') return;
+    const school = normalizeSchoolName(en.school);
+    if (!school) return;
+    if (!students[school]) students[school] = new Set();
+    students[school].add(`${(en.studentName || '').trim()}|${(en.parentPhone || '').replace(/\D/g, '')}`);
+  });
+  const rows = Object.entries(students)
+    .map(([school, set]) => ({ label: school, barValue: set.size, valueHtml: `${set.size} คน` }))
+    .sort((a, b) => b.barValue - a.barValue)
+    .slice(0, 10);
+  renderRankList('anaSchoolList', rows, 'ยังไม่มีข้อมูลโรงเรียน');
+}
+
+function renderAnalyticsFillRate(allEnrollments, courses) {
+  const counts = countByCourse(allEnrollments, courses);
+  const rows = courses
+    .map(c => {
+      const max = Number(c.maxSeats || 12);
+      const n = counts[c.id] ? counts[c.id].total : 0;
+      const pct = max > 0 ? Math.round((n / max) * 100) : 0;
+      const status = pct >= 100
+        ? `<span style="color: ${ANA_COLORS.critical};"><i class="fa-solid fa-circle-xmark"></i> เต็ม</span>`
+        : (pct >= 80 ? `<span style="color: #b45309;"><i class="fa-solid fa-triangle-exclamation"></i> ใกล้เต็ม</span>` : '');
+      return {
+        label: `${c.title}${c.isHidden ? ' [ซ่อน]' : ''}`,
+        barValue: Math.min(pct, 100),
+        pct,
+        valueHtml: `${status} ${n}/${max} ที่ • <b>${pct}%</b>`,
+        color: pct >= 100 ? ANA_COLORS.critical : (pct >= 80 ? ANA_COLORS.warning : ANA_COLORS.series1)
+      };
+    })
+    .sort((a, b) => b.pct - a.pct);
+  // สเกล 0–100% คงที่ ไม่ใช่เทียบกับคอร์สที่เต็มที่สุด
+  renderRankList('anaFillList', rows, 'ยังไม่มีคอร์สเรียน', 100);
+}
+
+window.loadAdminAnalytics = loadAdminAnalytics;
+window.setAnalyticsRange = setAnalyticsRange;
 
 

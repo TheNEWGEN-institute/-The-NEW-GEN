@@ -499,6 +499,13 @@
     updateStdField('shippingAddress', 'enrInputAddress', 'lblFieldShippingAddress', 'starFieldShippingAddress', 'wrapFieldShippingAddress');
     updateStdField('notes', 'enrInputNotes', 'lblFieldNotes', 'starFieldNotes', 'wrapFieldNotes');
 
+    // Campaign mode: this function can be re-run by a cloud sync while the modal is open,
+    // so keep notes/address hidden and leave the campaign's own questions untouched
+    if (currentEnrollCourse && currentEnrollCourse.isCampaign) {
+      hideCampaignExcludedFields();
+      return;
+    }
+
     // Render Custom Questions
     const customSection = document.getElementById('enrollCustomSection');
     const customContainer = document.getElementById('enrCustomFieldsContainer');
@@ -540,6 +547,19 @@
       }
     }
   };
+
+  // Campaign form has no notes or shipping address fields
+  function hideCampaignExcludedFields() {
+    [['wrapFieldNotes', 'enrInputNotes'], ['wrapFieldShippingAddress', 'enrInputAddress']].forEach(([wrapId, inputId]) => {
+      const wrapEl = document.getElementById(wrapId);
+      const inputEl = document.getElementById(inputId);
+      if (wrapEl) wrapEl.style.display = 'none';
+      if (inputEl) {
+        inputEl.required = false;
+        inputEl.value = '';
+      }
+    });
+  }
 
   /**
    * Open Enrollment Modal for specific course or bundle
@@ -712,6 +732,11 @@
       const el = document.getElementById(id);
       if (el) el.style.display = course.isCampaign ? 'none' : '';
     });
+
+    // Campaign mode: remove the "notes" and "shipping address" fields entirely
+    if (course.isCampaign) {
+      hideCampaignExcludedFields();
+    }
 
     const locEl = document.getElementById('enrReviewLocation');
     if (locEl) locEl.textContent = course.location || 'เรียนสด Onsite สถาบัน The NEW GEN';
@@ -1045,8 +1070,8 @@
     const parentPhone = document.getElementById('enrInputParentPhone').value.trim();
     const studentPhone = document.getElementById('enrInputStudentPhone').value.trim();
     const lineId = document.getElementById('enrInputLineId').value.trim();
-    const shippingAddress = document.getElementById('enrInputAddress').value.trim();
-    const notes = document.getElementById('enrInputNotes').value.trim();
+    const shippingAddress = currentEnrollCourse.isCampaign ? '' : document.getElementById('enrInputAddress').value.trim();
+    const notes = currentEnrollCourse.isCampaign ? '' : document.getElementById('enrInputNotes').value.trim();
 
     if (!studentName || !nickname || !grade || !school || !parentPhone || !lineId) {
       alert('กรุณากรอกข้อมูลที่มีเครื่องหมาย (*) ให้ครบถ้วน');
@@ -1253,6 +1278,9 @@
       bundleId: isBundle ? currentEnrollCourse.id : null,
       bundleName: isBundle ? (currentEnrollCourse.name || currentEnrollCourse.title) : null,
       bundleCourseIds: childCourseIds,
+      // ราคา ณ วันที่สมัคร (ใช้คำนวณรายได้ในหน้าสรุปสถิติ แม้จะปรับราคาคอร์สภายหลัง)
+      price: currentEnrollCourse.isCampaign ? 0 : (parseInt(String(currentEnrollCourse.pricePromo || '').replace(/[^0-9]/g, ''), 10) || null),
+      priceUnit: currentEnrollCourse.priceUnit || '',
       status: 'pending', // รอตรวจสอบ/ชำระเงินทางไลน์
       createdAt: new Date().toISOString()
     };

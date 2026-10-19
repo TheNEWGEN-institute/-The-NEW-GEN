@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Prompt:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
-  <link rel="stylesheet" href="assets/css/style.css?v=20261016-btnfix">
+  <link rel="stylesheet" href="assets/css/style.css?v=20261019-analytics">
 </head>
 <body class="page-admin-body">
 
@@ -71,6 +71,9 @@
         <button type="button" class="admin-nav-item" onclick="switchAdminTab('enrollments', this)" id="navTabEnrollments">
           <i class="fa-solid fa-users-rectangle"></i> 2. รายชื่อผู้สมัครเรียน
           <span class="badge" id="navEnrollCountBadge" style="margin-left: auto; font-size: 0.72rem; background: #2563eb; color: #fff; border-radius: 99px; padding: 2px 7px; font-weight: 700;">0</span>
+        </button>
+        <button type="button" class="admin-nav-item" onclick="switchAdminTab('analytics', this)" id="navTabAnalytics">
+          <i class="fa-solid fa-chart-column" style="color: #2a78d6;"></i> 2.1 สรุปสถิติการสมัคร &amp; รายได้
         </button>
         <button type="button" class="admin-nav-item" onclick="switchAdminTab('home', this)">
           <i class="fa-solid fa-house"></i> 3. จัดการหน้าแรก &amp; แคมเปญ/ฟอร์ม
@@ -319,6 +322,11 @@
             </div>
           </div>
 
+          <!-- Campaign grade/subject filter (shown only when viewing the free campaign) -->
+          <div id="campaignRosterFilter" class="campaign-roster-filter" style="display: none;">
+            <!-- Dynamically populated via JS -->
+          </div>
+
           <!-- Filter & Search Bar -->
           <div class="admin-editor-card" style="margin-bottom: 20px; padding: 18px;">
             <div style="display: flex; gap: 14px; align-items: center; flex-wrap: wrap;">
@@ -365,11 +373,11 @@
                   <th style="width: 50px; text-align: center;">#</th>
                   <th>ข้อมูลนักเรียน</th>
                   <th>ชั้น / โรงเรียน</th>
-                  <th>คอร์สที่สมัคร &amp; รอบเรียน</th>
+                  <th id="thEnrollCourse">คอร์สที่สมัคร &amp; รอบเรียน</th>
                   <th style="text-align: center;">รูปแบบ</th>
                   <th>เบอร์โทรติดต่อ</th>
                   <th>Line ID</th>
-                  <th>ที่อยู่จัดส่งเอกสาร</th>
+                  <th id="thEnrollAddress">ที่อยู่จัดส่งเอกสาร</th>
                   <th style="text-align: right; width: 105px;">จัดการ</th>
                 </tr>
               </thead>
@@ -401,6 +409,135 @@
             <button type="button" class="btn-primary" onclick="goToHomePopupConfigTab('form')" style="padding: 12px 28px; font-size: 0.95rem;">
               <i class="fa-solid fa-arrow-right"></i> ไปยังหน้าตั้งค่าข้อความฟอร์มสมัครเรียนทันที ↗
             </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 2.1 ANALYTICS TAB (สรุปสถิติการสมัคร & รายได้) ================= -->
+      <section id="tab-analytics" class="admin-tab-pane">
+        <div class="admin-pane-header">
+          <div>
+            <h2><i class="fa-solid fa-chart-column" style="color: #2a78d6;"></i> สรุปสถิติการสมัครเรียน &amp; รายได้ (Analytics)</h2>
+            <p>ภาพรวมยอดสมัคร คอร์สยอดนิยม แนวโน้มตามเวลา กลุ่มนักเรียน และรายได้แยกตามคอร์ส</p>
+          </div>
+          <button type="button" class="btn-secondary" onclick="loadAdminAnalytics()" style="padding: 8px 14px; font-size: 0.85rem;">
+            <i class="fa-solid fa-arrows-rotate"></i> อัปเดตข้อมูลล่าสุด
+          </button>
+        </div>
+
+        <!-- Filter row: scopes every chart below -->
+        <div class="ana-filter-row">
+          <span class="ana-filter-label"><i class="fa-regular fa-calendar"></i> ช่วงเวลา:</span>
+          <div id="anaRangeButtons" class="ana-range-group">
+            <button type="button" class="ana-range-btn" data-range="7" onclick="setAnalyticsRange('7')">7 วัน</button>
+            <button type="button" class="ana-range-btn" data-range="30" onclick="setAnalyticsRange('30')">30 วัน</button>
+            <button type="button" class="ana-range-btn" data-range="90" onclick="setAnalyticsRange('90')">90 วัน</button>
+            <button type="button" class="ana-range-btn" data-range="365" onclick="setAnalyticsRange('365')">1 ปี</button>
+            <button type="button" class="ana-range-btn active" data-range="all" onclick="setAnalyticsRange('all')">ทั้งหมด</button>
+          </div>
+          <span id="anaRangeCaption" class="ana-filter-caption"></span>
+        </div>
+
+        <!-- KPI tiles -->
+        <div id="anaKpiGrid" class="ana-kpi-grid"></div>
+
+        <!-- Top 3 podium -->
+        <div class="ana-card">
+          <div class="ana-card-head">
+            <h3><i class="fa-solid fa-trophy" style="color: #eda100;"></i> Top 3 คอร์สที่มีผู้สมัครมากที่สุด</h3>
+            <small>นับรวมผู้สมัครที่มาจากแพ็คเกจ • ไม่รวมโครงการติวฟรีและใบสมัครที่ยกเลิก</small>
+          </div>
+          <div id="anaTop3" class="ana-podium"></div>
+        </div>
+
+        <!-- Trend -->
+        <div class="ana-card">
+          <div class="ana-card-head">
+            <h3><i class="fa-solid fa-chart-line" style="color: #2a78d6;"></i> แนวโน้มยอดสมัครตามช่วงเวลา</h3>
+            <small id="anaTrendCaption">จำนวนใบสมัครต่อช่วงเวลา</small>
+          </div>
+          <div class="ana-chart-box" style="height: 300px;"><canvas id="anaTrendChart"></canvas></div>
+        </div>
+
+        <!-- Revenue per course + Enrollments per course -->
+        <div class="ana-grid-2">
+          <div class="ana-card">
+            <div class="ana-card-head">
+              <h3><i class="fa-solid fa-sack-dollar" style="color: #1baf7a;"></i> รายได้แยกตามคอร์ส / แพ็คเกจ</h3>
+              <small>ยืนยันแล้ว = ยืนยันที่นั่ง + ส่งเอกสารแล้ว • คาดการณ์ = รอตรวจสอบ</small>
+            </div>
+            <div id="anaRevenueChartBox" class="ana-chart-box"><canvas id="anaRevenueChart"></canvas></div>
+          </div>
+          <div class="ana-card">
+            <div class="ana-card-head">
+              <h3><i class="fa-solid fa-users" style="color: #2a78d6;"></i> จำนวนผู้สมัครแยกตามคอร์ส</h3>
+              <small>ไม่รวมใบสมัครที่ยกเลิก</small>
+            </div>
+            <div id="anaCourseCountChartBox" class="ana-chart-box"><canvas id="anaCourseCountChart"></canvas></div>
+          </div>
+        </div>
+
+        <!-- Proportions -->
+        <div class="ana-grid-3">
+          <div class="ana-card">
+            <div class="ana-card-head"><h3><i class="fa-solid fa-chalkboard-user"></i> รูปแบบการเรียน</h3></div>
+            <div id="anaLearningSplit"></div>
+          </div>
+          <div class="ana-card">
+            <div class="ana-card-head"><h3><i class="fa-solid fa-boxes-stacked"></i> คอร์สเดี่ยว vs แพ็คเกจ</h3></div>
+            <div id="anaBundleSplit"></div>
+          </div>
+          <div class="ana-card">
+            <div class="ana-card-head"><h3><i class="fa-solid fa-list-check"></i> สถานะใบสมัคร</h3></div>
+            <div id="anaStatusList"></div>
+          </div>
+        </div>
+
+        <div class="ana-grid-2">
+          <div class="ana-card">
+            <div class="ana-card-head">
+              <h3><i class="fa-solid fa-graduation-cap" style="color: #2a78d6;"></i> ผู้สมัครแยกตามระดับชั้น</h3>
+              <small>จากช่องระดับชั้นที่นักเรียนกรอก (รวมติวฟรี)</small>
+            </div>
+            <div class="ana-chart-box" style="height: 280px;"><canvas id="anaGradeChart"></canvas></div>
+          </div>
+          <div class="ana-card">
+            <div class="ana-card-head">
+              <h3><i class="fa-solid fa-school" style="color: #2a78d6;"></i> Top 10 โรงเรียนที่มาสมัคร</h3>
+              <small>นับจำนวนนักเรียน (ไม่นับซ้ำ)</small>
+            </div>
+            <div id="anaSchoolList" class="ana-rank-list"></div>
+          </div>
+        </div>
+
+        <div class="ana-card">
+          <div class="ana-card-head">
+            <h3><i class="fa-solid fa-chair" style="color: #2a78d6;"></i> อัตราที่นั่งเต็มแต่ละคอร์ส</h3>
+            <small>คิดจากผู้สมัครทั้งหมดที่ยังไม่ยกเลิก เทียบกับจำนวนที่นั่งสูงสุด (ไม่ขึ้นกับช่วงเวลาที่เลือก)</small>
+          </div>
+          <div id="anaFillList" class="ana-rank-list"></div>
+        </div>
+
+        <!-- Revenue table (also the table view of the revenue chart) -->
+        <div class="ana-card">
+          <div class="ana-card-head">
+            <h3><i class="fa-solid fa-table" style="color: #1baf7a;"></i> ตารางสรุปรายได้</h3>
+            <small>ใช้ "ยอดชำระจริง" ถ้ากรอกไว้ในหน้าแก้ไขผู้สมัคร ไม่เช่นนั้นใช้ราคา ณ วันที่สมัคร (ใบสมัครเก่าใช้ราคาปัจจุบันของคอร์ส) • แพ็คเกจนับราคาแพ็คครั้งเดียว</small>
+          </div>
+          <div class="admin-table-card" style="margin: 0; box-shadow: none;">
+            <table class="admin-data-table ana-revenue-table">
+              <thead>
+                <tr>
+                  <th>คอร์ส / แพ็คเกจ</th>
+                  <th style="text-align: right;">ใบสมัคร</th>
+                  <th style="text-align: right;">ราคา</th>
+                  <th style="text-align: right;">รายได้ยืนยันแล้ว</th>
+                  <th style="text-align: right;">รายได้คาดการณ์</th>
+                  <th style="text-align: right;">รวม</th>
+                </tr>
+              </thead>
+              <tbody id="anaRevenueTableBody"></tbody>
+            </table>
           </div>
         </div>
       </section>
@@ -2441,7 +2578,7 @@
             <div class="form-row-2col">
               <div class="form-group-luxury" style="margin-bottom: 0;">
                 <label style="color: #1e40af; font-weight: 800;">📚 คอร์สเรียนที่สมัคร *</label>
-                <select id="enCourseId" required style="font-weight: 600;">
+                <select id="enCourseId" required style="font-weight: 600;" onchange="updateEnrollmentModalForCourse()">
                   <!-- Dynamically populated via JS -->
                 </select>
               </div>
@@ -2506,10 +2643,17 @@
             </div>
           </div>
 
+          <!-- Paid Amount (used by the analytics revenue summary) -->
+          <div class="form-group-luxury" id="wrapEnPaidAmount">
+            <label>💰 ยอดชำระจริง (บาท)</label>
+            <input type="number" id="enPaidAmount" min="0" step="1" placeholder="เว้นว่าง = ใช้ราคาคอร์สอัตโนมัติ">
+            <small id="enPaidAmountHint" style="color: var(--text-muted); display: block; margin-top: 4px;">กรอกเมื่อได้ส่วนลด แบ่งจ่าย หรือเก็บหลายเดือน เพื่อให้หน้าสรุปรายได้ตรงกับยอดจริง</small>
+          </div>
+
           <!-- Shipping Address -->
-          <div class="form-group-luxury">
-            <label>🏠 ที่อยู่สำหรับจัดส่งเอกสารและหนังสือเรียน *</label>
-            <textarea id="enShippingAddress" rows="3" required placeholder="ระบุเลขที่บ้าน หมู่ ซอย ถนน ตำบล อำเภอ จังหวัด และรหัสไปรษณีย์ ให้ชัดเจนเพื่อการจัดส่งหนังสือ..."></textarea>
+          <div class="form-group-luxury" id="wrapEnShippingAddress">
+            <label>🏠 ที่อยู่สำหรับจัดส่งเอกสารและหนังสือเรียน</label>
+            <textarea id="enShippingAddress" rows="3" placeholder="ระบุเลขที่บ้าน หมู่ ซอย ถนน ตำบล อำเภอ จังหวัด และรหัสไปรษณีย์ ให้ชัดเจนเพื่อการจัดส่งหนังสือ..."></textarea>
           </div>
 
           <!-- Campaign Information Wrap (if student enrolled via campaign) -->
@@ -3030,7 +3174,8 @@
     <i class="fa-solid fa-circle-check"></i> <span id="toastMsg">บันทึกข้อมูลเรียบร้อยแล้ว</span>
   </div>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
   <script src="assets/js/courses-data.js?v=20261015-v4"></script>
-  <script src="assets/js/admin.js?v=20261017-v1"></script>
+  <script src="assets/js/admin.js?v=20261019-v1"></script>
 </body>
 </html>
