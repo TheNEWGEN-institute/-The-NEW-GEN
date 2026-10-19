@@ -381,19 +381,143 @@ const DEFAULT_BUNDLES = [
   }
 ];
 
-// Default Admin Credentials
-const DEFAULT_ADMIN = {
-  username: 'admin',
-  password: 'NewGen@2026'
-};
-
 // Supabase Cloud Configuration for The NEW GEN (Serverless Architecture)
+// anonKey เป็น publishable key ที่ออกแบบให้อยู่ในหน้าเว็บได้ — สิทธิ์จริงถูกจำกัดด้วย RLS ฝั่ง Supabase
+// (ห้ามใส่ service_role / secret key ในไฟล์ฝั่งหน้าเว็บเด็ดขาด)
 const SUPABASE_CONFIG = {
   url: 'https://wdazilhmlttnurpfewlk.supabase.co',
   anonKey: 'sb_publishable_JEhUerLycZxgOmYstFD4aw_nFT3ifYp',
-  serviceKey: 'sb_publishable_JEhUerLycZxgOmYstFD4aw_nFT3ifYp', // Fallback to anonKey to prevent unregistered key failures
-  bucket: 'uploads'
+  bucket: 'uploads',
+  studentBucket: 'student-uploads'
 };
+
+/* ==========================================================================
+   ADMIN AUTH (Supabase Auth) — แอดมินล็อกอินด้วยอีเมล/รหัสผ่านของ Supabase
+   ระบบเก็บ session token ไว้ในเบราว์เซอร์ และใช้ token นี้แนบทุกคำขอที่แก้ไขข้อมูล
+   ========================================================================== */
+const ADMIN_SESSION_KEY = 'newgen_admin_session';
+
+const NewGenAuth = {
+  getSession: () => {
+    try {
+      const raw = localStorage.getItem(ADMIN_SESSION_KEY);
+      const s = raw ? JSON.parse(raw) : null;
+      return s && s.access_token && s.refresh_token ? s : null;
+    } catch (e) {
+      return null;
+    }
+  },
+
+  _saveSession: (data) => {
+    const session = {
+      access_token: data.access_token,
+      refresh_token: data.refresh_token,
+      expires_at: data.expires_at || Math.floor(Date.now() / 1000) + (data.expires_in || 3600),
+      email: data.user ? data.user.email : ''
+    };
+    try { localStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(session)); } catch (e) {}
+    return session;
+  },
+
+  clearSession: () => {
+    try {
+      localStorage.removeItem(ADMIN_SESSION_KEY);
+    } catch (e) {}
+  },
+
+  // อ่าน claims ใน token (ใช้แสดงผลเท่านั้น — สิทธิ์จริงตรวจที่ Supabase)
+  getClaims: (session = NewGenAuth.getSession()) => {
+    try {
+      const payload = session.access_token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+      return JSON.parse(decodeURIComponent(escape(atob(payload))));
+    } catch (e) {
+      return null;
+    }
+  },
+
+  isAdminSession: (session = NewGenAuth.getSession()) => {
+    const claims = session ? NewGenAuth.getClaims(session) : null;
+    return Boolean(claims && claims.app_metadata && claims.app_metadata.role === 'admin');
+  },
+
+  _authRequest: async (path, body) => {
+    const res = await fetch(`${SUPABASE_CONFIG.url}/auth/v1/${path}`, {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_CONFIG.anonKey, 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      const err = new Error(json.error_description || json.msg || json.message || `HTTP ${res.status}`);
+      err.status = res.status;
+      throw err;
+    }
+    return json;
+  },
+
+  signIn: async (email, password) => {
+    const data = await NewGenAuth._authRequest('token?grant_type=password', { email, password });
+    return NewGenAuth._saveSession(data);
+  },
+
+  refresh: async () => {
+    const s = NewGenAuth.getSession();
+    if (!s) return null;
+    try {
+      const data = await NewGenAuth._authRequest('token?grant_type=refresh_token', { refresh_token: s.refresh_token });
+      return NewGenAuth._saveSession(data);
+    } catch (e) {
+      // refresh token หมดอายุ/ถูกเพิกถอน → ต้องล็อกอินใหม่
+      if (e.status === 400 || e.status === 401) NewGenAuth.clearSession();
+      return null;
+    }
+  },
+
+  // คืน access token ที่ยังไม่หมดอายุ (ต่ออายุอัตโนมัติถ้าเหลือน้อยกว่า 60 วินาที)
+  getAccessToken: async () => {
+    let s = NewGenAuth.getSession();
+    if (!s) return null;
+    if (!s.expires_at || s.expires_at - 60 < Math.floor(Date.now() / 1000)) {
+      s = await NewGenAuth.refresh();
+    }
+    return s ? s.access_token : null;
+  },
+
+  signOut: async () => {
+    const s = NewGenAuth.getSession();
+    NewGenAuth.clearSession();
+    if (!s) return;
+    try {
+      await fetch(`${SUPABASE_CONFIG.url}/auth/v1/logout`, {
+        method: 'POST',
+        headers: { 'apikey': SUPABASE_CONFIG.anonKey, 'Authorization': `Bearer ${s.access_token}` }
+      });
+    } catch (e) {}
+  },
+
+  updatePassword: async (newPassword) => {
+    const token = await NewGenAuth.getAccessToken();
+    if (!token) throw new Error('กรุณาเข้าสู่ระบบใหม่');
+    const res = await fetch(`${SUPABASE_CONFIG.url}/auth/v1/user`, {
+      method: 'PUT',
+      headers: { 'apikey': SUPABASE_CONFIG.anonKey, 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: newPassword })
+    });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(json.msg || json.error_description || json.message || `HTTP ${res.status}`);
+    return json;
+  }
+};
+
+// Headers สำหรับเรียก Supabase: ใช้ token ของแอดมินถ้าล็อกอินอยู่ ไม่เช่นนั้นใช้สิทธิ์สาธารณะ
+async function getSupabaseHeaders(extra = {}) {
+  const token = await NewGenAuth.getAccessToken();
+  return {
+    'apikey': SUPABASE_CONFIG.anonKey,
+    'Authorization': `Bearer ${token || SUPABASE_CONFIG.anonKey}`,
+    ...extra
+  };
+}
 
 // Default Campaign Popup Configuration (โครงการติวฟรี & ประกาศหน้าแรก)
 const DEFAULT_POPUP_CAMPAIGN = {
@@ -469,8 +593,6 @@ const SUPABASE_KEY_MAPPING = {
   privilege: 'newgen_privilege',
   home: 'newgen_home',
   about: 'newgen_about',
-  admin: 'newgen_admin_cred',
-  enrollments: 'newgen_enrollments',
   enrollmentConfig: 'newgen_enrollment_config',
   popupCampaign: 'newgen_popup_campaign',
   bundles: 'newgen_bundles'
@@ -481,24 +603,24 @@ const NewGenDB = {
   // Cloud Sync Helpers
   saveToSupabase: async (key, data) => {
     try {
+      if (!NewGenAuth.getSession()) {
+        return { success: false, status: 401, error: 'ต้องเข้าสู่ระบบแอดมินก่อนบันทึกข้อมูล' };
+      }
       const endpoint = `${SUPABASE_CONFIG.url}/rest/v1/app_data?on_conflict=key`;
-      const apiKey = SUPABASE_CONFIG.anonKey;
       const res = await fetch(endpoint, {
         method: 'POST',
-        headers: {
-          'apikey': apiKey,
-          'Authorization': `Bearer ${apiKey}`,
+        headers: await getSupabaseHeaders({
           'Content-Type': 'application/json',
           'Prefer': 'resolution=merge-duplicates'
-        },
+        }),
         body: JSON.stringify({ key, data, updated_at: new Date().toISOString() })
       });
       if (!res.ok) {
         const errorText = await res.text();
         console.warn(`[Supabase] Cloud save error for [${key}] (HTTP ${res.status}):`, errorText);
         let reason = errorText;
-        if (errorText.includes('row-level security') || res.status === 401) {
-          reason = 'ติดสิทธิ์ Row-Level Security (RLS) ใน Supabase';
+        if (errorText.includes('row-level security') || res.status === 401 || res.status === 403) {
+          reason = 'ไม่มีสิทธิ์บันทึก (กรุณาออกจากระบบแล้วเข้าสู่ระบบใหม่)';
         }
         return { success: false, status: res.status, error: reason, rawError: errorText };
       }
@@ -512,21 +634,23 @@ const NewGenDB = {
 
   syncFromSupabase: async () => {
     try {
-      const endpoint = `${SUPABASE_CONFIG.url}/rest/v1/app_data?select=key,data`;
-      const res = await fetch(endpoint, {
-        headers: {
-          'apikey': SUPABASE_CONFIG.anonKey,
-          'Authorization': `Bearer ${SUPABASE_CONFIG.anonKey}`
-        }
-      });
+      // ดึงเฉพาะข้อมูลหน้าเว็บ (ไม่ดึงรายชื่อนักเรียน/ข้อมูลระบบ)
+      const publicKeys = Object.keys(SUPABASE_KEY_MAPPING).join(',');
+      const endpoint = `${SUPABASE_CONFIG.url}/rest/v1/app_data?select=key,data&key=in.(${publicKeys})`;
+      const res = await fetch(endpoint, { headers: await getSupabaseHeaders() });
       if (!res.ok) return false;
       const rows = await res.json();
       if (!Array.isArray(rows) || rows.length === 0) return false;
 
+      // แอดมินที่ล็อกอินอยู่: โหลดรายชื่อผู้สมัครจากตาราง enrollments (สาธารณะอ่านไม่ได้)
+      if (NewGenAuth.getSession()) {
+        await NewGenDB.fetchEnrollments();
+      }
+
       rows.forEach(item => {
         const key = item.key;
         const val = item.data;
-        if (!key || val === undefined) return;
+        if (!key || val === undefined || !SUPABASE_KEY_MAPPING[key]) return;
         const localKey = SUPABASE_KEY_MAPPING[key];
         if (localKey) {
           try {
@@ -569,10 +693,6 @@ const NewGenDB = {
         if (key === 'about' && typeof window !== 'undefined') {
           window.aboutData = val;
           window._supabaseAboutSynced = true;
-        }
-        if (key === 'enrollments' && typeof window !== 'undefined') {
-          window.enrollmentsData = val;
-          if (typeof loadAdminEnrollments === 'function') loadAdminEnrollments();
         }
         if (key === 'enrollmentConfig' && typeof window !== 'undefined') {
           window.enrollmentConfigData = val;
@@ -623,27 +743,69 @@ const NewGenDB = {
     }
   },
 
+  // รูปภาพของเว็บไซต์ (แอดมินเท่านั้น) → bucket สาธารณะ "uploads"
   uploadImageToSupabase: async (blob, filename) => {
     try {
-      const ext = (filename || 'image.jpg').split('.').pop() || 'jpg';
+      const ext = String(filename || 'image.jpg').split('.').pop().replace(/[^a-z0-9]/gi, '').slice(0, 5) || 'jpg';
       const safeName = `img-${Date.now()}-${Math.random().toString(36).substring(2, 6)}.${ext}`;
-      const apiKey = SUPABASE_CONFIG.anonKey;
-      const res = await fetch(`${SUPABASE_CONFIG.url}/storage/v1/object/uploads/${safeName}`, {
+      const res = await fetch(`${SUPABASE_CONFIG.url}/storage/v1/object/${SUPABASE_CONFIG.bucket}/${safeName}`, {
         method: 'POST',
-        headers: {
-          'apikey': apiKey,
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': blob.type || 'image/jpeg'
-        },
+        headers: await getSupabaseHeaders({ 'Content-Type': blob.type || 'image/jpeg' }),
         body: blob
       });
       if (res.ok) {
-        return `${SUPABASE_CONFIG.url}/storage/v1/object/public/uploads/${safeName}`;
+        return `${SUPABASE_CONFIG.url}/storage/v1/object/public/${SUPABASE_CONFIG.bucket}/${safeName}`;
       }
     } catch (err) {
       console.warn('[Supabase] Storage upload error:', err);
     }
     return null;
+  },
+
+  // รูปที่นักเรียนแนบตอนสมัคร → bucket ส่วนตัว "student-uploads" (อัปโหลดได้ แต่เปิดดูได้เฉพาะแอดมิน)
+  // คืนค่าเป็น "private:student-uploads/<ชื่อไฟล์>" ไม่ใช่ลิงก์สาธารณะ
+  uploadStudentImage: async (blob, filename) => {
+    try {
+      const ext = String(filename || 'image.jpg').split('.').pop().replace(/[^a-z0-9]/gi, '').slice(0, 5) || 'jpg';
+      const rand = (window.crypto && crypto.getRandomValues)
+        ? Array.from(crypto.getRandomValues(new Uint8Array(12)), b => b.toString(16).padStart(2, '0')).join('')
+        : Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
+      const safeName = `student-${Date.now()}-${rand}.${ext}`;
+      const res = await fetch(`${SUPABASE_CONFIG.url}/storage/v1/object/${SUPABASE_CONFIG.studentBucket}/${safeName}`, {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_CONFIG.anonKey,
+          'Authorization': `Bearer ${SUPABASE_CONFIG.anonKey}`,
+          'Content-Type': blob.type || 'image/jpeg'
+        },
+        body: blob
+      });
+      if (res.ok) return `private:${SUPABASE_CONFIG.studentBucket}/${safeName}`;
+      console.warn('[Supabase] Student image upload failed:', res.status, await res.text().catch(() => ''));
+    } catch (err) {
+      console.warn('[Supabase] Student image upload error:', err);
+    }
+    return null;
+  },
+
+  // แปลงรูปที่นักเรียนแนบเป็นลิงก์ที่เปิดดูได้ (รูปส่วนตัว = ลิงก์ชั่วคราว 1 ชั่วโมง สำหรับแอดมิน)
+  getStudentImageUrl: async (ref) => {
+    if (!ref) return '';
+    const m = String(ref).match(/^private:([a-z0-9-]+)\/(.+)$/i);
+    if (!m) return resolveMediaUrl(ref);
+    try {
+      const res = await fetch(`${SUPABASE_CONFIG.url}/storage/v1/object/sign/${m[1]}/${m[2]}`, {
+        method: 'POST',
+        headers: await getSupabaseHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify({ expiresIn: 3600 })
+      });
+      if (!res.ok) return '';
+      const json = await res.json();
+      const signed = json.signedURL || json.signedUrl || '';
+      return signed ? `${SUPABASE_CONFIG.url}/storage/v1${signed.startsWith('/') ? '' : '/'}${signed}` : '';
+    } catch (e) {
+      return '';
+    }
   },
 
   // Courses
@@ -1053,43 +1215,86 @@ const NewGenDB = {
   },
 
   // Enrollments (ระบบรายชื่อผู้สมัครเรียน)
+  // ข้อมูลอยู่ในตาราง "enrollments" ของ Supabase: แอดมินอ่าน/แก้ได้, สาธารณะส่งใบสมัครได้อย่างเดียว (submitEnrollments)
+  // เก็บไว้ในหน่วยความจำเท่านั้น ไม่บันทึกข้อมูลส่วนบุคคลลง localStorage
   getEnrollments: () => {
-    try {
-      const data = localStorage.getItem('newgen_enrollments');
-      if (data) {
-        const parsed = JSON.parse(data);
-        if (Array.isArray(parsed)) return parsed;
-      }
-    } catch (e) {}
     return (typeof window !== 'undefined' && Array.isArray(window.enrollmentsData)) ? window.enrollmentsData : [];
   },
-  saveEnrollments: (enrollments) => {
+  fetchEnrollments: async () => {
     try {
-      localStorage.setItem('newgen_enrollments', JSON.stringify(enrollments));
+      const res = await fetch(`${SUPABASE_CONFIG.url}/rest/v1/enrollments?select=id,data&order=created_at.desc`, {
+        headers: await getSupabaseHeaders()
+      });
+      if (!res.ok) return false;
+      const rows = await res.json();
+      if (!Array.isArray(rows)) return false;
+      window.enrollmentsData = rows.map(r => ({ ...(r.data || {}), id: r.id }));
+      return true;
     } catch (e) {
-      console.warn('LocalStorage save error:', e);
+      console.warn('[Supabase] Fetch enrollments error:', e);
+      return false;
     }
-    if (typeof window !== 'undefined') window.enrollmentsData = enrollments;
+  },
+  _upsertEnrollmentRows: async (list) => {
+    if (!NewGenAuth.getSession()) return { success: false, error: 'ต้องเข้าสู่ระบบแอดมินก่อนบันทึกข้อมูล' };
     try {
-      const base = typeof getApiBaseUrl === 'function' ? getApiBaseUrl() : '';
-      if (base) {
-        fetch(`${base}/api/enrollments`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(enrollments)
-        }).catch(() => {});
+      const now = new Date().toISOString();
+      const res = await fetch(`${SUPABASE_CONFIG.url}/rest/v1/enrollments?on_conflict=id`, {
+        method: 'POST',
+        headers: await getSupabaseHeaders({ 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates' }),
+        body: JSON.stringify(list.map(e => ({
+          id: e.id,
+          course_id: e.courseId || null,
+          data: e,
+          created_at: e.createdAt || now,
+          updated_at: now
+        })))
+      });
+      if (!res.ok) {
+        const text = await res.text();
+        console.warn('[Supabase] Save enrollment error:', res.status, text);
+        return { success: false, status: res.status, error: res.status === 401 || res.status === 403 ? 'ไม่มีสิทธิ์บันทึก (กรุณาเข้าสู่ระบบใหม่)' : text };
       }
-    } catch (err) {}
-    return NewGenDB.saveToSupabase('enrollments', enrollments);
+      return { success: true };
+    } catch (err) {
+      return { success: false, error: err.message };
+    }
+  },
+  // ใช้ตอนกู้คืนข้อมูลจากไฟล์สำรอง (แอดมิน): เพิ่ม/อัปเดตรายการในไฟล์ ไม่ลบรายการที่มีอยู่
+  saveEnrollments: async (enrollments) => {
+    const list = (Array.isArray(enrollments) ? enrollments : []).filter(e => e && e.id);
+    if (list.length === 0) return { success: true };
+    const res = await NewGenDB._upsertEnrollmentRows(list);
+    if (res.success) await NewGenDB.fetchEnrollments();
+    return res;
+  },
+  // ส่งใบสมัครจากหน้าเว็บ (สาธารณะ) — ใบหลัก + ใบย่อยของแพ็คเกจ ส่งในครั้งเดียว
+  submitEnrollments: async (items) => {
+    const res = await fetch(`${SUPABASE_CONFIG.url}/rest/v1/rpc/submit_enrollment`, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_CONFIG.anonKey,
+        'Authorization': `Bearer ${SUPABASE_CONFIG.anonKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ items })
+    });
+    if (!res.ok) {
+      const text = await res.text().catch(() => '');
+      throw new Error(`submit_enrollment failed (HTTP ${res.status}) ${text}`);
+    }
+    return res.json();
   },
   saveEnrollment: (enrollment) => {
     const list = NewGenDB.getEnrollments();
     if (!enrollment.id) enrollment.id = `enr-${Date.now()}`;
     if (!enrollment.createdAt) enrollment.createdAt = new Date().toISOString();
     const idx = list.findIndex(e => e.id === enrollment.id);
-    if (idx !== -1) list[idx] = { ...list[idx], ...enrollment };
-    else list.unshift(enrollment);
-    const savePromise = NewGenDB.saveEnrollments(list);
+    const merged = idx !== -1 ? { ...list[idx], ...enrollment } : enrollment;
+    if (idx !== -1) list[idx] = merged;
+    else list.unshift(merged);
+    if (typeof window !== 'undefined') window.enrollmentsData = list;
+    const savePromise = NewGenDB._upsertEnrollmentRows([merged]);
 
     // Recalculate remaining seats for the course
     if (enrollment.courseId) {
@@ -1112,7 +1317,19 @@ const NewGenDB = {
     let list = NewGenDB.getEnrollments();
     const itemToDelete = list.find(e => e.id === id);
     list = list.filter(e => e.id !== id);
-    const savePromise = NewGenDB.saveEnrollments(list);
+    if (typeof window !== 'undefined') window.enrollmentsData = list;
+    const savePromise = (async () => {
+      if (!NewGenAuth.getSession()) return { success: false, error: 'ต้องเข้าสู่ระบบแอดมินก่อน' };
+      try {
+        const res = await fetch(`${SUPABASE_CONFIG.url}/rest/v1/enrollments?id=eq.${encodeURIComponent(id)}`, {
+          method: 'DELETE',
+          headers: await getSupabaseHeaders()
+        });
+        return res.ok ? { success: true } : { success: false, status: res.status, error: await res.text() };
+      } catch (err) {
+        return { success: false, error: err.message };
+      }
+    })();
 
     if (itemToDelete && itemToDelete.courseId) {
       const courses = NewGenDB.getCourses();
@@ -1192,33 +1409,6 @@ const NewGenDB = {
     return NewGenDB.saveToSupabase('enrollmentConfig', merged);
   },
 
-  // Admin Credentials & Authentication
-  getAdminAuth: () => {
-    try {
-      const data = localStorage.getItem('newgen_admin_cred');
-      if (data) return { ...DEFAULT_ADMIN, ...JSON.parse(data) };
-    } catch (e) {}
-    return DEFAULT_ADMIN;
-  },
-  saveAdminAuth: (authObj) => {
-    try {
-      localStorage.setItem('newgen_admin_cred', JSON.stringify(authObj));
-    } catch (e) {
-      console.warn('LocalStorage save error:', e);
-    }
-    try {
-      const base = typeof getApiBaseUrl === 'function' ? getApiBaseUrl() : '';
-      if (base) {
-        fetch(`${base}/api/admin`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(authObj)
-        }).catch(() => {});
-      }
-    } catch (err) {}
-    return NewGenDB.saveToSupabase('admin', authObj);
-  },
-
   // Reset to default
   resetDefaults: () => {
     localStorage.removeItem('newgen_courses');
@@ -1233,7 +1423,6 @@ const NewGenDB = {
     localStorage.removeItem('newgen_whyus');
     localStorage.removeItem('newgen_home');
     localStorage.removeItem('newgen_about');
-    localStorage.removeItem('newgen_enrollments');
   }
 };
 
@@ -1390,7 +1579,14 @@ function resolveMediaUrl(url) {
 
 // Initialize window variables
 if (typeof window !== 'undefined') {
+  // ล้างข้อมูลเก่าที่เวอร์ชันก่อนเคยเก็บไว้ในเบราว์เซอร์ของผู้เยี่ยมชม (รายชื่อนักเรียน / รหัสผ่านแอดมิน)
+  try {
+    ['newgen_enrollments', 'newgen_admin_cred', 'newgen_admin_auth', 'newgen_admin_user'].forEach(k => localStorage.removeItem(k));
+    ['newgen_admin_auth', 'newgen_admin_user'].forEach(k => sessionStorage.removeItem(k));
+  } catch (e) {}
+
   window.SUPABASE_CONFIG = SUPABASE_CONFIG;
+  window.NewGenAuth = NewGenAuth;
   window.getApiBaseUrl = getApiBaseUrl;
   window.resolveMediaUrl = resolveMediaUrl;
   window.formatExternalUrl = formatExternalUrl;

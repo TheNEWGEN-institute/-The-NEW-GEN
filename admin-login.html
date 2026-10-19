@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Prompt:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
-  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/style.css?v=20261019-sec1">
 </head>
 <body class="page-admin-login">
 
@@ -29,8 +29,8 @@
       <!-- Login Form -->
       <form id="adminLoginForm" onsubmit="handleAdminLogin(event)">
         <div class="form-group-luxury">
-          <label><i class="fa-solid fa-user"></i> ชื่อผู้ใช้งาน (Username)</label>
-          <input type="text" id="adminUser" placeholder="admin" required autocomplete="username">
+          <label><i class="fa-solid fa-envelope"></i> อีเมลผู้ดูแลระบบ (Email)</label>
+          <input type="email" id="adminUser" placeholder="you@example.com" required autocomplete="username">
         </div>
 
         <div class="form-group-luxury">
@@ -44,7 +44,7 @@
         </div>
 
         <div id="loginErrorMsg" class="login-error-alert" style="display: none;">
-          <i class="fa-solid fa-triangle-exclamation"></i> ชื่อผู้ใช้งานหรือรหัสผ่านไม่ถูกต้อง
+          <i class="fa-solid fa-triangle-exclamation"></i> <span id="loginErrorText">อีเมลหรือรหัสผ่านไม่ถูกต้อง</span>
         </div>
 
         <button type="submit" id="btnLoginSubmit" class="btn-primary" style="width: 100%; justify-content: center; padding: 13px; font-size: 1rem; margin-top: 10px;">
@@ -59,12 +59,15 @@
     </div>
   </div>
 
-  <script src="assets/js/courses-data.js"></script>
+  <script src="assets/js/courses-data.js?v=20261019-sec1"></script>
   <script>
-    // ถ้าเคยเข้าสู่ระบบแล้ว ให้จำไว้และไปหน้า admin ทันที
-    if (localStorage.getItem('newgen_admin_auth') === 'true' || sessionStorage.getItem('newgen_admin_auth') === 'true') {
-      window.location.href = 'admin.html';
-    }
+    // ถ้ายังมี session แอดมินที่ใช้ได้อยู่ ให้ไปหน้า admin ทันที
+    (async () => {
+      if (window.NewGenAuth && window.NewGenAuth.getSession()) {
+        const token = await window.NewGenAuth.getAccessToken();
+        if (token && window.NewGenAuth.isAdminSession()) window.location.href = 'admin.html';
+      }
+    })();
 
     function togglePassVisibility() {
       const pass = document.getElementById('adminPass');
@@ -80,10 +83,20 @@
 
     async function handleAdminLogin(e) {
       e.preventDefault();
-      const user = document.getElementById('adminUser').value.trim();
-      const pass = document.getElementById('adminPass').value.trim();
+      const email = document.getElementById('adminUser').value.trim();
+      const pass = document.getElementById('adminPass').value;
       const errBox = document.getElementById('loginErrorMsg');
+      const errText = document.getElementById('loginErrorText');
       const submitBtn = document.getElementById('btnLoginSubmit');
+
+      const showError = (msg) => {
+        if (errText) errText.textContent = msg;
+        if (errBox) errBox.style.display = 'flex';
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> เข้าสู่ระบบหลังบ้าน';
+        }
+      };
 
       if (errBox) errBox.style.display = 'none';
       if (submitBtn) {
@@ -91,46 +104,18 @@
         submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังตรวจสอบ...';
       }
 
-      // ดึงข้อมูลรหัสผ่านที่ตั้งไว้ (จาก LocalStorage / ค่าเริ่มต้น)
-      let cred = window.NewGenDB ? window.NewGenDB.getAdminAuth() : { username: 'admin', password: 'NewGen@2026' };
-
-      // พยายามดึงรหัสผ่านล่าสุดจาก Supabase เพื่อให้แม่นยำ 100% แม้เปลี่ยนจากเครื่องอื่น
+      // ตรวจรหัสผ่านที่ Supabase Auth (รหัสผ่านไม่ถูกเก็บหรือเทียบในหน้าเว็บ)
       try {
-        if (window.SUPABASE_CONFIG && window.SUPABASE_CONFIG.url) {
-          const res = await fetch(`${window.SUPABASE_CONFIG.url}/rest/v1/app_data?key=eq.admin&select=data`, {
-            headers: {
-              'apikey': window.SUPABASE_CONFIG.anonKey,
-              'Authorization': `Bearer ${window.SUPABASE_CONFIG.anonKey}`
-            }
-          });
-          if (res.ok) {
-            const rows = await res.json();
-            if (rows && rows.length > 0 && rows[0].data) {
-              cred = rows[0].data;
-              localStorage.setItem('newgen_admin_cred', JSON.stringify(cred));
-            }
-          }
+        const session = await window.NewGenAuth.signIn(email, pass);
+        if (!window.NewGenAuth.isAdminSession(session)) {
+          await window.NewGenAuth.signOut();
+          showError('บัญชีนี้ยังไม่ได้รับสิทธิ์ผู้ดูแลระบบ');
+          return;
         }
-      } catch (err) {
-        console.warn('Network auth fallback to local credentials:', err);
-      }
-
-      // ตรวจสอบชื่อผู้ใช้งานและรหัสผ่าน
-      const validUser = (user === cred.username || (cred.username === 'admin' && user === 'thenewgen'));
-      const validPass = (pass === cred.password);
-
-      if (validUser && validPass) {
-        localStorage.setItem('newgen_admin_auth', 'true');
-        localStorage.setItem('newgen_admin_user', user);
-        sessionStorage.setItem('newgen_admin_auth', 'true');
-        sessionStorage.setItem('newgen_admin_user', user);
         window.location.href = 'admin.html';
-      } else {
-        if (submitBtn) {
-          submitBtn.disabled = false;
-          submitBtn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> เข้าสู่ระบบหลังบ้าน';
-        }
-        if (errBox) errBox.style.display = 'flex';
+      } catch (err) {
+        console.warn('Admin login failed:', err);
+        showError(err.status === 400 ? 'อีเมลหรือรหัสผ่านไม่ถูกต้อง' : 'เชื่อมต่อระบบไม่สำเร็จ กรุณาลองใหม่อีกครั้ง');
       }
     }
   </script>

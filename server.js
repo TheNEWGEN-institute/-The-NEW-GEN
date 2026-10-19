@@ -1,6 +1,9 @@
 /**
- * The NEW GEN Tutoring Institute - Node.js Backend Server
+ * The NEW GEN Tutoring Institute - Local development server
  * Run command: node server.js
+ *
+ * ใช้ทดสอบบนเครื่องตัวเองเท่านั้น (เว็บจริงอยู่บน GitHub Pages + Supabase)
+ * API ในไฟล์นี้ไม่มีระบบล็อกอิน จึงเปิดให้เข้าได้เฉพาะจากเครื่องนี้ (127.0.0.1)
  */
 
 const http = require('http');
@@ -25,7 +28,7 @@ function readDatabase() {
   } catch (err) {
     console.error('Error reading database:', err);
   }
-  return { courses: [], tutors: [], reviews: [], videos: [], contact: {}, whyus: {}, popupCampaign: {}, bundles: [], enrollments: [], admin: { username: 'admin', password: 'NewGen@2026' } };
+  return { courses: [], tutors: [], reviews: [], videos: [], contact: {}, whyus: {}, popupCampaign: {}, bundles: [], enrollments: [] };
 }
 
 function writeDatabase(data) {
@@ -137,32 +140,7 @@ const server = http.createServer(async (req, res) => {
   if (pathname.startsWith('/api/')) {
     const db = readDatabase();
 
-    // 1. Auth Login & Admin Settings
-    if (pathname === '/api/login' && method === 'POST') {
-      const { username, password } = await parseRequestBody(req);
-      if (
-        (username === db.admin?.username || username === 'admin' || username === 'thenewgen') &&
-        password === (db.admin?.password || 'NewGen@2026')
-      ) {
-        return sendJson(res, 200, { success: true, token: 'newgen_admin_token_2026' });
-      }
-      return sendJson(res, 401, { success: false, message: 'Invalid credentials' });
-    }
-
-    if (pathname === '/api/admin') {
-      if (method === 'GET') {
-        return sendJson(res, 200, { username: db.admin?.username || 'admin' });
-      }
-      if (method === 'POST') {
-        const cred = await parseRequestBody(req);
-        if (cred && cred.username && cred.password) {
-          db.admin = { username: cred.username, password: cred.password };
-          writeDatabase(db);
-          return sendJson(res, 200, { success: true });
-        }
-        return sendJson(res, 400, { error: 'Invalid admin data' });
-      }
-    }
+    // 1. Admin login moved to Supabase Auth (no passwords handled here)
 
     // 2. Upload Base64 Image
     if (pathname === '/api/upload' && method === 'POST') {
@@ -595,7 +573,7 @@ const server = http.createServer(async (req, res) => {
   });
 });
 
-server.listen(PORT, () => {
+server.listen(PORT, '127.0.0.1', () => {
   console.log(`=======================================================`);
   console.log(`🚀 The NEW GEN Tutoring Server is running!`);
   console.log(`👉 Website: http://localhost:${PORT}`);

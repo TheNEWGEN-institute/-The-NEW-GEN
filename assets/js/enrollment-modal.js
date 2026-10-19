@@ -275,6 +275,15 @@
                 </div>
               </div>
 
+              <!-- PDPA: ความยินยอมของผู้ปกครองในการเก็บและใช้ข้อมูลส่วนบุคคล -->
+              <div class="enroll-section-block enroll-consent-block">
+                <label class="enroll-consent-label">
+                  <input type="checkbox" id="enrInputConsent" required>
+                  <span id="lblEnrollConsent">ข้าพเจ้า (ผู้ปกครอง/นักเรียน) ยินยอมให้สถาบัน The NEW GEN เก็บและใช้ข้อมูลที่กรอกในแบบฟอร์มนี้ เพื่อการติดต่อ ยืนยันการสมัคร และจัดการเรียนการสอนเท่านั้น โดยจะไม่เปิดเผยแก่บุคคลภายนอก และสามารถขอให้ลบข้อมูลได้ทุกเมื่อผ่านช่องทาง LINE ของสถาบัน</span>
+                  <span class="req-star">*</span>
+                </label>
+              </div>
+
               <!-- Footer Buttons -->
               <div class="enroll-modal-actions">
                 <button type="button" class="btn-enr-cancel" onclick="closeEnrollmentModal()">ยกเลิก</button>
@@ -1078,6 +1087,11 @@
       return;
     }
 
+    if (!document.getElementById('enrInputConsent')?.checked) {
+      alert('กรุณากดยินยอมการเก็บและใช้ข้อมูลส่วนบุคคลก่อนส่งใบสมัคร');
+      return;
+    }
+
     // Custom questions collection & validation
     const cfg = (window.NewGenDB && typeof window.NewGenDB.getEnrollmentConfig === 'function')
       ? window.NewGenDB.getEnrollmentConfig()
@@ -1199,56 +1213,47 @@
     submitBtn.disabled = true;
     submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังบันทึกข้อมูล...';
 
-    // If student selected an image, upload to server
+    const restoreSubmitBtn = () => {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = origBtnHtml;
+    };
+
+    // รูปที่แนบ → อัปโหลดเข้า bucket ส่วนตัว (เปิดดูได้เฉพาะแอดมิน)
     let studentImageUrl = '';
     if (currentStudentImageBase64) {
+      submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังอัปโหลดรูปภาพ...';
       try {
-        submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังอัปโหลดรูปภาพ...';
-        // 1. Try Supabase Storage upload first for cloud persistence
-        if (window.NewGenDB && typeof window.NewGenDB.uploadImageToSupabase === 'function') {
-          try {
-            const arr = currentStudentImageBase64.split(',');
-            const mime = (arr[0].match(/:(.*?);/) || [])[1] || 'image/jpeg';
-            const bstr = atob(arr[1]);
-            let n = bstr.length;
-            const u8arr = new Uint8Array(n);
-            while (n--) u8arr[n] = bstr.charCodeAt(n);
-            const blob = new Blob([u8arr], { type: mime });
-            const fname = currentStudentImageFileName || `student-${Date.now()}.jpg`;
-            const supaUrl = await window.NewGenDB.uploadImageToSupabase(blob, fname);
-            if (supaUrl) studentImageUrl = supaUrl;
-          } catch (supaErr) {
-            console.warn('Supabase storage upload error:', supaErr);
-          }
-        }
-        // 2. Fallback to /api/upload
-        if (!studentImageUrl) {
-          const uploadRes = await fetch('/api/upload', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              base64Data: currentStudentImageBase64,
-              filename: currentStudentImageFileName || 'student-attachment.jpg'
-            })
-          });
-          if (uploadRes.ok) {
-            const upJson = await uploadRes.json();
-            if (upJson && upJson.url) {
-              studentImageUrl = upJson.url;
-            }
-          }
-        }
+        const arr = currentStudentImageBase64.split(',');
+        const mime = (arr[0].match(/:(.*?);/) || [])[1] || 'image/jpeg';
+        const bstr = atob(arr[1]);
+        let n = bstr.length;
+        const u8arr = new Uint8Array(n);
+        while (n--) u8arr[n] = bstr.charCodeAt(n);
+        const blob = new Blob([u8arr], { type: mime });
+        const fname = currentStudentImageFileName || `student-${Date.now()}.jpg`;
+        studentImageUrl = (await window.NewGenDB.uploadStudentImage(blob, fname)) || '';
       } catch (upErr) {
-        console.warn('Student image upload error, using direct dataUrl:', upErr);
+        console.warn('Student image upload error:', upErr);
       }
       if (!studentImageUrl) {
-        studentImageUrl = currentStudentImageBase64;
+        if (isImgRequired) {
+          alert('อัปโหลดรูปภาพไม่สำเร็จ กรุณาลองใหม่อีกครั้ง (รองรับไฟล์ JPG, PNG ขนาดไม่เกิน 10MB)');
+          restoreSubmitBtn();
+          return;
+        }
+        if (!confirm('อัปโหลดรูปภาพไม่สำเร็จ ต้องการส่งใบสมัครโดยไม่แนบรูปหรือไม่?\n(สามารถส่งรูปให้เจ้าหน้าที่ทาง LINE ภายหลังได้)')) {
+          restoreSubmitBtn();
+          return;
+        }
       }
+      submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังบันทึกข้อมูล...';
     }
 
-    // Generate readable application ID
+    // Generate readable, hard-to-guess application ID (เช่น ENR-20261019-K7Q2XM)
     const todayStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-    const randPart = Math.floor(1000 + Math.random() * 9000);
+    const idChars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    const randBytes = (window.crypto && crypto.getRandomValues) ? crypto.getRandomValues(new Uint8Array(6)) : Array.from({ length: 6 }, () => Math.floor(Math.random() * 256));
+    const randPart = Array.from(randBytes, b => idChars[b % idChars.length]).join('');
     const enrollId = `ENR-${todayStr}-${randPart}`;
 
     const newEnrollment = {
@@ -1281,39 +1286,48 @@
       // ราคา ณ วันที่สมัคร (ใช้คำนวณรายได้ในหน้าสรุปสถิติ แม้จะปรับราคาคอร์สภายหลัง)
       price: currentEnrollCourse.isCampaign ? 0 : (parseInt(String(currentEnrollCourse.pricePromo || '').replace(/[^0-9]/g, ''), 10) || null),
       priceUnit: currentEnrollCourse.priceUnit || '',
+      // ผู้ปกครองยินยอมให้เก็บและใช้ข้อมูลส่วนบุคคล (PDPA)
+      consentAccepted: true,
+      consentText: (document.getElementById('lblEnrollConsent')?.textContent || '').trim().slice(0, 500),
       status: 'pending', // รอตรวจสอบ/ชำระเงินทางไลน์
       createdAt: new Date().toISOString()
     };
 
-    try {
-      if (window.NewGenDB && typeof window.NewGenDB.saveEnrollment === 'function') {
-        await window.NewGenDB.saveEnrollment(newEnrollment);
+    // ใบหลัก + ใบย่อยของทุกคอร์สในแพ็คเกจ (ตามรอบเรียนที่เลือกของแต่ละคอร์ส) ส่งพร้อมกันครั้งเดียว
+    const submitItems = [newEnrollment];
+    if (isBundle && childCourseIds.length > 0) {
+      const allCourses = (window.NewGenDB ? window.NewGenDB.getCourses() : (window.courseData || []));
+      childCourseIds.forEach(subId => {
+        const subCourse = allCourses.find(c => c.id === subId);
+        submitItems.push({
+          ...newEnrollment,
+          id: `${enrollId}-${subId}`,
+          courseId: subId,
+          courseTitle: subCourse ? subCourse.title : subId,
+          scheduleChoice: childSchedulesMap[subId] || scheduleChoice,
+          isBundle: false,
+          isFromBundle: true,
+          bundleId: currentEnrollCourse.id,
+          bundleName: currentEnrollCourse.name || currentEnrollCourse.title,
+          parentEnrollId: enrollId,
+          notes: (notes || '').trim()
+        });
+      });
+    }
 
-        // Requirement 1: If bundle, send student's name to EVERY course in the bundle with their specific chosen schedule!
-        if (isBundle && childCourseIds.length > 0) {
-          const allCourses = (window.NewGenDB ? window.NewGenDB.getCourses() : (window.courseData || []));
-          for (const subId of childCourseIds) {
-            const subCourse = allCourses.find(c => c.id === subId);
-            const specificSched = childSchedulesMap[subId] || scheduleChoice;
-            const subEnrollment = {
-              ...newEnrollment,
-              id: `${enrollId}-${subId}`,
-              courseId: subId,
-              courseTitle: subCourse ? subCourse.title : subId,
-              scheduleChoice: specificSched,
-              isBundle: false,
-              isFromBundle: true,
-              bundleId: currentEnrollCourse.id,
-              bundleName: currentEnrollCourse.name || currentEnrollCourse.title,
-              parentEnrollId: enrollId,
-              notes: (notes || '').trim()
-            };
-            await window.NewGenDB.saveEnrollment(subEnrollment);
-          }
-        }
+    try {
+      const result = await window.NewGenDB.submitEnrollments(submitItems);
+      if (!result || !Array.isArray(result.ids) || !result.ids.includes(enrollId)) {
+        throw new Error('enrollment not stored');
       }
     } catch (err) {
-      console.warn('Save enrollment error, proceeding with confirmation:', err);
+      console.warn('Save enrollment error:', err);
+      restoreSubmitBtn();
+      const lineUrl = getContactLineUrl();
+      if (confirm('ขออภัย ระบบบันทึกใบสมัครไม่สำเร็จในขณะนี้ กรุณาลองกดยืนยันอีกครั้ง\n\nหรือกด "ตกลง" เพื่อทัก LINE สถาบันให้เจ้าหน้าที่ช่วยลงทะเบียนให้')) {
+        window.open(lineUrl, '_blank', 'noopener,noreferrer');
+      }
+      return;
     }
 
     lastEnrollmentData = newEnrollment;
@@ -1331,7 +1345,7 @@
     if (confAttRow && confAttVal) {
       if (studentImageUrl) {
         confAttRow.style.display = 'flex';
-        confAttVal.innerHTML = `<a href="${studentImageUrl}" target="_blank" rel="noopener noreferrer" style="color:#2563eb; text-decoration:underline; font-weight:700;"><i class="fa-solid fa-paperclip"></i> คลิกดูรูปภาพที่แนบ</a>`;
+        confAttVal.innerHTML = `<span style="color:#16a34a; font-weight:700;"><i class="fa-solid fa-paperclip"></i> แนบรูปภาพเรียบร้อยแล้ว</span>`;
       } else {
         confAttRow.style.display = 'none';
       }
@@ -1428,7 +1442,7 @@
 ชื่อนักเรียน: ${lastEnrollmentData.studentName} (${lastEnrollmentData.nickname})
 ระดับชั้น: ${lastEnrollmentData.grade} | รร. ${lastEnrollmentData.school}
 เบอร์ผู้ปกครอง: ${lastEnrollmentData.parentPhone}
-LINE ID: ${lastEnrollmentData.lineId}${customText}${lastEnrollmentData.studentImageUrl ? `\nรูปภาพแนบ: ${lastEnrollmentData.studentImageUrl}` : ''}
+LINE ID: ${lastEnrollmentData.lineId}${customText}${lastEnrollmentData.studentImageUrl ? '\nรูปภาพแนบ: แนบในระบบเรียบร้อยแล้ว' : ''}
 -------------------------
 หนู/ผมได้สมัครในระบบแล้ว ขอส่งข้อมูลเพื่อยืนยันที่นั่งครับ`;
 
