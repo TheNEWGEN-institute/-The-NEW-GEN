@@ -1,0 +1,1332 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>แบบเสนอโลโก้ใหม่ 10 สไตล์ | สถาบันกวดวิชา The NEW GEN</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800;900&family=Prompt:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    :root {
+      --color-navy: #0b1e3f;
+      --color-navy-dark: #07152b;
+      --color-navy-deep: #051024;
+      --color-red: #e11d48;
+      --color-red-light: #f43f5e;
+      --color-bg-light: #f8fafc;
+      --font-en: 'Plus Jakarta Sans', sans-serif;
+      --font-th: 'Prompt', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-th);
+      background: #f1f5f9;
+      color: #0f172a;
+      line-height: 1.6;
+      padding-bottom: 80px;
+    }
+
+    /* Top banner */
+    .hero-header {
+      background: linear-gradient(135deg, #07152b 0%, #0b1e3f 50%, #1e3a8a 100%);
+      color: white;
+      padding: 44px 20px;
+      text-align: center;
+      border-bottom: 4px solid var(--color-red);
+    }
+
+    .hero-header h1 {
+      font-size: 2.2rem;
+      font-weight: 800;
+      margin-bottom: 12px;
+      letter-spacing: -0.5px;
+    }
+
+    .hero-header p {
+      font-size: 1.05rem;
+      color: #94a3b8;
+      max-width: 780px;
+      margin: 0 auto;
+    }
+
+    .container {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+
+    /* Current Logo Comparison Box */
+    .current-comparison {
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      margin: -24px auto 32px;
+      box-shadow: 0 10px 25px rgba(11, 30, 63, 0.08);
+      border: 1px solid #e2e8f0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .current-info {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .badge-pill {
+      display: inline-block;
+      background: #fee2e2;
+      color: #b91c1c;
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 999px;
+    }
+
+    /* Filter Bar */
+    .filter-section {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+    }
+
+    .filter-btn {
+      padding: 10px 20px;
+      border-radius: 999px;
+      font-family: var(--font-th);
+      font-size: 0.92rem;
+      font-weight: 700;
+      cursor: pointer;
+      border: 1.5px solid #cbd5e1;
+      background: white;
+      color: #475569;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .filter-btn.active {
+      background: var(--color-navy);
+      color: white;
+      border-color: var(--color-navy);
+      box-shadow: 0 4px 12px rgba(11, 30, 63, 0.2);
+    }
+
+    /* Section Separator */
+    .section-divider-title {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--color-navy);
+      margin: 36px 0 18px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .section-divider-title::after {
+      content: '';
+      flex: 1;
+      height: 2px;
+      background: #e2e8f0;
+    }
+
+    /* Global Brand Logo Container */
+    .brand-logo-unit {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      user-select: none;
+    }
+
+    .brand-badge {
+      background: linear-gradient(135deg, #0b1e3f, #1e3a8a);
+      border: 1.5px solid var(--color-red);
+      padding: 7px 12px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(11, 30, 63, 0.18);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 46px;
+      height: 42px;
+      flex-shrink: 0;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .brand-badge svg {
+      width: 22px;
+      height: 22px;
+      fill: var(--color-red);
+      color: var(--color-red);
+    }
+
+    .brand-text-block {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      text-align: left;
+    }
+
+    .brand-title {
+      font-family: var(--font-en);
+      font-weight: 800;
+      font-size: 1.45rem;
+      letter-spacing: -0.5px;
+      line-height: 1.05;
+      color: var(--color-navy);
+    }
+
+    .brand-title .brand-new {
+      color: var(--color-navy);
+      font-weight: 900;
+    }
+
+    .brand-title .brand-gen {
+      color: var(--color-red);
+      font-weight: 900;
+    }
+
+    .brand-subtitle {
+      font-family: var(--font-th);
+      font-size: 0.74rem;
+      color: var(--color-navy);
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      line-height: 1.3;
+      margin-top: 2px;
+      white-space: nowrap;
+    }
+
+    .brand-subtitle .sub-gen {
+      color: var(--color-red);
+      font-weight: 800;
+    }
+
+    /* Dark Mode Variants */
+    .dark-preview .brand-title {
+      color: #ffffff;
+    }
+    .dark-preview .brand-title .brand-new {
+      color: #ffffff;
+    }
+    .dark-preview .brand-subtitle {
+      color: rgba(255, 255, 255, 0.85);
+    }
+
+    /* Grid of Proposals */
+    .proposals-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 26px;
+      margin-bottom: 36px;
+    }
+
+    .option-card {
+      background: white;
+      border-radius: 20px;
+      overflow: hidden;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+      transition: all 0.25s ease;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .option-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 16px 32px rgba(11, 30, 63, 0.12);
+      border-color: #cbd5e1;
+    }
+
+    .card-header-bar {
+      padding: 16px 20px;
+      background: #f8fafc;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .option-number {
+      font-size: 0.85rem;
+      font-weight: 800;
+      color: var(--color-navy);
+      background: #e2e8f0;
+      padding: 4px 12px;
+      border-radius: 999px;
+      letter-spacing: 0.5px;
+    }
+
+    .option-number.batch-2-tag {
+      background: #fee2e2;
+      color: #b91c1c;
+    }
+
+    .option-concept-title {
+      font-weight: 700;
+      font-size: 1rem;
+      color: var(--color-navy);
+    }
+
+    .preview-canvas {
+      padding: 30px 20px;
+      background: #ffffff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 135px;
+      position: relative;
+    }
+
+    .canvas-label {
+      position: absolute;
+      top: 10px;
+      left: 14px;
+      font-size: 0.7rem;
+      color: #94a3b8;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .preview-canvas.dark-canvas {
+      background: linear-gradient(135deg, #07152b 0%, #0b1e3f 100%);
+      border-top: 1px solid #1e293b;
+    }
+
+    .preview-canvas.dark-canvas .canvas-label {
+      color: #64748b;
+    }
+
+    .card-body {
+      padding: 22px;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      background: #ffffff;
+    }
+
+    .concept-desc {
+      font-size: 0.92rem;
+      color: #475569;
+      margin-bottom: 14px;
+    }
+
+    .concept-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 16px;
+    }
+
+    .concept-tag {
+      font-size: 0.75rem;
+      background: #f1f5f9;
+      color: #334155;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-weight: 500;
+    }
+
+    .action-btn-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-action {
+      flex: 1;
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+      font-family: var(--font-th);
+      border: none;
+    }
+
+    .btn-select {
+      background: var(--color-navy);
+      color: white;
+    }
+    .btn-select:hover {
+      background: var(--color-red);
+    }
+
+    .btn-copy {
+      background: #f1f5f9;
+      color: #334155;
+      border: 1px solid #cbd5e1;
+    }
+    .btn-copy:hover {
+      background: #e2e8f0;
+      color: #0f172a;
+    }
+
+    /* Live Header Simulation Area */
+    .header-sim-section {
+      background: white;
+      border-radius: 20px;
+      padding: 32px;
+      margin-bottom: 40px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+      border: 1px solid #e2e8f0;
+    }
+
+    .sim-tabs {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 20px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+      flex-wrap: wrap;
+    }
+
+    .sim-tab-btn {
+      padding: 7px 14px;
+      border-radius: 8px;
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      font-family: var(--font-th);
+      font-size: 0.84rem;
+      font-weight: 600;
+      cursor: pointer;
+      color: #475569;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .sim-tab-btn.active {
+      background: var(--color-navy);
+      color: white;
+      border-color: var(--color-navy);
+    }
+
+    .sim-mockup-wrapper {
+      border: 2px solid #e2e8f0;
+      border-radius: 14px;
+      overflow: hidden;
+      background: #ffffff;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+    }
+
+    .sim-browser-bar {
+      background: #e2e8f0;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid #cbd5e1;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .dot-red { background: #ef4444; }
+    .dot-yellow { background: #f59e0b; }
+    .dot-green { background: #10b981; }
+
+    .browser-url-bar {
+      margin-left: 12px;
+      background: white;
+      border-radius: 6px;
+      padding: 4px 14px;
+      font-size: 0.78rem;
+      color: #64748b;
+      flex-grow: 1;
+      font-family: var(--font-en);
+    }
+
+    .sim-navbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 24px;
+      background: white;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    .sim-menu {
+      display: flex;
+      gap: 20px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: #334155;
+    }
+
+    .sim-menu span:first-child {
+      color: var(--color-red);
+    }
+
+    .sim-content {
+      padding: 40px 24px;
+      background: #f8fafc;
+      text-align: center;
+      color: #64748b;
+    }
+
+    /* Notification Toast */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #0f172a;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 10px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      font-size: 0.9rem;
+      font-weight: 500;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(10px);
+      transition: all 0.3s ease;
+      z-index: 9999;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Hero Header -->
+  <header class="hero-header">
+    <div class="container">
+      <span class="badge-pill" style="background: rgba(244, 63, 94, 0.2); color: #fda4af; margin-bottom: 12px; border: 1px solid rgba(244,63,94,0.4);">
+        <i class="fa-solid fa-wand-magic-sparkles"></i> The NEW GEN Brand Identity Redesign (10 Concepts)
+      </span>
+      <h1>10 รูปแบบโลโก้ใหม่ แทนรูปสายฟ้า (แบบการศึกษา &amp; ฉีกแนวสร้างสรรค์)</h1>
+      <p>คัดสรรดีไซน์ 10 อารมณ์ ตั้งแต่สายวิชาการ การเติบโตก้าวกระโดด ไปจนถึงพลัง ความคิดสร้างสรรค์ และเทคโนโลยี เพื่อความเป็นตัวตนของสถาบัน The NEW GEN</p>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <!-- Comparison with Current Logo -->
+    <div class="current-comparison">
+      <div class="current-info">
+        <span class="badge-pill"><i class="fa-solid fa-clock-rotate-left"></i> โลโก้เดิมปัจจุบัน</span>
+        <div class="brand-logo-unit">
+          <div class="brand-badge">
+            <svg viewBox="0 0 384 512">
+              <path d="M0 256L240 0l-48 192h192L144 512l48-192H0z"/>
+            </svg>
+          </div>
+          <div class="brand-text-block">
+            <div class="brand-title">The <span class="brand-new">NEW</span> <span class="brand-gen">GEN</span></div>
+            <span class="brand-subtitle">กวดวิชาของเด็ก <span class="sub-gen">GEN</span> ใหม่</span>
+          </div>
+        </div>
+      </div>
+      <div style="font-size: 0.88rem; color: #64748b; max-width: 500px;">
+        💡 <strong>แนวคิดในการเลือก:</strong> โทนสีและฟอนต์หลักของ The NEW GEN มีความพรีเมียมอยู่แล้ว การเปลี่ยนเฉพาะไอคอนในกรอบสี่เหลี่ยมมนจะช่วยเปลี่ยนอารมณ์ของแบรนด์ได้อย่างชัดเจน สามารถคลิกสลับดูทั้ง 10 แบบในตารางด้านล่างได้เลยครับ
+      </div>
+    </div>
+
+    <!-- Filter Buttons -->
+    <div class="filter-section">
+      <button class="filter-btn active" onclick="filterBatch('all', this)">
+        <i class="fa-solid fa-border-all"></i> แสดงทั้งหมด (10 รูปแบบ)
+      </button>
+      <button class="filter-btn" onclick="filterBatch('batch1', this)">
+        <i class="fa-solid fa-graduation-cap"></i> เซ็ตที่ 1: การศึกษาโดยตรง (แบบที่ 1 - 5)
+      </button>
+      <button class="filter-btn" onclick="filterBatch('batch2', this)">
+        <i class="fa-solid fa-fire-flame-curved"></i> เซ็ตที่ 2: ฉีกแนวสร้างสรรค์ &amp; ล้ำยุค (แบบที่ 6 - 10)
+      </button>
+    </div>
+
+    <!-- ================= BATCH 1 DIVIDER ================= -->
+    <h2 class="section-divider-title batch-group-1">
+      <i class="fa-solid fa-graduation-cap" style="color: var(--color-navy);"></i> เซ็ตที่ 1: สัญลักษณ์การศึกษาโดยตรง (Academic &amp; Learning)
+    </h2>
+
+    <div class="proposals-grid batch-group-1">
+
+      <!-- OPTION 1 -->
+      <div class="option-card" id="card-option-1">
+        <div class="card-header-bar">
+          <span class="option-number">แบบที่ 1</span>
+          <span class="option-concept-title">🎓 หมวกปริญญาแห่งความสำเร็จ</span>
+        </div>
+        <div class="preview-canvas">
+          <span class="canvas-label">พื้นหลังขาว (Light)</span>
+          <div class="brand-logo-unit">
+            <div class="brand-badge">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 3L1 8.5L12 14L21 9.5V16H23V8.5L12 3ZM5 12.18V16.5C5 18.99 8.13 21 12 21C15.87 21 19 18.99 19 16.5V12.18L12 15.68L5 12.18Z"/>
+              </svg>
+            </div>
+            <div class="brand-text-block">
+              <div class="brand-title">The <span class="brand-new">NEW</span> <span class="brand-gen">GEN</span></div>
+              <span class="brand-subtitle">กวดวิชาของเด็ก <span class="sub-gen">GEN</span> ใหม่</span>
+            </div>
+          </div>
+        </div>
+        <div class="preview-canvas dark-canvas dark-preview">
+          <span class="canvas-label">พื้นหลังเข้ม (Dark)</span>
+          <div class="brand-logo-unit">
+            <div class="brand-badge" style="border-color: #f43f5e; box-shadow: 0 0 15px rgba(244,63,94,0.35);">
+              <svg viewBox="0 0 24 24" fill="#f43f5e">
+                <path d="M12 3L1 8.5L12 14L21 9.5V16H23V8.5L12 3ZM5 12.18V16.5C5 18.99 8.13 21 12 21C15.87 21 19 18.99 19 16.5V12.18L12 15.68L5 12.18Z"/>
+              </svg>
+            </div>
+            <div class="brand-text-block">
+              <div class="brand-title">The <span class="brand-new">NEW</span> <span class="brand-gen">GEN</span></div>
+              <span class="brand-subtitle">กวดวิชาของเด็ก <span class="sub-gen">GEN</span> ใหม่</span>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div>
+            <p class="concept-desc"><strong>✨ ความหมาย:</strong> สัญลักษณ์สากลของการศึกษา สื่อถึงการสอบติดโรงเรียนดัง ม.1, ม.4 และการต่อยอดสู่มหาวิทยาลัยชั้นนำ</p>
+            <div class="concept-tags">
+              <span class="concept-tag">#ความสำเร็จ</span><span class="concept-tag">#สอบติดโรงเรียนดัง</span><span class="concept-tag">#วิชาการชัดเจน</span>
+            </div>
+          </div>
+          <div class="action-btn-row">
+            <button class="btn-action btn-select" onclick="applyLogoToSimulator(1)"><i class="fa-solid fa-eye"></i> ทดสอบบนเว็บ</button>
+            <button class="btn-action btn-copy" onclick="copySvgCode(1)"><i class="fa-solid fa-code"></i> ก๊อปปี้ SVG</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- OPTION 2 -->
+      <div class="option-card" id="card-option-2">
+        <div class="card-header-bar">
+          <span class="option-number">แบบที่ 2</span>
+          <span class="option-concept-title">📖 หนังสือเปิด &amp; ปีกแห่งปัญญา</span>
+        </div>
+        <div class="preview-canvas">
+          <span class="canvas-label">พื้นหลังขาว (Light)</span>
+          <div class="brand-logo-unit">
+            <div class="brand-badge">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 6.25C9.8 4.6 6.8 3.75 3.5 3.75C2.4 3.75 1.3 3.95 0.3 4.35C0.1 4.45 0 4.65 0 4.9V18.1C0 18.5 0.35 18.8 0.75 18.7C1.6 18.4 2.55 18.25 3.5 18.25C6.8 18.25 9.8 19.1 12 20.75C14.2 19.1 17.2 18.25 20.5 18.25C21.45 18.25 22.4 18.4 23.25 18.7C23.65 18.8 24 18.5 24 18.1V4.9C24 4.65 23.9 4.45 23.7 4.35C22.7 3.95 21.6 3.75 20.5 3.75C17.2 3.75 14.2 4.6 12 6.25ZM11 17.5C9.1 16.3 6.4 15.75 3.5 15.75C2.7 15.75 1.8 15.85 1.2 16.05V6.2C2 6.05 2.7 6 3.5 6C6.4 6 9.1 6.6 11 7.8V17.5ZM22.8 16.05C22.2 15.85 21.3 15.75 20.5 15.75C17.6 15.75 14.9 16.3 13 17.5V7.8C14.9 6.6 17.6 6 20.5 6C21.3 6 22 6.05 22.8 6.2V16.05Z"/>
+              </svg>
+            </div>
+            <div class="brand-text-block">
+              <div class="brand-title">The <span class="brand-new">NEW</span> <span class="brand-gen">GEN</span></div>
+              <span class="brand-subtitle">กวดวิชาของเด็ก <span class="sub-gen">GEN</span> ใหม่</span>
+            </div>
+          </div>
+        </div>
+        <div class="preview-canvas dark-canvas dark-preview">
+          <span class="canvas-label">พื้นหลังเข้ม (Dark)</span>
+          <div class="brand-logo-unit">
+            <div class="brand-badge" style="border-color: #f43f5e; box-shadow: 0 0 15px rgba(244,63,94,0.35);">
+              <svg viewBox="0 0 24 24" fill="#f43f5e">
+                <path d="M12 6.25C9.8 4.6 6.8 3.75 3.5 3.75C2.4 3.75 1.3 3.95 0.3 4.35C0.1 4.45 0 4.65 0 4.9V18.1C0 18.5 0.35 18.8 0.75 18.7C1.6 18.4 2.55 18.25 3.5 18.25C6.8 18.25 9.8 19.1 12 20.75C14.2 19.1 17.2 18.25 20.5 18.25C21.45 18.25 22.4 18.4 23.25 18.7C23.65 18.8 24 18.5 24 18.1V4.9C24 4.65 23.9 4.45 23.7 4.35C22.7 3.95 21.6 3.75 20.5 3.75C17.2 3.75 14.2 4.6 12 6.25ZM11 17.5C9.1 16.3 6.4 15.75 3.5 15.75C2.7 15.75 1.8 15.85 1.2 16.05V6.2C2 6.05 2.7 6 3.5 6C6.4 6 9.1 6.6 11 7.8V17.5ZM22.8 16.05C22.2 15.85 21.3 15.75 20.5 15.75C17.6 15.75 14.9 16.3 13 17.5V7.8C14.9 6.6 17.6 6 20.5 6C21.3 6 22 6.05 22.8 6.2V16.05Z"/>
+              </svg>
+            </div>
+            <div class="brand-text-block">
+              <div class="brand-title">The <span class="brand-new">NEW</span> <span class="brand-gen">GEN</span></div>
+              <span class="brand-subtitle">กวดวิชาของเด็ก <span class="sub-gen">GEN</span> ใหม่</span>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div>
+            <p class="concept-desc"><strong>✨ ความหมาย:</strong> คลังความรู้และตำราที่แน่นปึ้ก ผายออกคล้ายปีกนกที่พร้อมติดปีกให้นักเรียนโบยบินสู่อนาคต</p>
+            <div class="concept-tags">
+              <span class="concept-tag">#คลังความรู้</span><span class="concept-tag">#ตำราแน่น</span><span class="concept-tag">#อบอุ่นใส่ใจ</span>
+            </div>
+          </div>
+          <div class="action-btn-row">
+            <button class="btn-action btn-select" onclick="applyLogoToSimulator(2)"><i class="fa-solid fa-eye"></i> ทดสอบบนเว็บ</button>
+            <button class="btn-action btn-copy" onclick="copySvgCode(2)"><i class="fa-solid fa-code"></i> ก๊อปปี้ SVG</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- OPTION 3 -->
+      <div class="option-card" id="card-option-3">
+        <div class="card-header-bar">
+          <span class="option-number">แบบที่ 3</span>
+          <span class="option-concept-title">💡 หลอดไฟปัญญา &amp; เก็ทไว</span>
+        </div>
+        <div class="preview-canvas">
+          <span class="canvas-label">พื้นหลังขาว (Light)</span>
+          <div class="brand-logo-unit">
+            <div class="brand-badge">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2C8.13 2 5 5.13 5 9C5 11.38 6.19 13.47 8 14.74V17C8 17.55 8.45 18 9 18H15C15.55 18 16 17.55 16 17V14.74C17.81 13.47 19 11.38 19 9C19 5.13 15.87 2 12 2ZM9 21C9 21.55 9.45 22 10 22H14C14.55 22 15 21.55 15 21V20H9V21ZM12 4C14.76 4 17 6.24 17 9C17 10.74 16.11 12.28 14.76 13.19L14 13.7V16H10V13.7L9.24 13.19C7.89 12.28 7 10.74 7 9C7 6.24 9.24 4 12 4Z"/>
+                <circle cx="12" cy="9" r="2.2" fill="currentColor"/>
+              </svg>
+            </div>
+            <div class="brand-text-block">
+              <div class="brand-title">The <span class="brand-new">NEW</span> <span class="brand-gen">GEN</span></div>
+              <span class="brand-subtitle">กวดวิชาของเด็ก <span class="sub-gen">GEN</span> ใหม่</span>
+            </div>
+          </div>
+        </div>
+        <div class="preview-canvas dark-canvas dark-preview">
+          <span class="canvas-label">พื้นหลังเข้ม (Dark)</span>
+          <div class="brand-logo-unit">
+            <div class="brand-badge" style="border-color: #f43f5e; box-shadow: 0 0 15px rgba(244,63,94,0.35);">
+              <svg viewBox="0 0 24 24" fill="#f43f5e">
+                <path d="M12 2C8.13 2 5 5.13 5 9C5 11.38 6.19 13.47 8 14.74V17C8 17.55 8.45 18 9 18H15C15.55 18 16 17.55 16 17V14.74C17.81 13.47 19 11.38 19 9C19 5.13 15.87 2 12 2ZM9 21C9 21.55 9.45 22 10 22H14C14.55 22 15 21.55 15 21V20H9V21ZM12 4C14.76 4 17 6.24 17 9C17 10.74 16.11 12.28 14.76 13.19L14 13.7V16H10V13.7L9.24 13.19C7.89 12.28 7 10.74 7 9C7 6.24 9.24 4 12 4Z"/>
+                <circle cx="12" cy="9" r="2.2" fill="#f43f5e"/>
+              </svg>
+            </div>
+            <div class="brand-text-block">
+              <div class="brand-title">The <span class="brand-new">NEW</span> <span class="brand-gen">GEN</span></div>
+              <span class="brand-subtitle">กวดวิชาของเด็ก <span class="sub-gen">GEN</span> ใหม่</span>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div>
+            <p class="concept-desc"><strong>✨ ความหมาย:</strong> ถ่ายทอดพลังงานความตื่นตัวเหมือนสายฟ้าเดิม แต่เป็น <em>"ประกายปัญญา"</em> สื่อถึงการคิดลัด ปิ๊งไอเดีย เข้าใจไว</p>
+            <div class="concept-tags">
+              <span class="concept-tag">#ปิ๊งไอเดีย</span><span class="concept-tag">#เก็ทไวเข้าใจจริง</span><span class="concept-tag">#พลังงานสูง</span>
+            </div>
+          </div>
+          <div class="action-btn-row">
+            <button class="btn-action btn-select" onclick="applyLogoToSimulator(3)"><i class="fa-solid fa-eye"></i> ทดสอบบนเว็บ</button>
+            <button class="btn-action btn-copy" onclick="copySvgCode(3)"><i class="fa-solid fa-code"></i> ก๊อปปี้ SVG</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- OPTION 4 -->
+      <div class="option-card" id="card-option-4">
+        <div class="card-header-bar">
+          <span class="option-number">แบบที่ 4</span>
+          <span class="option-concept-title">🚀 จรวดพุ่งทะยานสู่โรงเรียนในฝัน</span>
+        </div>
+        <div class="preview-canvas">
+          <span class="canvas-label">พื้นหลังขาว (Light)</span>
+          <div class="brand-logo-unit">
+            <div class="brand-badge">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2.5C12 2.5 9 6.5 9 11C9 13.5 9.8 15.5 10.8 17L7 20.5L8.5 22L12 19.5L15.5 22L17 20.5L13.2 17C14.2 15.5 15 13.5 15 11C15 6.5 12 2.5 12 2.5Z"/>
+                <circle cx="12" cy="10" r="1.5" fill="#0b1e3f"/>
+              </svg>
+            </div>
+            <div class="brand-text-block">
+              <div class="brand-title">The <span class="brand-new">NEW</span> <span class="brand-gen">GEN</span></div>
+              <span class="brand-subtitle">กวดวิชาของเด็ก <span class="sub-gen">GEN</span> ใหม่</span>
+            </div>
+          </div>
+        </div>
+        <div class="preview-canvas dark-canvas dark-preview">
+          <span class="canvas-label">พื้นหลังเข้ม (Dark)</span>
+          <div class="brand-logo-unit">
+            <div class="brand-badge" style="border-color: #f43f5e; box-shadow: 0 0 15px rgba(244,63,94,0.35);">
+              <svg viewBox="0 0 24 24" fill="#f43f5e">
+                <path d="M12 2.5C12 2.5 9 6.5 9 11C9 13.5 9.8 15.5 10.8 17L7 20.5L8.5 22L12 19.5L15.5 22L17 20.5L13.2 17C14.2 15.5 15 13.5 15 11C15 6.5 12 2.5 12 2.5Z"/>
+                <circle cx="12" cy="10" r="1.5" fill="#0b1e3f"/>
+              </svg>
+            </div>
+            <div class="brand-text-block">
+              <div class="brand-title">The <span class="brand-new">NEW</span> <span class="brand-gen">GEN</span></div>
+              <span class="brand-subtitle">กวดวิชาของเด็ก <span class="sub-gen">GEN</span> ใหม่</span>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div>
+            <p class="concept-desc"><strong>✨ ความหมาย:</strong> สื่อถึงการอัปคะแนนก้าวกระโดด (Score Booster) สปีดการเรียนรู้ของเด็กรุ่นใหม่ พาเด็ก GEN ใหม่พุ่งทะยานสู่เป้าหมาย</p>
+            <div class="concept-tags">
+              <span class="concept-tag">#คะแนนก้าวกระโดด</span><span class="concept-tag">#ทะยานสู่ฝัน</span><span class="concept-tag">#ไฮสปีด</span>
+            </div>
+          </div>
+          <div class="action-btn-row">
+            <button class="btn-action btn-select" onclick="applyLogoToSimulator(4)"><i class="fa-solid fa-eye"></i> ทดสอบบนเว็บ</button>
+            <button class="btn-action btn-copy" onclick="copySvgCode(4)"><i class="fa-solid fa-code"></i> ก๊อปปี้ SVG</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- OPTION 5 -->
+      <div class="option-card" id="card-option-5">
+        <div class="card-header-bar">
+          <span class="option-number">แบบที่ 5</span>
+          <span class="option-concept-title">✏️ ยอดดินสอ &amp; ประกายดาว</span>
+        </div>
+        <div class="preview-canvas">
+          <span class="canvas-label">พื้นหลังขาว (Light)</span>
+          <div class="brand-logo-unit">
+            <div class="brand-badge">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 1.5L13.4 5.2L17.2 6.6L13.4 8L12 11.7L10.6 8L6.8 6.6L10.6 5.2L12 1.5Z"/>
+                <path d="M12 12.8L16.5 18V22.5H7.5V18L12 12.8ZM9.5 20.8H14.5V18.8L12 15.9L9.5 18.8V20.8Z"/>
+              </svg>
+            </div>
+            <div class="brand-text-block">
+              <div class="brand-title">The <span class="brand-new">NEW</span> <span class="brand-gen">GEN</span></div>
+              <span class="brand-subtitle">กวดวิชาของเด็ก <span class="sub-gen">GEN</span> ใหม่</span>
+            </div>
+          </div>
+        </div>
+        <div class="preview-canvas dark-canvas dark-preview">
+          <span class="canvas-label">พื้นหลังเข้ม (Dark)</span>
+          <div class="brand-logo-unit">
+            <div class="brand-badge" style="border-color: #f43f5e; box-shadow: 0 0 15px rgba(244,63,94,0.35);">
+              <svg viewBox="0 0 24 24" fill="#f43f5e">
+                <path d="M12 1.5L13.4 5.2L17.2 6.6L13.4 8L12 11.7L10.6 8L6.8 6.6L10.6 5.2L12 1.5Z"/>
+                <path d="M12 12.8L16.5 18V22.5H7.5V18L12 12.8ZM9.5 20.8H14.5V18.8L12 15.9L9.5 18.8V20.8Z"/>
+              </svg>
+            </div>
+            <div class="brand-text-block">
+              <div class="brand-title">The <span class="brand-new">NEW</span> <span class="brand-gen">GEN</span></div>
+              <span class="brand-subtitle">กวดวิชาของเด็ก <span class="sub-gen">GEN</span> ใหม่</span>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div>
+            <p class="concept-desc"><strong>✨ ความหมาย:</strong> ปลายดินสอที่ลงมือทำข้อสอบจริง มียอดเป็นดวงดาวแห่งความเป็นเลิศ สื่อถึงการฟันธงข้อสอบแม่นยำและการคว้าเกรด 4</p>
+            <div class="concept-tags">
+              <span class="concept-tag">#ความเฉียบคม</span><span class="concept-tag">#ดาวนำทาง</span><span class="concept-tag">#ทำข้อสอบแม่นยำ</span>
+            </div>
+          </div>
+          <div class="action-btn-row">
+            <button class="btn-action btn-select" onclick="applyLogoToSimulator(5)"><i class="fa-solid fa-eye"></i> ทดสอบบนเว็บ</button>
+            <button class="btn-action btn-copy" onclick="copySvgCode(5)"><i class="fa-solid fa-code"></i> ก๊อปปี้ SVG</button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- End Batch 1 Grid -->
+
+
+    <!-- ================= BATCH 2 DIVIDER ================= -->
+    <h2 class="section-divider-title batch-group-2">
+      <i class="fa-solid fa-fire-flame-curved" style="color: var(--color-red);"></i> เซ็ตที่ 2: สัญลักษณ์ฉีกแนวสร้างสรรค์ &amp; ล้ำยุค (Creative &amp; Bold)
+    </h2>
+
+    <div class="proposals-grid batch-group-2">
+
+      <!-- OPTION 6 -->
+      <div class="option-card" id="card-option-6">
+        <div class="card-header-bar">
+          <span class="option-number batch-2-tag">แบบที่ 6 (ฉีกแนว)</span>
+          <span class="option-concept-title">🦅 นกฟีนิกซ์แห่งการเกิดใหม่</span>
+        </div>
+        <div class="preview-canvas">
+          <span class="canvas-label">พื้นหลังขาว (Light)</span>
+          <div class="brand-logo-unit">
+            <div class="brand-badge">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2C12.5 4 14 5.5 16 6C19 6.5 22 5 22 5C20.5 9 17 12 17 12C19 14.5 21 19 21 19C17.5 17 14 17.5 12 22C10 17.5 6.5 17 3 19C5 14.5 7 12 7 12C7 12 3.5 9 2 5C2 5 5 6.5 8 6C10 5.5 11.5 4 12 2Z"/>
+              </svg>
+            </div>
+            <div class="brand-text-block">
+              <div class="brand-title">The <span class="brand-new">NEW</span> <span class="brand-gen">GEN</span></div>
+              <span class="brand-subtitle">กวดวิชาของเด็ก <span class="sub-gen">GEN</span> ใหม่</span>
+            </div>
+          </div>
+        </div>
+        <div class="preview-canvas dark-canvas dark-preview">
+          <span class="canvas-label">พื้นหลังเข้ม (Dark)</span>
+          <div class="brand-logo-unit">
+            <div class="brand-badge" style="border-color: #f43f5e; box-shadow: 0 0 15px rgba(244,63,94,0.35);">
+              <svg viewBox="0 0 24 24" fill="#f43f5e">
+                <path d="M12 2C12.5 4 14 5.5 16 6C19 6.5 22 5 22 5C20.5 9 17 12 17 12C19 14.5 21 19 21 19C17.5 17 14 17.5 12 22C10 17.5 6.5 17 3 19C5 14.5 7 12 7 12C7 12 3.5 9 2 5C2 5 5 6.5 8 6C10 5.5 11.5 4 12 2Z"/>
+              </svg>
+            </div>
+            <div class="brand-text-block">
+              <div class="brand-title">The <span class="brand-new">NEW</span> <span class="brand-gen">GEN</span></div>
+              <span class="brand-subtitle">กวดวิชาของเด็ก <span class="sub-gen">GEN</span> ใหม่</span>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div>
+            <p class="concept-desc"><strong>✨ ความหมาย:</strong> นกฟีนิกซ์ที่ลุกโชนขึ้นมาใหม่ สื่อถึงการพลิกคะแนน พลิกผลการเรียน ไม่ยอมแพ้ต่ออุปสรรค ทะยานสู่จุดสูงสุดอย่างสง่างาม</p>
+            <div class="concept-tags">
+              <span class="concept-tag">#เกิดใหม่</span><span class="concept-tag">#พลิกผลการเรียน</span><span class="concept-tag">#ทรงพลังและเท่</span>
+            </div>
+          </div>
+          <div class="action-btn-row">
+            <button class="btn-action btn-select" onclick="applyLogoToSimulator(6)"><i class="fa-solid fa-eye"></i> ทดสอบบนเว็บ</button>
+            <button class="btn-action btn-copy" onclick="copySvgCode(6)"><i class="fa-solid fa-code"></i> ก๊อปปี้ SVG</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- OPTION 7 -->
+      <div class="option-card" id="card-option-7">
+        <div class="card-header-bar">
+          <span class="option-number batch-2-tag">แบบที่ 7 (ฉีกแนว)</span>
+          <span class="option-concept-title">🧭 เข็มทิศนำทางสู่อนาคต</span>
+        </div>
+        <div class="preview-canvas">
+          <span class="canvas-label">พื้นหลังขาว (Light)</span>
+          <div class="brand-logo-unit">
+            <div class="brand-badge">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 4C16.42 4 20 7.58 20 12C20 16.42 16.42 20 12 20C7.58 20 4 16.42 4 12C4 7.58 7.58 4 12 4ZM12 6L10 11L5 12L10 13L12 18L13 13L18 12L13 11L12 6Z"/>
+              </svg>
+            </div>
+            <div class="brand-text-block">
+              <div class="brand-title">The <span class="brand-new">NEW</span> <span class="brand-gen">GEN</span></div>
+              <span class="brand-subtitle">กวดวิชาของเด็ก <span class="sub-gen">GEN</span> ใหม่</span>
+            </div>
+          </div>
+        </div>
+        <div class="preview-canvas dark-canvas dark-preview">
+          <span class="canvas-label">พื้นหลังเข้ม (Dark)</span>
+          <div class="brand-logo-unit">
+            <div class="brand-badge" style="border-color: #f43f5e; box-shadow: 0 0 15px rgba(244,63,94,0.35);">
+              <svg viewBox="0 0 24 24" fill="#f43f5e">
+                <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 4C16.42 4 20 7.58 20 12C20 16.42 16.42 20 12 20C7.58 20 4 16.42 4 12C4 7.58 7.58 4 12 4ZM12 6L10 11L5 12L10 13L12 18L13 13L18 12L13 11L12 6Z"/>
+              </svg>
+            </div>
+            <div class="brand-text-block">
+              <div class="brand-title">The <span class="brand-new">NEW</span> <span class="brand-gen">GEN</span></div>
+              <span class="brand-subtitle">กวดวิชาของเด็ก <span class="sub-gen">GEN</span> ใหม่</span>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div>
+            <p class="concept-desc"><strong>✨ ความหมาย:</strong> เข็มทิศนำทางสู่อนาคต สื่อถึงการช่วยวางแผนเส้นทางเรียนต่อให้น้องๆ อย่างแม่นยำ ไม่หลงทิศ ไม่เสียเวลา ชัดเจนในเป้าหมาย</p>
+            <div class="concept-tags">
+              <span class="concept-tag">#ผู้นำทาง</span><span class="concept-tag">#เป้าหมายชัดเจน</span><span class="concept-tag">#วางแผนอนาคต</span>
+            </div>
+          </div>
+          <div class="action-btn-row">
+            <button class="btn-action btn-select" onclick="applyLogoToSimulator(7)"><i class="fa-solid fa-eye"></i> ทดสอบบนเว็บ</button>
+            <button class="btn-action btn-copy" onclick="copySvgCode(7)"><i class="fa-solid fa-code"></i> ก๊อปปี้ SVG</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- OPTION 8 -->
+      <div class="option-card" id="card-option-8">
+        <div class="card-header-bar">
+          <span class="option-number batch-2-tag">แบบที่ 8 (ฉีกแนว)</span>
+          <span class="option-concept-title">⚛️ อะตอม &amp; ตรรกะวิทยาศาสตร์</span>
+        </div>
+        <div class="preview-canvas">
+          <span class="canvas-label">พื้นหลังขาว (Light)</span>
+          <div class="brand-logo-unit">
+            <div class="brand-badge">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <circle cx="12" cy="12" r="2.8"/>
+                <ellipse cx="12" cy="12" rx="10" ry="3.8" transform="rotate(45 12 12)" fill="none" stroke="currentColor" stroke-width="1.8"/>
+                <ellipse cx="12" cy="12" rx="10" ry="3.8" transform="rotate(-45 12 12)" fill="none" stroke="currentColor" stroke-width="1.8"/>
+              </svg>
+            </div>
+            <div class="brand-text-block">
+              <div class="brand-title">The <span class="brand-new">NEW</span> <span class="brand-gen">GEN</span></div>
+              <span class="brand-subtitle">กวดวิชาของเด็ก <span class="sub-gen">GEN</span> ใหม่</span>
+            </div>
+          </div>
+        </div>
+        <div class="preview-canvas dark-canvas dark-preview">
+          <span class="canvas-label">พื้นหลังเข้ม (Dark)</span>
+          <div class="brand-logo-unit">
+            <div class="brand-badge" style="border-color: #f43f5e; box-shadow: 0 0 15px rgba(244,63,94,0.35);">
+              <svg viewBox="0 0 24 24" fill="#f43f5e">
+                <circle cx="12" cy="12" r="2.8"/>
+                <ellipse cx="12" cy="12" rx="10" ry="3.8" transform="rotate(45 12 12)" fill="none" stroke="#f43f5e" stroke-width="1.8"/>
+                <ellipse cx="12" cy="12" rx="10" ry="3.8" transform="rotate(-45 12 12)" fill="none" stroke="#f43f5e" stroke-width="1.8"/>
+              </svg>
+            </div>
+            <div class="brand-text-block">
+              <div class="brand-title">The <span class="brand-new">NEW</span> <span class="brand-gen">GEN</span></div>
+              <span class="brand-subtitle">กวดวิชาของเด็ก <span class="sub-gen">GEN</span> ใหม่</span>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div>
+            <p class="concept-desc"><strong>✨ ความหมาย:</strong> สะท้อนหัวใจของวิชาสายวิทย์-คณิต-เคมี-ฟิสิกส์ ที่เป็นความเชี่ยวชาญของทีมติวเตอร์ The NEW GEN ล้ำสมัยและดูฉลาด</p>
+            <div class="concept-tags">
+              <span class="concept-tag">#วิทย์คณิต</span><span class="concept-tag">#เคมีฟิสิกส์</span><span class="concept-tag">#ตรรกะและเทคโนโลยี</span>
+            </div>
+          </div>
+          <div class="action-btn-row">
+            <button class="btn-action btn-select" onclick="applyLogoToSimulator(8)"><i class="fa-solid fa-eye"></i> ทดสอบบนเว็บ</button>
+            <button class="btn-action btn-copy" onclick="copySvgCode(8)"><i class="fa-solid fa-code"></i> ก๊อปปี้ SVG</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- OPTION 9 -->
+      <div class="option-card" id="card-option-9">
+        <div class="card-header-bar">
+          <span class="option-number batch-2-tag">แบบที่ 9 (ฉีกแนว)</span>
+          <span class="option-concept-title">👑 มงกุฎแห่งชัยชนะ &amp; แชมป์สอบติด</span>
+        </div>
+        <div class="preview-canvas">
+          <span class="canvas-label">พื้นหลังขาว (Light)</span>
+          <div class="brand-logo-unit">
+            <div class="brand-badge">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M2 19H22V21H2V19ZM3 7L7.5 12L12 4L16.5 12L21 7L19.5 17H4.5L3 7Z"/>
+                <circle cx="3.5" cy="5.5" r="1.5"/>
+                <circle cx="12" cy="2.5" r="1.5"/>
+                <circle cx="20.5" cy="5.5" r="1.5"/>
+              </svg>
+            </div>
+            <div class="brand-text-block">
+              <div class="brand-title">The <span class="brand-new">NEW</span> <span class="brand-gen">GEN</span></div>
+              <span class="brand-subtitle">กวดวิชาของเด็ก <span class="sub-gen">GEN</span> ใหม่</span>
+            </div>
+          </div>
+        </div>
+        <div class="preview-canvas dark-canvas dark-preview">
+          <span class="canvas-label">พื้นหลังเข้ม (Dark)</span>
+          <div class="brand-logo-unit">
+            <div class="brand-badge" style="border-color: #f43f5e; box-shadow: 0 0 15px rgba(244,63,94,0.35);">
+              <svg viewBox="0 0 24 24" fill="#f43f5e">
+                <path d="M2 19H22V21H2V19ZM3 7L7.5 12L12 4L16.5 12L21 7L19.5 17H4.5L3 7Z"/>
+                <circle cx="3.5" cy="5.5" r="1.5"/>
+                <circle cx="12" cy="2.5" r="1.5"/>
+                <circle cx="20.5" cy="5.5" r="1.5"/>
+              </svg>
+            </div>
+            <div class="brand-text-block">
+              <div class="brand-title">The <span class="brand-new">NEW</span> <span class="brand-gen">GEN</span></div>
+              <span class="brand-subtitle">กวดวิชาของเด็ก <span class="sub-gen">GEN</span> ใหม่</span>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div>
+            <p class="concept-desc"><strong>✨ ความหมาย:</strong> มงกุฎแห่งชัยชนะ สื่อถึงความเป็นที่ 1 (Champion Mindset) เกียรติยศ และการสอบติดตัวจริงในทุกสนามแข่งขัน</p>
+            <div class="concept-tags">
+              <span class="concept-tag">#ชัยชนะ</span><span class="concept-tag">#แชมป์สอบติด</span><span class="concept-tag">#ความเป็นเลิศ</span>
+            </div>
+          </div>
+          <div class="action-btn-row">
+            <button class="btn-action btn-select" onclick="applyLogoToSimulator(9)"><i class="fa-solid fa-eye"></i> ทดสอบบนเว็บ</button>
+            <button class="btn-action btn-copy" onclick="copySvgCode(9)"><i class="fa-solid fa-code"></i> ก๊อปปี้ SVG</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- OPTION 10 -->
+      <div class="option-card" id="card-option-10">
+        <div class="card-header-bar">
+          <span class="option-number batch-2-tag">แบบที่ 10 (ฉีกแนว)</span>
+          <span class="option-concept-title">✈️ เครื่องบินกระดาษพุ่งทะยาน</span>
+        </div>
+        <div class="preview-canvas">
+          <span class="canvas-label">พื้นหลังขาว (Light)</span>
+          <div class="brand-logo-unit">
+            <div class="brand-badge">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M2 11.5L22 2L12.5 22L10 13.5L2 11.5Z"/>
+                <path d="M10 13.5L22 2L13 14.5L10 13.5Z" fill="#0b1e3f" opacity="0.35"/>
+              </svg>
+            </div>
+            <div class="brand-text-block">
+              <div class="brand-title">The <span class="brand-new">NEW</span> <span class="brand-gen">GEN</span></div>
+              <span class="brand-subtitle">กวดวิชาของเด็ก <span class="sub-gen">GEN</span> ใหม่</span>
+            </div>
+          </div>
+        </div>
+        <div class="preview-canvas dark-canvas dark-preview">
+          <span class="canvas-label">พื้นหลังเข้ม (Dark)</span>
+          <div class="brand-logo-unit">
+            <div class="brand-badge" style="border-color: #f43f5e; box-shadow: 0 0 15px rgba(244,63,94,0.35);">
+              <svg viewBox="0 0 24 24" fill="#f43f5e">
+                <path d="M2 11.5L22 2L12.5 22L10 13.5L2 11.5Z"/>
+                <path d="M10 13.5L22 2L13 14.5L10 13.5Z" fill="#ffffff" opacity="0.4"/>
+              </svg>
+            </div>
+            <div class="brand-text-block">
+              <div class="brand-title">The <span class="brand-new">NEW</span> <span class="brand-gen">GEN</span></div>
+              <span class="brand-subtitle">กวดวิชาของเด็ก <span class="sub-gen">GEN</span> ใหม่</span>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div>
+            <p class="concept-desc"><strong>✨ ความหมาย:</strong> สัญลักษณ์แห่งจินตนาการ ความคิดสร้างสรรค์ และการเริ่มต้นทะยานสู่อนาคตอย่างเบาสบาย สื่อถึง "เรียนสนุก ไม่เครียด จบที่ The NEW GEN"</p>
+            <div class="concept-tags">
+              <span class="concept-tag">#เรียนสนุก</span><span class="concept-tag">#ทะยานสู่อนาคต</span><span class="concept-tag">#ทันสมัยGenZ</span>
+            </div>
+          </div>
+          <div class="action-btn-row">
+            <button class="btn-action btn-select" onclick="applyLogoToSimulator(10)"><i class="fa-solid fa-eye"></i> ทดสอบบนเว็บ</button>
+            <button class="btn-action btn-copy" onclick="copySvgCode(10)"><i class="fa-solid fa-code"></i> ก๊อปปี้ SVG</button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- End Batch 2 Grid -->
+
+
+    <!-- ================= Live Header Simulator ================= -->
+    <section class="header-sim-section">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+        <div>
+          <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--color-navy);">
+            🖥️ จำลองการใช้งานจริงบนแถบเมนูด้านบน (Sticky Navigation Bar)
+          </h2>
+          <p style="font-size: 0.9rem; color: #64748b;">กดเลือกแบบที่ 1 ถึง 10 ด้านล่าง เพื่อดูความเข้ากันได้กับเมนูเว็บไซต์จริงแบบ Real-time</p>
+        </div>
+        <div class="sim-tabs">
+          <button class="sim-tab-btn" onclick="applyLogoToSimulator(0)">⚡ เดิม (สายฟ้า)</button>
+          <button class="sim-tab-btn active" onclick="applyLogoToSimulator(1)">แบบ 1 (หมวกปริญญา)</button>
+          <button class="sim-tab-btn" onclick="applyLogoToSimulator(2)">แบบ 2 (หนังสือเปิด)</button>
+          <button class="sim-tab-btn" onclick="applyLogoToSimulator(3)">แบบ 3 (หลอดไฟ)</button>
+          <button class="sim-tab-btn" onclick="applyLogoToSimulator(4)">แบบ 4 (จรวด)</button>
+          <button class="sim-tab-btn" onclick="applyLogoToSimulator(5)">แบบ 5 (ดินสอ+ดาว)</button>
+          <button class="sim-tab-btn" onclick="applyLogoToSimulator(6)" style="color: #b91c1c; font-weight:700;">แบบ 6 (ฟีนิกซ์) 🔥</button>
+          <button class="sim-tab-btn" onclick="applyLogoToSimulator(7)" style="color: #b91c1c; font-weight:700;">แบบ 7 (เข็มทิศ) 🧭</button>
+          <button class="sim-tab-btn" onclick="applyLogoToSimulator(8)" style="color: #b91c1c; font-weight:700;">แบบ 8 (อะตอม) ⚛️</button>
+          <button class="sim-tab-btn" onclick="applyLogoToSimulator(9)" style="color: #b91c1c; font-weight:700;">แบบ 9 (มงกุฎ) 👑</button>
+          <button class="sim-tab-btn" onclick="applyLogoToSimulator(10)" style="color: #b91c1c; font-weight:700;">แบบ 10 (เครื่องบิน) ✈️</button>
+        </div>
+      </div>
+
+      <!-- Mockup Window -->
+      <div class="sim-mockup-wrapper">
+        <div class="sim-browser-bar">
+          <span class="dot dot-red"></span>
+          <span class="dot dot-yellow"></span>
+          <span class="dot dot-green"></span>
+          <span class="browser-url-bar">https://www.thenewgen.com/</span>
+        </div>
+
+        <!-- Simulated Header -->
+        <header class="sim-navbar">
+          <!-- Live Logo Placement -->
+          <div id="simulatedLogoSlot">
+            <div class="brand-logo-unit">
+              <div class="brand-badge">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 3L1 8.5L12 14L21 9.5V16H23V8.5L12 3ZM5 12.18V16.5C5 18.99 8.13 21 12 21C15.87 21 19 18.99 19 16.5V12.18L12 15.68L5 12.18Z"/>
+                </svg>
+              </div>
+              <div class="brand-text-block">
+                <div class="brand-title">The <span class="brand-new">NEW</span> <span class="brand-gen">GEN</span></div>
+                <span class="brand-subtitle">กวดวิชาของเด็ก <span class="sub-gen">GEN</span> ใหม่</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Simulated Nav Links -->
+          <nav class="sim-menu">
+            <span>หน้าแรก</span>
+            <span>ทีมติวเตอร์</span>
+            <span>คอร์สเรียน Onsite</span>
+            <span>ความสำเร็จของรุ่นพี่</span>
+            <span>ทดลองเรียนฟรี</span>
+            <span>เกี่ยวกับเรา</span>
+          </nav>
+        </header>
+
+        <div class="sim-content">
+          <h3 style="color: var(--color-navy); margin-bottom: 8px;">เรียนสนุก ครบทุกเนื้อหา <span style="color: var(--color-red);">จบที่ The NEW GEN</span></h3>
+          <p>ติวเข้มโดยทีมติวเตอร์ประจำสถาบัน ประสบการณ์สอนจริง เข้าใจง่าย ได้คะแนนจริง</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Summary & Comparison Table -->
+    <section style="background: white; border-radius: 20px; padding: 32px; border: 1px solid #e2e8f0;">
+      <h2 style="font-size: 1.3rem; font-weight: 800; color: var(--color-navy); margin-bottom: 16px;">
+        📊 ตารางเปรียบเทียบจุดเด่นของทั้ง 10 รูปแบบ
+      </h2>
+      <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 0.92rem; text-align: left;">
+          <thead>
+            <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0; color: var(--color-navy);">
+              <th style="padding: 12px 14px;">แบบ</th>
+              <th style="padding: 12px 14px;">สัญลักษณ์</th>
+              <th style="padding: 12px 14px;">หมวดหมู่</th>
+              <th style="padding: 12px 14px;">ความหมายหลัก</th>
+              <th style="padding: 12px 14px;">อารมณ์ / ความรู้สึก</th>
+              <th style="padding: 12px 14px;">ความคมชัดขนาดเล็ก</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom: 1px solid #f1f5f9;">
+              <td style="padding: 12px 14px; font-weight: 700;">แบบที่ 1</td>
+              <td style="padding: 12px 14px;">🎓 หมวกปริญญา</td>
+              <td style="padding: 12px 14px;"><span class="concept-tag">การศึกษา</span></td>
+              <td style="padding: 12px 14px;">สัญลักษณ์สากล สื่อถึงการสอบติดและอนาคตการศึกษา</td>
+              <td style="padding: 12px 14px;">น่าเชื่อถือ มั่นคง 100%</td>
+              <td style="padding: 12px 14px; color: #16a34a; font-weight: 700;">★★★★★ คมชัดมาก</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #f1f5f9;">
+              <td style="padding: 12px 14px; font-weight: 700;">แบบที่ 2</td>
+              <td style="padding: 12px 14px;">📖 หนังสือ &amp; ปีก</td>
+              <td style="padding: 12px 14px;"><span class="concept-tag">การศึกษา</span></td>
+              <td style="padding: 12px 14px;">คลังความรู้ ตำราวิชาการแน่นปึ้ก ติดปีกโบยบิน</td>
+              <td style="padding: 12px 14px;">อบอุ่น วิชาการแน่น</td>
+              <td style="padding: 12px 14px; color: #16a34a; font-weight: 700;">★★★★☆ ชัดเจน</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #f1f5f9;">
+              <td style="padding: 12px 14px; font-weight: 700;">แบบที่ 3</td>
+              <td style="padding: 12px 14px;">💡 หลอดไฟไอเดีย</td>
+              <td style="padding: 12px 14px;"><span class="concept-tag">การศึกษา</span></td>
+              <td style="padding: 12px 14px;">เก็ทไว ปิ๊งไอเดีย เข้าใจจริง พลังงานสูงเหมือนสายฟ้า</td>
+              <td style="padding: 12px 14px;">ฉลาด หัวไว สดใส</td>
+              <td style="padding: 12px 14px; color: #16a34a; font-weight: 700;">★★★★★ คมชัดมาก</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #f1f5f9;">
+              <td style="padding: 12px 14px; font-weight: 700;">แบบที่ 4</td>
+              <td style="padding: 12px 14px;">🚀 จรวดพุ่งทะยาน</td>
+              <td style="padding: 12px 14px;"><span class="concept-tag">การศึกษา</span></td>
+              <td style="padding: 12px 14px;">อัปคะแนนก้าวกระโดด (Score Booster) สปีดการเรียนรู้</td>
+              <td style="padding: 12px 14px;">ทันสมัย มุ่งมั่น ไฮสปีด</td>
+              <td style="padding: 12px 14px; color: #16a34a; font-weight: 700;">★★★★★ คมชัดมาก</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #f1f5f9;">
+              <td style="padding: 12px 14px; font-weight: 700;">แบบที่ 5</td>
+              <td style="padding: 12px 14px;">✏️ ปลายดินสอ+ดาว</td>
+              <td style="padding: 12px 14px;"><span class="concept-tag">การศึกษา</span></td>
+              <td style="padding: 12px 14px;">การลงมือทำข้อสอบจริง เฉียบคม สู่เกรด 4</td>
+              <td style="padding: 12px 14px;">เฉียบคม แม่นยำ พรีเมียม</td>
+              <td style="padding: 12px 14px; color: #16a34a; font-weight: 700;">★★★★☆ สวยหรู</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #f1f5f9; background: #fff1f2;">
+              <td style="padding: 12px 14px; font-weight: 700; color: #b91c1c;">แบบที่ 6</td>
+              <td style="padding: 12px 14px;">🦅 นกฟีนิกซ์</td>
+              <td style="padding: 12px 14px;"><span class="concept-tag" style="background:#fee2e2; color:#b91c1c;">ฉีกแนว/พลังใจ</span></td>
+              <td style="padding: 12px 14px;">การเกิดใหม่ การพลิกคะแนน ไม่ยอมแพ้ สยายปีกบินสูง</td>
+              <td style="padding: 12px 14px;">ทรงพลัง เท่ มีชั้นเชิง</td>
+              <td style="padding: 12px 14px; color: #16a34a; font-weight: 700;">★★★★★ คมชัดมาก</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #f1f5f9; background: #fff1f2;">
+              <td style="padding: 12px 14px; font-weight: 700; color: #b91c1c;">แบบที่ 7</td>
+              <td style="padding: 12px 14px;">🧭 เข็มทิศนำทาง</td>
+              <td style="padding: 12px 14px;"><span class="concept-tag" style="background:#fee2e2; color:#b91c1c;">ฉีกแนว/วิสัยทัศน์</span></td>
+              <td style="padding: 12px 14px;">ผู้นำทางอนาคต วางแผนสอบติดตรงจุด ไม่หลงทิศ</td>
+              <td style="padding: 12px 14px;">สุขุม ฉลาด มีเป้าหมาย</td>
+              <td style="padding: 12px 14px; color: #16a34a; font-weight: 700;">★★★★★ คมชัดมาก</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #f1f5f9; background: #fff1f2;">
+              <td style="padding: 12px 14px; font-weight: 700; color: #b91c1c;">แบบที่ 8</td>
+              <td style="padding: 12px 14px;">⚛️ อะตอมวิทย์-คณิต</td>
+              <td style="padding: 12px 14px;"><span class="concept-tag" style="background:#fee2e2; color:#b91c1c;">ฉีกแนว/วิชาการสายวิทย์</span></td>
+              <td style="padding: 12px 14px;">ตัวแทนวิชาฟิสิกส์-เคมี-วิทย์คณิต และตรรกะเหตุผล</td>
+              <td style="padding: 12px 14px;">ไฮเทค สมาร์ท ล้ำยุค</td>
+              <td style="padding: 12px 14px; color: #16a34a; font-weight: 700;">★★★★★ คมชัดมาก</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #f1f5f9; background: #fff1f2;">
+              <td style="padding: 12px 14px; font-weight: 700; color: #b91c1c;">แบบที่ 9</td>
+              <td style="padding: 12px 14px;">👑 มงกุฎแห่งชัยชนะ</td>
+              <td style="padding: 12px 14px;"><span class="concept-tag" style="background:#fee2e2; color:#b91c1c;">ฉีกแนว/ความเป็นเลิศ</span></td>
+              <td style="padding: 12px 14px;">เกียรติยศแห่งความเป็นที่ 1 แชมเปี้ยนสอบแข่งขัน</td>
+              <td style="padding: 12px 14px;">หรูหรา ชนะทุกสนาม</td>
+              <td style="padding: 12px 14px; color: #16a34a; font-weight: 700;">★★★★★ คมชัดมาก</td>
+            </tr>
+            <tr style="background: #fff1f2;">
+              <td style="padding: 12px 14px; font-weight: 700; color: #b91c1c;">แบบที่ 10</td>
+              <td style="padding: 12px 14px;">✈️ เครื่องบินกระดาษ</td>
+              <td style="padding: 12px 14px;"><span class="concept-tag" style="background:#fee2e2; color:#b91c1c;">ฉีกแนว/จินตนาการ</span></td>
+              <td style="padding: 12px 14px;">ความฝัน จินตนาการ การเรียนที่สนุก ปล่อยพลังสร้างสรรค์</td>
+              <td style="padding: 12px 14px;">สดใหม่ น่ารัก คล่องตัว Gen Z</td>
+              <td style="padding: 12px 14px; color: #16a34a; font-weight: 700;">★★★★★ คมชัดมาก</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <div class="toast" id="toast">คัดลอกรหัส SVG เรียบร้อยแล้ว! พร้อมนำไปใช้งาน</div>
+
+  <script>
+    const svgDatabase = {
+      0: `<svg viewBox="0 0 384 512" fill="var(--color-red)"><path d="M0 256L240 0l-48 192h192L144 512l48-192H0z"/></svg>`,
+      1: `<svg viewBox="0 0 24 24" fill="var(--color-red)"><path d="M12 3L1 8.5L12 14L21 9.5V16H23V8.5L12 3ZM5 12.18V16.5C5 18.99 8.13 21 12 21C15.87 21 19 18.99 19 16.5V12.18L12 15.68L5 12.18Z"/></svg>`,
+      2: `<svg viewBox="0 0 24 24" fill="var(--color-red)"><path d="M12 6.25C9.8 4.6 6.8 3.75 3.5 3.75C2.4 3.75 1.3 3.95 0.3 4.35C0.1 4.45 0 4.65 0 4.9V18.1C0 18.5 0.35 18.8 0.75 18.7C1.6 18.4 2.55 18.25 3.5 18.25C6.8 18.25 9.8 19.1 12 20.75C14.2 19.1 17.2 18.25 20.5 18.25C21.45 18.25 22.4 18.4 23.25 18.7C23.65 18.8 24 18.5 24 18.1V4.9C24 4.65 23.9 4.45 23.7 4.35C22.7 3.95 21.6 3.75 20.5 3.75C17.2 3.75 14.2 4.6 12 6.25ZM11 17.5C9.1 16.3 6.4 15.75 3.5 15.75C2.7 15.75 1.8 15.85 1.2 16.05V6.2C2 6.05 2.7 6 3.5 6C6.4 6 9.1 6.6 11 7.8V17.5ZM22.8 16.05C22.2 15.85 21.3 15.75 20.5 15.75C17.6 15.75 14.9 16.3 13 17.5V7.8C14.9 6.6 17.6 6 20.5 6C21.3 6 22 6.05 22.8 6.2V16.05Z"/></svg>`,
+      3: `<svg viewBox="0 0 24 24" fill="var(--color-red)"><path d="M12 2C8.13 2 5 5.13 5 9C5 11.38 6.19 13.47 8 14.74V17C8 17.55 8.45 18 9 18H15C15.55 18 16 17.55 16 17V14.74C17.81 13.47 19 11.38 19 9C19 5.13 15.87 2 12 2ZM9 21C9 21.55 9.45 22 10 22H14C14.55 22 15 21.55 15 21V20H9V21ZM12 4C14.76 4 17 6.24 17 9C17 10.74 16.11 12.28 14.76 13.19L14 13.7V16H10V13.7L9.24 13.19C7.89 12.28 7 10.74 7 9C7 6.24 9.24 4 12 4Z"/><circle cx="12" cy="9" r="2.2" fill="var(--color-red)"/></svg>`,
+      4: `<svg viewBox="0 0 24 24" fill="var(--color-red)"><path d="M12 2.5C12 2.5 9 6.5 9 11C9 13.5 9.8 15.5 10.8 17L7 20.5L8.5 22L12 19.5L15.5 22L17 20.5L13.2 17C14.2 15.5 15 13.5 15 11C15 6.5 12 2.5 12 2.5Z"/><circle cx="12" cy="10" r="1.5" fill="#0b1e3f"/></svg>`,
+      5: `<svg viewBox="0 0 24 24" fill="var(--color-red)"><path d="M12 1.5L13.4 5.2L17.2 6.6L13.4 8L12 11.7L10.6 8L6.8 6.6L10.6 5.2L12 1.5Z"/><path d="M12 12.8L16.5 18V22.5H7.5V18L12 12.8ZM9.5 20.8H14.5V18.8L12 15.9L9.5 18.8V20.8Z"/></svg>`,
+      6: `<svg viewBox="0 0 24 24" fill="var(--color-red)"><path d="M12 2C12.5 4 14 5.5 16 6C19 6.5 22 5 22 5C20.5 9 17 12 17 12C19 14.5 21 19 21 19C17.5 17 14 17.5 12 22C10 17.5 6.5 17 3 19C5 14.5 7 12 7 12C7 12 3.5 9 2 5C2 5 5 6.5 8 6C10 5.5 11.5 4 12 2Z"/></svg>`,
+      7: `<svg viewBox="0 0 24 24" fill="var(--color-red)"><path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 4C16.42 4 20 7.58 20 12C20 16.42 16.42 20 12 20C7.58 20 4 16.42 4 12C4 7.58 7.58 4 12 4ZM12 6L10 11L5 12L10 13L12 18L13 13L18 12L13 11L12 6Z"/></svg>`,
+      8: `<svg viewBox="0 0 24 24" fill="var(--color-red)"><circle cx="12" cy="12" r="2.8"/><ellipse cx="12" cy="12" rx="10" ry="3.8" transform="rotate(45 12 12)" fill="none" stroke="var(--color-red)" stroke-width="1.8"/><ellipse cx="12" cy="12" rx="10" ry="3.8" transform="rotate(-45 12 12)" fill="none" stroke="var(--color-red)" stroke-width="1.8"/></svg>`,
+      9: `<svg viewBox="0 0 24 24" fill="var(--color-red)"><path d="M2 19H22V21H2V19ZM3 7L7.5 12L12 4L16.5 12L21 7L19.5 17H4.5L3 7Z"/><circle cx="3.5" cy="5.5" r="1.5"/><circle cx="12" cy="2.5" r="1.5"/><circle cx="20.5" cy="5.5" r="1.5"/></svg>`,
+      10: `<svg viewBox="0 0 24 24" fill="var(--color-red)"><path d="M2 11.5L22 2L12.5 22L10 13.5L2 11.5Z"/><path d="M10 13.5L22 2L13 14.5L10 13.5Z" fill="#0b1e3f" opacity="0.35"/></svg>`
+    };
+
+    function applyLogoToSimulator(optionIndex) {
+      const slot = document.getElementById('simulatedLogoSlot');
+      slot.innerHTML = `
+        <div class="brand-logo-unit">
+          <div class="brand-badge">
+            ${svgDatabase[optionIndex]}
+          </div>
+          <div class="brand-text-block">
+            <div class="brand-title">The <span class="brand-new">NEW</span> <span class="brand-gen">GEN</span></div>
+            <span class="brand-subtitle">กวดวิชาของเด็ก <span class="sub-gen">GEN</span> ใหม่</span>
+          </div>
+        </div>
+      `;
+
+      // Update active state in tabs
+      document.querySelectorAll('.sim-tab-btn').forEach((btn, idx) => {
+        btn.classList.toggle('active', idx === optionIndex);
+      });
+    }
+
+    function copySvgCode(optionIndex) {
+      const svg = svgDatabase[optionIndex];
+      navigator.clipboard.writeText(svg).then(() => {
+        showToast(`คัดลอกโค้ด SVG แบบที่ ${optionIndex} เรียบร้อยแล้ว!`);
+      }).catch(() => {
+        showToast(`คัดลอกสำเร็จ`);
+      });
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 2500);
+    }
+
+    function filterBatch(type, btn) {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      const b1 = document.querySelectorAll('.batch-group-1');
+      const b2 = document.querySelectorAll('.batch-group-2');
+
+      if (type === 'all') {
+        b1.forEach(el => el.style.display = '');
+        b2.forEach(el => el.style.display = '');
+      } else if (type === 'batch1') {
+        b1.forEach(el => el.style.display = '');
+        b2.forEach(el => el.style.display = 'none');
+      } else if (type === 'batch2') {
+        b1.forEach(el => el.style.display = 'none');
+        b2.forEach(el => el.style.display = '');
+      }
+    }
+  </script>
+</body>
+</html>
