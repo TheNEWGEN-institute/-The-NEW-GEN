@@ -13,10 +13,8 @@
 // =====================================================================
 import { createHmac, timingSafeEqual } from "node:crypto";
 
-const LINE_TOKEN = Deno.env.get("LINE_CHANNEL_ACCESS_TOKEN") ?? "";
-const LINE_SECRET = Deno.env.get("LINE_CHANNEL_SECRET") ?? "";
-const GROUP_ID = Deno.env.get("LINE_GROUP_ID") ?? "";
-const NOTIFY_SECRET = Deno.env.get("NOTIFY_SECRET") ?? "";
+// Read secrets on every request (secrets added after deploy are picked up without redeploying)
+const env = (name: string) => (Deno.env.get(name) ?? "").trim();
 
 type Subject = { name?: string; date?: string; time?: string };
 type Enrollment = {
@@ -47,18 +45,19 @@ function safeEqual(a: string, b: string): boolean {
 }
 
 function validLineSignature(rawBody: string, signature: string): boolean {
-  if (!LINE_SECRET || !signature) return false;
-  const expected = createHmac("sha256", LINE_SECRET).update(rawBody).digest("base64");
+  const secret = env("LINE_CHANNEL_SECRET");
+  if (!secret || !signature) return false;
+  const expected = createHmac("sha256", secret).update(rawBody).digest("base64");
   return safeEqual(expected, signature);
 }
 
 async function lineApi(path: "push" | "reply", body: unknown): Promise<boolean> {
   const res = await fetch(`https://api.line.me/v2/bot/message/${path}`, {
     method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${LINE_TOKEN}` },
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${env("LINE_CHANNEL_ACCESS_TOKEN")}` },
     body: JSON.stringify(body),
   });
-  if (!res.ok) console.error(`LINE ${path} failed`, res.status, await res.text());
+  if (!res.ok) console.error(`LINE ${path} failed (check LINE_CHANNEL_ACCESS_TOKEN / bot is in the group / quota)`, res.status, await res.text());
   return res.ok;
 }
 
@@ -120,10 +119,16 @@ export function formatMessage(p: Payload): string {
 }
 
 async function handleLineWebhook(rawBody: string, signature: string): Promise<Response> {
-  if (!validLineSignature(rawBody, signature)) return new Response("bad signature", { status: 401 });
+  if (!validLineSignature(rawBody, signature)) {
+    console.error(env("LINE_CHANNEL_SECRET")
+      ? "LINE webhook rejected: signature mismatch — LINE_CHANNEL_SECRET is not this channel's Channel secret"
+      : "LINE webhook rejected: LINE_CHANNEL_SECRET is not set");
+    return new Response("bad signature", { status: 401 });
+  }
   const body = JSON.parse(rawBody || "{}");
   for (const ev of body.events ?? []) {
     const src = ev.source ?? {};
+    console.log(`LINE event: ${ev.type} from ${src.type ?? "?"}${ev.message?.type === "text" ? ` text="${String(ev.message.text).slice(0, 20)}"` : ""}`);
     const groupId = src.groupId ?? src.roomId;
     const asked = ev.type === "message" && ev.message?.type === "text" &&
       String(ev.message.text).trim().toLowerCase() === "groupid";
@@ -149,10 +154,12 @@ Deno.serve(async (req: Request) => {
   if (lineSignature !== null) return handleLineWebhook(rawBody, lineSignature);
 
   const secret = req.headers.get("x-notify-secret") ?? "";
-  if (!NOTIFY_SECRET || !safeEqual(secret, NOTIFY_SECRET)) return new Response("unauthorized", { status: 401 });
-  if (!LINE_TOKEN || !GROUP_ID) return new Response("LINE_CHANNEL_ACCESS_TOKEN / LINE_GROUP_ID not set", { status: 500 });
+  const notifySecret = env("NOTIFY_SECRET");
+  if (!notifySecret || !safeEqual(secret, notifySecret)) return new Response("unauthorized", { status: 401 });
+  const groupId = env("LINE_GROUP_ID");
+  if (!env("LINE_CHANNEL_ACCESS_TOKEN") || !groupId) return new Response("LINE_CHANNEL_ACCESS_TOKEN / LINE_GROUP_ID not set", { status: 500 });
 
   const payload = JSON.parse(rawBody || "{}") as Payload;
-  const ok = await lineApi("push", { to: GROUP_ID, messages: [{ type: "text", text: formatMessage(payload) }] });
+  const ok = await lineApi("push", { to: groupId, messages: [{ type: "text", text: formatMessage(payload) }] });
   return new Response(ok ? "sent" : "line error", { status: ok ? 200 : 502 });
 });
