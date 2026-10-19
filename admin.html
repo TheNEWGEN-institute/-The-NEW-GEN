@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Prompt:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
-  <link rel="stylesheet" href="assets/css/style.css?v=20261020-clean">
+  <link rel="stylesheet" href="assets/css/style.css?v=20261020-rounds">
 </head>
 <body class="page-admin-body">
 
@@ -1969,6 +1969,7 @@
               <div class="form-group-luxury" style="margin-bottom: 10px;">
                 <label>จำนวนนักเรียนที่รับได้ทั้งหมด (Max Capacity)</label>
                 <input type="number" id="cMaxSeats" min="1" placeholder="เช่น 12 หรือ 15 (ค่าเริ่มต้น 12 ที่นั่ง)" oninput="updateCourseSeatCalcPreview()">
+                <small style="color: var(--text-muted); display: block; margin-top: 2px;">ถ้ากรอก "รับได้" ในตารางรอบเวลาด้านล่าง ช่องนี้จะรวมยอดให้อัตโนมัติ</small>
                 <small id="courseSeatCalcPreview" style="color: #15803d; display: block; margin-top: 4px; font-weight: 600;">
                   คำนวณที่นั่งอัตโนมัติ: (รับได้ทั้งหมด - ผู้สมัครปัจจุบัน = ที่นั่งคงเหลือ)
                 </small>
@@ -2125,7 +2126,7 @@
                 <label style="margin: 0; color: #075985; font-weight: 800; font-size: 0.95rem;">
                   <i class="fa-solid fa-calendar-days" style="color: #0284c7;"></i> ตารางเรียนและรอบเวลา (Schedule Table)
                 </label>
-                <small style="color: #0369a1; display: block;">กำหนดกลุ่มเรียน เวลาเรียน และวันที่เริ่ม-สิ้นสุด</small>
+                <small style="color: #0369a1; display: block;">กำหนดกลุ่มเรียน เวลาเรียน วันที่เริ่ม-สิ้นสุด และ<b>จำนวนที่รับได้ของแต่ละรอบ</b> — รอบที่เต็มจะปิดรับอัตโนมัติ รอบอื่นยังสมัครได้ (เว้นว่างทุกรอบ = ใช้จำนวนรวมของคอร์ส)</small>
               </div>
               <button type="button" class="btn-xs-action" onclick="addScheduleInputRow('', '', '')">
                 <i class="fa-solid fa-plus"></i> เพิ่มรอบเวลา
@@ -2627,6 +2628,11 @@
                   <option value="online">💻 เรียนสด Online (ระบบห้องเรียนสด)</option>
                 </select>
               </div>
+            </div>
+            <div class="form-group-luxury" id="wrapEnRound" style="margin: 12px 0 0; display: none;">
+              <label style="color: #1e40af; font-weight: 800;">🕒 รอบเรียน</label>
+              <select id="enScheduleChoice" style="font-weight: 600;"></select>
+              <small style="color: var(--text-muted);">ใช้นับที่นั่งของแต่ละรอบ — แอดมินเลือกรอบที่เต็มแล้วได้ (เพิ่มที่นั่งกรณีพิเศษ)</small>
             </div>
           </div>
 
@@ -3172,6 +3178,12 @@
           <textarea id="csDetail" rows="2" placeholder="เช่น ตะลุยโจทย์พิชิตเกรด 4 ติวเข้มปูพื้นฐานสู่มหาวิทยาลัย"></textarea>
         </div>
 
+        <div class="form-group-luxury">
+          <label for="csCapacity"><i class="fa-solid fa-chair"></i> จำนวนที่รับได้ (คน)</label>
+          <input type="number" id="csCapacity" min="1" placeholder="เว้นว่าง = ไม่จำกัดจำนวน">
+          <small style="color: var(--text-muted);">เต็มแล้วจะปิดรับวิชานี้อัตโนมัติ นักเรียนยังสมัครวิชาอื่นได้ (ไม่นับใบสมัครที่ยกเลิก)</small>
+        </div>
+
         <div style="background: #f8fafc; padding: 12px 16px; border-radius: 8px; border: 1px solid #e2e8f0; margin-top: 10px;">
           <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 700; color: #1e293b; margin: 0;">
             <input type="checkbox" id="csActive" checked style="width: 18px; height: 18px; accent-color: #16a34a;">
@@ -3247,7 +3259,7 @@
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-  <script src="assets/js/courses-data.js?v=20261020-clean"></script>
-  <script src="assets/js/admin.js?v=20261020-clean"></script>
+  <script src="assets/js/courses-data.js?v=20261020-rounds"></script>
+  <script src="assets/js/admin.js?v=20261020-rounds"></script>
 </body>
 </html>

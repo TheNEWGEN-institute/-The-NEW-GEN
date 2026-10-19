@@ -557,6 +557,72 @@
     }
   };
 
+  // การ์ดเลือกรอบเรียน: แสดงที่นั่งคงเหลือ รอบที่เต็ม/ปิดรับกดไม่ได้ และเลือกรอบแรกที่ยังว่างไว้ให้
+  function renderRoundCards(schedules, inputName, extraAttrs, labelStyle) {
+    const seat = window.getRoundSeatInfo || (() => ({ isFull: false, capacity: null, remaining: null }));
+    const firstOpen = schedules.findIndex(s => !seat(s).isFull);
+    return schedules.map((s, idx) => {
+      const info = seat(s);
+      const selected = idx === firstOpen;
+      const value = `${s.type || ''} | ${s.time || ''} | ${s.dates || ''}`;
+      const seatTag = info.isFull
+        ? `<span class="badge badge-seat-full" style="font-size: 0.72rem;">🛑 ${info.closed ? 'ปิดรับรอบนี้' : 'เต็มแล้ว'}</span>`
+        : (info.capacity !== null
+          ? `<span class="sched-seat-tag ${info.remaining <= 3 ? 'low' : ''}"><i class="fa-solid fa-chair"></i> เหลือ ${info.remaining}/${info.capacity} ที่</span>`
+          : '');
+      return `
+        <label class="enroll-schedule-card ${selected ? 'active' : ''} ${info.isFull ? 'disabled' : ''}" onclick="selectEnrollSchedule(this)" style="${labelStyle}">
+          <input type="radio" name="${inputName}" ${extraAttrs} value="${escapeHtml(value)}" ${selected ? 'checked' : ''} ${info.isFull ? 'disabled' : ''}>
+          <div class="sched-card-body">
+            <div class="sched-type-row">
+              <strong>${escapeHtml(s.type)}</strong>
+              ${s.time && !String(s.time).includes('เต็มแล้ว') ? `<span class="sched-time-tag"><i class="fa-regular fa-clock"></i> ${escapeHtml(s.time)}</span>` : ''}
+            </div>
+            ${s.dates && !String(s.dates).includes('ปิดรับ') ? `<div class="sched-dates-row"><i class="fa-regular fa-calendar"></i> ${escapeHtml(s.dates)}</div>` : ''}
+            ${seatTag ? `<div class="sched-seat-row">${seatTag}</div>` : ''}
+          </div>
+        </label>
+      `;
+    }).join('');
+  }
+
+  // ตรวจรอบ/วิชาที่ถูกเลือกไว้กับข้อมูลที่นั่งล่าสุด: รอบที่เพิ่งเต็มจะถูกปิดและยกเลิกการเลือก (ข้อมูลที่กรอกไว้ไม่หาย)
+  function refreshRoundAvailability() {
+    const seat = window.getRoundSeatInfo;
+    if (!seat || !currentEnrollCourse) return;
+    const courses = window.NewGenDB ? window.NewGenDB.getCourses() : [];
+    const disable = input => {
+      input.checked = false;
+      input.disabled = true;
+      const card = input.closest('label');
+      if (card) card.classList.add('disabled');
+      card?.classList.remove('active');
+    };
+    const radioFull = (courseId, value) => {
+      const c = courses.find(x => x.id === courseId);
+      const round = c && Array.isArray(c.scheduleList)
+        ? c.scheduleList.find(r => `${r.type || ''} | ${r.time || ''} | ${r.dates || ''}` === value || (r.type || '') === value.split(' | ')[0])
+        : null;
+      return Boolean((c && c.isFull) || (round && seat(round).isFull));
+    };
+    if (currentEnrollCourse.isCampaign) {
+      const camp = window.NewGenDB ? window.NewGenDB.getPopupCampaign() : null;
+      const subs = camp && Array.isArray(camp.subjects) ? camp.subjects : [];
+      document.querySelectorAll('input[name="campaignSubjectChoices"][type="checkbox"]').forEach(cb => {
+        const s = subs.find(x => x.id === cb.value);
+        if (s && seat(s).isFull) disable(cb);
+      });
+    } else if (currentEnrollCourse.isBundle) {
+      document.querySelectorAll('input[type="radio"][data-course-id]').forEach(rb => {
+        if (radioFull(rb.dataset.courseId, rb.value)) disable(rb);
+      });
+    } else {
+      document.querySelectorAll('input[name="enrollScheduleChoice"][type="radio"]').forEach(rb => {
+        if (radioFull(currentEnrollCourse.id, rb.value)) disable(rb);
+      });
+    }
+  }
+
   // Campaign form has no notes or shipping address fields
   function hideCampaignExcludedFields() {
     [['wrapFieldNotes', 'enrInputNotes'], ['wrapFieldShippingAddress', 'enrInputAddress']].forEach(([wrapId, inputId]) => {
@@ -828,18 +894,24 @@
           : ((window.DEFAULT_POPUP_CAMPAIGN && window.DEFAULT_POPUP_CAMPAIGN.subjects) || []);
 
         if (subjects.length > 0) {
+          const seatOf = window.getRoundSeatInfo || (() => ({ isFull: false, capacity: null }));
+          const firstOpen = subjects.findIndex(s => !seatOf(s).isFull);
           schedContainer.innerHTML = `
             <div class="campaign-subjects-grid">
               ${subjects.map((s, idx) => {
-                const checked = idx === 0 ? 'checked' : '';
-                const activeClass = idx === 0 ? 'active' : '';
+                const info = seatOf(s);
+                const checked = idx === firstOpen ? 'checked' : '';
+                const activeClass = idx === firstOpen ? 'active' : '';
                 return `
-                  <label class="campaign-subject-card ${activeClass}" onclick="toggleCampaignSubjectCard(this, event)">
-                    <input type="checkbox" name="campaignSubjectChoices" value="${escapeHtml(s.id)}" data-name="${escapeHtml(s.name)}" data-grade="${escapeHtml(s.grade || '')}" data-date="${escapeHtml(s.date || '')}" data-time="${escapeHtml(s.time || '')}" data-detail="${escapeHtml(s.detail || '')}" ${checked} onchange="syncCampaignSubjectCard(this)">
+                  <label class="campaign-subject-card ${activeClass} ${info.isFull ? 'disabled' : ''}" onclick="toggleCampaignSubjectCard(this, event)">
+                    <input type="checkbox" name="campaignSubjectChoices" value="${escapeHtml(s.id)}" data-name="${escapeHtml(s.name)}" data-grade="${escapeHtml(s.grade || '')}" data-date="${escapeHtml(s.date || '')}" data-time="${escapeHtml(s.time || '')}" data-detail="${escapeHtml(s.detail || '')}" ${checked} ${info.isFull ? 'disabled' : ''} onchange="syncCampaignSubjectCard(this)">
                     <div class="campaign-subject-info">
                       <div class="campaign-subject-header">
                         <span class="campaign-subject-title">${escapeHtml(s.name)}</span>
                         ${s.grade ? `<span class="campaign-subject-grade">${escapeHtml(s.grade)}</span>` : ''}
+                        ${info.isFull
+                          ? '<span class="badge badge-seat-full" style="font-size: 0.72rem;">🛑 เต็มแล้ว</span>'
+                          : (info.capacity !== null ? `<span class="sched-seat-tag ${info.remaining <= 3 ? 'low' : ''}"><i class="fa-solid fa-chair"></i> เหลือ ${info.remaining}/${info.capacity} ที่</span>` : '')}
                       </div>
                       ${(s.date || s.time) ? `
                         <div class="campaign-subject-time">
@@ -885,47 +957,14 @@
                   </span>
                 </div>
                 <div class="enroll-schedule-grid" style="display: grid; gap: 8px;">
-                  ${schedules.map((s, idx) => {
-                    const checked = idx === 0 ? 'checked' : '';
-                    const activeClass = idx === 0 ? 'active' : '';
-                    const isItemFull = (s.time && s.time.includes('เต็มแล้ว')) || (s.dates && s.dates.includes('ปิดรับ'));
-                    const radioVal = `${escapeHtml(s.type)} | ${escapeHtml(s.time)} | ${escapeHtml(s.dates)}`;
-                    return `
-                      <label class="enroll-schedule-card ${activeClass} ${isItemFull ? 'disabled' : ''}" onclick="selectEnrollSchedule(this)" style="margin: 0;">
-                        <input type="radio" name="enrollScheduleChoice_${cc.id}" data-course-id="${cc.id}" data-course-title="${escapeHtml(cc.title)}" value="${radioVal}" ${checked} ${isItemFull ? 'disabled' : ''}>
-                        <div class="sched-card-body">
-                          <div class="sched-type-row">
-                            <strong>${escapeHtml(s.type)}</strong>
-                            ${isItemFull ? '<span class="badge badge-seat-full" style="font-size: 0.72rem;">🛑 เต็มแล้ว</span>' : '<span class="sched-time-tag"><i class="fa-regular fa-clock"></i> ' + escapeHtml(s.time) + '</span>'}
-                          </div>
-                          ${s.dates ? `<div class="sched-dates-row"><i class="fa-regular fa-calendar"></i> ${escapeHtml(s.dates)}</div>` : ''}
-                        </div>
-                      </label>
-                    `;
-                  }).join('')}
+                  ${renderRoundCards(schedules, `enrollScheduleChoice_${cc.id}`, `data-course-id="${escapeHtml(cc.id)}" data-course-title="${escapeHtml(cc.title)}"`, 'margin: 0;')}
                 </div>
               </div>
             `;
           }).join('');
         } else if (Array.isArray(course.scheduleList) && course.scheduleList.length > 0) {
           schedSection.style.display = 'block';
-          schedContainer.innerHTML = course.scheduleList.map((s, idx) => {
-            const checked = idx === 0 ? 'checked' : '';
-            const activeClass = idx === 0 ? 'active' : '';
-            const isItemFull = (s.time && s.time.includes('เต็มแล้ว')) || (s.dates && s.dates.includes('ปิดรับ'));
-            return `
-              <label class="enroll-schedule-card ${activeClass} ${isItemFull ? 'disabled' : ''}" onclick="selectEnrollSchedule(this)">
-                <input type="radio" name="enrollScheduleChoice" value="${escapeHtml(s.type)} | ${escapeHtml(s.time)} | ${escapeHtml(s.dates)}" ${checked} ${isItemFull ? 'disabled' : ''}>
-                <div class="sched-card-body">
-                  <div class="sched-type-row">
-                    <strong>${escapeHtml(s.type)}</strong>
-                    ${isItemFull ? '<span class="badge badge-seat-full" style="font-size: 0.72rem;">🛑 เต็มแล้ว</span>' : '<span class="sched-time-tag"><i class="fa-regular fa-clock"></i> ' + escapeHtml(s.time) + '</span>'}
-                  </div>
-                  ${s.dates ? `<div class="sched-dates-row"><i class="fa-regular fa-calendar"></i> ${escapeHtml(s.dates)}</div>` : ''}
-                </div>
-              </label>
-            `;
-          }).join('');
+          schedContainer.innerHTML = renderRoundCards(course.scheduleList, 'enrollScheduleChoice', '', '');
         } else {
           schedSection.style.display = 'none';
           schedContainer.innerHTML = `<input type="hidden" name="enrollScheduleChoice" value="ตารางเรียนมาตรฐานตามรอบคอร์ส">`;
@@ -1169,15 +1208,27 @@
       });
     } else if (isBundle && Array.isArray(currentEnrollCourse.childCourses) && currentEnrollCourse.childCourses.length > 0) {
       const scheduleLines = [];
+      let missingRound = '';
       currentEnrollCourse.childCourses.forEach(cc => {
-        const sel = document.querySelector(`input[name="enrollScheduleChoice_${cc.id}"]:checked`);
+        const radios = document.querySelectorAll(`input[name="enrollScheduleChoice_${cc.id}"]`);
+        const sel = document.querySelector(`input[name="enrollScheduleChoice_${cc.id}"]:checked:not(:disabled)`);
+        if (radios.length > 0 && !sel && !missingRound) missingRound = cc.title;
         const val = sel ? sel.value : (cc.scheduleList?.[0]?.type || 'รอบเรียนปกติ');
         childSchedulesMap[cc.id] = val;
         scheduleLines.push(`• [${cc.title}]: ${val}`);
       });
+      if (missingRound) {
+        alert(`⚠️ กรุณาเลือกรอบเรียนของ "${missingRound}" (รอบที่เต็มแล้วเลือกไม่ได้)`);
+        return;
+      }
       scheduleChoice = scheduleLines.join('\n');
     } else {
-      const schedSelected = document.querySelector('input[name="enrollScheduleChoice"]:checked');
+      const radios = document.querySelectorAll('input[name="enrollScheduleChoice"][type="radio"]');
+      const schedSelected = document.querySelector('input[name="enrollScheduleChoice"]:checked:not(:disabled)');
+      if (radios.length > 0 && !schedSelected) {
+        alert('⚠️ กรุณาเลือกรอบเรียนที่ต้องการ (รอบที่เต็มแล้วเลือกไม่ได้)');
+        return;
+      }
       scheduleChoice = schedSelected ? schedSelected.value : (currentEnrollCourse.scheduleList?.[0]?.type || 'รอบเรียนปกติ');
     }
 
@@ -1323,6 +1374,23 @@
     } catch (err) {
       console.warn('Save enrollment error:', err);
       restoreSubmitBtn();
+
+      // ที่นั่งเต็มระหว่างกรอกฟอร์ม (Supabase ปฏิเสธ) → แจ้งชัดเจน ดึงที่นั่งล่าสุด แล้วให้เลือกรอบอื่น
+      const full = String(err && err.message || '').match(/(ROUND_FULL|COURSE_FULL|SUBJECT_FULL|ROUND_UNKNOWN)\|([^"\\]*)/);
+      if (full) {
+        const parts = full[2].split('|');
+        const msg = {
+          ROUND_FULL: `ขออภัยครับ รอบ "${parts[1] || ''}" ของ ${parts[0] || 'คอร์สนี้'} เพิ่งเต็ม\nกรุณาเลือกรอบเวลาอื่นแล้วกดยืนยันอีกครั้ง`,
+          COURSE_FULL: `ขออภัยครับ ${parts[0] || 'คอร์สนี้'} ที่นั่งเต็มแล้ว\nทัก LINE สถาบันเพื่อสอบถามรอบถัดไปได้เลยครับ`,
+          SUBJECT_FULL: `ขออภัยครับ วิชา "${parts[0] || ''}" ที่นั่งเต็มแล้ว\nกรุณาเลือกวิชาอื่นแล้วกดยืนยันอีกครั้ง`,
+          ROUND_UNKNOWN: `รอบเรียนของ ${parts[0] || 'คอร์สนี้'} มีการเปลี่ยนแปลง\nกรุณาเลือกรอบเวลาใหม่แล้วกดยืนยันอีกครั้ง`
+        }[full[1]];
+        alert(msg);
+        if (window.NewGenDB) await window.NewGenDB.syncFromSupabase();
+        refreshRoundAvailability();
+        return;
+      }
+
       const lineUrl = getContactLineUrl();
       if (confirm('ขออภัย ระบบบันทึกใบสมัครไม่สำเร็จในขณะนี้ กรุณาลองกดยืนยันอีกครั้ง\n\nหรือกด "ตกลง" เพื่อทัก LINE สถาบันให้เจ้าหน้าที่ช่วยลงทะเบียนให้')) {
         window.open(lineUrl, '_blank', 'noopener,noreferrer');
@@ -1823,7 +1891,7 @@ LINE ID: ${lastEnrollmentData.lineId}${customText}${lastEnrollmentData.studentIm
   window.toggleCampaignSubjectCard = function (labelEl, event) {
     if (event && event.target && (event.target.tagName.toLowerCase() === 'input')) return;
     const cb = labelEl.querySelector('input[type="checkbox"]');
-    if (cb) {
+    if (cb && !cb.disabled) {
       cb.checked = !cb.checked;
       syncCampaignSubjectCard(cb);
     }

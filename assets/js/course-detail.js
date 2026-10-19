@@ -168,6 +168,13 @@ function initCourseDetailPage() {
         }
       }
       if (scheduleBody) {
+        // ที่นั่งรายรอบ (คำนวณโดย Supabase): เหลือ X / Y ที่ หรือ เต็มแล้ว / ปิดรับ
+        const roundSeatCell = s => {
+          const info = window.getRoundSeatInfo ? window.getRoundSeatInfo(s) : { isFull: false, capacity: null };
+          if (info.isFull) return `<span class="schedule-seat full"><i class="fa-solid fa-ban"></i> ${info.closed ? 'ปิดรับรอบนี้' : 'เต็มแล้ว'}</span>`;
+          if (info.capacity !== null) return `<span class="schedule-seat ${info.remaining <= 3 ? 'low' : ''}"><i class="fa-solid fa-chair"></i> เหลือ ${info.remaining} / ${info.capacity} ที่</span>`;
+          return '<span class="schedule-seat"><i class="fa-solid fa-circle-check"></i> เปิดรับสมัคร</span>';
+        };
         scheduleBody.innerHTML = validSchedules.map(s => `
           <tr>
             <td>
@@ -185,6 +192,7 @@ function initCourseDetailPage() {
                 <i class="fa-regular fa-calendar-check"></i> ${escapeHtml(s.dates || '')}
               </div>
             </td>
+            <td>${roundSeatCell(s)}</td>
           </tr>
         `).join('');
       }

@@ -848,7 +848,33 @@ const NewGenDB = {
       console.warn('LocalStorage save error:', e);
     }
     window.courseData = courses;
-    return NewGenDB.saveToSupabase('courses', courses);
+    // หลังบันทึกคอร์ส ให้ Supabase คำนวณที่นั่งของทุกรอบใหม่ (ตัวเลขที่นั่งเป็นของฝั่งฐานข้อมูล)
+    return NewGenDB.saveToSupabase('courses', courses).then(r => { if (r && r.success) NewGenDB.refreshSeatsSoon(true); return r; });
+  },
+
+  // คำนวณที่นั่งใหม่ (แอดมิน) แล้วดึงข้อมูลล่าสุดกลับมา — รวมหลายคำขอติดกันเป็นครั้งเดียว
+  _seatRefreshTimer: null,
+  _seatRefreshRecompute: false,
+  refreshSeatsSoon: (recompute) => {
+    NewGenDB._seatRefreshRecompute = NewGenDB._seatRefreshRecompute || recompute;
+    clearTimeout(NewGenDB._seatRefreshTimer);
+    NewGenDB._seatRefreshTimer = setTimeout(async () => {
+      const doRecompute = NewGenDB._seatRefreshRecompute;
+      NewGenDB._seatRefreshRecompute = false;
+      if (!NewGenAuth.getSession()) return;
+      try {
+        if (doRecompute) {
+          await fetch(`${SUPABASE_CONFIG.url}/rest/v1/rpc/admin_recompute_seats`, {
+            method: 'POST',
+            headers: await getSupabaseHeaders({ 'Content-Type': 'application/json' }),
+            body: '{}'
+          });
+        }
+        await NewGenDB.syncFromSupabase();
+      } catch (e) {
+        console.warn('[Supabase] seat refresh failed:', e);
+      }
+    }, 700);
   },
 
   // Tutors (แบ่ง 2 ทีม: Onsite ประจำสถาบัน & สอน Online)
@@ -1153,7 +1179,7 @@ const NewGenDB = {
         body: JSON.stringify(popupObj)
       }).catch(() => {});
     } catch (err) {}
-    return NewGenDB.saveToSupabase('popupCampaign', popupObj);
+    return NewGenDB.saveToSupabase('popupCampaign', popupObj).then(r => { if (r && r.success) NewGenDB.refreshSeatsSoon(true); return r; });
   },
 
   // Bundles (แพ็คเกจคอร์สเรียนโปรโมชั่น)
@@ -1295,20 +1321,8 @@ const NewGenDB = {
     if (idx !== -1) list[idx] = merged;
     else list.unshift(merged);
     if (typeof window !== 'undefined') window.enrollmentsData = list;
-    const savePromise = NewGenDB._upsertEnrollmentRows([merged]);
-
-    // Recalculate remaining seats for the course
-    if (enrollment.courseId) {
-      const courses = NewGenDB.getCourses();
-      const targetCourse = courses.find(c => c.id === enrollment.courseId);
-      if (targetCourse) {
-        const count = list.filter(e => e.courseId === enrollment.courseId).length;
-        const cap = Number(targetCourse.maxSeats || 12);
-        targetCourse.remainingSeats = Math.max(0, cap - count);
-        if (targetCourse.remainingSeats <= 0) targetCourse.isFull = true;
-        NewGenDB.saveCourses(courses);
-      }
-    }
+    // ที่นั่งคงเหลือคำนวณใหม่ใน Supabase อัตโนมัติ (trigger) แล้วดึงตัวเลขล่าสุดกลับมา
+    const savePromise = NewGenDB._upsertEnrollmentRows([merged]).then(r => { NewGenDB.refreshSeatsSoon(false); return r; });
     if (typeof document !== 'undefined') {
       document.dispatchEvent(new CustomEvent('newgen:synced'));
     }
@@ -1316,7 +1330,6 @@ const NewGenDB = {
   },
   deleteEnrollment: (id) => {
     let list = NewGenDB.getEnrollments();
-    const itemToDelete = list.find(e => e.id === id);
     list = list.filter(e => e.id !== id);
     if (typeof window !== 'undefined') window.enrollmentsData = list;
     const savePromise = (async () => {
@@ -1330,21 +1343,7 @@ const NewGenDB = {
       } catch (err) {
         return { success: false, error: err.message };
       }
-    })();
-
-    if (itemToDelete && itemToDelete.courseId) {
-      const courses = NewGenDB.getCourses();
-      const targetCourse = courses.find(c => c.id === itemToDelete.courseId);
-      if (targetCourse) {
-        const count = list.filter(e => e.courseId === itemToDelete.courseId).length;
-        const cap = Number(targetCourse.maxSeats || 12);
-        targetCourse.remainingSeats = Math.max(0, cap - count);
-        if (targetCourse.remainingSeats > 0 && targetCourse.isFull) {
-          targetCourse.isFull = false;
-        }
-        NewGenDB.saveCourses(courses);
-      }
-    }
+    })().then(r => { NewGenDB.refreshSeatsSoon(false); return r; });
     if (typeof document !== 'undefined') {
       document.dispatchEvent(new CustomEvent('newgen:synced'));
     }
@@ -1521,6 +1520,22 @@ function getCourseEffectiveSeats(c) {
 }
 if (typeof window !== 'undefined') {
   window.getCourseEffectiveSeats = getCourseEffectiveSeats;
+}
+
+/**
+ * สถานะที่นั่งของรอบเรียน 1 รอบ (หรือวิชาติวฟรี 1 วิชา)
+ * capacity / remaining / isFull ถูกคำนวณโดย Supabase; รองรับรอบเก่าที่พิมพ์ "เต็มแล้ว" / "ปิดรับ" ไว้ในข้อความ
+ */
+function getRoundSeatInfo(s) {
+  if (!s) return { capacity: null, remaining: null, isFull: false, closed: false };
+  const legacyClosed = String(s.time || '').includes('เต็มแล้ว') || String(s.dates || '').includes('ปิดรับ');
+  const closed = s.closed === true || s.active === false || s.enabled === false || legacyClosed;
+  const capacity = Number(s.capacity) > 0 ? Number(s.capacity) : null;
+  const remaining = capacity === null ? null : (typeof s.remaining === 'number' ? s.remaining : capacity);
+  return { capacity, remaining, closed, isFull: closed || s.isFull === true || (capacity !== null && remaining <= 0) };
+}
+if (typeof window !== 'undefined') {
+  window.getRoundSeatInfo = getRoundSeatInfo;
 }
 
 /**

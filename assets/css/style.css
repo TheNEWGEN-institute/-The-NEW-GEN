@@ -8795,6 +8795,119 @@ button {
   margin-bottom: 20px;
 }
 
+/* Admin course editor: per-round seats */
+.builder-schedule-seats {
+  grid-column: 1 / -1;
+  flex-basis: 100%;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  font-size: 0.82rem;
+  color: #075985;
+  padding: 2px 0 6px;
+}
+
+.sched-cap-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+}
+
+.sched-cap-field input.c-sched-capacity {
+  width: 74px;
+  padding: 5px 8px;
+  border: 1.5px solid #7dd3fc;
+  border-radius: 6px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.sched-closed-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #b91c1c;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.sched-closed-field input { accent-color: #dc2626; width: 16px; height: 16px; }
+
+.c-sched-enrolled {
+  font-weight: 700;
+  color: #047857;
+  background: #ecfdf5;
+  border-radius: 6px;
+  padding: 2px 8px;
+}
+
+.c-sched-enrolled.full { color: #b91c1c; background: #fef2f2; }
+
+.cap-round-lines {
+  margin-top: 10px;
+  display: grid;
+  gap: 4px;
+}
+
+.cap-round-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 0.78rem;
+  color: #334155;
+  background: #f8fafc;
+  border-radius: 6px;
+  padding: 3px 8px;
+}
+
+.cap-round-line span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cap-round-line b { color: #047857; white-space: nowrap; }
+.cap-round-line.full b { color: #b91c1c; }
+
+#cMaxSeats.is-auto {
+  background: #f1f5f9;
+  color: #0f172a;
+  font-weight: 800;
+}
+
+/* Seats left per time slot (enrollment form + course detail table) */
+.sched-seat-row {
+  margin-top: 6px;
+}
+
+.sched-seat-tag,
+.schedule-seat {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  background: #ecfdf5;
+  color: #047857;
+  white-space: nowrap;
+}
+
+.sched-seat-tag.low,
+.schedule-seat.low {
+  background: #fff7ed;
+  color: #c2410c;
+}
+
+.schedule-seat.full {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.campaign-subject-card.disabled,
+.enroll-schedule-card.disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 /* PDPA consent checkbox */
 .enroll-consent-label {
   display: flex;
