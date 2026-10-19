@@ -487,6 +487,11 @@ function loadAdminCourses() {
     } else {
       seatBadgeHtml = `<span class="badge" style="background:#f0fdf4; color:#15803d; font-weight:800; border:1px solid #bbf7d0; white-space:nowrap; padding:4px 8px; font-size:0.75rem;">⚡ ว่าง ${remaining} ที่</span>`;
     }
+    // คอร์สที่ยังไม่ได้กรอกจำนวนรับรายรอบ (ยังใช้ยอดรวมแบบเดิม) — เตือนให้เข้าไปกรอก
+    const rounds = Array.isArray(c.scheduleList) ? c.scheduleList : [];
+    if (rounds.length === 0 || rounds.some(r => !(Number(r.capacity) > 0))) {
+      seatBadgeHtml += '<div style="margin-top:4px;"><span class="badge" style="background:#fef9c3; color:#854d0e; font-weight:700; border:1px solid #fde047; white-space:nowrap; padding:2px 6px; font-size:0.68rem;" title="กดแก้ไขคอร์ส แล้วกรอกช่อง รับได้ (คน) ของทุกรอบเวลา">⚠️ ยังไม่ตั้งที่นั่งรายรอบ</span></div>';
+    }
 
     const effStatus = window.getCourseEffectiveStatus ? window.getCourseEffectiveStatus(c) : {
       text: c.statusBadge || 'เปิดรับสมัคร',
@@ -1017,12 +1022,6 @@ function openAddCourseModal() {
   if (document.getElementById('cIsFeatured')) document.getElementById('cIsFeatured').checked = true;
   if (document.getElementById('cIsHidden')) document.getElementById('cIsHidden').checked = false;
   if (document.getElementById('cScheduleNote')) document.getElementById('cScheduleNote').value = '';
-  if (document.getElementById('cMaxSeats')) {
-    const el = document.getElementById('cMaxSeats');
-    el.readOnly = false;
-    el.value = '12';
-    el.dataset.manual = '12';
-  }
   if (document.getElementById('cIsFull')) document.getElementById('cIsFull').checked = false;
   if (typeof updateCourseSeatCalcPreview === 'function') updateCourseSeatCalcPreview();
 
@@ -1056,8 +1055,7 @@ function openAddCourseModal() {
   document.getElementById('modalCourse').classList.add('active');
 }
 
-// ที่นั่งในหน้าแก้ไขคอร์ส: ถ้ากรอก "รับได้" ในรอบเรียน → ยอดรวมของคอร์ส = ผลรวมทุกรอบ (ช่องรวมล็อกไว้)
-// ไม่กรอกเลย → ใช้ช่องจำนวนรวมของคอร์สแบบเดิม  (ที่นั่งไม่นับใบสมัครที่ยกเลิก)
+// ที่นั่งในหน้าแก้ไขคอร์ส: กรอก "รับได้" ทุกรอบ → ยอดรวมของคอร์ส = ผลรวมทุกรอบ (ไม่นับใบสมัครที่ยกเลิก)
 function updateCourseSeatCalcPreview() {
   const courseId = document.getElementById('courseEditId') ? document.getElementById('courseEditId').value.trim() : '';
   const maxSeatsInput = document.getElementById('cMaxSeats');
@@ -1072,7 +1070,6 @@ function updateCourseSeatCalcPreview() {
     dates: el.querySelector('.c-sched-dates')?.value.trim() || ''
   }));
   const caps = rows.map(el => parseInt(el.querySelector('.c-sched-capacity')?.value, 10) || 0);
-  const perRound = caps.some(c => c > 0);
   const draftCourse = { scheduleList: draftRounds };
 
   // จำนวนผู้สมัครแต่ละรอบ (เทียบด้วยชื่อรอบ แบบเดียวกับฝั่ง Supabase)
@@ -1088,23 +1085,16 @@ function updateCourseSeatCalcPreview() {
       : `สมัครแล้ว ${n}${closed ? ' • ปิดรับ' : ''}`;
   });
 
-  if (perRound) {
-    if (!maxSeatsInput.readOnly) maxSeatsInput.dataset.manual = maxSeatsInput.value;
-    maxSeatsInput.value = caps.reduce((a, b) => a + b, 0);
-    maxSeatsInput.readOnly = true;
-    maxSeatsInput.classList.add('is-auto');
-  } else {
-    // กลับมาใช้ยอดรวมที่พิมพ์เองไว้ก่อนหน้า
-    if (maxSeatsInput.readOnly && maxSeatsInput.dataset.manual) maxSeatsInput.value = maxSeatsInput.dataset.manual;
-    maxSeatsInput.readOnly = false;
-    maxSeatsInput.classList.remove('is-auto');
-  }
-  const maxVal = parseInt(maxSeatsInput.value, 10) || 12;
-  const remaining = Math.max(0, maxVal - active.length);
+  // จำนวนรับทั้งคอร์ส = ผลรวมของทุกรอบ (ไม่มีช่องกรอกยอดรวมแยกแล้ว)
+  const total = caps.reduce((a, b) => a + b, 0);
+  maxSeatsInput.value = total || '';
+  const totalEl = document.getElementById('cSeatTotalDisplay');
+  if (totalEl) totalEl.textContent = total ? `${total} คน` : 'ยังไม่ได้กรอก';
+  const remaining = Math.max(0, total - active.length);
   const color = remaining === 0 ? '#dc2626' : (remaining <= 3 ? '#ea580c' : '#16a34a');
-  const missing = perRound && caps.some(c => !(c > 0));
-  previewEl.innerHTML = `${perRound ? '🧮 รวมจากทุกรอบอัตโนมัติ • ' : ''}ผู้สมัคร (ไม่นับที่ยกเลิก): <strong>${active.length}</strong> คน | ที่นั่งคงเหลือ: <strong style="color: ${color};">${remaining}</strong> ที่นั่ง (จากความจุ ${maxVal} คน)`
-    + (missing ? '<br><span style="color:#dc2626;">⚠️ กรอกจำนวน "รับได้" ให้ครบทุกรอบ หรือเว้นว่างทุกรอบเพื่อใช้ยอดรวมแบบเดิม</span>' : '');
+  const missing = rows.length === 0 || caps.some(c => !(c > 0));
+  previewEl.innerHTML = `ผู้สมัคร (ไม่นับที่ยกเลิก): <strong>${active.length}</strong> คน | ที่นั่งคงเหลือ: <strong style="color: ${color};">${remaining}</strong> ที่นั่ง`
+    + (missing ? '<br><span style="color:#dc2626;">⚠️ กรอกจำนวน "รับได้" ให้ครบทุกรอบเวลาในตารางเรียนด้านล่าง</span>' : '');
 }
 
 function openEditCourseModal(id) {
@@ -1116,7 +1106,7 @@ function openEditCourseModal(id) {
   document.getElementById('courseEditId').value = c.id;
   document.getElementById('cTitle').value = c.title;
   populateCategoryDropdown(c.category);
-  document.getElementById('cSubjects').value = c.subjects;
+  document.getElementById('cSubjects').value = c.subjects || '';
   
   const cStatusEl = document.getElementById('cStatus');
   if (cStatusEl) {
@@ -1150,12 +1140,6 @@ function openEditCourseModal(id) {
   if (document.getElementById('cIsFeatured')) document.getElementById('cIsFeatured').checked = c.isFeatured !== false;
   if (document.getElementById('cIsHidden')) document.getElementById('cIsHidden').checked = (c.isHidden === true);
   if (document.getElementById('cScheduleNote')) document.getElementById('cScheduleNote').value = c.scheduleNote || '';
-  if (document.getElementById('cMaxSeats')) {
-    const el = document.getElementById('cMaxSeats');
-    el.readOnly = false;
-    el.value = (c.maxSeats !== undefined && c.maxSeats !== null) ? c.maxSeats : 12;
-    el.dataset.manual = el.value;
-  }
   if (document.getElementById('cIsFull')) {
     // สวิตช์ "บังคับปิดรับ" = forceClosed (isFull คำนวณโดย Supabase)
     document.getElementById('cIsFull').checked = c.forceClosed === true || (c.forceClosed === undefined && c.isFull === true && Number(c.remainingSeats) > 0);
@@ -1184,17 +1168,18 @@ async function handleSaveCourse(e) {
   const selectedCat = document.getElementById('cCategory').value;
   const matchedCatObj = categories.find(cat => cat.id === selectedCat);
 
-  // ที่นั่ง: กรอกรายรอบครบทุกรอบ หรือไม่กรอกเลย (ใช้ยอดรวมของคอร์ส)
+  // ที่นั่ง: ทุกรอบเวลาต้องกรอก "รับได้" — จำนวนรับของคอร์ส = ผลรวมทุกรอบ
   const scheduleList = getSchedulesFromBuilder();
-  const roundsWithCap = scheduleList.filter(s => s.capacity > 0).length;
-  if (roundsWithCap > 0 && roundsWithCap < scheduleList.length) {
-    alert('กรุณากรอกจำนวน "รับได้ (คน)" ให้ครบทุกรอบเวลา\nหรือเว้นว่างทุกรอบ เพื่อใช้จำนวนรวมของคอร์สแบบเดิม');
+  if (scheduleList.length === 0) {
+    alert('กรุณาเพิ่มรอบเวลาอย่างน้อย 1 รอบ พร้อมจำนวน "รับได้ (คน)"');
     return;
   }
-  const perRound = roundsWithCap > 0;
-  const maxSeatsVal = perRound
-    ? scheduleList.reduce((sum, s) => sum + s.capacity, 0)
-    : (document.getElementById('cMaxSeats') ? (parseInt(document.getElementById('cMaxSeats').value, 10) || 12) : 12);
+  if (scheduleList.some(s => !(s.capacity > 0))) {
+    alert('กรุณากรอกจำนวน "รับได้ (คน)" ให้ครบทุกรอบเวลา\n(คอร์สที่มีรอบเดียว กรอกที่รอบนั้นรอบเดียว)');
+    return;
+  }
+  const perRound = true;
+  const maxSeatsVal = scheduleList.reduce((sum, s) => sum + s.capacity, 0);
   const enrollmentsForThis = (window.NewGenDB ? window.NewGenDB.getEnrollments() : []).filter(en => en.courseId === id && en.status !== 'cancelled');
   // ค่าชั่วคราว — Supabase คำนวณที่นั่งจริงของทุกรอบใหม่ทันทีหลังบันทึก
   const remainingCalc = Math.max(0, maxSeatsVal - enrollmentsForThis.length);

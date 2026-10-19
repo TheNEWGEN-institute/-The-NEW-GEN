@@ -168,6 +168,8 @@ function initCourseDetailPage() {
         }
       }
       if (scheduleBody) {
+        // ข้อความในวงเล็บไม่ถูกตัดกลางคำ เช่น "(8 พ.ย. - 21 ก.พ.)" ขึ้นบรรทัดใหม่ทั้งก้อน
+        const keepParensTogether = html => html.replace(/\(([^)]*)\)/g, m => `<span class="nowrap">${m}</span>`);
         // ที่นั่งรายรอบ (คำนวณโดย Supabase): เหลือ X / Y ที่ หรือ เต็มแล้ว / ปิดรับ
         const roundSeatCell = s => {
           const info = window.getRoundSeatInfo ? window.getRoundSeatInfo(s) : { isFull: false, capacity: null };
@@ -189,7 +191,8 @@ function initCourseDetailPage() {
             </td>
             <td>
               <div class="schedule-dates">
-                <i class="fa-regular fa-calendar-check"></i> ${escapeHtml(s.dates || '')}
+                <i class="fa-regular fa-calendar-check"></i>
+                <span>${keepParensTogether(escapeHtml(s.dates || ''))}</span>
               </div>
             </td>
             <td>${roundSeatCell(s)}</td>
