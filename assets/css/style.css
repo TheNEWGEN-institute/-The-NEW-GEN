@@ -3880,6 +3880,79 @@ button {
     background: #e2e8f0;
     transform: scale(0.95);
   }
+
+  /* ปุ่มหลักของแถบล่าง: สมัครเลย */
+  .btn-msb-register {
+    background: linear-gradient(135deg, #e11d48 0%, #be123c 100%);
+    color: #ffffff !important;
+    text-decoration: none;
+    padding: 10px 18px;
+    border-radius: var(--radius-full, 9999px);
+    font-size: 0.92rem;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 4px 14px rgba(225, 29, 72, 0.4);
+    white-space: nowrap;
+    transition: transform 0.2s ease;
+  }
+
+  .btn-msb-register:active {
+    transform: scale(0.96);
+  }
+
+  .btn-msb-register.disabled {
+    background: #94a3b8;
+    box-shadow: none;
+    pointer-events: none;
+  }
+}
+
+/* หน้ารายละเอียดคอร์สบนมือถือ: ยกป้ายลอยโครงการติวฟรีขึ้นเหนือแถบสมัครด้านล่าง (ไม่ทับราคา/ปุ่มสมัคร) */
+@media (max-width: 768px) {
+  body.page-course-detail .campaign-floating-pill,
+  body.page-course-detail .cute-floating-gift-pill {
+    bottom: calc(86px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+}
+
+/* จอแคบ: ปุ่ม LINE เหลือแค่ไอคอนวงกลม ให้ราคาและปุ่มสมัครมีที่พอ */
+@media (max-width: 480px) {
+  .cd-msb-label {
+    display: none;
+  }
+
+  /* ราคาบรรทัดบน หน่วยราคาบรรทัดล่าง (ไม่ถูกตัดเป็น "บาท / …") */
+  .cd-msb-price {
+    flex-wrap: wrap;
+    row-gap: 0;
+  }
+
+  .cd-msb-unit {
+    flex-basis: 100%;
+    max-width: none;
+    overflow: visible;
+    font-size: 0.72rem;
+  }
+
+  .btn-msb-line {
+    width: 40px;
+    height: 40px;
+    padding: 0 !important;
+    justify-content: center;
+    border-radius: 50% !important;
+    font-size: 1.25rem !important;
+    flex-shrink: 0;
+  }
+
+  .btn-msb-line .msb-line-text {
+    display: none;
+  }
+
+  .cd-msb-actions {
+    gap: 6px !important;
+  }
 }
 
 /* ===================================================================
