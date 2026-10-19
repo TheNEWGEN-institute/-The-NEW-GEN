@@ -7,6 +7,11 @@ package-lock.json
 .env.local
 .env.*.local
 
+# Local data & backups (may contain students' personal data — never commit)
+data/database.json
+the-new-gen-backup-*.json
+*-backup-*.json
+
 # Logs & temp files
 *.log
 npm-debug.log*

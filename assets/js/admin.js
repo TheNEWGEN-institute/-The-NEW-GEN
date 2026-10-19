@@ -2,13 +2,19 @@
  * The NEW GEN Tutoring Institute - Admin Dashboard Management Logic
  */
 
-document.addEventListener('DOMContentLoaded', () => {
-  // ตรวจสอบสถานะการเข้าสู่ระบบ (จำรหัสผ่านไว้แม้ปิดแท็บหรือปิดเบราว์เซอร์)
-  if (localStorage.getItem('newgen_admin_auth') !== 'true' && sessionStorage.getItem('newgen_admin_auth') !== 'true') {
+// true หลังตรวจ session แอดมินผ่านแล้ว (การป้องกันข้อมูลจริงอยู่ที่ RLS ของ Supabase หน้านี้แค่กันการแสดงผล)
+let _adminAuthed = false;
+
+document.addEventListener('DOMContentLoaded', async () => {
+  // ตรวจสอบ session ของ Supabase Auth (ต่ออายุอัตโนมัติ ถ้าหมดอายุให้กลับไปหน้าเข้าสู่ระบบ)
+  const token = window.NewGenAuth ? await window.NewGenAuth.getAccessToken() : null;
+  if (!token || !window.NewGenAuth.isAdminSession()) {
     window.location.href = 'admin-login.html';
     return;
   }
 
+  _adminAuthed = true;
+  await window.NewGenDB.fetchEnrollments();
   initAdminDashboard();
 });
 
@@ -17,6 +23,7 @@ document.addEventListener('newgen:synced', () => {
 });
 
 function initAdminDashboard() {
+  if (!_adminAuthed) return;
   try { loadAdminCourses(); } catch (e) { console.warn('loadAdminCourses error:', e); }
   try { loadPrivilegeBanner(); } catch (e) { console.warn('loadPrivilegeBanner error:', e); }
   try { loadHomeSettings(); } catch (e) { console.warn('loadHomeSettings error:', e); }
@@ -50,12 +57,10 @@ function escapeHtml(str) {
     .replace(/'/g, '&#39;');
 }
 
-function logoutAdmin() {
+async function logoutAdmin() {
   if (confirm('คุณต้องการออกจากระบบจัดการหลังบ้านหรือไม่?')) {
-    localStorage.removeItem('newgen_admin_auth');
-    localStorage.removeItem('newgen_admin_user');
-    sessionStorage.removeItem('newgen_admin_auth');
-    sessionStorage.removeItem('newgen_admin_user');
+    await window.NewGenAuth.signOut();
+    window.enrollmentsData = [];
     window.location.href = 'admin-login.html';
   }
 }
@@ -104,13 +109,11 @@ async function checkSupabaseConnection(isUserClick = false) {
       return;
     }
 
+    const token = await window.NewGenAuth.getAccessToken();
+    const authHeaders = { 'apikey': config.anonKey, 'Authorization': `Bearer ${token || config.anonKey}` };
+
     // 1. ทดสอบอ่าน (GET)
-    const getRes = await fetch(`${config.url}/rest/v1/app_data?select=key&limit=1`, {
-      headers: {
-        'apikey': config.anonKey,
-        'Authorization': `Bearer ${config.anonKey}`
-      }
-    });
+    const getRes = await fetch(`${config.url}/rest/v1/app_data?select=key&limit=1`, { headers: authHeaders });
 
     if (!getRes.ok) {
       badge.className = 'supabase-status-pill offline';
@@ -119,12 +122,11 @@ async function checkSupabaseConnection(isUserClick = false) {
       return;
     }
 
-    // 2. ทดสอบเขียน (POST ping)
+    // 2. ทดสอบเขียน (POST ping) ด้วยสิทธิ์แอดมินที่ล็อกอินอยู่
     const pingRes = await fetch(`${config.url}/rest/v1/app_data?on_conflict=key`, {
       method: 'POST',
       headers: {
-        'apikey': config.anonKey,
-        'Authorization': `Bearer ${config.anonKey}`,
+        ...authHeaders,
         'Content-Type': 'application/json',
         'Prefer': 'resolution=merge-duplicates'
       },
@@ -138,10 +140,11 @@ async function checkSupabaseConnection(isUserClick = false) {
     } else {
       const errText = await pingRes.text();
       badge.className = 'supabase-status-pill warning';
-      if (errText.includes('row-level security') || pingRes.status === 401) {
-        textEl.textContent = 'Supabase: อ่านได้ (รอปลดล็อก RLS)';
+      if (errText.includes('row-level security') || pingRes.status === 401 || pingRes.status === 403) {
+        textEl.textContent = 'Supabase: อ่านได้ แต่ไม่มีสิทธิ์บันทึก';
         if (isUserClick) {
-          alert('⚠️ Supabase Cloud อ่านข้อมูลได้ แต่ติดระบบ Row-Level Security (RLS)\n\n👉 วิธีแก้ไขง่ายๆ ใน 10 วินาที:\n1. ไปที่ Supabase Dashboard -> เมนู SQL Editor\n2. วางคำสั่งนี้แล้วกด RUN:\n\nALTER TABLE public.app_data DISABLE ROW LEVEL SECURITY;\n\nเมื่อรันเสร็จแล้ว จะสามารถบันทึกออนไลน์ได้ทันทีจากทุกเครื่องครับ!');
+          // ห้ามแก้ด้วยการปิด RLS — จะทำให้ทุกคนแก้ไข/อ่านข้อมูลได้
+          alert('⚠️ บัญชีนี้ยังไม่มีสิทธิ์บันทึกข้อมูล\n\n1. ลองออกจากระบบแล้วเข้าสู่ระบบใหม่\n2. ถ้ายังไม่ได้ ตรวจว่าบัญชีได้รับสิทธิ์แอดมินแล้ว (ดูไฟล์ SECURITY_SETUP.md ขั้นตอนที่ 3)\n\n❗ ห้ามปิด Row-Level Security (RLS) เด็ดขาด เพราะจะทำให้ใครก็อ่านและแก้ไขข้อมูลนักเรียนได้');
         }
       } else {
         textEl.textContent = 'Supabase: เขียนไม่ได้';
@@ -4147,8 +4150,8 @@ function resetToSystemDefaults() {
 function loadSecuritySettings() {
   const userEl = document.getElementById('secUsername');
   if (!userEl) return;
-  const cred = window.NewGenDB ? window.NewGenDB.getAdminAuth() : { username: 'admin', password: 'NewGen@2026' };
-  userEl.value = cred.username || 'admin';
+  const session = window.NewGenAuth ? window.NewGenAuth.getSession() : null;
+  userEl.value = session ? (session.email || '') : '';
 }
 
 function toggleSecPass(inputId, btn) {
@@ -4166,23 +4169,25 @@ function toggleSecPass(inputId, btn) {
 
 async function handleChangePasswordSubmit(e) {
   e.preventDefault();
-  const username = (document.getElementById('secUsername').value || '').trim();
-  const currentPass = (document.getElementById('secCurrentPassword').value || '').trim();
-  const newPass = (document.getElementById('secNewPassword').value || '').trim();
-  const confirmPass = (document.getElementById('secConfirmPassword').value || '').trim();
+  const email = (document.getElementById('secUsername').value || '').trim();
+  const currentPass = document.getElementById('secCurrentPassword').value || '';
+  const newPass = document.getElementById('secNewPassword').value || '';
+  const confirmPass = document.getElementById('secConfirmPassword').value || '';
   const submitBtn = document.getElementById('btnSaveAdminPassword');
   const statusEl = document.getElementById('secStatusText');
+  const setStatus = (color, text) => {
+    if (statusEl) {
+      statusEl.style.color = color;
+      statusEl.textContent = text;
+    }
+  };
 
-  if (!username) {
-    showToast('⚠️ กรุณาระบุชื่อผู้ใช้งาน (Username)', 'warning');
-    return;
-  }
   if (!currentPass) {
     showToast('⚠️ กรุณาระบุรหัสผ่านปัจจุบันเพื่อยืนยันตัวตน', 'warning');
     return;
   }
-  if (newPass.length < 4) {
-    showToast('⚠️ รหัสผ่านใหม่ต้องมีความยาวอย่างน้อย 4 ตัวอักษร', 'warning');
+  if (newPass.length < 10) {
+    showToast('⚠️ รหัสผ่านใหม่ต้องมีความยาวอย่างน้อย 10 ตัวอักษร', 'warning');
     return;
   }
   if (newPass !== confirmPass) {
@@ -4190,68 +4195,31 @@ async function handleChangePasswordSubmit(e) {
     return;
   }
 
-  // Verify current password against local & Supabase
-  let currentCred = window.NewGenDB ? window.NewGenDB.getAdminAuth() : { username: 'admin', password: 'NewGen@2026' };
-  try {
-    if (window.SUPABASE_CONFIG && window.SUPABASE_CONFIG.url) {
-      const res = await fetch(`${window.SUPABASE_CONFIG.url}/rest/v1/app_data?key=eq.admin&select=data`, {
-        headers: {
-          'apikey': window.SUPABASE_CONFIG.anonKey,
-          'Authorization': `Bearer ${window.SUPABASE_CONFIG.anonKey}`
-        }
-      });
-      if (res.ok) {
-        const rows = await res.json();
-        if (rows && rows.length > 0 && rows[0].data) {
-          currentCred = rows[0].data;
-          localStorage.setItem('newgen_admin_cred', JSON.stringify(currentCred));
-        }
-      }
-    }
-  } catch (err) {
-    console.warn('Network auth verify fallback to local credentials:', err);
-  }
-
-  if (currentPass !== currentCred.password) {
-    showToast('❌ รหัสผ่านปัจจุบันไม่ถูกต้อง กรุณาตรวจสอบอีกครั้ง', 'error');
-    if (statusEl) {
-      statusEl.style.color = '#ef4444';
-      statusEl.textContent = '❌ รหัสผ่านปัจจุบันไม่ถูกต้อง';
-    }
-    return;
-  }
-
   if (submitBtn) {
     submitBtn.disabled = true;
-    submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังบันทึกขึ้น Supabase Cloud...';
+    submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังบันทึก...';
   }
 
   try {
-    const newCred = { username, password: newPass };
-    const res = await window.NewGenDB.saveAdminAuth(newCred);
-    localStorage.setItem('newgen_admin_user', username);
-    sessionStorage.setItem('newgen_admin_user', username);
+    // ยืนยันรหัสผ่านปัจจุบันด้วยการเข้าสู่ระบบซ้ำที่ Supabase Auth
+    try {
+      await window.NewGenAuth.signIn(email, currentPass);
+    } catch (err) {
+      showToast('❌ รหัสผ่านปัจจุบันไม่ถูกต้อง กรุณาตรวจสอบอีกครั้ง', 'error');
+      setStatus('#ef4444', '❌ รหัสผ่านปัจจุบันไม่ถูกต้อง');
+      return;
+    }
 
-    // Clear password inputs
+    await window.NewGenAuth.updatePassword(newPass);
+
     document.getElementById('secCurrentPassword').value = '';
     document.getElementById('secNewPassword').value = '';
     document.getElementById('secConfirmPassword').value = '';
-
-    if (res && res.success === false) {
-      showToast(`⚠️ บันทึกในเบราว์เซอร์แล้ว แต่ Supabase แจ้งเตือน: ${res.error || 'บันทึกไม่สำเร็จ'}`, 'warning');
-      if (statusEl) {
-        statusEl.style.color = '#f59e0b';
-        statusEl.textContent = '⚠️ บันทึกในเครื่องแล้ว (Supabase แจ้งเตือน)';
-      }
-    } else {
-      showToast('✅ เปลี่ยนชื่อผู้ใช้และรหัสผ่านเรียบร้อย พร้อมซิงค์ขึ้น Supabase Cloud สำเร็จ!', 'success');
-      if (statusEl) {
-        statusEl.style.color = '#16a34a';
-        statusEl.textContent = '✅ บันทึกรหัสผ่านใหม่และซิงค์ขึ้น Cloud เรียบร้อย';
-      }
-    }
+    showToast('✅ เปลี่ยนรหัสผ่านเรียบร้อยแล้ว', 'success');
+    setStatus('#16a34a', '✅ บันทึกรหัสผ่านใหม่เรียบร้อย');
   } catch (err) {
-    showToast('❌ เกิดข้อผิดพลาดในการบันทึกรหัสผ่าน: ' + err.message, 'error');
+    showToast('❌ เปลี่ยนรหัสผ่านไม่สำเร็จ: ' + err.message, 'error');
+    setStatus('#ef4444', '❌ เปลี่ยนรหัสผ่านไม่สำเร็จ');
   } finally {
     if (submitBtn) {
       submitBtn.disabled = false;
@@ -5379,7 +5347,7 @@ function renderEnrollmentsTable(enrollments, courseMap = null, options = {}) {
           ` : ''}
           ${en.studentImageUrl ? `
             <div style="margin-top: 6px;">
-              <button type="button" class="btn-secondary" onclick="previewAttachmentModal('${escapeHtml(en.studentImageUrl)}', '${escapeHtml(en.studentName)}')" style="display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; font-size: 0.78rem; font-weight: 700; color: #0284c7; background: #e0f2fe; border: 1px solid #7dd3fc; border-radius: 6px; cursor: pointer;">
+              <button type="button" class="btn-secondary" data-enroll-id="${escapeHtml(en.id)}" onclick="previewEnrollmentAttachment(this.dataset.enrollId)" style="display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; font-size: 0.78rem; font-weight: 700; color: #0284c7; background: #e0f2fe; border: 1px solid #7dd3fc; border-radius: 6px; cursor: pointer;">
                 <i class="fa-solid fa-image"></i> ตรวจสอบรูปที่แนบ
               </button>
             </div>
@@ -5442,10 +5410,10 @@ function renderEnrollmentsTable(enrollments, courseMap = null, options = {}) {
         </td>
         `}
         <td style="text-align: right; white-space: nowrap;">
-          <button type="button" class="btn-action-edit" onclick="openEditEnrollmentModal('${en.id}')" title="แก้ไขข้อมูล">
+          <button type="button" class="btn-action-edit" data-enroll-id="${escapeHtml(en.id)}" onclick="openEditEnrollmentModal(this.dataset.enrollId)" title="แก้ไขข้อมูล">
             <i class="fa-solid fa-pen-to-square"></i>
           </button>
-          <button type="button" class="btn-action-del" onclick="deleteEnrollment('${en.id}')" title="ลบรายชื่อ">
+          <button type="button" class="btn-action-del" data-enroll-id="${escapeHtml(en.id)}" onclick="deleteEnrollment(this.dataset.enrollId)" title="ลบรายชื่อ">
             <i class="fa-solid fa-trash"></i>
           </button>
         </td>
@@ -5630,13 +5598,20 @@ function openEditEnrollmentModal(id) {
   if (wrapImage) {
     if (en.studentImageUrl) {
       wrapImage.style.display = 'block';
-      const resolvedUrl = window.resolveMediaUrl ? window.resolveMediaUrl(en.studentImageUrl) : en.studentImageUrl;
       if (imgPreview) {
-        imgPreview.src = resolvedUrl;
-        imgPreview.setAttribute('data-full-url', resolvedUrl);
+        imgPreview.removeAttribute('src');
         imgPreview.setAttribute('data-student-name', en.studentName || '');
       }
-      if (imgLink) imgLink.href = resolvedUrl;
+      if (imgLink) imgLink.removeAttribute('href');
+      // รูปส่วนตัวต้องขอลิงก์ชั่วคราวจาก Supabase ก่อนแสดง
+      getStudentAttachmentUrl(en.studentImageUrl).then(url => {
+        if (document.getElementById('enrollmentEditId').value !== en.id || !url) return;
+        if (imgPreview) {
+          imgPreview.src = url;
+          imgPreview.setAttribute('data-full-url', url);
+        }
+        if (imgLink) imgLink.href = url;
+      });
     } else {
       wrapImage.style.display = 'none';
     }
@@ -5645,7 +5620,34 @@ function openEditEnrollmentModal(id) {
   document.getElementById('modalEnrollment').classList.add('active');
 }
 
+// อนุญาตเฉพาะลิงก์รูปที่ปลอดภัย (กัน javascript: หรือ URL แปลก ๆ ที่ถูกใส่มาในข้อมูล)
+function safeMediaUrl(url) {
+  const u = String(url || '').trim();
+  return /^(https?:\/\/|data:image\/|\/?uploads\/)/i.test(u) ? u : '';
+}
+
+async function getStudentAttachmentUrl(ref) {
+  const url = window.NewGenDB && typeof window.NewGenDB.getStudentImageUrl === 'function'
+    ? await window.NewGenDB.getStudentImageUrl(ref)
+    : (window.resolveMediaUrl ? window.resolveMediaUrl(ref) : ref);
+  return safeMediaUrl(url);
+}
+
+async function previewEnrollmentAttachment(enrollId) {
+  const en = (window.NewGenDB ? window.NewGenDB.getEnrollments() : []).find(x => x.id === enrollId);
+  if (!en || !en.studentImageUrl) return;
+  const url = await getStudentAttachmentUrl(en.studentImageUrl);
+  if (!url) {
+    showToast('⚠️ เปิดรูปภาพไม่สำเร็จ (ลิงก์ไม่ถูกต้อง หรือสิทธิ์หมดอายุ กรุณาเข้าสู่ระบบใหม่)', 'warning');
+    return;
+  }
+  previewAttachmentModal(url, en.studentName || '');
+}
+
+window.previewEnrollmentAttachment = previewEnrollmentAttachment;
+
 function previewAttachmentModal(url, studentName = '') {
+  url = safeMediaUrl(url);
   if (!url) return;
   const modal = document.getElementById('modalStudentAttachmentPreview');
   const imgEl = document.getElementById('attachmentModalImg');
@@ -5963,8 +5965,10 @@ function confirmExportEnrollments() {
 
   function csvEscape(field) {
     if (field === null || field === undefined) return '""';
-    const str = String(field).replace(/"/g, '""');
-    return `"${str}"`;
+    let str = String(field);
+    // กันสูตร Excel ที่แฝงมาในข้อมูลจากฟอร์มสาธารณะ (CSV/formula injection)
+    if (/^[=+@\t\r]/.test(str) || /^-[^\d\s]/.test(str)) str = `'${str}`;
+    return `"${str.replace(/"/g, '""')}"`;
   }
 
   // สร้าง Header ตามชื่อคำถามที่ตั้งค่าไว้
@@ -6027,7 +6031,9 @@ function confirmExportEnrollments() {
       row.push(csvEscape(foundAnswer ? foundAnswer.value : ''));
     });
 
-    row.push(csvEscape(en.studentImageUrl || ''));
+    // รูปส่วนตัวไม่มีลิงก์ถาวร (เปิดดูได้ในระบบหลังบ้านเท่านั้น)
+    const imageRef = en.studentImageUrl || '';
+    row.push(csvEscape(imageRef.startsWith('private:') ? 'มีรูปแนบ (ดูในระบบหลังบ้าน)' : safeMediaUrl(imageRef)));
     row.push(csvEscape(statusLabel));
     return row.join(',');
   });
