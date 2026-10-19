@@ -277,6 +277,29 @@ button {
   color: var(--color-red-brand);
 }
 
+/* Header logo: custom-drawn N (short left leg, red) and E (detached top bar),
+   sized to the font's cap height (0.75em) so they line up with The / W / G */
+.brand-logo-text.logo-v2 .gen {
+  color: var(--color-navy);
+}
+
+.logo-glyph {
+  display: inline-block;
+  height: 0.75em;
+  vertical-align: baseline;
+  fill: currentColor;
+  margin-right: -0.5px;
+}
+
+.logo-glyph-n {
+  width: 0.74em;
+  color: var(--color-red-brand);
+}
+
+.logo-glyph-e {
+  width: 0.59em;
+}
+
 .brand-subtext {
   font-size: 0.72rem;
   color: var(--color-navy);
