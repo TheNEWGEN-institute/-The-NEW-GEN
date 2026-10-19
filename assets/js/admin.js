@@ -711,23 +711,36 @@ function renderSchedulesBuilder(schedules) {
   if (!container) return;
   container.innerHTML = '';
   const list = (schedules && schedules.length) ? schedules : [{ type: 'แบบรายเทอม (วันเสาร์)', time: '09.00 - 12.15 น.', dates: 'เปิดเทอม 2/69' }];
-  list.forEach(s => addScheduleInputRow(s.type || '', s.time || '', s.dates || ''));
+  list.forEach(s => addScheduleInputRow(s.type || '', s.time || '', s.dates || '', s.capacity, s.closed === true));
+  updateCourseSeatCalcPreview();
 }
 
-function addScheduleInputRow(type = '', time = '', dates = '') {
+function addScheduleInputRow(type = '', time = '', dates = '', capacity = '', closed = false) {
   const container = document.getElementById('courseSchedulesContainer');
   if (!container) return;
   const div = document.createElement('div');
   div.className = 'builder-schedule-item';
   div.innerHTML = `
-    <input type="text" class="c-sched-type" value="${escapeHtml(type)}" placeholder="กลุ่ม / รูปแบบ (เช่น เสาร์)">
-    <input type="text" class="c-sched-time" value="${escapeHtml(time)}" placeholder="เวลาเรียน (เช่น 09.00 - 12.15 น.)">
-    <input type="text" class="c-sched-dates" value="${escapeHtml(dates)}" placeholder="วันที่เริ่ม - สิ้นสุด (เช่น 7 พ.ย. 69 - 20 ก.พ. 70)">
-    <button type="button" class="builder-btn-delete" title="ลบรอบนี้" onclick="this.parentElement.remove()">
+    <input type="text" class="c-sched-type" value="${escapeHtml(type)}" placeholder="กลุ่ม / รูปแบบ (เช่น เสาร์)" oninput="updateCourseSeatCalcPreview()">
+    <input type="text" class="c-sched-time" value="${escapeHtml(time)}" placeholder="เวลาเรียน (เช่น 09.00 - 12.15 น.)" oninput="updateCourseSeatCalcPreview()">
+    <input type="text" class="c-sched-dates" value="${escapeHtml(dates)}" placeholder="วันที่เริ่ม - สิ้นสุด (เช่น 7 พ.ย. 69 - 20 ก.พ. 70)" oninput="updateCourseSeatCalcPreview()">
+    <button type="button" class="builder-btn-delete" title="ลบรอบนี้" onclick="this.parentElement.remove(); updateCourseSeatCalcPreview();">
       <i class="fa-solid fa-trash-can"></i>
     </button>
+    <div class="builder-schedule-seats">
+      <label class="sched-cap-field">
+        <i class="fa-solid fa-chair"></i> รับได้
+        <input type="number" class="c-sched-capacity" min="1" value="${Number(capacity) > 0 ? Number(capacity) : ''}" placeholder="-" oninput="updateCourseSeatCalcPreview()">
+        คน
+      </label>
+      <label class="sched-closed-field">
+        <input type="checkbox" class="c-sched-closed" ${closed ? 'checked' : ''} onchange="updateCourseSeatCalcPreview()"> ปิดรับรอบนี้
+      </label>
+      <span class="c-sched-enrolled"></span>
+    </div>
   `;
   container.appendChild(div);
+  updateCourseSeatCalcPreview();
 }
 
 function getSchedulesFromBuilder() {
@@ -737,8 +750,10 @@ function getSchedulesFromBuilder() {
     const type = el.querySelector('.c-sched-type')?.value.trim() || '';
     const time = el.querySelector('.c-sched-time')?.value.trim() || '';
     const dates = el.querySelector('.c-sched-dates')?.value.trim() || '';
+    const capacity = parseInt(el.querySelector('.c-sched-capacity')?.value, 10);
+    const closed = Boolean(el.querySelector('.c-sched-closed')?.checked);
     if (type || time || dates) {
-      arr.push({ type, time, dates });
+      arr.push({ type, time, dates, capacity: capacity > 0 ? capacity : null, closed });
     }
   });
   return arr;
@@ -1002,7 +1017,12 @@ function openAddCourseModal() {
   if (document.getElementById('cIsFeatured')) document.getElementById('cIsFeatured').checked = true;
   if (document.getElementById('cIsHidden')) document.getElementById('cIsHidden').checked = false;
   if (document.getElementById('cScheduleNote')) document.getElementById('cScheduleNote').value = '';
-  if (document.getElementById('cMaxSeats')) document.getElementById('cMaxSeats').value = '12';
+  if (document.getElementById('cMaxSeats')) {
+    const el = document.getElementById('cMaxSeats');
+    el.readOnly = false;
+    el.value = '12';
+    el.dataset.manual = '12';
+  }
   if (document.getElementById('cIsFull')) document.getElementById('cIsFull').checked = false;
   if (typeof updateCourseSeatCalcPreview === 'function') updateCourseSeatCalcPreview();
 
@@ -1036,17 +1056,55 @@ function openAddCourseModal() {
   document.getElementById('modalCourse').classList.add('active');
 }
 
+// ที่นั่งในหน้าแก้ไขคอร์ส: ถ้ากรอก "รับได้" ในรอบเรียน → ยอดรวมของคอร์ส = ผลรวมทุกรอบ (ช่องรวมล็อกไว้)
+// ไม่กรอกเลย → ใช้ช่องจำนวนรวมของคอร์สแบบเดิม  (ที่นั่งไม่นับใบสมัครที่ยกเลิก)
 function updateCourseSeatCalcPreview() {
   const courseId = document.getElementById('courseEditId') ? document.getElementById('courseEditId').value.trim() : '';
   const maxSeatsInput = document.getElementById('cMaxSeats');
   const previewEl = document.getElementById('courseSeatCalcPreview');
   if (!previewEl || !maxSeatsInput) return;
+
+  const active = (window.NewGenDB ? window.NewGenDB.getEnrollments() : []).filter(e => e.courseId === courseId && e.status !== 'cancelled');
+  const rows = [...document.querySelectorAll('#courseSchedulesContainer .builder-schedule-item')];
+  const draftRounds = rows.map(el => ({
+    type: el.querySelector('.c-sched-type')?.value.trim() || '',
+    time: el.querySelector('.c-sched-time')?.value.trim() || '',
+    dates: el.querySelector('.c-sched-dates')?.value.trim() || ''
+  }));
+  const caps = rows.map(el => parseInt(el.querySelector('.c-sched-capacity')?.value, 10) || 0);
+  const perRound = caps.some(c => c > 0);
+  const draftCourse = { scheduleList: draftRounds };
+
+  // จำนวนผู้สมัครแต่ละรอบ (เทียบด้วยชื่อรอบ แบบเดียวกับฝั่ง Supabase)
+  rows.forEach((el, i) => {
+    const n = active.filter(e => getEnrollmentRoundKey(e, draftCourse) === String(i)).length;
+    const closed = el.querySelector('.c-sched-closed')?.checked;
+    const out = el.querySelector('.c-sched-enrolled');
+    if (!out) return;
+    const full = closed || (caps[i] > 0 && n >= caps[i]);
+    out.className = `c-sched-enrolled ${full ? 'full' : ''}`;
+    out.textContent = caps[i] > 0
+      ? `สมัครแล้ว ${n}/${caps[i]}${closed ? ' • ปิดรับ' : (n >= caps[i] ? ' • เต็ม' : ` • เหลือ ${caps[i] - n}`)}`
+      : `สมัครแล้ว ${n}${closed ? ' • ปิดรับ' : ''}`;
+  });
+
+  if (perRound) {
+    if (!maxSeatsInput.readOnly) maxSeatsInput.dataset.manual = maxSeatsInput.value;
+    maxSeatsInput.value = caps.reduce((a, b) => a + b, 0);
+    maxSeatsInput.readOnly = true;
+    maxSeatsInput.classList.add('is-auto');
+  } else {
+    // กลับมาใช้ยอดรวมที่พิมพ์เองไว้ก่อนหน้า
+    if (maxSeatsInput.readOnly && maxSeatsInput.dataset.manual) maxSeatsInput.value = maxSeatsInput.dataset.manual;
+    maxSeatsInput.readOnly = false;
+    maxSeatsInput.classList.remove('is-auto');
+  }
   const maxVal = parseInt(maxSeatsInput.value, 10) || 12;
-  const enrollments = (window.NewGenDB ? window.NewGenDB.getEnrollments() : []).filter(e => e.courseId === courseId);
-  const count = enrollments.length;
-  const remaining = Math.max(0, maxVal - count);
+  const remaining = Math.max(0, maxVal - active.length);
   const color = remaining === 0 ? '#dc2626' : (remaining <= 3 ? '#ea580c' : '#16a34a');
-  previewEl.innerHTML = `ผู้สมัครขณะนี้: <strong>${count}</strong> คน | ที่นั่งคงเหลืออัตโนมัติ: <strong style="color: ${color};">${remaining}</strong> ที่นั่ง (จากความจุ ${maxVal} คน)`;
+  const missing = perRound && caps.some(c => !(c > 0));
+  previewEl.innerHTML = `${perRound ? '🧮 รวมจากทุกรอบอัตโนมัติ • ' : ''}ผู้สมัคร (ไม่นับที่ยกเลิก): <strong>${active.length}</strong> คน | ที่นั่งคงเหลือ: <strong style="color: ${color};">${remaining}</strong> ที่นั่ง (จากความจุ ${maxVal} คน)`
+    + (missing ? '<br><span style="color:#dc2626;">⚠️ กรอกจำนวน "รับได้" ให้ครบทุกรอบ หรือเว้นว่างทุกรอบเพื่อใช้ยอดรวมแบบเดิม</span>' : '');
 }
 
 function openEditCourseModal(id) {
@@ -1093,10 +1151,14 @@ function openEditCourseModal(id) {
   if (document.getElementById('cIsHidden')) document.getElementById('cIsHidden').checked = (c.isHidden === true);
   if (document.getElementById('cScheduleNote')) document.getElementById('cScheduleNote').value = c.scheduleNote || '';
   if (document.getElementById('cMaxSeats')) {
-    document.getElementById('cMaxSeats').value = (c.maxSeats !== undefined && c.maxSeats !== null) ? c.maxSeats : 12;
+    const el = document.getElementById('cMaxSeats');
+    el.readOnly = false;
+    el.value = (c.maxSeats !== undefined && c.maxSeats !== null) ? c.maxSeats : 12;
+    el.dataset.manual = el.value;
   }
   if (document.getElementById('cIsFull')) {
-    document.getElementById('cIsFull').checked = (c.isFull === true);
+    // สวิตช์ "บังคับปิดรับ" = forceClosed (isFull คำนวณโดย Supabase)
+    document.getElementById('cIsFull').checked = c.forceClosed === true || (c.forceClosed === undefined && c.isFull === true && Number(c.remainingSeats) > 0);
   }
   updateCourseSeatCalcPreview();
 
@@ -1122,8 +1184,19 @@ async function handleSaveCourse(e) {
   const selectedCat = document.getElementById('cCategory').value;
   const matchedCatObj = categories.find(cat => cat.id === selectedCat);
 
-  const maxSeatsVal = document.getElementById('cMaxSeats') ? (parseInt(document.getElementById('cMaxSeats').value, 10) || 12) : 12;
-  const enrollmentsForThis = (window.NewGenDB ? window.NewGenDB.getEnrollments() : []).filter(en => en.courseId === id);
+  // ที่นั่ง: กรอกรายรอบครบทุกรอบ หรือไม่กรอกเลย (ใช้ยอดรวมของคอร์ส)
+  const scheduleList = getSchedulesFromBuilder();
+  const roundsWithCap = scheduleList.filter(s => s.capacity > 0).length;
+  if (roundsWithCap > 0 && roundsWithCap < scheduleList.length) {
+    alert('กรุณากรอกจำนวน "รับได้ (คน)" ให้ครบทุกรอบเวลา\nหรือเว้นว่างทุกรอบ เพื่อใช้จำนวนรวมของคอร์สแบบเดิม');
+    return;
+  }
+  const perRound = roundsWithCap > 0;
+  const maxSeatsVal = perRound
+    ? scheduleList.reduce((sum, s) => sum + s.capacity, 0)
+    : (document.getElementById('cMaxSeats') ? (parseInt(document.getElementById('cMaxSeats').value, 10) || 12) : 12);
+  const enrollmentsForThis = (window.NewGenDB ? window.NewGenDB.getEnrollments() : []).filter(en => en.courseId === id && en.status !== 'cancelled');
+  // ค่าชั่วคราว — Supabase คำนวณที่นั่งจริงของทุกรอบใหม่ทันทีหลังบันทึก
   const remainingCalc = Math.max(0, maxSeatsVal - enrollmentsForThis.length);
   const isFullManual = document.getElementById('cIsFull') ? document.getElementById('cIsFull').checked : false;
   const isFull = isFullManual || (remainingCalc <= 0);
@@ -1154,11 +1227,13 @@ async function handleSaveCourse(e) {
     maxSeats: maxSeatsVal,
     remainingSeats: remainingCalc,
     isFull: isFull,
+    forceClosed: isFullManual,
+    seatMode: perRound ? 'round' : 'course',
     galleryImages: getCourseGalleryFromBuilder(),
     targetAudience: document.getElementById('cTargetAudience') ? document.getElementById('cTargetAudience').value.trim() : '',
     benefits: document.getElementById('cBenefits') ? document.getElementById('cBenefits').value.trim() : '',
     subjectBreakdown: getSubjectBreakdownFromBuilder(),
-    scheduleList: getSchedulesFromBuilder(),
+    scheduleList,
     scheduleNote: document.getElementById('cScheduleNote') ? document.getElementById('cScheduleNote').value.trim() : '',
     highlights: getHighlightsFromBuilder(),
     customSections: getCustomSectionsFromBuilder(),
@@ -2351,6 +2426,12 @@ function renderAdminCampaignSubjectsTable() {
               <span>${escapeHtml(sub.name)}</span>
               ${sub.grade ? `<span style="font-size: 0.72rem; background: #e0e7ff; color: #3730a3; padding: 1px 7px; border-radius: 99px; font-weight: 700;">${escapeHtml(sub.grade)}</span>` : ''}
               ${sub.active === false ? `<span style="font-size: 0.7rem; background: #fee2e2; color: #dc2626; padding: 1px 6px; border-radius: 4px; font-weight: 700;">ปิดรับ</span>` : ''}
+              ${(() => {
+                const n = (window.NewGenDB ? window.NewGenDB.getEnrollments() : []).filter(en => isCampaignEnrollment(en) && en.status !== 'cancelled' && Array.isArray(en.selectedSubjects) && en.selectedSubjects.some(s => s && s.id === sub.id)).length;
+                const cap = Number(sub.capacity) > 0 ? Number(sub.capacity) : null;
+                const full = cap !== null && n >= cap;
+                return `<span class="c-sched-enrolled ${full ? 'full' : ''}" style="font-size: 0.72rem;">${cap !== null ? `สมัครแล้ว ${n}/${cap}${full ? ' • เต็ม' : ''}` : `สมัครแล้ว ${n} • ไม่จำกัด`}</span>`;
+              })()}
             </div>
             ${(sub.date || sub.time) ? `
               <div style="font-size: 0.78rem; color: #e11d48; font-weight: 700; margin-top: 2px;">
@@ -2395,6 +2476,7 @@ function openEditCampaignSubjectModal(idx) {
   document.getElementById('csDate').value = sub.date || '';
   document.getElementById('csTime').value = sub.time || '';
   document.getElementById('csDetail').value = sub.detail || '';
+  document.getElementById('csCapacity').value = Number(sub.capacity) > 0 ? Number(sub.capacity) : '';
   document.getElementById('csActive').checked = sub.active !== false;
   document.getElementById('campaignSubjectModalTitle').innerHTML = '<i class="fa-solid fa-pen-to-square"></i> แก้ไขวิชาโครงการติวฟรี';
   openModal('modalCampaignSubject');
@@ -2409,6 +2491,7 @@ function handleSaveCampaignSubject(e) {
   const time = document.getElementById('csTime').value.trim();
   const detail = document.getElementById('csDetail').value.trim();
   const active = document.getElementById('csActive').checked;
+  const capacity = parseInt(document.getElementById('csCapacity').value, 10);
 
   if (!name) {
     alert('กรุณาระบุชื่อวิชา');
@@ -2422,7 +2505,8 @@ function handleSaveCampaignSubject(e) {
     date,
     time,
     detail,
-    active
+    active,
+    capacity: capacity > 0 ? capacity : null
   };
 
   if (idVal !== '' && !isNaN(idVal)) {
@@ -4647,12 +4731,19 @@ function renderCourseCapacityCards(courses, enrollments) {
   }
 
   container.innerHTML = courses.map(c => {
-    const enrForCourse = enrollments.filter(e => e.courseId === c.id);
+    // ไม่นับใบสมัครที่ยกเลิก (ตรงกับที่ Supabase ใช้ปิดรับ)
+    const enrForCourse = enrollments.filter(e => e.courseId === c.id && e.status !== 'cancelled');
     const count = enrForCourse.length;
     const maxVal = Number(c.maxSeats || 12);
-    const remaining = Math.max(0, maxVal - count);
+    const remaining = typeof c.remainingSeats === 'number' && c.seatMode ? c.remainingSeats : Math.max(0, maxVal - count);
     const isFull = (c.isFull === true) || (remaining <= 0);
     const pct = Math.min(100, Math.round((count / maxVal) * 100));
+    const rounds = Array.isArray(c.scheduleList) ? c.scheduleList.filter(r => Number(r.capacity) > 0 || r.closed) : [];
+    const roundLines = rounds.map(r => {
+      const info = window.getRoundSeatInfo(r);
+      const n = enrForCourse.filter(e => getEnrollmentRoundKey(e, c) === String(c.scheduleList.indexOf(r))).length;
+      return `<div class="cap-round-line ${info.isFull ? 'full' : ''}"><span>${escapeHtml(r.type || '-')}</span><b>${info.closed ? 'ปิดรับ' : `${n}/${info.capacity}${info.isFull ? ' เต็ม' : ''}`}</b></div>`;
+    }).join('');
 
     let statusPillClass = 'safe';
     let statusPillText = `${pct}% เต็มแล้ว`;
@@ -4693,6 +4784,7 @@ function renderCourseCapacityCards(courses, enrollments) {
         <div class="cap-progress-track">
           <div class="cap-progress-fill ${fillClass}" style="width: ${pct}%;"></div>
         </div>
+        ${roundLines ? `<div class="cap-round-lines">${roundLines}</div>` : ''}
 
         <div class="cap-card-footer">
           <span style="font-size: 0.78rem; color: #64748b; max-width: 170px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
@@ -5498,6 +5590,7 @@ function openAddEnrollmentModal(preselectedCourseId = '') {
   document.getElementById('enShippingAddress').value = '';
   document.getElementById('enNotes').value = '';
   document.getElementById('enPaidAmount').value = '';
+  document.getElementById('enScheduleChoice').dataset.pending = '';
 
   const wrapImage = document.getElementById('wrapEnStudentImage');
   if (wrapImage) wrapImage.style.display = 'none';
@@ -5515,6 +5608,34 @@ function updateEnrollmentModalForCourse() {
   const paidInput = document.getElementById('enPaidAmount');
   if (wrapAddress) wrapAddress.style.display = isCampaign ? 'none' : '';
   if (wrapPaid) wrapPaid.style.display = isCampaign ? 'none' : '';
+
+  // รอบเรียน (คอร์สปกติที่มีหลายรอบ) — แสดงที่นั่งคงเหลือของแต่ละรอบ
+  const wrapRound = document.getElementById('wrapEnRound');
+  const roundSelect = document.getElementById('enScheduleChoice');
+  const course = (window.NewGenDB ? window.NewGenDB.getCourses() : []).find(c => c.id === courseId);
+  const rounds = course && Array.isArray(course.scheduleList) ? course.scheduleList.filter(s => s && (s.type || s.time || s.dates)) : [];
+  if (wrapRound && roundSelect) {
+    if (rounds.length === 0) {
+      wrapRound.style.display = 'none';
+      roundSelect.innerHTML = '';
+    } else {
+      const keep = roundSelect.dataset.pending !== undefined ? roundSelect.dataset.pending : roundSelect.value;
+      delete roundSelect.dataset.pending;
+      const editId = document.getElementById('enrollmentEditId')?.value || '';
+      const active = (window.NewGenDB ? window.NewGenDB.getEnrollments() : []).filter(e => e.courseId === courseId && e.status !== 'cancelled' && e.id !== editId);
+      roundSelect.innerHTML = '<option value="">— ไม่ระบุรอบ —</option>' + rounds.map((r, i) => {
+        const value = `${r.type || ''} | ${r.time || ''} | ${r.dates || ''}`;
+        const n = active.filter(e => getEnrollmentRoundKey(e, course) === String(i)).length;
+        const cap = Number(r.capacity) > 0 ? Number(r.capacity) : null;
+        const seat = r.closed ? ' — ปิดรับ' : (cap !== null ? ` — ${n}/${cap}${n >= cap ? ' (เต็ม)' : ''}` : ` — สมัครแล้ว ${n}`);
+        return `<option value="${escapeHtml(value)}">${escapeHtml(getRoundLabel(r, i))}${seat}</option>`;
+      }).join('');
+      // เลือกรอบเดิมของนักเรียน (เทียบด้วยชื่อรอบ แม้ข้อความเวลาถูกแก้ภายหลัง)
+      const key = keep ? getEnrollmentRoundKey({ scheduleChoice: keep }, course) : 'other';
+      roundSelect.selectedIndex = key === 'other' ? 0 : Number(key) + 1;
+      wrapRound.style.display = '';
+    }
+  }
   if (paidInput && !isCampaign) {
     const editId = document.getElementById('enrollmentEditId')?.value || '';
     const existing = editId ? (window.NewGenDB ? window.NewGenDB.getEnrollments() : []).find(x => x.id === editId) : null;
@@ -5596,6 +5717,7 @@ function openEditEnrollmentModal(id) {
   document.getElementById('enShippingAddress').value = en.shippingAddress || '';
   document.getElementById('enNotes').value = en.notes || '';
   document.getElementById('enPaidAmount').value = parsePaidAmount(en.paidAmount) ?? '';
+  document.getElementById('enScheduleChoice').dataset.pending = en.scheduleChoice || '';
   updateEnrollmentModalForCourse();
 
   const wrapImage = document.getElementById('wrapEnStudentImage');
@@ -5737,6 +5859,10 @@ async function handleSaveEnrollment(e) {
     notes,
     price,
     paidAmount,
+    // รอบเรียนที่เลือกในหลังบ้าน (ถ้าคอร์สนี้มีรอบ) — ไม่มีช่องรอบ = คงค่าเดิมไว้
+    ...(document.getElementById('wrapEnRound')?.style.display !== 'none'
+      ? { scheduleChoice: document.getElementById('enScheduleChoice').value }
+      : {}),
     studentImageUrl: existingEn ? (existingEn.studentImageUrl || null) : null,
     customAnswers: existingEn ? (existingEn.customAnswers || []) : [],
     isBundle: Boolean(foundBundle),
@@ -6883,21 +7009,9 @@ async function deleteEnrollmentImages(list) {
   return { deleted, errors };
 }
 
-// คำนวณที่นั่งคงเหลือของคอร์สที่ได้รับผลกระทบใหม่ (แบบเดียวกับตอนลบรายชื่อทีละคน)
-async function recomputeSeatsForCourses(courseIds) {
-  const ids = new Set(courseIds.filter(Boolean));
-  if (ids.size === 0) return;
-  const courses = window.NewGenDB.getCourses();
-  const enrollments = window.NewGenDB.getEnrollments();
-  let changed = false;
-  courses.forEach(c => {
-    if (!ids.has(c.id)) return;
-    const cap = Number(c.maxSeats || 12);
-    c.remainingSeats = Math.max(0, cap - enrollments.filter(e => e.courseId === c.id).length);
-    if (c.remainingSeats > 0 && c.isFull) c.isFull = false;
-    changed = true;
-  });
-  if (changed) await window.NewGenDB.saveCourses(courses);
+// ที่นั่งคงเหลือถูกคำนวณใหม่ใน Supabase อัตโนมัติเมื่อใบสมัครถูกลบ (trigger) — แค่ดึงตัวเลขล่าสุดกลับมา
+async function recomputeSeatsForCourses() {
+  window.NewGenDB.refreshSeatsSoon(false);
 }
 
 function cleanupEnrollmentRow(en) {
