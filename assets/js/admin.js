@@ -4899,10 +4899,15 @@ function renderCampaignRosterFilter(allEnrollments, visible) {
       <div class="campaign-filter-pills">${subjectPills}</div>
     </div>
     <div class="campaign-filter-caption">
-      ${scopeParts.length
-        ? `กำลังแสดงนักเรียนที่สมัครวิชา <b>${escapeHtml(scopeParts.join(' • '))}</b> จำนวน <b>${countWhere(_campaignGradeFilter, _campaignSubjectFilter)}</b> คน
-           <button type="button" class="campaign-filter-clear" onclick="clearCampaignRosterFilter()">ล้าง</button>`
-        : `นักเรียน 1 คนอาจสมัครหลายวิชา จึงจะแสดงอยู่ในทุกวิชาที่สมัคร`}
+      <span style="flex: 1; min-width: 200px;">
+        ${scopeParts.length
+          ? `กำลังแสดงนักเรียนที่สมัครวิชา <b>${escapeHtml(scopeParts.join(' • '))}</b> จำนวน <b>${countWhere(_campaignGradeFilter, _campaignSubjectFilter)}</b> คน
+             <button type="button" class="campaign-filter-clear" onclick="clearCampaignRosterFilter()">ล้าง</button>`
+          : `นักเรียน 1 คนอาจสมัครหลายวิชา จึงจะแสดงอยู่ในทุกวิชาที่สมัคร`}
+      </span>
+      <button type="button" class="btn-secondary" onclick="exportCampaignXlsx()" style="padding: 6px 12px; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 6px;" title="ไฟล์เดียว: สรุปรายวิชา + รายชื่อทั้งหมด + แยกชีตทีละวิชา">
+        <i class="fa-solid fa-file-excel" style="color: #16a34a;"></i> ส่งออก Excel (รวม + แยกวิชา)
+      </button>
     </div>
   `;
 }
@@ -5081,17 +5086,7 @@ async function exportCourseRoundsXlsx(courseId) {
     return row;
   };
 
-  const usedNames = new Set();
-  const sheetName = raw => {
-    let name = String(raw).replace(/[\\/?*[\]:]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 31) || 'Sheet';
-    let n = 2;
-    while (usedNames.has(name)) {
-      const suffix = ` (${n++})`;
-      name = name.slice(0, 31 - suffix.length) + suffix;
-    }
-    usedNames.add(name);
-    return name;
-  };
+  const sheetName = makeSheetNamer();
 
   const buildSheet = (infoLines, list, withRound) => {
     const headers = withRound ? [...baseHeaders.slice(0, 5), 'รอบเรียน', ...baseHeaders.slice(5)] : baseHeaders;
@@ -5104,7 +5099,7 @@ async function exportCourseRoundsXlsx(courseId) {
       ...list.map((en, i) => toRow(en, i, withRound))
     ];
     const ws = XLSX.utils.aoa_to_sheet(aoa);
-    ws['!cols'] = headers.map(h => ({ wch: h === 'ลำดับ' ? 6 : (['ชื่อ - นามสกุล', 'โรงเรียน', 'รอบเรียน', 'ที่อยู่จัดส่ง', 'หมายเหตุ', 'สมัครผ่านแพ็คเกจ'].includes(h) ? 28 : 14) }));
+    ws['!cols'] = xlsxColWidths(headers, ['ชื่อ - นามสกุล', 'โรงเรียน', 'รอบเรียน', 'ที่อยู่จัดส่ง', 'หมายเหตุ', 'สมัครผ่านแพ็คเกจ']);
     return ws;
   };
 
@@ -5128,8 +5123,133 @@ async function exportCourseRoundsXlsx(courseId) {
   showToast(`📥 ส่งออกไฟล์ "${fileName}" สำเร็จแล้ว!`, 'success');
 }
 
+// ชื่อชีต Excel: ห้ามมีอักขระพิเศษ ยาวไม่เกิน 31 ตัว และห้ามซ้ำ
+function makeSheetNamer() {
+  const used = new Set();
+  return raw => {
+    let name = String(raw).replace(/[\\/?*[\]:]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 31) || 'Sheet';
+    let n = 2;
+    while (used.has(name)) {
+      const suffix = ` (${n++})`;
+      name = name.slice(0, 31 - suffix.length) + suffix;
+    }
+    used.add(name);
+    return name;
+  };
+}
+
+function xlsxColWidths(headers, wideHeaders) {
+  return headers.map(h => ({ wch: h === 'ลำดับ' ? 6 : (wideHeaders.includes(h) ? 28 : 14) }));
+}
+
+// ไฟล์ Excel โครงการติวฟรี: ชีตสรุปรายวิชา + รายชื่อทั้งหมด + 1 ชีตต่อ 1 วิชา (ผู้ที่ยกเลิกอยู่ท้ายชีต)
+async function exportCampaignXlsx() {
+  const camp = window.NewGenDB ? window.NewGenDB.getPopupCampaign() : {};
+  const all = (window.NewGenDB ? window.NewGenDB.getEnrollments() : [])
+    .filter(isCampaignEnrollment)
+    .sort((a, b) => (a.status === 'cancelled') - (b.status === 'cancelled') || new Date(a.createdAt) - new Date(b.createdAt));
+  if (all.length === 0) {
+    alert('ยังไม่มีรายชื่อนักเรียนโครงการติวฟรีสำหรับส่งออก');
+    return;
+  }
+
+  let XLSX;
+  try {
+    XLSX = await loadSheetJs();
+  } catch (e) {
+    alert('โหลดตัวสร้างไฟล์ Excel ไม่สำเร็จ กรุณาตรวจสอบอินเทอร์เน็ตแล้วลองใหม่');
+    return;
+  }
+
+  const norm = s => String(s || '').replace(/\s+/g, ' ').trim();
+  const subjectsOf = en => (Array.isArray(en.selectedSubjects) && en.selectedSubjects.length > 0
+    ? en.selectedSubjects.map(s => (typeof s === 'object' && s ? s : { name: String(s || '') }))
+    : (typeof en.subjectsChosen === 'string' ? en.subjectsChosen.split(',').map(name => ({ name })) : [])
+  ).map(s => ({ ...s, name: norm(s.name) })).filter(s => s.name || s.id);
+  const takes = (en, sub) => subjectsOf(en).some(s => (sub.id && s.id === sub.id) || (norm(s.name) && norm(s.name) === norm(sub.name)));
+
+  // วิชาจากหน้าตั้งค่าแคมเปญ + วิชาที่พบในใบสมัครแต่ถูกลบออกจากแคมเปญไปแล้ว
+  const subjects = (Array.isArray(camp.subjects) ? camp.subjects : []).map(s => ({ ...s }));
+  all.forEach(en => subjectsOf(en).forEach(s => {
+    if (!subjects.some(x => (s.id && x.id === s.id) || norm(x.name) === norm(s.name))) subjects.push({ ...s, removed: true });
+  }));
+
+  const customLabels = [...new Set(all.flatMap(en => (Array.isArray(en.customAnswers) ? en.customAnswers.map(a => a.label) : [])).filter(Boolean))];
+  const headers = ['ลำดับ', 'ชื่อ - นามสกุล', 'ชื่อเล่น', 'ระดับชั้น', 'โรงเรียน', 'วิชาที่สมัคร', 'รูปแบบการเรียน', 'เบอร์ผู้ปกครอง', 'เบอร์นักเรียน', 'LINE ID', 'สถานะ', 'วันที่สมัคร', ...customLabels, 'รูปที่แนบ'];
+  const toRow = (en, i) => [
+    i + 1,
+    en.studentName || '',
+    en.nickname || '',
+    en.grade || '',
+    en.school || '',
+    subjectsOf(en).map(s => s.name).join(', '),
+    (en.learningType || '').toLowerCase() === 'online' ? 'Online' : 'Onsite',
+    en.parentPhone || '',
+    en.studentPhone || '',
+    en.lineId || '',
+    getEnrollmentStatusLabel(en.status),
+    en.createdAt ? new Date(en.createdAt).toLocaleDateString('th-TH') : '',
+    ...customLabels.map(label => ((en.customAnswers || []).find(a => a.label === label) || {}).value || ''),
+    en.studentImageUrl ? 'มีรูปแนบ (ดูในระบบหลังบ้าน)' : ''
+  ];
+  const listSheet = (infoLines, list) => {
+    const active = list.filter(en => en.status !== 'cancelled').length;
+    const ws = XLSX.utils.aoa_to_sheet([
+      ...infoLines.map(l => [l]),
+      [`จำนวนนักเรียน: ${active} คน${list.length > active ? ` (ยกเลิก ${list.length - active} คน แสดงท้ายตาราง)` : ''}`],
+      [],
+      headers,
+      ...list.map(toRow)
+    ]);
+    ws['!cols'] = xlsxColWidths(headers, ['ชื่อ - นามสกุล', 'โรงเรียน', 'วิชาที่สมัคร', ...customLabels]);
+    return ws;
+  };
+
+  const title = camp.title || 'โครงการติวฟรี';
+  const sheetName = makeSheetNamer();
+  const wb = XLSX.utils.book_new();
+
+  // 1) สรุปรายวิชา
+  const summaryHeaders = ['ลำดับ', 'วิชา', 'ชั้น', 'วันที่', 'เวลา', 'ผู้สมัคร (ไม่รวมยกเลิก)', 'ยกเลิก', 'รับได้', 'ที่นั่งเหลือ', 'สถานะ'];
+  const summaryRows = subjects.map((s, i) => {
+    const takers = all.filter(en => takes(en, s));
+    const active = takers.filter(en => en.status !== 'cancelled').length;
+    const cap = Number(s.capacity) > 0 ? Number(s.capacity) : null;
+    const status = s.removed ? 'ลบออกจากแคมเปญแล้ว'
+      : (s.active === false ? 'ปิดรับ' : (cap !== null && active >= cap ? 'เต็ม' : 'เปิดรับ'));
+    return [i + 1, s.name || '-', s.grade || parseCampaignSubject(s).grade || '', s.date || '', s.time || '', active, takers.length - active,
+      cap !== null ? cap : 'ไม่จำกัด', cap !== null ? Math.max(0, cap - active) : '-', status];
+  });
+  const activeStudents = all.filter(en => en.status !== 'cancelled').length;
+  const summary = XLSX.utils.aoa_to_sheet([
+    [title],
+    [`ส่งออกเมื่อ ${new Date().toLocaleString('th-TH')}`],
+    [`นักเรียนทั้งหมด: ${activeStudents} คน (ยกเลิก ${all.length - activeStudents} คน) — นักเรียน 1 คนสมัครได้หลายวิชา ยอดรายวิชาจึงรวมกันมากกว่าจำนวนนักเรียน`],
+    [],
+    summaryHeaders,
+    ...summaryRows
+  ]);
+  summary['!cols'] = xlsxColWidths(summaryHeaders, ['วิชา', 'ผู้สมัคร (ไม่รวมยกเลิก)', 'สถานะ']);
+  XLSX.utils.book_append_sheet(wb, summary, sheetName('สรุป'));
+
+  // 2) รายชื่อทั้งหมด
+  XLSX.utils.book_append_sheet(wb, listSheet([title, 'รายชื่อนักเรียนทั้งหมด'], all), sheetName('รายชื่อทั้งหมด'));
+
+  // 3) แยกตามวิชา
+  subjects.forEach(s => {
+    const when = [s.date, s.time].filter(Boolean).join(' ');
+    const info = [title, `วิชา: ${s.name || '-'}${s.removed ? ' (ลบออกจากแคมเปญแล้ว)' : ''}`, when ? `วันเวลา: ${when}` : ''].filter(Boolean);
+    XLSX.utils.book_append_sheet(wb, listSheet(info, all.filter(en => takes(en, s))), sheetName(s.name || 'วิชา'));
+  });
+
+  const fileName = `รายชื่อติวฟรี_แยกวิชา_${new Date().toISOString().slice(0, 10)}.xlsx`;
+  XLSX.writeFile(wb, fileName);
+  showToast(`📥 ส่งออกไฟล์ "${fileName}" สำเร็จแล้ว!`, 'success');
+}
+
 window.setCourseRoundFilter = setCourseRoundFilter;
 window.exportCourseRoundsXlsx = exportCourseRoundsXlsx;
+window.exportCampaignXlsx = exportCampaignXlsx;
 
 function renderAdminQuickCoursePills(courses, enrollments, selectedCourseId = 'all') {
   const container = document.getElementById('adminQuickCoursePills');
