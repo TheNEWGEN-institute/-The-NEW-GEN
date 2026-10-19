@@ -1425,14 +1425,15 @@ button {
   text-align: center;
 }
 
+/* ราคาอยู่บรรทัดของตัวเอง ปุ่ม 2 ปุ่มแบ่งความกว้างการ์ดเท่ากันด้านล่าง — ไม่ทับราคาในทุกขนาดจอ */
 .course-footer {
   margin-top: auto;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  align-items: stretch;
   padding-top: 14px;
   border-top: 1px solid #f1f5f9;
-  gap: 10px;
+  gap: 12px;
 }
 
 .course-price-wrap {
@@ -1625,12 +1626,18 @@ button {
 
 /* Course Card Action Buttons (Dual Buttons: สมัครเลย vs รายละเอียด) */
 .course-actions-wrap {
-  display: flex;
-  align-items: center;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
   gap: 8px;
-  flex-shrink: 0;
-  flex-wrap: wrap;
-  justify-content: flex-end;
+  width: 100%;
+}
+
+.course-actions-wrap > .btn-course-register,
+.course-actions-wrap > .btn-detail-link {
+  width: 100%;
+  min-width: 0;
+  padding-left: 10px;
+  padding-right: 10px;
 }
 
 .btn-course-register {
@@ -2932,20 +2939,89 @@ button {
   color: var(--color-blue-accent);
 }
 
+/* เวลาเรียนและที่นั่งไม่ตัดบรรทัด (กันคำว่า "น." ตกบรรทัด) วันที่ตัดบรรทัดได้ตามความกว้างที่เหลือ */
 .schedule-time {
   font-weight: 600;
   color: #0f766e;
   display: flex;
   align-items: center;
   gap: 6px;
+  white-space: nowrap;
 }
 
 .schedule-dates {
   color: var(--text-secondary);
   font-size: 0.92rem;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 6px;
+  line-height: 1.5;
+}
+
+.schedule-time i,
+.schedule-dates i {
+  flex-shrink: 0;
+}
+
+.schedule-dates i {
+  margin-top: 4px;
+}
+
+.cd-schedule-table td:last-child,
+.cd-schedule-table th:last-child {
+  white-space: nowrap;
+}
+
+.cd-schedule-table .nowrap {
+  white-space: nowrap;
+}
+
+.cd-schedule-table th,
+.cd-schedule-table td {
+  padding-left: 14px;
+  padding-right: 14px;
+}
+
+/* มือถือ: แต่ละรอบเป็นการ์ด (กลุ่ม → เวลา → วันที่ → ที่นั่ง) แทนตารางที่คอลัมน์แคบจนคำแตก */
+@media (max-width: 640px) {
+  .cd-schedule-table thead {
+    display: none;
+  }
+
+  .cd-schedule-table,
+  .cd-schedule-table tbody,
+  .cd-schedule-table tr,
+  .cd-schedule-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .cd-schedule-table tr {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border-light);
+  }
+
+  .cd-schedule-table tr:last-child {
+    border-bottom: none;
+  }
+
+  .cd-schedule-table td {
+    padding: 3px 0 !important;
+    border: none !important;
+    font-size: 0.9rem !important;
+  }
+
+  .cd-schedule-table td:first-child {
+    font-size: 1rem !important;
+  }
+
+  .cd-schedule-table td:last-child {
+    padding-top: 8px !important;
+  }
+
+  .cd-schedule-table .nowrap {
+    white-space: normal;
+  }
 }
 
 .cd-schedule-note {
@@ -8866,10 +8942,14 @@ button {
 .cap-round-line b { color: #047857; white-space: nowrap; }
 .cap-round-line.full b { color: #b91c1c; }
 
-#cMaxSeats.is-auto {
-  background: #f1f5f9;
-  color: #0f172a;
+.seat-total-display {
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  background: #ffffff;
+  border: 1.5px solid #86efac;
+  font-size: 1.05rem;
   font-weight: 800;
+  color: #166534;
 }
 
 /* Seats left per time slot (enrollment form + course detail table) */
