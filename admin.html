@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Prompt:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
-  <link rel="stylesheet" href="assets/css/style.css?v=20261019-logo2">
+  <link rel="stylesheet" href="assets/css/style.css?v=20261020-clean">
 </head>
 <body class="page-admin-body">
 
@@ -1779,6 +1779,9 @@
           <button type="button" class="admin-subtab-btn" id="btnSystemSubtabBackup" onclick="switchSystemSubtab('backup')">
             <i class="fa-solid fa-database"></i> 2. สำรอง &amp; กู้คืนข้อมูล (Backup &amp; Restore)
           </button>
+          <button type="button" class="admin-subtab-btn" id="btnSystemSubtabCleanup" onclick="switchSystemSubtab('cleanup')" style="color: #b91c1c;">
+            <i class="fa-solid fa-broom"></i> 3. ล้างข้อมูล
+          </button>
         </div>
 
         <!-- SUBTAB 1: SECURITY -->
@@ -1872,6 +1875,36 @@
             </button>
           </div>
         </div>
+        </div>
+
+        <!-- SUBTAB 3: DATA CLEANUP (ล้างข้อมูล) -->
+        <div id="subtabSystemCleanup" class="system-subtab-content" style="display: none;">
+          <div class="cleanup-alert">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <div>
+              <b>การล้างข้อมูลจะลบออกจาก Supabase จริง และกู้คืนไม่ได้</b><br>
+              ทุกครั้งที่ล้าง ระบบจะแสดงรายการที่จะถูกลบให้ตรวจก่อน และดาวน์โหลดไฟล์สำรอง (JSON) ของส่วนที่ลบให้อัตโนมัติ — เก็บไฟล์ไว้ในเครื่อง ห้ามอัปขึ้น GitHub
+            </div>
+          </div>
+
+          <div class="cleanup-cats" id="cleanupCats">
+            <button type="button" class="cleanup-cat active" data-cat="enrollments" onclick="selectCleanupCategory('enrollments')">
+              <i class="fa-solid fa-users"></i><span>รายชื่อนักเรียน</span><small>ตามวัน / เดือน / ปี</small>
+            </button>
+            <button type="button" class="cleanup-cat" data-cat="courses" onclick="selectCleanupCategory('courses')">
+              <i class="fa-solid fa-graduation-cap"></i><span>คอร์สเรียน &amp; แพ็คเกจ</span><small>เลือกรายการ</small>
+            </button>
+            <button type="button" class="cleanup-cat" data-cat="content" onclick="selectCleanupCategory('content')">
+              <i class="fa-solid fa-photo-film"></i><span>เนื้อหาอื่น ๆ</span><small>รีวิว ผลงาน วิดีโอ ติวเตอร์</small>
+            </button>
+            <button type="button" class="cleanup-cat" data-cat="junk" onclick="selectCleanupCategory('junk')">
+              <i class="fa-solid fa-trash-can"></i><span>ข้อมูลขยะของระบบ</span><small>สำเนาเก่า รูปที่ไม่ได้ใช้</small>
+            </button>
+          </div>
+
+          <div class="admin-editor-card" id="cleanupPanel">
+            <!-- Dynamically populated via JS -->
+          </div>
         </div>
       </section>
 
@@ -2701,6 +2734,40 @@
     </div>
   </div>
 
+  <!-- ================= DATA CLEANUP CONFIRM MODAL ================= -->
+  <div class="admin-modal-backdrop" id="modalCleanupConfirm">
+    <div class="admin-modal-card" style="max-width: 680px;">
+      <div class="admin-modal-header">
+        <h3 style="color: #b91c1c;"><i class="fa-solid fa-triangle-exclamation"></i> <span id="cleanupConfirmTitle">ยืนยันการล้างข้อมูล</span></h3>
+        <button type="button" class="admin-modal-close" onclick="closeModal('modalCleanupConfirm')"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="admin-modal-body">
+        <div id="cleanupConfirmSummary" class="cleanup-confirm-summary"></div>
+        <div id="cleanupConfirmWarnings"></div>
+        <div id="cleanupConfirmList" class="cleanup-preview-list"></div>
+        <div class="cleanup-backup-note">
+          <i class="fa-solid fa-file-arrow-down"></i> เมื่อกดยืนยัน ระบบจะดาวน์โหลดไฟล์สำรองของรายการเหล่านี้ให้อัตโนมัติก่อนลบ
+        </div>
+        <div class="form-row-2col">
+          <div class="form-group-luxury">
+            <label>พิมพ์คำว่า <b style="color: #b91c1c;">ลบ</b> เพื่อยืนยัน</label>
+            <input type="text" id="cleanupConfirmWord" autocomplete="off" placeholder="ลบ">
+          </div>
+          <div class="form-group-luxury">
+            <label>รหัสผ่านแอดมิน (ยืนยันตัวตนอีกครั้ง)</label>
+            <input type="password" id="cleanupConfirmPassword" autocomplete="current-password" placeholder="••••••••••">
+          </div>
+        </div>
+      </div>
+      <div class="admin-modal-footer">
+        <button type="button" class="btn-secondary" onclick="closeModal('modalCleanupConfirm')">ยกเลิก</button>
+        <button type="button" class="btn-cleanup-danger" id="btnCleanupExecute" onclick="executeCleanup()">
+          <i class="fa-solid fa-trash-can"></i> <span id="cleanupConfirmBtnText">ล้างข้อมูล</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- ================= EXPORT ENROLLMENTS MODAL ================= -->
   <div class="admin-modal-backdrop" id="modalExportEnrollments">
     <div class="admin-modal-card" style="max-width: 520px;">
@@ -3180,7 +3247,7 @@
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-  <script src="assets/js/courses-data.js?v=20261019-sec1"></script>
-  <script src="assets/js/admin.js?v=20261019-sec1"></script>
+  <script src="assets/js/courses-data.js?v=20261020-clean"></script>
+  <script src="assets/js/admin.js?v=20261020-clean"></script>
 </body>
 </html>

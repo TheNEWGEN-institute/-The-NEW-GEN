@@ -305,17 +305,23 @@ window.mountEnrollmentConfigToCampaignTab = mountEnrollmentConfigToCampaignTab;
 function switchSystemSubtab(subtab) {
   const btnSecurity = document.getElementById('btnSystemSubtabSecurity');
   const btnBackup = document.getElementById('btnSystemSubtabBackup');
+  const btnCleanup = document.getElementById('btnSystemSubtabCleanup');
   const subtabSecurity = document.getElementById('subtabSystemSecurity');
   const subtabBackup = document.getElementById('subtabSystemBackup');
+  const subtabCleanup = document.getElementById('subtabSystemCleanup');
 
   if (btnSecurity) btnSecurity.classList.toggle('active', subtab === 'security');
   if (btnBackup) btnBackup.classList.toggle('active', subtab === 'backup');
+  if (btnCleanup) btnCleanup.classList.toggle('active', subtab === 'cleanup');
 
   if (subtabSecurity) subtabSecurity.style.display = subtab === 'security' ? 'block' : 'none';
   if (subtabBackup) subtabBackup.style.display = subtab === 'backup' ? 'block' : 'none';
+  if (subtabCleanup) subtabCleanup.style.display = subtab === 'cleanup' ? 'block' : 'none';
 
   if (subtab === 'security') {
     loadSecuritySettings();
+  } else if (subtab === 'cleanup') {
+    renderCleanupPanel();
   }
 }
 
@@ -6680,5 +6686,661 @@ function renderAnalyticsFillRate(allEnrollments, courses) {
 
 window.loadAdminAnalytics = loadAdminAnalytics;
 window.setAnalyticsRange = setAnalyticsRange;
+
+/* ==========================================================================
+   DATA CLEANUP (ตั้งค่าระบบ → ล้างข้อมูล)
+   ทุกการล้าง: ดูตัวอย่าง → ดาวน์โหลดไฟล์สำรองอัตโนมัติ → พิมพ์ "ลบ" → ใส่รหัสผ่านแอดมิน
+   ========================================================================== */
+let _cleanupCat = 'enrollments';
+let _cleanupPlan = null;      // { title, summary, rows, warnings, backup, buttonText, run }
+let _cleanupJunkScan = null;  // ผลสแกนข้อมูลขยะล่าสุด
+
+const CLEANUP_CONTENT_TYPES = {
+  reviews: { label: 'รีวิวนักเรียน', get: () => window.NewGenDB.getReviews(), save: l => window.NewGenDB.saveReviews(l), name: r => `${r.studentName || '-'}${r.school ? ` (${r.school})` : ''} — ${String(r.quote || '').slice(0, 50)}` },
+  achievements: { label: 'ผลงานรุ่นพี่', get: () => window.NewGenDB.getAchievements(), save: l => window.NewGenDB.saveAchievements(l), name: a => `${a.title || '-'}${a.date ? ` (${a.date})` : ''}` },
+  videos: { label: 'วิดีโอทดลองเรียน', get: () => window.NewGenDB.getVideos(), save: l => window.NewGenDB.saveVideos(l), name: v => `${v.title || '-'}${v.tutor ? ` — ${v.tutor}` : ''}` },
+  tutors: { label: 'ติวเตอร์', get: () => window.NewGenDB.getTutors(), save: l => window.NewGenDB.saveTutors(l), name: t => `${t.name || '-'}${t.subjects ? ` — ${t.subjects}` : ''}` }
+};
+
+const CLEANUP_PERSONAL_FIELDS = ['studentName', 'fullName', 'nickname', 'parentPhone', 'studentPhone', 'lineId', 'shippingAddress', 'notes', 'customAnswers', 'studentImageUrl', 'consentText'];
+
+const cleanupVal = id => (document.getElementById(id)?.value || '').trim();
+
+function selectCleanupCategory(cat) {
+  _cleanupCat = cat;
+  document.querySelectorAll('#cleanupCats .cleanup-cat').forEach(b => b.classList.toggle('active', b.dataset.cat === cat));
+  renderCleanupPanel();
+}
+
+function renderCleanupPanel() {
+  const panel = document.getElementById('cleanupPanel');
+  if (!panel) return;
+  if (_cleanupCat === 'enrollments') panel.innerHTML = renderCleanupEnrollmentsPanel();
+  else if (_cleanupCat === 'courses') panel.innerHTML = renderCleanupCoursesPanel();
+  else if (_cleanupCat === 'content') panel.innerHTML = renderCleanupContentPanel();
+  else panel.innerHTML = renderCleanupJunkPanel();
+  if (_cleanupCat === 'enrollments') updateCleanupEnrollmentRangeInputs();
+  updateCleanupCount();
+}
+
+/* ---------- 1) รายชื่อนักเรียน ---------- */
+function renderCleanupEnrollmentsPanel() {
+  const enrollments = window.NewGenDB.getEnrollments();
+  const courses = window.NewGenDB.getCourses();
+  const years = [...new Set(enrollments.map(e => new Date(e.createdAt).getFullYear()).filter(y => Number.isFinite(y)).concat(new Date().getFullYear()))].sort((a, b) => b - a);
+  const now = new Date();
+  const pad = n => String(n).padStart(2, '0');
+  const today = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+
+  return `
+    <h3 class="cleanup-panel-title"><i class="fa-solid fa-users"></i> ล้างรายชื่อนักเรียน (ใบสมัคร)</h3>
+    <div class="cleanup-form-grid">
+      <div class="form-group-luxury">
+        <label>ช่วงเวลา (ตามวันที่สมัคร)</label>
+        <select id="cleanupRangeMode" onchange="updateCleanupEnrollmentRangeInputs(); updateCleanupCount();">
+          <option value="day">วันเดียว</option>
+          <option value="month" selected>ทั้งเดือน</option>
+          <option value="year">ทั้งปี</option>
+          <option value="custom">ช่วงวันที่กำหนดเอง</option>
+          <option value="older">เก่ากว่า … เดือน</option>
+          <option value="all">ทั้งหมด (ทุกช่วงเวลา)</option>
+        </select>
+      </div>
+      <div class="form-group-luxury cleanup-range" data-mode="day"><label>วันที่</label><input type="date" id="cleanupDay" value="${today}" onchange="updateCleanupCount()"></div>
+      <div class="form-group-luxury cleanup-range" data-mode="month"><label>เดือน</label><input type="month" id="cleanupMonth" value="${today.slice(0, 7)}" onchange="updateCleanupCount()"></div>
+      <div class="form-group-luxury cleanup-range" data-mode="year"><label>ปี (ค.ศ.)</label>
+        <select id="cleanupYear" onchange="updateCleanupCount()">${years.map(y => `<option value="${y}">${y} (พ.ศ. ${y + 543})</option>`).join('')}</select>
+      </div>
+      <div class="form-group-luxury cleanup-range" data-mode="custom"><label>ตั้งแต่วันที่</label><input type="date" id="cleanupFrom" value="${today}" onchange="updateCleanupCount()"></div>
+      <div class="form-group-luxury cleanup-range" data-mode="custom"><label>ถึงวันที่</label><input type="date" id="cleanupTo" value="${today}" onchange="updateCleanupCount()"></div>
+      <div class="form-group-luxury cleanup-range" data-mode="older"><label>เก่ากว่า (เดือน)</label><input type="number" id="cleanupOlderMonths" min="1" value="12" oninput="updateCleanupCount()"></div>
+
+      <div class="form-group-luxury">
+        <label>คอร์ส</label>
+        <select id="cleanupCourseFilter" onchange="updateCleanupCount()">
+          <option value="all">ทุกคอร์ส</option>
+          <option value="__campaign__">🎁 โครงการติวฟรี</option>
+          <option value="__bundles__">📦 สมัครผ่านแพ็คเกจ</option>
+          ${courses.map(c => `<option value="${escapeHtml(c.id)}">${escapeHtml(c.title)}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-group-luxury">
+        <label>สถานะ</label>
+        <select id="cleanupStatusFilter" onchange="updateCleanupCount()">
+          <option value="all">ทุกสถานะ</option>
+          <option value="cancelled">❌ ยกเลิก</option>
+          <option value="pending">⏳ รอตรวจสอบ</option>
+          <option value="confirmed">✅ ยืนยันแล้ว</option>
+          <option value="materials_sent">📦 ส่งเอกสารแล้ว</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="cleanup-mode-choice">
+      <label class="cleanup-radio">
+        <input type="radio" name="cleanupEnrollAction" value="delete" checked onchange="updateCleanupCount()">
+        <span><b>ลบทิ้งทั้งใบ</b><small>ใบสมัครและรูปที่แนบหายทั้งหมด สถิติ/รายได้ของช่วงนี้จะหายไปด้วย</small></span>
+      </label>
+      <label class="cleanup-radio">
+        <input type="radio" name="cleanupEnrollAction" value="anonymize" onchange="updateCleanupCount()">
+        <span><b>ลบเฉพาะข้อมูลส่วนตัว (เก็บสถิติไว้)</b><small>ลบชื่อ ชื่อเล่น เบอร์โทร LINE ที่อยู่ หมายเหตุ คำตอบเพิ่มเติม และรูป — เก็บคอร์ส ชั้น โรงเรียน สถานะ ราคา วันที่สมัครไว้ หน้าสถิติยังครบ</small></span>
+      </label>
+    </div>
+
+    <div class="cleanup-footer">
+      <span id="cleanupCountText" class="cleanup-count"></span>
+      <button type="button" class="btn-cleanup-danger" onclick="prepareCleanupEnrollments()"><i class="fa-solid fa-magnifying-glass"></i> ตรวจรายการก่อนล้าง</button>
+    </div>
+  `;
+}
+
+function updateCleanupEnrollmentRangeInputs() {
+  const mode = cleanupVal('cleanupRangeMode');
+  document.querySelectorAll('#cleanupPanel .cleanup-range').forEach(el => { el.style.display = el.dataset.mode === mode ? '' : 'none'; });
+}
+
+function cleanupDateParts(iso) {
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return null;
+  const pad = n => String(n).padStart(2, '0');
+  const day = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  return { day, month: day.slice(0, 7), year: String(d.getFullYear()), time: d.getTime() };
+}
+
+function getCleanupEnrollmentMatches() {
+  const all = window.NewGenDB.getEnrollments();
+  const mode = cleanupVal('cleanupRangeMode') || 'month';
+  const courseFilter = cleanupVal('cleanupCourseFilter') || 'all';
+  const statusFilter = cleanupVal('cleanupStatusFilter') || 'all';
+  const olderMonths = Math.max(1, parseInt(cleanupVal('cleanupOlderMonths'), 10) || 12);
+  const olderCutoff = new Date(); olderCutoff.setMonth(olderCutoff.getMonth() - olderMonths);
+
+  const inRange = en => {
+    if (mode === 'all') return true;
+    const p = cleanupDateParts(en.createdAt);
+    if (!p) return false;
+    if (mode === 'day') return p.day === cleanupVal('cleanupDay');
+    if (mode === 'month') return p.month === cleanupVal('cleanupMonth');
+    if (mode === 'year') return p.year === cleanupVal('cleanupYear');
+    if (mode === 'custom') {
+      let from = cleanupVal('cleanupFrom'), to = cleanupVal('cleanupTo');
+      if (from && to && from > to) [from, to] = [to, from];
+      return (!from || p.day >= from) && (!to || p.day <= to);
+    }
+    if (mode === 'older') return p.time < olderCutoff.getTime();
+    return false;
+  };
+  const courseOk = en => courseFilter === 'all'
+    || (courseFilter === '__campaign__' && isCampaignEnrollment(en))
+    || (courseFilter === '__bundles__' && (en.isBundle || en.isFromBundle || en.bundleId))
+    || en.courseId === courseFilter;
+  const statusOk = en => statusFilter === 'all' || (en.status || 'pending') === statusFilter;
+
+  const matched = all.filter(en => inRange(en) && courseOk(en) && statusOk(en));
+  // ใบหลักของแพ็คเกจ → รวมใบย่อยของคอร์สในแพ็คไปด้วย
+  const ids = new Set(matched.map(e => e.id));
+  all.forEach(e => { if (e.parentEnrollId && ids.has(e.parentEnrollId) && !ids.has(e.id)) { matched.push(e); ids.add(e.id); } });
+  return matched;
+}
+
+function updateCleanupCount() {
+  const el = document.getElementById('cleanupCountText');
+  if (!el) return;
+  if (_cleanupCat === 'enrollments') {
+    const matched = getCleanupEnrollmentMatches();
+    const anonymize = document.querySelector('input[name="cleanupEnrollAction"]:checked')?.value === 'anonymize';
+    const pending = anonymize ? matched.filter(e => !e.anonymized) : matched;
+    el.innerHTML = `ตรงเงื่อนไข <b>${pending.length}</b> ใบ${anonymize && matched.length !== pending.length ? ` (อีก ${matched.length - pending.length} ใบลบข้อมูลส่วนตัวไปแล้ว)` : ''}`;
+  } else if (_cleanupCat === 'courses') {
+    const c = document.querySelectorAll('#cleanupPanel input[name="cleanupCourse"]:checked').length;
+    const b = document.querySelectorAll('#cleanupPanel input[name="cleanupBundle"]:checked').length;
+    el.innerHTML = `เลือกคอร์ส <b>${c}</b> รายการ • แพ็คเกจ <b>${b}</b> รายการ`;
+  } else if (_cleanupCat === 'content') {
+    el.innerHTML = `เลือก <b>${document.querySelectorAll('#cleanupPanel input[name="cleanupContentItem"]:checked').length}</b> รายการ`;
+  } else {
+    el.innerHTML = _cleanupJunkScan ? `เลือก <b>${document.querySelectorAll('#cleanupPanel input[name="cleanupJunk"]:checked').length}</b> รายการ` : '';
+  }
+}
+
+function getEnrollmentImageObject(en) {
+  const ref = String(en.studentImageUrl || '');
+  let m = ref.match(/^private:([a-z0-9-]+)\/(.+)$/i);
+  if (m) return { bucket: m[1], path: m[2] };
+  m = ref.match(/\/storage\/v1\/object\/public\/([a-z0-9-]+)\/([^?#]+)/i);
+  return m ? { bucket: m[1], path: decodeURIComponent(m[2]) } : null;
+}
+
+async function deleteEnrollmentImages(list) {
+  const byBucket = {};
+  list.forEach(en => { const o = getEnrollmentImageObject(en); if (o) (byBucket[o.bucket] = byBucket[o.bucket] || []).push(o.path); });
+  let deleted = 0;
+  const errors = [];
+  for (const [bucket, paths] of Object.entries(byBucket)) {
+    const r = await window.NewGenDB.deleteStorageFiles(bucket, paths);
+    deleted += r.deleted;
+    errors.push(...r.errors);
+  }
+  return { deleted, errors };
+}
+
+// คำนวณที่นั่งคงเหลือของคอร์สที่ได้รับผลกระทบใหม่ (แบบเดียวกับตอนลบรายชื่อทีละคน)
+async function recomputeSeatsForCourses(courseIds) {
+  const ids = new Set(courseIds.filter(Boolean));
+  if (ids.size === 0) return;
+  const courses = window.NewGenDB.getCourses();
+  const enrollments = window.NewGenDB.getEnrollments();
+  let changed = false;
+  courses.forEach(c => {
+    if (!ids.has(c.id)) return;
+    const cap = Number(c.maxSeats || 12);
+    c.remainingSeats = Math.max(0, cap - enrollments.filter(e => e.courseId === c.id).length);
+    if (c.remainingSeats > 0 && c.isFull) c.isFull = false;
+    changed = true;
+  });
+  if (changed) await window.NewGenDB.saveCourses(courses);
+}
+
+function cleanupEnrollmentRow(en) {
+  const p = cleanupDateParts(en.createdAt);
+  const course = en.isBundle ? `📦 ${en.bundleName || en.courseTitle || ''}` : (isCampaignEnrollment(en) ? '🎁 ติวฟรี' : (en.courseTitle || en.courseId || '-'));
+  return { label: en.anonymized ? '(ลบข้อมูลส่วนตัวแล้ว)' : (en.studentName || '-'), sub: `${p ? p.day : 'ไม่มีวันที่'} • ${course}${en.isFromBundle ? ' (ใบย่อยของแพ็ค)' : ''} • ${getEnrollmentStatusLabel(en.status)}` };
+}
+
+function prepareCleanupEnrollments() {
+  const anonymize = document.querySelector('input[name="cleanupEnrollAction"]:checked')?.value === 'anonymize';
+  const matched = getCleanupEnrollmentMatches();
+  const targets = anonymize ? matched.filter(e => !e.anonymized) : matched;
+  if (targets.length === 0) {
+    showToast('ไม่มีรายการที่ตรงเงื่อนไข', 'warning');
+    return;
+  }
+  const images = targets.filter(e => getEnrollmentImageObject(e)).length;
+
+  openCleanupConfirm({
+    title: anonymize ? 'ยืนยันการลบข้อมูลส่วนตัวของนักเรียน' : 'ยืนยันการลบรายชื่อนักเรียน',
+    summary: anonymize
+      ? `จะลบข้อมูลส่วนตัวของใบสมัคร <b>${targets.length}</b> ใบ${images ? ` และรูปที่แนบ <b>${images}</b> รูป` : ''} (เก็บคอร์ส ชั้น โรงเรียน สถานะ ราคา วันที่ไว้สำหรับสถิติ)`
+      : `จะลบใบสมัคร <b>${targets.length}</b> ใบ${images ? ` และรูปที่แนบ <b>${images}</b> รูป` : ''} ออกจาก Supabase อย่างถาวร`,
+    warnings: targets.some(e => e.isFromBundle && !targets.some(t => t.id === e.parentEnrollId))
+      ? ['บางรายการเป็นใบย่อยของแพ็คเกจ — ใบหลักของแพ็คเกจจะยังอยู่']
+      : [],
+    rows: targets.map(cleanupEnrollmentRow),
+    buttonText: anonymize ? `ลบข้อมูลส่วนตัว ${targets.length} ใบ` : `ลบ ${targets.length} ใบ`,
+    backup: { type: anonymize ? 'enrollments-anonymize' : 'enrollments-delete', enrollments: targets },
+    run: async () => {
+      const img = await deleteEnrollmentImages(targets);
+      if (anonymize) {
+        const now = new Date().toISOString();
+        const cleaned = targets.map(en => {
+          const copy = { ...en };
+          CLEANUP_PERSONAL_FIELDS.forEach(f => { delete copy[f]; });
+          return { ...copy, studentName: '(ลบข้อมูลส่วนตัวแล้ว)', hasAttachment: false, anonymized: true, anonymizedAt: now };
+        });
+        const res = await window.NewGenDB.saveEnrollments(cleaned);
+        if (!res.success) throw new Error(res.error || 'บันทึกไม่สำเร็จ');
+        return `ลบข้อมูลส่วนตัว ${cleaned.length} ใบ • ลบรูป ${img.deleted} รูป${img.errors.length ? ` (ลบรูปไม่สำเร็จ ${img.errors.length} ชุด)` : ''}`;
+      }
+      const res = await window.NewGenDB.deleteEnrollmentsByIds(targets.map(e => e.id));
+      await recomputeSeatsForCourses(targets.map(e => e.courseId));
+      if (res.errors.length) throw new Error(`ลบได้ ${res.deleted}/${targets.length} ใบ: ${res.errors[0]}`);
+      return `ลบใบสมัคร ${res.deleted} ใบ • ลบรูป ${img.deleted} รูป${img.errors.length ? ` (ลบรูปไม่สำเร็จ ${img.errors.length} ชุด)` : ''}`;
+    }
+  });
+}
+
+/* ---------- 2) คอร์สเรียน & แพ็คเกจ ---------- */
+function renderCleanupCoursesPanel() {
+  const courses = window.NewGenDB.getCourses();
+  const bundles = window.NewGenDB.getBundles();
+  const enrollments = window.NewGenDB.getEnrollments();
+  const countFor = id => enrollments.filter(e => e.courseId === id || (e.isBundle && (e.bundleId || e.courseId) === id)).length;
+  const item = (name, id, title, extra) => `
+    <label class="cleanup-check-item">
+      <input type="checkbox" name="${name}" value="${escapeHtml(id)}" onchange="updateCleanupCount()">
+      <span>${escapeHtml(title)}<small>${extra}</small></span>
+    </label>`;
+
+  return `
+    <h3 class="cleanup-panel-title"><i class="fa-solid fa-graduation-cap"></i> ล้างคอร์สเรียน &amp; แพ็คเกจ</h3>
+    <div class="cleanup-two-col">
+      <div>
+        <div class="cleanup-list-head"><b>คอร์สเรียน (${courses.length})</b>
+          <button type="button" class="cleanup-link" onclick="toggleCleanupChecks('cleanupCourse', true)">เลือกทั้งหมด</button>
+          <button type="button" class="cleanup-link" onclick="toggleCleanupChecks('cleanupCourse', false)">ล้างที่เลือก</button>
+        </div>
+        <div class="cleanup-check-list">
+          ${courses.map(c => item('cleanupCourse', c.id, c.title, `${countFor(c.id)} ใบสมัคร${c.isHidden ? ' • ซ่อนอยู่' : ''}`)).join('') || '<div class="ana-empty">ไม่มีคอร์ส</div>'}
+        </div>
+      </div>
+      <div>
+        <div class="cleanup-list-head"><b>แพ็คเกจโปรโมชั่น (${bundles.length})</b>
+          <button type="button" class="cleanup-link" onclick="toggleCleanupChecks('cleanupBundle', true)">เลือกทั้งหมด</button>
+          <button type="button" class="cleanup-link" onclick="toggleCleanupChecks('cleanupBundle', false)">ล้างที่เลือก</button>
+        </div>
+        <div class="cleanup-check-list">
+          ${bundles.map(b => item('cleanupBundle', b.id, b.name || b.id, `${(b.courseIds || []).length} คอร์ส • ${countFor(b.id)} ใบสมัคร`)).join('') || '<div class="ana-empty">ไม่มีแพ็คเกจ</div>'}
+        </div>
+      </div>
+    </div>
+
+    <label class="cleanup-radio" style="margin-top: 14px;">
+      <input type="checkbox" id="cleanupCoursesWithEnrollments" onchange="updateCleanupCount()">
+      <span><b>ลบรายชื่อนักเรียนของคอร์ส/แพ็คเกจที่เลือกด้วย</b><small>ถ้าไม่ติ๊ก รายชื่อยังอยู่และยังนับในหน้าสถิติ/รายได้ (ลบภายหลังได้ที่หัวข้อ "รายชื่อนักเรียน")</small></span>
+    </label>
+
+    <div class="cleanup-footer">
+      <span id="cleanupCountText" class="cleanup-count"></span>
+      <button type="button" class="btn-cleanup-danger" onclick="prepareCleanupCourses()"><i class="fa-solid fa-magnifying-glass"></i> ตรวจรายการก่อนล้าง</button>
+    </div>
+  `;
+}
+
+function toggleCleanupChecks(name, checked) {
+  document.querySelectorAll(`#cleanupPanel input[name="${name}"]`).forEach(cb => { cb.checked = checked; });
+  updateCleanupCount();
+}
+
+function prepareCleanupCourses() {
+  const courseIds = new Set([...document.querySelectorAll('#cleanupPanel input[name="cleanupCourse"]:checked')].map(cb => cb.value));
+  const bundleIds = new Set([...document.querySelectorAll('#cleanupPanel input[name="cleanupBundle"]:checked')].map(cb => cb.value));
+  const withEnrollments = document.getElementById('cleanupCoursesWithEnrollments')?.checked;
+  if (courseIds.size === 0 && bundleIds.size === 0) {
+    showToast('กรุณาเลือกคอร์สหรือแพ็คเกจที่ต้องการล้าง', 'warning');
+    return;
+  }
+
+  const courses = window.NewGenDB.getCourses();
+  const bundles = window.NewGenDB.getBundles();
+  const removedCourses = courses.filter(c => courseIds.has(c.id));
+  const removedBundles = bundles.filter(b => bundleIds.has(b.id));
+  const keptBundles = bundles.filter(b => !bundleIds.has(b.id)).map(b => ({ ...b, courseIds: (b.courseIds || []).filter(id => !courseIds.has(id)) }));
+  const touchedBundles = keptBundles.filter((b, i) => b.courseIds.length !== (bundles.filter(x => !bundleIds.has(x.id))[i].courseIds || []).length);
+  const warnings = touchedBundles.map(b => `แพ็คเกจ "${b.name}" จะถูกเอาคอร์สที่ลบออก และเหลือ ${b.courseIds.length} คอร์ส${b.courseIds.length < 2 ? ' ⚠️ น้อยกว่า 2 คอร์ส — ควรติ๊กลบแพ็คนี้ด้วย หรือแก้ไขแพ็คภายหลัง' : ''}`);
+
+  const all = window.NewGenDB.getEnrollments();
+  let enrollTargets = [];
+  if (withEnrollments) {
+    const ids = new Set();
+    all.forEach(e => {
+      if (courseIds.has(e.courseId) || (e.isBundle && bundleIds.has(e.bundleId || e.courseId))) ids.add(e.id);
+    });
+    all.forEach(e => { if (e.parentEnrollId && ids.has(e.parentEnrollId)) ids.add(e.id); });
+    enrollTargets = all.filter(e => ids.has(e.id));
+  }
+
+  const rows = [
+    ...removedCourses.map(c => ({ label: `📚 ${c.title}`, sub: 'คอร์สเรียน' })),
+    ...removedBundles.map(b => ({ label: `📦 ${b.name}`, sub: 'แพ็คเกจ' })),
+    ...enrollTargets.map(cleanupEnrollmentRow)
+  ];
+
+  openCleanupConfirm({
+    title: 'ยืนยันการลบคอร์ส / แพ็คเกจ',
+    summary: `จะลบคอร์ส <b>${removedCourses.length}</b> รายการ และแพ็คเกจ <b>${removedBundles.length}</b> รายการ${withEnrollments ? ` พร้อมใบสมัคร <b>${enrollTargets.length}</b> ใบ` : ' (รายชื่อนักเรียนยังเก็บไว้)'}`,
+    warnings,
+    rows,
+    buttonText: 'ลบคอร์ส / แพ็คเกจ',
+    backup: { type: 'courses', courses: removedCourses, bundles: removedBundles, bundlesBefore: bundles, enrollments: enrollTargets },
+    run: async () => {
+      const results = [];
+      if (removedCourses.length) {
+        const r = await window.NewGenDB.saveCourses(courses.filter(c => !courseIds.has(c.id)));
+        if (r && r.success === false) throw new Error(r.error || 'บันทึกคอร์สไม่สำเร็จ');
+        results.push(`ลบคอร์ส ${removedCourses.length}`);
+      }
+      if (removedBundles.length || touchedBundles.length) {
+        const r = await window.NewGenDB.saveBundles(keptBundles);
+        if (r && r.success === false) throw new Error(r.error || 'บันทึกแพ็คเกจไม่สำเร็จ');
+        if (removedBundles.length) results.push(`ลบแพ็คเกจ ${removedBundles.length}`);
+        if (touchedBundles.length) results.push(`ปรับแพ็คเกจ ${touchedBundles.length}`);
+      }
+      if (enrollTargets.length) {
+        const img = await deleteEnrollmentImages(enrollTargets);
+        const r = await window.NewGenDB.deleteEnrollmentsByIds(enrollTargets.map(e => e.id));
+        results.push(`ลบใบสมัคร ${r.deleted} • รูป ${img.deleted}`);
+        if (r.errors.length) throw new Error(`${results.join(' • ')} — ลบใบสมัครไม่ครบ: ${r.errors[0]}`);
+      }
+      return results.join(' • ');
+    }
+  });
+}
+
+/* ---------- 3) เนื้อหาอื่น ๆ ---------- */
+function renderCleanupContentPanel() {
+  const type = cleanupVal('cleanupContentType') || 'reviews';
+  const def = CLEANUP_CONTENT_TYPES[type];
+  const list = def.get();
+  return `
+    <h3 class="cleanup-panel-title"><i class="fa-solid fa-photo-film"></i> ล้างเนื้อหาอื่น ๆ บนเว็บ</h3>
+    <div class="form-group-luxury" style="max-width: 320px;">
+      <label>หมวด</label>
+      <select id="cleanupContentType" onchange="renderCleanupPanel()">
+        ${Object.entries(CLEANUP_CONTENT_TYPES).map(([k, d]) => `<option value="${k}" ${k === type ? 'selected' : ''}>${d.label} (${d.get().length})</option>`).join('')}
+      </select>
+    </div>
+    <div class="cleanup-list-head"><b>${def.label} (${list.length})</b>
+      <button type="button" class="cleanup-link" onclick="toggleCleanupChecks('cleanupContentItem', true)">เลือกทั้งหมด</button>
+      <button type="button" class="cleanup-link" onclick="toggleCleanupChecks('cleanupContentItem', false)">ล้างที่เลือก</button>
+    </div>
+    <div class="cleanup-check-list">
+      ${list.map((it, i) => `
+        <label class="cleanup-check-item">
+          <input type="checkbox" name="cleanupContentItem" value="${i}" onchange="updateCleanupCount()">
+          <span>${escapeHtml(def.name(it))}</span>
+        </label>`).join('') || '<div class="ana-empty">ไม่มีรายการ</div>'}
+    </div>
+    <div class="cleanup-footer">
+      <span id="cleanupCountText" class="cleanup-count"></span>
+      <button type="button" class="btn-cleanup-danger" onclick="prepareCleanupContent()"><i class="fa-solid fa-magnifying-glass"></i> ตรวจรายการก่อนล้าง</button>
+    </div>
+  `;
+}
+
+function prepareCleanupContent() {
+  const type = cleanupVal('cleanupContentType') || 'reviews';
+  const def = CLEANUP_CONTENT_TYPES[type];
+  const list = def.get();
+  const picked = new Set([...document.querySelectorAll('#cleanupPanel input[name="cleanupContentItem"]:checked')].map(cb => Number(cb.value)));
+  if (picked.size === 0) {
+    showToast('กรุณาเลือกรายการที่ต้องการล้าง', 'warning');
+    return;
+  }
+  const removed = list.filter((_, i) => picked.has(i));
+  const kept = list.filter((_, i) => !picked.has(i));
+  openCleanupConfirm({
+    title: `ยืนยันการลบ${def.label}`,
+    summary: `จะลบ${def.label} <b>${removed.length}</b> รายการ (เหลือ ${kept.length} รายการ)`,
+    warnings: kept.length === 0 ? [`หมวด${def.label}จะว่างเปล่า และส่วนนี้บนหน้าเว็บจะไม่มีข้อมูลแสดง`] : [],
+    rows: removed.map(it => ({ label: def.name(it), sub: def.label })),
+    buttonText: `ลบ ${removed.length} รายการ`,
+    backup: { type: `content-${type}`, removed, before: list },
+    run: async () => {
+      const r = await def.save(kept);
+      if (r && r.success === false) throw new Error(r.error || 'บันทึกไม่สำเร็จ');
+      return `ลบ${def.label} ${removed.length} รายการ`;
+    }
+  });
+}
+
+/* ---------- 4) ข้อมูลขยะของระบบ ---------- */
+function renderCleanupJunkPanel() {
+  const s = _cleanupJunkScan;
+  const fmtSize = b => b > 1048576 ? `${(b / 1048576).toFixed(1)} MB` : `${Math.max(1, Math.round(b / 1024))} KB`;
+  let body = '<p class="cleanup-hint">กด "สแกนหาข้อมูลขยะ" เพื่อค้นหาสำเนาข้อมูลเก่า แถวทดสอบ และรูปที่ไม่มีอะไรใช้แล้ว</p>';
+  if (s) {
+    const group = (title, items, note) => `
+      <div class="cleanup-list-head"><b>${title} (${items.length})</b>${items.length ? `
+        <button type="button" class="cleanup-link" onclick="toggleCleanupJunkGroup('${items[0]?.group}', true)">เลือกทั้งหมด</button>
+        <button type="button" class="cleanup-link" onclick="toggleCleanupJunkGroup('${items[0]?.group}', false)">ล้างที่เลือก</button>` : ''}
+      </div>
+      ${note ? `<p class="cleanup-hint">${note}</p>` : ''}
+      <div class="cleanup-check-list">
+        ${items.map((it, i) => `
+          <label class="cleanup-check-item">
+            <input type="checkbox" name="cleanupJunk" data-group="${it.group}" value="${s.items.indexOf(it)}" ${it.defaultChecked ? 'checked' : ''} onchange="updateCleanupCount()">
+            ${it.thumb ? `<img src="${escapeHtml(it.thumb)}" alt="" class="cleanup-thumb" loading="lazy">` : ''}
+            <span>${escapeHtml(it.label)}<small>${escapeHtml(it.sub || '')}${it.size ? ` • ${fmtSize(it.size)}` : ''}</small></span>
+          </label>`).join('') || '<div class="ana-empty">ไม่พบ</div>'}
+      </div>`;
+    body = `
+      ${s.errors.length ? `<div class="cleanup-warn">${s.errors.map(escapeHtml).join('<br>')}</div>` : ''}
+      ${group('แถวข้อมูลที่หน้าเว็บไม่ได้ใช้', s.items.filter(i => i.group === 'rows'), 'เช่น สำเนารายชื่อนักเรียนรุ่นเก่า (enrollments_legacy_backup) และแถวทดสอบ')}
+      ${group('รูปที่นักเรียนแนบ แต่ไม่มีใบสมัครผูกอยู่แล้ว', s.items.filter(i => i.group === 'student'), 'เกิดจากใบสมัครที่ถูกลบไปแล้ว หรืออัปโหลดรูปแล้วส่งใบสมัครไม่สำเร็จ')}
+      ${group('รูปของเว็บที่ไม่พบว่าใช้ที่ไหน', s.items.filter(i => i.group === 'site'), '⚠️ ไม่ได้เลือกไว้ให้ — ดูรูปตัวอย่างก่อนติ๊ก ถ้ารูปไหนยังใช้อยู่ (เช่น แชร์ลิงก์ไว้ที่อื่น) อย่าลบ รูปไม่ถูกรวมในไฟล์สำรอง')}
+    `;
+  }
+  return `
+    <h3 class="cleanup-panel-title"><i class="fa-solid fa-trash-can"></i> ล้างข้อมูลขยะของระบบ</h3>
+    <button type="button" class="btn-secondary" onclick="scanCleanupJunk()" id="btnCleanupScan"><i class="fa-solid fa-binoculars"></i> สแกนหาข้อมูลขยะ</button>
+    <div style="margin-top: 14px;">${body}</div>
+    <div class="cleanup-footer">
+      <span id="cleanupCountText" class="cleanup-count"></span>
+      <button type="button" class="btn-cleanup-danger" onclick="prepareCleanupJunk()" ${s ? '' : 'disabled'}><i class="fa-solid fa-magnifying-glass"></i> ตรวจรายการก่อนล้าง</button>
+    </div>
+  `;
+}
+
+function toggleCleanupJunkGroup(group, checked) {
+  document.querySelectorAll(`#cleanupPanel input[name="cleanupJunk"][data-group="${group}"]`).forEach(cb => { cb.checked = checked; });
+  updateCleanupCount();
+}
+
+async function scanCleanupJunk() {
+  const btn = document.getElementById('btnCleanupScan');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังสแกน...'; }
+  const items = [];
+  const errors = [];
+  const knownKeys = new Set(['courses', 'tutors', 'tutorsQuote', 'reviews', 'achievements', 'videos', 'contact', 'whyus', 'categories', 'privilege', 'home', 'about', 'enrollmentConfig', 'popupCampaign', 'bundles', 'admin_ping']);
+  let rows = [];
+  try {
+    rows = await window.NewGenDB.fetchAllAppDataRows();
+    rows.filter(r => !knownKeys.has(r.key)).forEach(r => items.push({
+      group: 'rows', kind: 'row', key: r.key, data: r.data, defaultChecked: true,
+      label: r.key === 'enrollments_legacy_backup' ? 'สำเนารายชื่อนักเรียนรุ่นเก่า (enrollments_legacy_backup)' : r.key,
+      sub: `${Array.isArray(r.data) ? `${r.data.length} รายการ • ` : ''}อัปเดต ${r.updated_at ? new Date(r.updated_at).toLocaleDateString('th-TH') : '-'}`
+    }));
+  } catch (e) { errors.push(`อ่านตาราง app_data ไม่สำเร็จ: ${e.message}`); }
+
+  // รูปนักเรียนในที่เก็บส่วนตัว ที่ไม่มีใบสมัครไหนอ้างถึง
+  await window.NewGenDB.fetchEnrollments();
+  const enrollments = window.NewGenDB.getEnrollments();
+  const usedStudent = new Set(enrollments.map(getEnrollmentImageObject).filter(o => o && o.bucket === 'student-uploads').map(o => o.path));
+  try {
+    const files = await window.NewGenDB.listStorageFiles('student-uploads');
+    files.filter(f => !usedStudent.has(f.name)).forEach(f => items.push({
+      group: 'student', kind: 'file', bucket: 'student-uploads', path: f.name, defaultChecked: true,
+      label: f.name, sub: `อัปโหลด ${f.created_at ? new Date(f.created_at).toLocaleDateString('th-TH') : '-'}`, size: f.metadata?.size || 0
+    }));
+  } catch (e) { errors.push(`อ่านรูปนักเรียนไม่สำเร็จ: ${e.message}`); }
+
+  // รูปของเว็บ (bucket uploads) ที่ไม่พบชื่อไฟล์ในข้อมูลเว็บ ใบสมัคร หรือไฟล์โค้ดของเว็บ
+  try {
+    const files = await window.NewGenDB.listStorageFiles('uploads');
+    const codeFiles = ['assets/js/courses-data.js', 'assets/js/main.js', 'assets/js/course-detail.js', 'assets/js/enrollment-modal.js', 'assets/css/style.css',
+      'index.html', 'courses.html', 'course-detail.html', 'tutors.html', 'about.html', 'reviews.html', 'free-trial.html', 'contact.html'];
+    const codeTexts = await Promise.all(codeFiles.map(f => fetch(f, { cache: 'no-store' }).then(r => (r.ok ? r.text() : '')).catch(() => '')));
+    const haystack = JSON.stringify(rows) + JSON.stringify(enrollments) + codeTexts.join('\n');
+    if (codeTexts.every(t => !t)) throw new Error('อ่านไฟล์ของเว็บไม่ได้ จึงข้ามการตรวจรูปของเว็บเพื่อความปลอดภัย');
+    files.filter(f => !haystack.includes(f.name)).forEach(f => items.push({
+      group: 'site', kind: 'file', bucket: 'uploads', path: f.name, defaultChecked: false,
+      thumb: `${window.SUPABASE_CONFIG.url}/storage/v1/object/public/uploads/${encodeURIComponent(f.name)}`,
+      label: f.name, sub: `อัปโหลด ${f.created_at ? new Date(f.created_at).toLocaleDateString('th-TH') : '-'}`, size: f.metadata?.size || 0
+    }));
+  } catch (e) { errors.push(`ตรวจรูปของเว็บไม่สำเร็จ: ${e.message}`); }
+
+  _cleanupJunkScan = { items, errors };
+  renderCleanupPanel();
+}
+
+function prepareCleanupJunk() {
+  const s = _cleanupJunkScan;
+  if (!s) return;
+  const picked = [...document.querySelectorAll('#cleanupPanel input[name="cleanupJunk"]:checked')].map(cb => s.items[Number(cb.value)]).filter(Boolean);
+  if (picked.length === 0) {
+    showToast('กรุณาเลือกรายการที่ต้องการล้าง', 'warning');
+    return;
+  }
+  const rowsPicked = picked.filter(i => i.kind === 'row');
+  const filesPicked = picked.filter(i => i.kind === 'file');
+  openCleanupConfirm({
+    title: 'ยืนยันการล้างข้อมูลขยะ',
+    summary: `จะลบแถวข้อมูล <b>${rowsPicked.length}</b> แถว และไฟล์รูป <b>${filesPicked.length}</b> ไฟล์`,
+    warnings: filesPicked.some(f => f.group === 'site') ? ['มีรูปของเว็บอยู่ในรายการ — รูปจะหายถาวรและไม่อยู่ในไฟล์สำรอง ตรวจให้แน่ใจว่าไม่ได้ใช้แล้ว'] : [],
+    rows: picked.map(i => ({ label: i.label, sub: i.kind === 'row' ? 'แถวข้อมูล' : `ไฟล์ใน ${i.bucket}` })),
+    buttonText: `ลบ ${picked.length} รายการ`,
+    backup: { type: 'junk', rows: rowsPicked.map(r => ({ key: r.key, data: r.data })), files: filesPicked.map(f => `${f.bucket}/${f.path}`) },
+    run: async () => {
+      const results = [];
+      const errs = [];
+      if (rowsPicked.length) {
+        const r = await window.NewGenDB.deleteAppDataKeys(rowsPicked.map(i => i.key));
+        results.push(`ลบแถว ${r.deleted}`);
+        errs.push(...r.errors);
+      }
+      const byBucket = {};
+      filesPicked.forEach(f => { (byBucket[f.bucket] = byBucket[f.bucket] || []).push(f.path); });
+      for (const [bucket, paths] of Object.entries(byBucket)) {
+        const r = await window.NewGenDB.deleteStorageFiles(bucket, paths);
+        results.push(`ลบรูป (${bucket}) ${r.deleted}`);
+        errs.push(...r.errors);
+      }
+      _cleanupJunkScan = null;
+      if (errs.length) throw new Error(`${results.join(' • ')} — ผิดพลาด: ${errs[0]}`);
+      return results.join(' • ');
+    }
+  });
+}
+
+/* ---------- ยืนยัน & ดำเนินการ ---------- */
+function openCleanupConfirm(plan) {
+  _cleanupPlan = plan;
+  document.getElementById('cleanupConfirmTitle').textContent = plan.title;
+  document.getElementById('cleanupConfirmSummary').innerHTML = plan.summary;
+  document.getElementById('cleanupConfirmWarnings').innerHTML = plan.warnings.map(w => `<div class="cleanup-warn"><i class="fa-solid fa-triangle-exclamation"></i> ${escapeHtml(w)}</div>`).join('');
+  const shown = plan.rows.slice(0, 200);
+  document.getElementById('cleanupConfirmList').innerHTML = shown.map(r => `
+    <div class="cleanup-preview-row"><b>${escapeHtml(r.label)}</b><small>${escapeHtml(r.sub || '')}</small></div>`).join('')
+    + (plan.rows.length > shown.length ? `<div class="cleanup-preview-row"><small>…และอีก ${plan.rows.length - shown.length} รายการ (มีครบในไฟล์สำรอง)</small></div>` : '');
+  document.getElementById('cleanupConfirmBtnText').textContent = plan.buttonText;
+  document.getElementById('cleanupConfirmWord').value = '';
+  document.getElementById('cleanupConfirmPassword').value = '';
+  openModal('modalCleanupConfirm');
+}
+
+function downloadJsonFile(fileName, obj) {
+  const blob = new Blob([JSON.stringify(obj, null, 2)], { type: 'application/json;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = fileName;
+  a.style.display = 'none';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { a.remove(); URL.revokeObjectURL(url); }, 1500);
+}
+
+async function executeCleanup() {
+  const plan = _cleanupPlan;
+  if (!plan) return;
+  if (cleanupVal('cleanupConfirmWord') !== 'ลบ') {
+    showToast('⚠️ กรุณาพิมพ์คำว่า "ลบ" เพื่อยืนยัน', 'warning');
+    return;
+  }
+  const password = document.getElementById('cleanupConfirmPassword').value;
+  if (!password) {
+    showToast('⚠️ กรุณาใส่รหัสผ่านแอดมิน', 'warning');
+    return;
+  }
+
+  const btn = document.getElementById('btnCleanupExecute');
+  const btnHtml = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังตรวจสอบรหัสผ่าน...';
+  try {
+    const session = window.NewGenAuth.getSession();
+    try {
+      await window.NewGenAuth.signIn(session ? session.email : '', password);
+    } catch (e) {
+      showToast('❌ รหัสผ่านไม่ถูกต้อง', 'error');
+      return;
+    }
+
+    const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+    downloadJsonFile(`the-new-gen-ก่อนล้าง-${plan.backup.type}-${stamp}.json`, { ...plan.backup, backedUpAt: new Date().toISOString() });
+
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังล้างข้อมูล...';
+    const result = await plan.run();
+
+    closeModal('modalCleanupConfirm');
+    _cleanupPlan = null;
+    showToast(`✅ ล้างข้อมูลเรียบร้อย: ${result}`, 'success');
+  } catch (err) {
+    console.error('Cleanup failed:', err);
+    showToast(`❌ ล้างข้อมูลไม่สำเร็จ: ${err.message}`, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = btnHtml;
+    // โหลดข้อมูลล่าสุดจาก Supabase เสมอ (แม้ล้างได้ไม่ครบ) ให้หน้าจอตรงกับข้อมูลจริง
+    try {
+      await window.NewGenDB.fetchEnrollments();
+      await window.NewGenDB.syncFromSupabase();
+    } catch (e) {}
+    initAdminDashboard();
+    renderCleanupPanel();
+  }
+}
+
+window.selectCleanupCategory = selectCleanupCategory;
+window.renderCleanupPanel = renderCleanupPanel;
+window.updateCleanupCount = updateCleanupCount;
+window.updateCleanupEnrollmentRangeInputs = updateCleanupEnrollmentRangeInputs;
+window.prepareCleanupEnrollments = prepareCleanupEnrollments;
+window.prepareCleanupCourses = prepareCleanupCourses;
+window.prepareCleanupContent = prepareCleanupContent;
+window.prepareCleanupJunk = prepareCleanupJunk;
+window.toggleCleanupChecks = toggleCleanupChecks;
+window.toggleCleanupJunkGroup = toggleCleanupJunkGroup;
+window.scanCleanupJunk = scanCleanupJunk;
+window.executeCleanup = executeCleanup;
 
 

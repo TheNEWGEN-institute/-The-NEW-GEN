@@ -854,7 +854,7 @@ const NewGenDB = {
   // Tutors (แบ่ง 2 ทีม: Onsite ประจำสถาบัน & สอน Online)
   getTutors: () => {
     let list = null;
-    if (typeof window !== 'undefined' && Array.isArray(window.tutorsData) && window.tutorsData.length > 0) {
+    if (typeof window !== 'undefined' && Array.isArray(window.tutorsData) && (window.tutorsData.length > 0 || window._supabaseTutorsSynced)) {
       list = window.tutorsData;
     } else {
       try {
@@ -912,7 +912,8 @@ const NewGenDB = {
   // Reviews
   getReviews: () => {
     let list = null;
-    if (typeof window !== 'undefined' && Array.isArray(window.reviewsData) && window.reviewsData.length > 0) {
+    // หลังซิงค์จาก Cloud แล้ว รายการว่าง = แอดมินลบหมดจริง (ไม่ใช้ข้อมูลตัวอย่างแทน)
+    if (typeof window !== 'undefined' && Array.isArray(window.reviewsData) && (window.reviewsData.length > 0 || window._supabaseReviewsSynced)) {
       list = window.reviewsData;
     } else {
       try {
@@ -962,7 +963,7 @@ const NewGenDB = {
 
   // Videos
   getVideos: () => {
-    if (typeof window !== 'undefined' && Array.isArray(window.videosData) && window.videosData.length > 0) {
+    if (typeof window !== 'undefined' && Array.isArray(window.videosData) && (window.videosData.length > 0 || window._supabaseVideosSynced)) {
       return window.videosData;
     }
     try {
@@ -1349,6 +1350,84 @@ const NewGenDB = {
     }
     return savePromise;
   },
+  // ---------- ล้างข้อมูล (แอดมินเท่านั้น — สิทธิ์ตรวจด้วย RLS ฝั่ง Supabase) ----------
+  _pgInList: (values) => `(${values.map(v => `"${String(v).replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`).join(',')})`,
+
+  // ลบใบสมัครหลายรายการ (ทีละ 50) — คืนจำนวนที่ลบสำเร็จจริงจาก Supabase
+  deleteEnrollmentsByIds: async (ids) => {
+    let deleted = 0;
+    const errors = [];
+    for (let i = 0; i < ids.length; i += 50) {
+      const chunk = ids.slice(i, i + 50);
+      try {
+        const res = await fetch(`${SUPABASE_CONFIG.url}/rest/v1/enrollments?select=id&id=in.${encodeURIComponent(NewGenDB._pgInList(chunk))}`, {
+          method: 'DELETE',
+          headers: await getSupabaseHeaders({ 'Prefer': 'return=representation' })
+        });
+        if (res.ok) deleted += (await res.json()).length;
+        else errors.push(`HTTP ${res.status} ${await res.text()}`);
+      } catch (err) {
+        errors.push(err.message);
+      }
+    }
+    const gone = new Set(ids);
+    window.enrollmentsData = NewGenDB.getEnrollments().filter(e => !gone.has(e.id));
+    return { deleted, errors };
+  },
+
+  // รายชื่อไฟล์ใน storage bucket (ระดับบนสุด)
+  listStorageFiles: async (bucket) => {
+    const files = [];
+    for (let offset = 0; offset < 20000; offset += 1000) {
+      const res = await fetch(`${SUPABASE_CONFIG.url}/storage/v1/object/list/${bucket}`, {
+        method: 'POST',
+        headers: await getSupabaseHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify({ prefix: '', limit: 1000, offset, sortBy: { column: 'name', order: 'asc' } })
+      });
+      if (!res.ok) throw new Error(`list ${bucket} failed (HTTP ${res.status})`);
+      const page = await res.json();
+      files.push(...page.filter(f => f && f.id && f.name));
+      if (page.length < 1000) break;
+    }
+    return files;
+  },
+
+  // ลบไฟล์ใน storage (ทีละ 100)
+  deleteStorageFiles: async (bucket, paths) => {
+    let deleted = 0;
+    const errors = [];
+    for (let i = 0; i < paths.length; i += 100) {
+      try {
+        const res = await fetch(`${SUPABASE_CONFIG.url}/storage/v1/object/${bucket}`, {
+          method: 'DELETE',
+          headers: await getSupabaseHeaders({ 'Content-Type': 'application/json' }),
+          body: JSON.stringify({ prefixes: paths.slice(i, i + 100) })
+        });
+        if (res.ok) deleted += (await res.json()).length;
+        else errors.push(`HTTP ${res.status} ${await res.text()}`);
+      } catch (err) {
+        errors.push(err.message);
+      }
+    }
+    return { deleted, errors };
+  },
+
+  // ทุกแถวใน app_data (แอดมินเห็นทุกแถว รวมแถวที่หน้าเว็บไม่ได้ใช้)
+  fetchAllAppDataRows: async () => {
+    const res = await fetch(`${SUPABASE_CONFIG.url}/rest/v1/app_data?select=key,data,updated_at`, { headers: await getSupabaseHeaders() });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return res.json();
+  },
+
+  deleteAppDataKeys: async (keys) => {
+    const res = await fetch(`${SUPABASE_CONFIG.url}/rest/v1/app_data?select=key&key=in.${encodeURIComponent(NewGenDB._pgInList(keys))}`, {
+      method: 'DELETE',
+      headers: await getSupabaseHeaders({ 'Prefer': 'return=representation' })
+    });
+    if (!res.ok) return { deleted: 0, errors: [`HTTP ${res.status} ${await res.text()}`] };
+    return { deleted: (await res.json()).length, errors: [] };
+  },
+
   getEnrollmentsByCourse: (courseId) => {
     const list = NewGenDB.getEnrollments();
     return list.filter(e => e.courseId === courseId);
