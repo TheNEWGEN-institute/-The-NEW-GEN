@@ -938,14 +938,7 @@ function handleCampaignRegisterClick() {
   if (typeof window.openEnrollmentModal === 'function') {
     const courseId = campaign && campaign.courseId ? campaign.courseId : 'campaign';
     window.openEnrollmentModal(courseId, null, campaign);
-
-    // Pre-populate note if empty
-    setTimeout(() => {
-      const notesEl = document.getElementById('enrInputNotes');
-      if (notesEl && !notesEl.value) {
-        notesEl.value = `[สมัครสิทธิ์โครงการ: ${campaign && campaign.title ? campaign.title : 'โครงการติวฟรี'}]`;
-      }
-    }, 350);
+    // Note: campaign form no longer has a "notes" field, so no pre-populated note.
   } else {
     // If enrollment modal script not present, fallback to contact
     window.location.href = '#courses';

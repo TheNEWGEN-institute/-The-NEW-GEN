@@ -11486,3 +11486,481 @@ button {
   border-color: #dc2626;
   color: #ffffff;
 }
+
+/* ===================================================================
+   Admin: Campaign roster filter (แยกชั้น / แยกวิชา ติวฟรี)
+   =================================================================== */
+.campaign-roster-filter {
+  background: #fdf2f8;
+  border: 1.5px solid #fbcfe8;
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  margin-bottom: 14px;
+}
+
+.campaign-filter-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.campaign-filter-label {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #9d174d;
+  min-width: 78px;
+}
+
+.campaign-filter-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.campaign-filter-pill {
+  padding: 5px 12px;
+  border-radius: 99px;
+  border: 1.5px solid #f9a8d4;
+  background: #ffffff;
+  color: #9d174d;
+  font-size: 0.82rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.campaign-filter-pill:hover {
+  border-color: #ec4899;
+}
+
+.campaign-filter-pill.active {
+  background: #be185d;
+  border-color: #be185d;
+  color: #ffffff;
+}
+
+.campaign-filter-pill .count {
+  background: #fce7f3;
+  color: #9d174d;
+  padding: 1px 7px;
+  border-radius: 99px;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.campaign-filter-pill.active .count {
+  background: rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+}
+
+.campaign-filter-caption {
+  font-size: 0.8rem;
+  color: #831843;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.campaign-filter-clear {
+  border: none;
+  background: transparent;
+  color: #be185d;
+  font-weight: 700;
+  font-family: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+}
+
+/* ===================================================================
+   Admin: Analytics tab (สรุปสถิติการสมัคร & รายได้)
+   =================================================================== */
+.ana-filter-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+
+.ana-filter-label {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--color-navy);
+}
+
+.ana-range-group {
+  display: inline-flex;
+  background: #f1f5f9;
+  border: 1px solid var(--border-light);
+  border-radius: 10px;
+  padding: 3px;
+  gap: 2px;
+  flex-wrap: wrap;
+}
+
+.ana-range-btn {
+  border: none;
+  background: transparent;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #475569;
+  cursor: pointer;
+}
+
+.ana-range-btn:hover {
+  background: #e2e8f0;
+}
+
+.ana-range-btn.active {
+  background: #ffffff;
+  color: var(--color-navy);
+  box-shadow: var(--shadow-xs);
+}
+
+.ana-filter-caption {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.ana-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.ana-kpi {
+  background: #ffffff;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: 16px 18px;
+  box-shadow: var(--shadow-xs);
+}
+
+.ana-kpi-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ana-kpi-value {
+  font-size: 1.65rem;
+  font-weight: 800;
+  color: var(--color-navy);
+  margin: 6px 0 4px;
+  line-height: 1.15;
+}
+
+.ana-kpi-sub {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+}
+
+.ana-delta {
+  font-weight: 700;
+}
+
+.ana-delta.up { color: #006300; }
+.ana-delta.down { color: #d03b3b; }
+.ana-delta.flat { color: var(--text-muted); }
+
+.ana-card {
+  background: #ffffff;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: var(--shadow-xs);
+  margin-bottom: 18px;
+  min-width: 0;
+}
+
+.ana-card-head {
+  margin-bottom: 14px;
+}
+
+.ana-card-head h3 {
+  margin: 0;
+  font-size: 1.02rem;
+  font-weight: 800;
+  color: var(--color-navy);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ana-card-head small {
+  display: block;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  margin-top: 3px;
+}
+
+.ana-chart-box {
+  position: relative;
+  width: 100%;
+  min-height: 180px;
+}
+
+.ana-grid-2,
+.ana-grid-3 {
+  display: grid;
+  gap: 18px;
+}
+
+.ana-grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.ana-grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+.ana-grid-2 > .ana-card,
+.ana-grid-3 > .ana-card {
+  margin-bottom: 0;
+}
+
+.ana-grid-2,
+.ana-grid-3 {
+  margin-bottom: 18px;
+}
+
+.ana-empty {
+  padding: 28px 12px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.88rem;
+}
+
+/* Top 3 podium */
+.ana-podium {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.ana-podium-item {
+  flex: 1 1 200px;
+  max-width: 280px;
+  text-align: center;
+  background: #f8fafc;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: 16px 14px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: hidden;
+}
+
+.ana-podium-item.rank-1 {
+  background: #fffbeb;
+  border-color: #fcd34d;
+  padding-top: 26px;
+}
+
+.ana-podium-medal { font-size: 2rem; line-height: 1; }
+
+.ana-podium-title {
+  font-weight: 700;
+  color: var(--color-navy);
+  font-size: 0.9rem;
+  line-height: 1.35;
+  margin: 8px 0 6px;
+}
+
+.ana-podium-count {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--color-navy);
+}
+
+.ana-podium-count span {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.ana-podium-sub {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.ana-podium-base {
+  align-self: stretch;
+  margin: 0 -14px;
+  padding: 6px;
+  background: #e2e8f0;
+  color: #334155;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.ana-podium-item.rank-1 .ana-podium-base {
+  background: #fcd34d;
+  color: #78350f;
+  padding: 12px 6px;
+}
+
+/* Split bar & legend */
+.ana-split-bar {
+  display: flex;
+  gap: 2px;
+  height: 14px;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.ana-split-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ana-split-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+}
+
+.ana-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.ana-split-name {
+  color: #334155;
+  flex: 1;
+}
+
+.ana-split-val {
+  font-weight: 800;
+  color: var(--color-navy);
+}
+
+.ana-split-val small {
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+/* Status & ranked bars */
+.ana-status-row { margin-bottom: 10px; }
+
+.ana-status-head,
+.ana-rank-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.84rem;
+  color: #334155;
+  margin-bottom: 4px;
+}
+
+.ana-bar-track {
+  height: 8px;
+  background: #f1f5f9;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.ana-bar-fill {
+  height: 100%;
+  border-radius: 0 4px 4px 0;
+  min-width: 2px;
+}
+
+.ana-rank-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ana-rank-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ana-rank-no {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 0.75rem;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.ana-rank-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.ana-rank-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.ana-rank-val {
+  white-space: nowrap;
+  font-size: 0.8rem;
+  color: #475569;
+}
+
+/* Revenue table */
+.ana-revenue-table td.num,
+.ana-revenue-table th.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.ana-revenue-table .ana-total-row td {
+  font-weight: 800;
+  color: var(--color-navy);
+  background: #f8fafc;
+  border-top: 2px solid var(--border-light);
+}
+
+.ana-tag {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: #fef3c7;
+  color: #92400e;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+@media (max-width: 1100px) {
+  .ana-grid-3 { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 900px) {
+  .ana-grid-2 { grid-template-columns: 1fr; }
+  .ana-revenue-table { min-width: 620px; }
+}
