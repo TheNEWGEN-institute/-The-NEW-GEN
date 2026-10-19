@@ -707,6 +707,12 @@
       }
     }
 
+    // Campaign mode: show only learning-type titles (hide descriptions)
+    ['enrOnsiteDesc', 'enrOnlineDesc'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = course.isCampaign ? 'none' : '';
+    });
+
     const locEl = document.getElementById('enrReviewLocation');
     if (locEl) locEl.textContent = course.location || 'เรียนสด Onsite สถาบัน The NEW GEN';
 

@@ -1,0 +1,246 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 860" width="1000" height="860">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800;900&amp;family=Prompt:wght@500;600;700;800&amp;display=swap');
+      .font-en { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; }
+      .font-th { font-family: 'Prompt', 'Leelawadee UI', sans-serif; }
+    </style>
+    <linearGradient id="bgNavy" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#07152b"/>
+      <stop offset="50%" stop-color="#0b1e3f"/>
+      <stop offset="100%" stop-color="#1e3a8a"/>
+    </linearGradient>
+    <linearGradient id="badgeNavy" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0b1e3f"/>
+      <stop offset="100%" stop-color="#1e3a8a"/>
+    </linearGradient>
+    <filter id="shadowBox" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#0b1e3f" flood-opacity="0.08"/>
+    </filter>
+  </defs>
+
+  <!-- Background Canvas -->
+  <rect width="1000" height="860" fill="#f8fafc"/>
+
+  <!-- Top Header Banner -->
+  <rect width="1000" height="110" fill="url(#bgNavy)"/>
+  <rect y="106" width="1000" height="4" fill="#e11d48"/>
+  <text x="50" y="52" fill="#fda4af" class="font-th" font-size="14" font-weight="600" letter-spacing="1">สถาบันกวดวิชา THE NEW GEN | BRAND IDENTITY PROPOSALS</text>
+  <text x="50" y="86" fill="#ffffff" class="font-th" font-size="28" font-weight="800">5 แบบโลโก้ใหม่ แทนรูปสายฟ้า (สไตล์การศึกษามินิมอล)</text>
+  <text x="950" y="86" text-anchor="end" fill="#94a3b8" class="font-en" font-size="14" font-weight="600">The NEW GEN Tutoring</text>
+
+  <!-- ================= OPTION 1 ================= -->
+  <g transform="translate(40, 130)">
+    <rect width="920" height="125" rx="14" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5" filter="url(#shadowBox)"/>
+    <!-- Tag -->
+    <rect x="20" y="16" width="70" height="26" rx="13" fill="#e2e8f0"/>
+    <text x="55" y="34" text-anchor="middle" class="font-th" font-size="13" font-weight="700" fill="#0b1e3f">แบบที่ 1</text>
+    <text x="105" y="34" class="font-th" font-size="16" font-weight="700" fill="#0b1e3f">🎓 หมวกปริญญาแห่งความสำเร็จ (Graduation Cap)</text>
+    <text x="105" y="54" class="font-th" font-size="12" font-weight="500" fill="#64748b">เป้าหมายสูงสุดของการเรียน สื่อถึงความสำเร็จ สอบติดโรงเรียนเตรียมอุดมฯ ม.1/ม.4 และมหาวิทยาลัยชั้นนำ</text>
+
+    <!-- Logo on Light Background -->
+    <g transform="translate(20, 60)">
+      <!-- Badge -->
+      <rect width="52" height="46" rx="12" fill="url(#badgeNavy)" stroke="#e11d48" stroke-width="1.6"/>
+      <g transform="translate(14, 11) scale(1.0)" fill="#e11d48">
+        <path d="M12 3L1 8.5L12 14L21 9.5V16H23V8.5L12 3ZM5 12.18V16.5C5 18.99 8.13 21 12 21C15.87 21 19 18.99 19 16.5V12.18L12 15.68L5 12.18Z"/>
+      </g>
+      <!-- Text -->
+      <text x="64" y="26" class="font-en" font-size="22" font-weight="800" letter-spacing="-0.5">
+        <tspan fill="#0b1e3f">The </tspan><tspan fill="#0b1e3f">NEW </tspan><tspan fill="#e11d48">GEN</tspan>
+      </text>
+      <text x="65" y="42" class="font-th" font-size="11.5" font-weight="700">
+        <tspan fill="#0b1e3f">กวดวิชาของเด็ก </tspan><tspan fill="#e11d48">GEN </tspan><tspan fill="#0b1e3f">ใหม่</tspan>
+      </text>
+    </g>
+
+    <!-- Dark Mode Preview Box -->
+    <g transform="translate(580, 16)">
+      <rect width="320" height="92" rx="10" fill="#07152b" stroke="#1e293b"/>
+      <text x="14" y="20" fill="#64748b" class="font-th" font-size="10" font-weight="600">แสดงผลบนพื้นหลังเข้ม (Dark Footer / Banner)</text>
+      <g transform="translate(14, 30)">
+        <rect width="48" height="42" rx="10" fill="url(#badgeNavy)" stroke="#f43f5e" stroke-width="1.6"/>
+        <g transform="translate(12, 9) scale(1.0)" fill="#f43f5e">
+          <path d="M12 3L1 8.5L12 14L21 9.5V16H23V8.5L12 3ZM5 12.18V16.5C5 18.99 8.13 21 12 21C15.87 21 19 18.99 19 16.5V12.18L12 15.68L5 12.18Z"/>
+        </g>
+        <text x="60" y="24" class="font-en" font-size="20" font-weight="800" letter-spacing="-0.5">
+          <tspan fill="#ffffff">The </tspan><tspan fill="#ffffff">NEW </tspan><tspan fill="#f43f5e">GEN</tspan>
+        </text>
+        <text x="61" y="38" class="font-th" font-size="10.5" font-weight="700">
+          <tspan fill="#cbd5e1">กวดวิชาของเด็ก </tspan><tspan fill="#f43f5e">GEN </tspan><tspan fill="#cbd5e1">ใหม่</tspan>
+        </text>
+      </g>
+    </g>
+  </g>
+
+  <!-- ================= OPTION 2 ================= -->
+  <g transform="translate(40, 275)">
+    <rect width="920" height="125" rx="14" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5" filter="url(#shadowBox)"/>
+    <rect x="20" y="16" width="70" height="26" rx="13" fill="#e2e8f0"/>
+    <text x="55" y="34" text-anchor="middle" class="font-th" font-size="13" font-weight="700" fill="#0b1e3f">แบบที่ 2</text>
+    <text x="105" y="34" class="font-th" font-size="16" font-weight="700" fill="#0b1e3f">📖 หนังสือเปิด &amp; ปีกแห่งปัญญา (Open Book &amp; Wings)</text>
+    <text x="105" y="54" class="font-th" font-size="12" font-weight="500" fill="#64748b">คลังความรู้ ตำราวิชาการแน่นปึ้ก ผายออกคล้ายปีกนกที่พร้อมติดปีกให้นักเรียนโบยบินสู่ความก้าวหน้า</text>
+
+    <!-- Logo on Light Background -->
+    <g transform="translate(20, 60)">
+      <rect width="52" height="46" rx="12" fill="url(#badgeNavy)" stroke="#e11d48" stroke-width="1.6"/>
+      <g transform="translate(14, 11) scale(1.0)" fill="#e11d48">
+        <path d="M12 6.25C9.8 4.6 6.8 3.75 3.5 3.75C2.4 3.75 1.3 3.95 0.3 4.35C0.1 4.45 0 4.65 0 4.9V18.1C0 18.5 0.35 18.8 0.75 18.7C1.6 18.4 2.55 18.25 3.5 18.25C6.8 18.25 9.8 19.1 12 20.75C14.2 19.1 17.2 18.25 20.5 18.25C21.45 18.25 22.4 18.4 23.25 18.7C23.65 18.8 24 18.5 24 18.1V4.9C24 4.65 23.9 4.45 23.7 4.35C22.7 3.95 21.6 3.75 20.5 3.75C17.2 3.75 14.2 4.6 12 6.25ZM11 17.5C9.1 16.3 6.4 15.75 3.5 15.75C2.7 15.75 1.8 15.85 1.2 16.05V6.2C2 6.05 2.7 6 3.5 6C6.4 6 9.1 6.6 11 7.8V17.5ZM22.8 16.05C22.2 15.85 21.3 15.75 20.5 15.75C17.6 15.75 14.9 16.3 13 17.5V7.8C14.9 6.6 17.6 6 20.5 6C21.3 6 22 6.05 22.8 6.2V16.05Z"/>
+      </g>
+      <text x="64" y="26" class="font-en" font-size="22" font-weight="800" letter-spacing="-0.5">
+        <tspan fill="#0b1e3f">The </tspan><tspan fill="#0b1e3f">NEW </tspan><tspan fill="#e11d48">GEN</tspan>
+      </text>
+      <text x="65" y="42" class="font-th" font-size="11.5" font-weight="700">
+        <tspan fill="#0b1e3f">กวดวิชาของเด็ก </tspan><tspan fill="#e11d48">GEN </tspan><tspan fill="#0b1e3f">ใหม่</tspan>
+      </text>
+    </g>
+
+    <!-- Dark Mode Preview Box -->
+    <g transform="translate(580, 16)">
+      <rect width="320" height="92" rx="10" fill="#07152b" stroke="#1e293b"/>
+      <text x="14" y="20" fill="#64748b" class="font-th" font-size="10" font-weight="600">แสดงผลบนพื้นหลังเข้ม (Dark Footer / Banner)</text>
+      <g transform="translate(14, 30)">
+        <rect width="48" height="42" rx="10" fill="url(#badgeNavy)" stroke="#f43f5e" stroke-width="1.6"/>
+        <g transform="translate(12, 9) scale(1.0)" fill="#f43f5e">
+          <path d="M12 6.25C9.8 4.6 6.8 3.75 3.5 3.75C2.4 3.75 1.3 3.95 0.3 4.35C0.1 4.45 0 4.65 0 4.9V18.1C0 18.5 0.35 18.8 0.75 18.7C1.6 18.4 2.55 18.25 3.5 18.25C6.8 18.25 9.8 19.1 12 20.75C14.2 19.1 17.2 18.25 20.5 18.25C21.45 18.25 22.4 18.4 23.25 18.7C23.65 18.8 24 18.5 24 18.1V4.9C24 4.65 23.9 4.45 23.7 4.35C22.7 3.95 21.6 3.75 20.5 3.75C17.2 3.75 14.2 4.6 12 6.25ZM11 17.5C9.1 16.3 6.4 15.75 3.5 15.75C2.7 15.75 1.8 15.85 1.2 16.05V6.2C2 6.05 2.7 6 3.5 6C6.4 6 9.1 6.6 11 7.8V17.5ZM22.8 16.05C22.2 15.85 21.3 15.75 20.5 15.75C17.6 15.75 14.9 16.3 13 17.5V7.8C14.9 6.6 17.6 6 20.5 6C21.3 6 22 6.05 22.8 6.2V16.05Z"/>
+        </g>
+        <text x="60" y="24" class="font-en" font-size="20" font-weight="800" letter-spacing="-0.5">
+          <tspan fill="#ffffff">The </tspan><tspan fill="#ffffff">NEW </tspan><tspan fill="#f43f5e">GEN</tspan>
+        </text>
+        <text x="61" y="38" class="font-th" font-size="10.5" font-weight="700">
+          <tspan fill="#cbd5e1">กวดวิชาของเด็ก </tspan><tspan fill="#f43f5e">GEN </tspan><tspan fill="#cbd5e1">ใหม่</tspan>
+        </text>
+      </g>
+    </g>
+  </g>
+
+  <!-- ================= OPTION 3 ================= -->
+  <g transform="translate(40, 420)">
+    <rect width="920" height="125" rx="14" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5" filter="url(#shadowBox)"/>
+    <rect x="20" y="16" width="70" height="26" rx="13" fill="#e2e8f0"/>
+    <text x="55" y="34" text-anchor="middle" class="font-th" font-size="13" font-weight="700" fill="#0b1e3f">แบบที่ 3</text>
+    <text x="105" y="34" class="font-th" font-size="16" font-weight="700" fill="#0b1e3f">💡 หลอดไฟปัญญา &amp; เก็ทไว เข้าใจจริง (Smart Lightbulb)</text>
+    <text x="105" y="54" class="font-th" font-size="12" font-weight="500" fill="#64748b">คงพลังงานสดใสเหมือนสายฟ้าเดิม แต่สื่อถึงประกายปัญญา เทคนิคลัด ทำโจทย์เข้าใจได้ทันที ไม่ต้องท่องจำ</text>
+
+    <!-- Logo on Light Background -->
+    <g transform="translate(20, 60)">
+      <rect width="52" height="46" rx="12" fill="url(#badgeNavy)" stroke="#e11d48" stroke-width="1.6"/>
+      <g transform="translate(14, 11) scale(1.0)" fill="#e11d48">
+        <path d="M12 2C8.13 2 5 5.13 5 9C5 11.38 6.19 13.47 8 14.74V17C8 17.55 8.45 18 9 18H15C15.55 18 16 17.55 16 17V14.74C17.81 13.47 19 11.38 19 9C19 5.13 15.87 2 12 2ZM9 21C9 21.55 9.45 22 10 22H14C14.55 22 15 21.55 15 21V20H9V21ZM12 4C14.76 4 17 6.24 17 9C17 10.74 16.11 12.28 14.76 13.19L14 13.7V16H10V13.7L9.24 13.19C7.89 12.28 7 10.74 7 9C7 6.24 9.24 4 12 4Z"/>
+        <circle cx="12" cy="9" r="2.2" fill="#e11d48"/>
+      </g>
+      <text x="64" y="26" class="font-en" font-size="22" font-weight="800" letter-spacing="-0.5">
+        <tspan fill="#0b1e3f">The </tspan><tspan fill="#0b1e3f">NEW </tspan><tspan fill="#e11d48">GEN</tspan>
+      </text>
+      <text x="65" y="42" class="font-th" font-size="11.5" font-weight="700">
+        <tspan fill="#0b1e3f">กวดวิชาของเด็ก </tspan><tspan fill="#e11d48">GEN </tspan><tspan fill="#0b1e3f">ใหม่</tspan>
+      </text>
+    </g>
+
+    <!-- Dark Mode Preview Box -->
+    <g transform="translate(580, 16)">
+      <rect width="320" height="92" rx="10" fill="#07152b" stroke="#1e293b"/>
+      <text x="14" y="20" fill="#64748b" class="font-th" font-size="10" font-weight="600">แสดงผลบนพื้นหลังเข้ม (Dark Footer / Banner)</text>
+      <g transform="translate(14, 30)">
+        <rect width="48" height="42" rx="10" fill="url(#badgeNavy)" stroke="#f43f5e" stroke-width="1.6"/>
+        <g transform="translate(12, 9) scale(1.0)" fill="#f43f5e">
+          <path d="M12 2C8.13 2 5 5.13 5 9C5 11.38 6.19 13.47 8 14.74V17C8 17.55 8.45 18 9 18H15C15.55 18 16 17.55 16 17V14.74C17.81 13.47 19 11.38 19 9C19 5.13 15.87 2 12 2ZM9 21C9 21.55 9.45 22 10 22H14C14.55 22 15 21.55 15 21V20H9V21ZM12 4C14.76 4 17 6.24 17 9C17 10.74 16.11 12.28 14.76 13.19L14 13.7V16H10V13.7L9.24 13.19C7.89 12.28 7 10.74 7 9C7 6.24 9.24 4 12 4Z"/>
+          <circle cx="12" cy="9" r="2.2" fill="#f43f5e"/>
+        </g>
+        <text x="60" y="24" class="font-en" font-size="20" font-weight="800" letter-spacing="-0.5">
+          <tspan fill="#ffffff">The </tspan><tspan fill="#ffffff">NEW </tspan><tspan fill="#f43f5e">GEN</tspan>
+        </text>
+        <text x="61" y="38" class="font-th" font-size="10.5" font-weight="700">
+          <tspan fill="#cbd5e1">กวดวิชาของเด็ก </tspan><tspan fill="#f43f5e">GEN </tspan><tspan fill="#cbd5e1">ใหม่</tspan>
+        </text>
+      </g>
+    </g>
+  </g>
+
+  <!-- ================= OPTION 4 ================= -->
+  <g transform="translate(40, 565)">
+    <rect width="920" height="125" rx="14" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5" filter="url(#shadowBox)"/>
+    <rect x="20" y="16" width="70" height="26" rx="13" fill="#e2e8f0"/>
+    <text x="55" y="34" text-anchor="middle" class="font-th" font-size="13" font-weight="700" fill="#0b1e3f">แบบที่ 4</text>
+    <text x="105" y="34" class="font-th" font-size="16" font-weight="700" fill="#0b1e3f">🚀 จรวดพุ่งทะยานสู่โรงเรียนในฝัน (Soaring Rocket)</text>
+    <text x="105" y="54" class="font-th" font-size="12" font-weight="500" fill="#64748b">คะแนนพุ่งทะยาน (Score Booster) สปีดการเรียนรู้ของเด็กรุ่นใหม่ พาเด็ก Gen Z บินสู่เป้าหมาย</text>
+
+    <!-- Logo on Light Background -->
+    <g transform="translate(20, 60)">
+      <rect width="52" height="46" rx="12" fill="url(#badgeNavy)" stroke="#e11d48" stroke-width="1.6"/>
+      <g transform="translate(14, 11) scale(1.0)" fill="#e11d48">
+        <path d="M12 2.5C12 2.5 9 6.5 9 11C9 13.5 9.8 15.5 10.8 17L7 20.5L8.5 22L12 19.5L15.5 22L17 20.5L13.2 17C14.2 15.5 15 13.5 15 11C15 6.5 12 2.5 12 2.5Z"/>
+        <circle cx="12" cy="10" r="1.5" fill="#0b1e3f"/>
+      </g>
+      <text x="64" y="26" class="font-en" font-size="22" font-weight="800" letter-spacing="-0.5">
+        <tspan fill="#0b1e3f">The </tspan><tspan fill="#0b1e3f">NEW </tspan><tspan fill="#e11d48">GEN</tspan>
+      </text>
+      <text x="65" y="42" class="font-th" font-size="11.5" font-weight="700">
+        <tspan fill="#0b1e3f">กวดวิชาของเด็ก </tspan><tspan fill="#e11d48">GEN </tspan><tspan fill="#0b1e3f">ใหม่</tspan>
+      </text>
+    </g>
+
+    <!-- Dark Mode Preview Box -->
+    <g transform="translate(580, 16)">
+      <rect width="320" height="92" rx="10" fill="#07152b" stroke="#1e293b"/>
+      <text x="14" y="20" fill="#64748b" class="font-th" font-size="10" font-weight="600">แสดงผลบนพื้นหลังเข้ม (Dark Footer / Banner)</text>
+      <g transform="translate(14, 30)">
+        <rect width="48" height="42" rx="10" fill="url(#badgeNavy)" stroke="#f43f5e" stroke-width="1.6"/>
+        <g transform="translate(12, 9) scale(1.0)" fill="#f43f5e">
+          <path d="M12 2.5C12 2.5 9 6.5 9 11C9 13.5 9.8 15.5 10.8 17L7 20.5L8.5 22L12 19.5L15.5 22L17 20.5L13.2 17C14.2 15.5 15 13.5 15 11C15 6.5 12 2.5 12 2.5Z"/>
+          <circle cx="12" cy="10" r="1.5" fill="#0b1e3f"/>
+        </g>
+        <text x="60" y="24" class="font-en" font-size="20" font-weight="800" letter-spacing="-0.5">
+          <tspan fill="#ffffff">The </tspan><tspan fill="#ffffff">NEW </tspan><tspan fill="#f43f5e">GEN</tspan>
+        </text>
+        <text x="61" y="38" class="font-th" font-size="10.5" font-weight="700">
+          <tspan fill="#cbd5e1">กวดวิชาของเด็ก </tspan><tspan fill="#f43f5e">GEN </tspan><tspan fill="#cbd5e1">ใหม่</tspan>
+        </text>
+      </g>
+    </g>
+  </g>
+
+  <!-- ================= OPTION 5 ================= -->
+  <g transform="translate(40, 710)">
+    <rect width="920" height="125" rx="14" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5" filter="url(#shadowBox)"/>
+    <rect x="20" y="16" width="70" height="26" rx="13" fill="#e2e8f0"/>
+    <text x="55" y="34" text-anchor="middle" class="font-th" font-size="13" font-weight="700" fill="#0b1e3f">แบบที่ 5</text>
+    <text x="105" y="34" class="font-th" font-size="16" font-weight="700" fill="#0b1e3f">✏️ ยอดดินสอ &amp; ดวงดาวแห่งความเป็นเลิศ (Pencil &amp; Star)</text>
+    <text x="105" y="54" class="font-th" font-size="12" font-weight="500" fill="#64748b">การลงมือฝึกทำโจทย์จริง ความเฉียบคมในการทำข้อสอบ และดวงดาวนำทางสู่ความเป็นที่ 1 (เกรด 4 และที่ 1 ในการสอบ)</text>
+
+    <!-- Logo on Light Background -->
+    <g transform="translate(20, 60)">
+      <rect width="52" height="46" rx="12" fill="url(#badgeNavy)" stroke="#e11d48" stroke-width="1.6"/>
+      <g transform="translate(14, 11) scale(1.0)" fill="#e11d48">
+        <path d="M12 1.5L13.4 5.2L17.2 6.6L13.4 8L12 11.7L10.6 8L6.8 6.6L10.6 5.2L12 1.5Z"/>
+        <path d="M12 12.8L16.5 18V22.5H7.5V18L12 12.8ZM9.5 20.8H14.5V18.8L12 15.9L9.5 18.8V20.8Z"/>
+      </g>
+      <text x="64" y="26" class="font-en" font-size="22" font-weight="800" letter-spacing="-0.5">
+        <tspan fill="#0b1e3f">The </tspan><tspan fill="#0b1e3f">NEW </tspan><tspan fill="#e11d48">GEN</tspan>
+      </text>
+      <text x="65" y="42" class="font-th" font-size="11.5" font-weight="700">
+        <tspan fill="#0b1e3f">กวดวิชาของเด็ก </tspan><tspan fill="#e11d48">GEN </tspan><tspan fill="#0b1e3f">ใหม่</tspan>
+      </text>
+    </g>
+
+    <!-- Dark Mode Preview Box -->
+    <g transform="translate(580, 16)">
+      <rect width="320" height="92" rx="10" fill="#07152b" stroke="#1e293b"/>
+      <text x="14" y="20" fill="#64748b" class="font-th" font-size="10" font-weight="600">แสดงผลบนพื้นหลังเข้ม (Dark Footer / Banner)</text>
+      <g transform="translate(14, 30)">
+        <rect width="48" height="42" rx="10" fill="url(#badgeNavy)" stroke="#f43f5e" stroke-width="1.6"/>
+        <g transform="translate(12, 9) scale(1.0)" fill="#f43f5e">
+          <path d="M12 1.5L13.4 5.2L17.2 6.6L13.4 8L12 11.7L10.6 8L6.8 6.6L10.6 5.2L12 1.5Z"/>
+          <path d="M12 12.8L16.5 18V22.5H7.5V18L12 12.8ZM9.5 20.8H14.5V18.8L12 15.9L9.5 18.8V20.8Z"/>
+        </g>
+        <text x="60" y="24" class="font-en" font-size="20" font-weight="800" letter-spacing="-0.5">
+          <tspan fill="#ffffff">The </tspan><tspan fill="#ffffff">NEW </tspan><tspan fill="#f43f5e">GEN</tspan>
+        </text>
+        <text x="61" y="38" class="font-th" font-size="10.5" font-weight="700">
+          <tspan fill="#cbd5e1">กวดวิชาของเด็ก </tspan><tspan fill="#f43f5e">GEN </tspan><tspan fill="#cbd5e1">ใหม่</tspan>
+        </text>
+      </g>
+    </g>
+  </g>
+
+</svg>
