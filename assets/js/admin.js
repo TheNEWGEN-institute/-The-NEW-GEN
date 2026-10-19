@@ -4856,6 +4856,215 @@ function clearCampaignRosterFilter() {
 window.setCampaignRosterFilter = setCampaignRosterFilter;
 window.clearCampaignRosterFilter = clearCampaignRosterFilter;
 
+/* ==========================================================================
+   COURSE ROUND FILTER (ดูรายชื่อคอร์สปกติแยกรอบเวลา + Export Excel แยกชีต)
+   ========================================================================== */
+let _courseRoundFilter = 'all';
+let _courseRoundFilterCourseId = null;
+
+function normalizeRoundText(s) {
+  return String(s || '').replace(/\s+/g, ' ').trim();
+}
+
+// หา index ของรอบเรียนที่นักเรียนเลือก (scheduleChoice = "ประเภท | เวลา | วันที่")
+// เทียบทั้งข้อความก่อน แล้วค่อยเทียบชื่อรอบ เพราะแอดมินอาจแก้เวลาเป็น "เต็มแล้ว" ภายหลัง
+function getEnrollmentRoundKey(en, course) {
+  const rounds = course && Array.isArray(course.scheduleList) ? course.scheduleList : [];
+  const choice = normalizeRoundText(en.scheduleChoice);
+  if (!choice || rounds.length === 0) return 'other';
+
+  let idx = rounds.findIndex(r => normalizeRoundText(`${r.type} | ${r.time} | ${r.dates}`) === choice);
+  if (idx === -1) {
+    const [pickedType = '', pickedTime = ''] = choice.split('|').map(normalizeRoundText);
+    const sameType = rounds.map((r, i) => i).filter(i => normalizeRoundText(rounds[i].type) === pickedType);
+    if (sameType.length === 1) idx = sameType[0];
+    else if (sameType.length > 1) {
+      const byTime = sameType.find(i => normalizeRoundText(rounds[i].time) === pickedTime);
+      idx = byTime === undefined ? -1 : byTime;
+    }
+  }
+  return idx === -1 ? 'other' : String(idx);
+}
+
+function getRoundLabel(round, idx) {
+  const time = round.time && !round.time.includes('เต็มแล้ว') ? ` • ${round.time}` : '';
+  return `รอบ ${idx + 1}: ${round.type || 'ไม่ระบุชื่อรอบ'}${time}`;
+}
+
+function renderCourseRoundFilter(allEnrollments, course) {
+  const box = document.getElementById('courseRoundFilter');
+  if (!box) return;
+  const rounds = course && Array.isArray(course.scheduleList) ? course.scheduleList : [];
+  if (!course || rounds.length === 0) {
+    box.style.display = 'none';
+    box.innerHTML = '';
+    return;
+  }
+
+  const courseEnrollments = allEnrollments.filter(en => en.courseId === course.id);
+  const counts = { all: courseEnrollments.length, other: 0 };
+  courseEnrollments.forEach(en => {
+    const key = getEnrollmentRoundKey(en, course);
+    counts[key] = (counts[key] || 0) + 1;
+  });
+  if (_courseRoundFilter === 'other' && !counts.other) _courseRoundFilter = 'all';
+  if (_courseRoundFilter !== 'all' && _courseRoundFilter !== 'other' && !rounds[Number(_courseRoundFilter)]) _courseRoundFilter = 'all';
+
+  const pill = (value, label, count, title = '') => `
+    <button type="button" class="campaign-filter-pill ${_courseRoundFilter === value ? 'active' : ''}" data-value="${escapeHtml(value)}" title="${escapeHtml(title)}" onclick="setCourseRoundFilter(this.dataset.value)">
+      ${escapeHtml(label)} <span class="count">${count}</span>
+    </button>
+  `;
+
+  const pills = [pill('all', 'ทุกรอบ', counts.all)]
+    .concat(rounds.map((r, i) => pill(String(i), getRoundLabel(r, i), counts[String(i)] || 0, [r.type, r.time, r.dates].filter(Boolean).join(' | '))))
+    .concat(counts.other ? [pill('other', 'ไม่ระบุรอบ / รอบที่ถูกลบ', counts.other)] : [])
+    .join('');
+
+  const selectedRound = _courseRoundFilter !== 'all' && _courseRoundFilter !== 'other' ? rounds[Number(_courseRoundFilter)] : null;
+
+  box.style.display = 'block';
+  box.innerHTML = `
+    <div class="campaign-filter-row">
+      <span class="campaign-filter-label"><i class="fa-regular fa-clock"></i> แยกรอบเวลา:</span>
+      <div class="campaign-filter-pills">${pills}</div>
+    </div>
+    <div class="campaign-filter-caption">
+      <span style="flex: 1; min-width: 200px;">
+        ${selectedRound
+          ? `<b>${escapeHtml(selectedRound.type || '')}</b> ${escapeHtml(selectedRound.time || '')} ${selectedRound.dates ? `• ${escapeHtml(selectedRound.dates)}` : ''} — ${counts[_courseRoundFilter] || 0} คน`
+          : (_courseRoundFilter === 'other'
+            ? 'นักเรียนที่ไม่ได้เลือกรอบ (เช่น แอดมินเพิ่มเอง) หรือเลือกรอบที่ถูกลบออกจากคอร์สแล้ว'
+            : 'กดเลือกรอบเพื่อดูรายชื่อนักเรียนเฉพาะรอบนั้น')}
+      </span>
+      <button type="button" class="btn-secondary" onclick="exportCourseRoundsXlsx('${escapeHtml(course.id)}')" style="padding: 6px 12px; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 6px;">
+        <i class="fa-solid fa-file-excel" style="color: #16a34a;"></i> ส่งออก Excel แยกชีตตามรอบ
+      </button>
+    </div>
+  `;
+}
+
+function setCourseRoundFilter(value) {
+  _courseRoundFilter = value || 'all';
+  filterAdminEnrollments();
+}
+
+function getEnrollmentStatusLabel(status) {
+  if (status === 'confirmed') return 'ยืนยันที่นั่งแล้ว';
+  if (status === 'pending') return 'รอตรวจสอบ/รอชำระ';
+  if (status === 'materials_sent') return 'จัดส่งเอกสารแล้ว';
+  if (status === 'cancelled') return 'ยกเลิก';
+  return status || '-';
+}
+
+function loadSheetJs() {
+  if (window.XLSX) return Promise.resolve(window.XLSX);
+  return new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+    s.onload = () => (window.XLSX ? resolve(window.XLSX) : reject(new Error('XLSX not available')));
+    s.onerror = () => reject(new Error('load failed'));
+    document.head.appendChild(s);
+  });
+}
+
+// ไฟล์ .xlsx: ชีตแรก "รวมทุกรอบ" ตามด้วย 1 ชีตต่อ 1 รอบเรียน (ผู้ที่ยกเลิกอยู่ท้ายชีต)
+async function exportCourseRoundsXlsx(courseId) {
+  const course = (window.NewGenDB ? window.NewGenDB.getCourses() : []).find(c => c.id === courseId);
+  if (!course) return;
+  const rounds = Array.isArray(course.scheduleList) ? course.scheduleList : [];
+  const enrollments = (window.NewGenDB ? window.NewGenDB.getEnrollments() : [])
+    .filter(en => en.courseId === courseId)
+    .sort((a, b) => (a.status === 'cancelled') - (b.status === 'cancelled') || new Date(a.createdAt) - new Date(b.createdAt));
+
+  if (enrollments.length === 0) {
+    alert('คอร์สนี้ยังไม่มีรายชื่อนักเรียนสำหรับส่งออก');
+    return;
+  }
+
+  let XLSX;
+  try {
+    XLSX = await loadSheetJs();
+  } catch (e) {
+    alert('โหลดตัวสร้างไฟล์ Excel ไม่สำเร็จ กรุณาตรวจสอบอินเทอร์เน็ตแล้วลองใหม่');
+    return;
+  }
+
+  const baseHeaders = ['ลำดับ', 'ชื่อ - นามสกุล', 'ชื่อเล่น', 'ระดับชั้น', 'โรงเรียน', 'รูปแบบการเรียน', 'เบอร์ผู้ปกครอง', 'เบอร์นักเรียน', 'LINE ID', 'สถานะ', 'วันที่สมัคร', 'สมัครผ่านแพ็คเกจ', 'ที่อยู่จัดส่ง', 'หมายเหตุ'];
+  const toRow = (en, i, withRound) => {
+    const row = [
+      i + 1,
+      en.studentName || '',
+      en.nickname || '',
+      en.grade || '',
+      en.school || '',
+      (en.learningType || '').toLowerCase() === 'online' ? 'Online' : 'Onsite',
+      en.parentPhone || '',
+      en.studentPhone || '',
+      en.lineId || '',
+      getEnrollmentStatusLabel(en.status),
+      en.createdAt ? new Date(en.createdAt).toLocaleDateString('th-TH') : '',
+      en.isFromBundle ? (en.bundleName || 'แพ็คเกจ') : '-',
+      en.shippingAddress || '',
+      (en.notes || '').replace(/\[สมัครผ่านแพ็คเกจ:[^\]]*\]\s*/g, '').trim()
+    ];
+    if (withRound) {
+      const key = getEnrollmentRoundKey(en, course);
+      row.splice(5, 0, key === 'other' ? 'ไม่ระบุรอบ' : getRoundLabel(rounds[Number(key)], Number(key)));
+    }
+    return row;
+  };
+
+  const usedNames = new Set();
+  const sheetName = raw => {
+    let name = String(raw).replace(/[\\/?*[\]:]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 31) || 'Sheet';
+    let n = 2;
+    while (usedNames.has(name)) {
+      const suffix = ` (${n++})`;
+      name = name.slice(0, 31 - suffix.length) + suffix;
+    }
+    usedNames.add(name);
+    return name;
+  };
+
+  const buildSheet = (infoLines, list, withRound) => {
+    const headers = withRound ? [...baseHeaders.slice(0, 5), 'รอบเรียน', ...baseHeaders.slice(5)] : baseHeaders;
+    const active = list.filter(en => en.status !== 'cancelled').length;
+    const aoa = [
+      ...infoLines.map(l => [l]),
+      [`จำนวนนักเรียน: ${active} คน${list.length > active ? ` (ยกเลิก ${list.length - active} คน แสดงท้ายตาราง)` : ''}`],
+      [],
+      headers,
+      ...list.map((en, i) => toRow(en, i, withRound))
+    ];
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+    ws['!cols'] = headers.map(h => ({ wch: h === 'ลำดับ' ? 6 : (['ชื่อ - นามสกุล', 'โรงเรียน', 'รอบเรียน', 'ที่อยู่จัดส่ง', 'หมายเหตุ', 'สมัครผ่านแพ็คเกจ'].includes(h) ? 28 : 14) }));
+    return ws;
+  };
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, buildSheet([course.title, 'รายชื่อนักเรียนทุกรอบเรียน'], enrollments, true), sheetName('รวมทุกรอบ'));
+
+  rounds.forEach((r, i) => {
+    const list = enrollments.filter(en => getEnrollmentRoundKey(en, course) === String(i));
+    const info = [course.title, `รอบเรียน: ${r.type || '-'}`, `เวลา: ${r.time || '-'}   วันที่: ${r.dates || '-'}`];
+    XLSX.utils.book_append_sheet(wb, buildSheet(info, list, false), sheetName(`รอบ ${i + 1} ${r.type || ''}`));
+  });
+
+  const others = enrollments.filter(en => getEnrollmentRoundKey(en, course) === 'other');
+  if (others.length) {
+    XLSX.utils.book_append_sheet(wb, buildSheet([course.title, 'นักเรียนที่ไม่ระบุรอบ / เลือกรอบที่ถูกลบ'], others, false), sheetName('ไม่ระบุรอบ'));
+  }
+
+  const safeTitle = String(course.title || courseId).replace(/[\\/:*?"<>|]/g, ' ').replace(/\s+/g, ' ').trim();
+  const fileName = `รายชื่อแยกรอบ_${safeTitle}_${new Date().toISOString().slice(0, 10)}.xlsx`;
+  XLSX.writeFile(wb, fileName);
+  showToast(`📥 ส่งออกไฟล์ "${fileName}" สำเร็จแล้ว!`, 'success');
+}
+
+window.setCourseRoundFilter = setCourseRoundFilter;
+window.exportCourseRoundsXlsx = exportCourseRoundsXlsx;
+
 function renderAdminQuickCoursePills(courses, enrollments, selectedCourseId = 'all') {
   const container = document.getElementById('adminQuickCoursePills');
   if (!container) return;
@@ -4999,6 +5208,14 @@ function filterAdminEnrollments(syncPills = true) {
   }
   renderCampaignRosterFilter(allEnrollments, isCampaignView);
 
+  // Specific regular course: round (time slot) filter — reset when switching course
+  const selectedCourse = courseMap[selectedCourseId] || null;
+  if (_courseRoundFilterCourseId !== (selectedCourse ? selectedCourse.id : null)) {
+    _courseRoundFilter = 'all';
+    _courseRoundFilterCourseId = selectedCourse ? selectedCourse.id : null;
+  }
+  renderCourseRoundFilter(allEnrollments, selectedCourse);
+
   // Campaign view: subjects-only column, no shipping address column
   const thCourse = document.getElementById('thEnrollCourse');
   const thAddress = document.getElementById('thEnrollAddress');
@@ -5016,6 +5233,8 @@ function filterAdminEnrollments(syncPills = true) {
         return false;
       }
     } else if (selectedCourseId !== 'all' && item.courseId !== selectedCourseId) {
+      return false;
+    } else if (selectedCourse && _courseRoundFilter !== 'all' && getEnrollmentRoundKey(item, selectedCourse) !== _courseRoundFilter) {
       return false;
     }
 
