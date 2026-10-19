@@ -11579,6 +11579,42 @@ button {
   padding: 0;
 }
 
+/* Course round filter: same layout, blue theme */
+.campaign-roster-filter.is-round {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+}
+
+.is-round .campaign-filter-label,
+.is-round .campaign-filter-caption {
+  color: #1e3a8a;
+}
+
+.is-round .campaign-filter-pill {
+  border-color: #93c5fd;
+  color: #1e40af;
+}
+
+.is-round .campaign-filter-pill:hover {
+  border-color: #2563eb;
+}
+
+.is-round .campaign-filter-pill.active {
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+  color: #ffffff;
+}
+
+.is-round .campaign-filter-pill .count {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.is-round .campaign-filter-pill.active .count {
+  background: rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+}
+
 /* ===================================================================
    Admin: Analytics tab (สรุปสถิติการสมัคร & รายได้)
    =================================================================== */
