@@ -6773,6 +6773,15 @@ button {
   color: var(--color-red-brand) !important;
 }
 
+/* Footer logo (new): every letter white except both N, which stay red */
+.site-footer .brand-logo-text.logo-v2 .gen {
+  color: #ffffff !important;
+}
+
+.site-footer .brand-logo-text.logo-v2 .logo-glyph-n {
+  color: var(--color-red-brand) !important;
+}
+
 /* ===================================================================
    Achievements / Hall of Fame Gallery (Item 8)
    =================================================================== */
