@@ -480,7 +480,9 @@ function loadAdminCourses() {
     const remaining = eff.remainingSeats;
 
     let seatBadgeHtml = '';
-    if (isFull || remaining <= 0) {
+    if (eff.onlineOnly) {
+      seatBadgeHtml = '<span class="badge" style="background:#ecfeff; color:#0e7490; font-weight:800; border:1px solid #67e8f9; white-space:nowrap; padding:4px 8px; font-size:0.75rem;" title="ออนไซต์เต็มแล้ว ผู้สมัครเลือกได้เฉพาะเรียนออนไลน์">💻 เฉพาะออนไลน์</span>';
+    } else if (isFull || remaining <= 0) {
       seatBadgeHtml = '<span class="badge" style="background:#fee2e2; color:#b91c1c; font-weight:800; border:1px solid #fca5a5; white-space:nowrap; padding:4px 8px; font-size:0.75rem;">🛑 เต็มแล้ว</span>';
     } else if (remaining <= 5) {
       seatBadgeHtml = `<span class="badge" style="background:#fff7ed; color:#c2410c; font-weight:800; border:1px solid #fed7aa; white-space:nowrap; padding:4px 8px; font-size:0.75rem;">🔥 เหลือ ${remaining} ที่</span>`;
@@ -1023,6 +1025,7 @@ function openAddCourseModal() {
   if (document.getElementById('cIsHidden')) document.getElementById('cIsHidden').checked = false;
   if (document.getElementById('cScheduleNote')) document.getElementById('cScheduleNote').value = '';
   if (document.getElementById('cIsFull')) document.getElementById('cIsFull').checked = false;
+  if (document.getElementById('cOnlineOnly')) document.getElementById('cOnlineOnly').checked = false;
   if (typeof updateCourseSeatCalcPreview === 'function') updateCourseSeatCalcPreview();
 
   renderCourseTutorsBuilder(['tutor-non', 'tutor-au', 'tutor-mac']);
@@ -1144,6 +1147,7 @@ function openEditCourseModal(id) {
     // สวิตช์ "บังคับปิดรับ" = forceClosed (isFull คำนวณโดย Supabase)
     document.getElementById('cIsFull').checked = c.forceClosed === true || (c.forceClosed === undefined && c.isFull === true && Number(c.remainingSeats) > 0);
   }
+  if (document.getElementById('cOnlineOnly')) document.getElementById('cOnlineOnly').checked = c.onlineOnly === true;
   updateCourseSeatCalcPreview();
 
   renderCourseTutorsBuilder(c.tutorIds || []);
@@ -1213,6 +1217,8 @@ async function handleSaveCourse(e) {
     remainingSeats: remainingCalc,
     isFull: isFull,
     forceClosed: isFullManual,
+    // เปิดรับเฉพาะออนไลน์ (ออนไซต์เต็มแล้ว) — Supabase ปฏิเสธใบสมัคร Onsite ของคอร์สนี้
+    onlineOnly: document.getElementById('cOnlineOnly') ? document.getElementById('cOnlineOnly').checked : false,
     seatMode: perRound ? 'round' : 'course',
     galleryImages: getCourseGalleryFromBuilder(),
     targetAudience: document.getElementById('cTargetAudience') ? document.getElementById('cTargetAudience').value.trim() : '',
@@ -4307,6 +4313,26 @@ async function handleChangePasswordSubmit(e) {
    11. STUDENT ENROLLMENTS MANAGEMENT (Tab 11)
    =================================================================== */
 
+// รูปแบบการเรียนเป็นข้อความ (แพ็คเกจที่เลือกต่างกันรายคอร์ส = "mixed")
+function learningTypeText(en, onlineLabel = 'Online', onsiteLabel = 'Onsite') {
+  const t = String(en && en.learningType || '').toLowerCase();
+  if (t === 'mixed') {
+    const detail = describeChildLearningTypes(en);
+    return detail ? `Onsite + Online (${detail})` : 'Onsite + Online';
+  }
+  return t === 'online' ? onlineLabel : onsiteLabel;
+}
+
+function describeChildLearningTypes(en) {
+  const map = en && en.childLearningTypes;
+  if (!map || typeof map !== 'object') return '';
+  const courses = window.NewGenDB ? window.NewGenDB.getCourses() : [];
+  return Object.keys(map).map(cid => {
+    const c = courses.find(x => x.id === cid);
+    return `${c ? c.title : cid}: ${map[cid] === 'online' ? 'Online' : 'Onsite'}`;
+  }).join(' • ');
+}
+
 let _currentEnrollmentFilter = {
   courseId: 'all',
   learningType: 'all',
@@ -4734,7 +4760,11 @@ function renderCourseCapacityCards(courses, enrollments) {
     let statusPillText = `${pct}% เต็มแล้ว`;
     let fillClass = 'safe';
 
-    if (isFull || remaining <= 0) {
+    if (c.onlineOnly === true && c.forceClosed !== true) {
+      statusPillClass = 'warning';
+      statusPillText = '💻 ออนไซต์เต็ม • รับเฉพาะออนไลน์';
+      fillClass = 'full';
+    } else if (isFull || remaining <= 0) {
       statusPillClass = 'full';
       statusPillText = '🛑 ที่นั่งเต็มแล้ว';
       fillClass = 'full';
@@ -5054,7 +5084,7 @@ async function exportCourseRoundsXlsx(courseId) {
       en.nickname || '',
       en.grade || '',
       en.school || '',
-      (en.learningType || '').toLowerCase() === 'online' ? 'Online' : 'Onsite',
+      learningTypeText(en),
       en.parentPhone || '',
       en.studentPhone || '',
       en.lineId || '',
@@ -5168,7 +5198,7 @@ async function exportCampaignXlsx() {
     en.grade || '',
     en.school || '',
     subjectsOf(en).map(s => s.name).join(', '),
-    (en.learningType || '').toLowerCase() === 'online' ? 'Online' : 'Onsite',
+    learningTypeText(en),
     en.parentPhone || '',
     en.studentPhone || '',
     en.lineId || '',
@@ -5585,9 +5615,11 @@ function renderEnrollmentsTable(enrollments, courseMap = null, options = {}) {
           `}
         </td>
         <td style="text-align: center;">
-          ${isOnline
-            ? '<span class="badge-learning-online"><i class="fa-solid fa-laptop-code"></i> Online</span>'
-            : '<span class="badge-learning-onsite"><i class="fa-solid fa-chalkboard-user"></i> Onsite</span>'
+          ${(en.learningType || '').toLowerCase() === 'mixed'
+            ? `<span class="badge-learning-online" title="${escapeHtml(describeChildLearningTypes(en))}"><i class="fa-solid fa-shuffle"></i> Onsite + Online</span>`
+            : (isOnline
+              ? '<span class="badge-learning-online"><i class="fa-solid fa-laptop-code"></i> Online</span>'
+              : '<span class="badge-learning-onsite"><i class="fa-solid fa-chalkboard-user"></i> Onsite</span>')
           }
         </td>
         <td>
@@ -5974,6 +6006,8 @@ async function handleSaveEnrollment(e) {
     bundleId: foundBundle ? foundBundle.id : null,
     bundleName: foundBundle ? foundBundle.name : null,
     bundleCourseIds: foundBundle ? (foundBundle.courseIds || []) : [],
+    // แพ็คเกจที่เลือกรูปแบบการเรียนต่างกันรายคอร์ส: เก็บรายละเอียดเดิมไว้
+    ...(learningType === 'mixed' && existingEn && existingEn.childLearningTypes ? { childLearningTypes: existingEn.childLearningTypes } : {}),
     createdAt: id ? (existingEn?.createdAt || new Date().toISOString()) : new Date().toISOString()
   };
 
@@ -6036,7 +6070,8 @@ async function handleSaveEnrollment(e) {
         lineId: item.lineId,
         status: item.status,
         shippingAddress: item.shippingAddress,
-        learningType: item.learningType
+        // "แยกตามคอร์ส" = คงรูปแบบการเรียนของแต่ละคอร์สไว้ตามเดิม
+        learningType: item.learningType === 'mixed' ? sub.learningType : item.learningType
       };
       await window.NewGenDB.saveEnrollment(updatedSub);
       fetch('/api/enrollments', {
@@ -6238,7 +6273,7 @@ function confirmExportEnrollments() {
     const c = courseMap[en.courseId];
     const courseTitle = c ? c.title : (en.courseTitle || en.courseId || '-');
     const createdDate = en.createdAt ? new Date(en.createdAt).toLocaleDateString('th-TH') : '-';
-    const learningTypeLabel = (en.learningType || '').toLowerCase() === 'online' ? 'Online (เรียนสดออนไลน์)' : 'Onsite (เรียนสดที่สถาบัน)';
+    const learningTypeLabel = learningTypeText(en, 'Online (เรียนสดออนไลน์)', 'Onsite (เรียนสดที่สถาบัน)');
 
     let statusLabel = en.status;
     if (en.status === 'confirmed') statusLabel = 'ยืนยันที่นั่งแล้ว';

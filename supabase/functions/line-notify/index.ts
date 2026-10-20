@@ -80,7 +80,9 @@ function formatTime(iso?: string): string {
 export function formatMessage(p: Payload): string {
   const en = p.enrollment ?? {};
   const isCampaign = en.isCampaign === true || en.courseId === "campaign-free" || en.courseId === "campaign";
-  const learning = String(en.learningType ?? "").toLowerCase() === "online" ? "💻 Online" : "🏫 Onsite";
+  // แพ็คเกจที่เลือกรูปแบบต่างกันรายคอร์ส = "mixed" (รายละเอียดอยู่ท้ายแต่ละบรรทัดของรอบเวลา)
+  const lt = String(en.learningType ?? "").toLowerCase();
+  const learning = lt === "online" ? "💻 Online" : lt === "mixed" ? "🏫+💻 แยกตามคอร์ส (ดูท้ายรอบเวลา)" : "🏫 Onsite";
 
   const lines = [
     isCampaign ? "🔔 มีผู้สมัครโครงการติวฟรีใหม่!" : "🔔 มีผู้สมัครคอร์สเรียนใหม่!",

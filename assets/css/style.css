@@ -11569,19 +11569,313 @@ button {
   filter: brightness(1.05);
 }
 
+/* ----- Bundle detail modal: layout classes (desktop) ----- */
+.bdm-header {
+  background: linear-gradient(135deg, #0b1e3f 0%, #1e3a8a 60%, #be123c 100%);
+  color: #ffffff;
+  padding: 26px 30px 22px;
+  position: relative;
+}
+.bdm-badge-wrap { margin-bottom: 8px; padding-right: 44px; }
+.bdm-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  border-radius: 999px;
+  background: rgba(244, 63, 94, 0.25);
+  border: 1px solid #f43f5e;
+  color: #ffccd5;
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+.bdm-title {
+  font-size: 1.55rem;
+  font-weight: 800;
+  line-height: 1.3;
+  margin: 0 0 6px 0;
+  color: #ffffff;
+}
+.bdm-desc {
+  font-size: 0.92rem;
+  color: #e2e8f0;
+  margin: 0;
+  line-height: 1.55;
+  max-width: 680px;
+}
+.bdm-price-ribbon {
+  background: #fff1f2;
+  border-bottom: 1px solid #fecdd3;
+  padding: 12px 30px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+}
+.bdm-price-block {
+  display: flex;
+  align-items: baseline;
+  gap: 4px 12px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+.bdm-price-old {
+  font-size: 0.9rem;
+  color: #64748b;
+  text-decoration: line-through;
+  white-space: nowrap;
+}
+.bdm-price-now {
+  display: flex;
+  align-items: baseline;
+  gap: 2px 8px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+.bdm-price-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #be123c;
+  white-space: nowrap;
+}
+.bdm-price-line {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.bdm-price-amount {
+  font-size: 1.7rem;
+  font-weight: 800;
+  color: #e11d48;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+.bdm-price-unit {
+  font-size: 0.85rem;
+  color: #881337;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.bdm-savings {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: #ffffff;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  box-shadow: 0 3px 10px rgba(16, 185, 129, 0.3);
+  white-space: nowrap;
+}
+.bdm-body {
+  padding: 22px 30px;
+  max-height: calc(85vh - 220px);
+  overflow-y: auto;
+}
+.bdm-list-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.bdm-list-title {
+  font-size: 1.12rem;
+  font-weight: 800;
+  color: #0b1e3f;
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  line-height: 1.4;
+}
+.bdm-list-title .nowrap { white-space: nowrap; }
+.bdm-all-subjects {
+  font-size: 0.8rem;
+  color: #166534;
+  background: #dcfce7;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.bdm-child-cover {
+  width: 200px;
+  aspect-ratio: 16 / 9;
+  border-radius: 12px;
+  overflow: hidden;
+  flex-shrink: 0;
+  position: relative;
+  background: #0b1e3f;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+  border: 1px solid #e2e8f0;
+}
+.bdm-child-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+.bdm-child-num {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  background: #e11d48;
+  color: #ffffff;
+  font-size: 0.68rem;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-weight: 800;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+  z-index: 2;
+}
+.bdm-child-top {
+  display: flex;
+  align-items: center;
+  gap: 6px 8px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+}
+.bdm-child-level {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #0284c7;
+  background: #e0f2fe;
+  padding: 2px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+.bdm-child-price {
+  margin-left: auto;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #64748b;
+  white-space: nowrap;
+}
+.bdm-child-price b { color: #0f172a; font-weight: 800; }
+.bdm-online-only-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #0e7490;
+  background: #ecfeff;
+  border: 1px solid #67e8f9;
+  padding: 2px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+.bdm-child-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 6px 0;
+  line-height: 1.4;
+}
+.bdm-child-subjects {
+  font-size: 0.82rem;
+  color: #0284c7;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.bdm-child-meta {
+  font-size: 0.8rem;
+  color: #475569;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px 14px;
+  flex-wrap: wrap;
+}
+.bdm-child-meta > span { white-space: nowrap; }
+.bdm-sched-box {
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 6px 10px;
+  border: 1px dashed #cbd5e1;
+}
+.bdm-sched-item {
+  font-size: 0.8rem;
+  color: #475569;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 3px 0;
+  line-height: 1.45;
+}
+.bdm-sched-item > i { color: #64748b; font-size: 0.75rem; flex-shrink: 0; }
+.bdm-sched-item small { display: block; color: #94a3b8; font-size: 0.76rem; }
+.bdm-footer {
+  background: #ffffff;
+  border-top: 1px solid #e2e8f0;
+  padding: 14px 30px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
 @media (max-width: 640px) {
+  #modalBundleDetail {
+    padding: 10px !important;
+    align-items: flex-start !important;
+  }
   #modalBundleDetail .modal-bundle-box {
-    width: 96% !important;
+    width: 100% !important;
     border-radius: 18px !important;
   }
+  .bdm-header { padding: 18px 16px 16px; }
+  .bdm-header .btn-close-modal { top: 12px !important; right: 12px !important; width: 32px !important; height: 32px !important; }
+  .bdm-badge { font-size: 0.76rem; padding: 4px 10px; }
+  .bdm-title { font-size: 1.18rem; line-height: 1.4; }
+  .bdm-desc { font-size: 0.84rem; }
+
+  /* ราคา: บรรทัดราคาเดิม → ป้ายราคาพิเศษ → ตัวเลขใหญ่ + หน่วย → ป้ายประหยัด */
+  .bdm-price-ribbon {
+    padding: 12px 16px 14px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .bdm-price-block { flex-direction: column; align-items: flex-start; gap: 2px; }
+  .bdm-price-old { font-size: 0.82rem; }
+  .bdm-price-now { flex-direction: column; align-items: flex-start; gap: 0; }
+  .bdm-price-label { font-size: 0.8rem; }
+  .bdm-price-amount { font-size: 1.85rem; }
+  .bdm-price-unit { font-size: 0.82rem; }
+  .bdm-savings { font-size: 0.82rem; padding: 5px 12px; }
+
+  .bdm-body { padding: 16px; max-height: none; overflow: visible; }
+  .bdm-list-title { font-size: 1rem; }
+  .bdm-all-subjects { font-size: 0.76rem; }
+
   #modalBundleDetail .bundle-child-course-card {
     flex-direction: column !important;
     gap: 10px !important;
+    padding: 12px !important;
   }
-  #modalBundleDetail .bundle-child-course-card > div:first-child {
-    width: 100% !important;
-    height: 140px !important;
+  .bdm-child-cover { width: 100%; }
+  .bdm-child-price { margin-left: 0; width: 100%; }
+  .bdm-child-title { font-size: 0.95rem; }
+
+  .bdm-footer {
+    padding: 12px 16px 14px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
   }
+  .bdm-footer .bdm-btn-apply { grid-column: 1 / -1; order: -1; width: 100%; }
+  .bdm-footer .bdm-btn-close,
+  .bdm-footer .bdm-btn-line { width: 100%; padding: 10px 8px !important; font-size: 0.86rem !important; }
 }
 
 /* ===================================================================
@@ -11623,6 +11917,248 @@ button {
   min-width: 285px !important;
   max-width: 320px !important;
   margin: 0 !important;
+}
+
+/* คอร์สเรียนอื่น ๆ: รูปปกเต็มใบไม่โดนครอป (สัดส่วน 16:9) + ข้อความบรรทัดเดียว */
+#cdRelatedGrid .course-card.cd-related-card {
+  flex: 0 0 340px !important;
+  min-width: 0 !important;
+  max-width: 340px !important;
+  display: flex;
+  flex-direction: column;
+}
+.cd-related-card .course-thumbnail {
+  height: auto;
+  aspect-ratio: 16 / 9;
+}
+.cd-related-card .course-thumbnail img {
+  object-fit: contain;
+}
+.cd-related-card:hover .course-thumbnail img {
+  transform: none;
+}
+.cd-related-card .course-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.cd-related-card .one-line {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+.cd-related-card .course-title.one-line {
+  font-size: 1rem;
+  line-height: 1.5;
+}
+.cd-related-card .course-title.one-line a {
+  display: inline;
+}
+.cd-related-card .course-subjects.one-line {
+  display: block;
+}
+.cd-related-card .course-meta-item.one-line {
+  display: block;
+  font-size: 0.86rem;
+}
+.cd-related-card .course-meta-item.one-line i {
+  margin-right: 6px;
+}
+@media (max-width: 480px) {
+  #cdRelatedGrid .course-card.cd-related-card {
+    flex: 0 0 86vw !important;
+    max-width: 86vw !important;
+  }
+}
+
+/* ===================================================================
+   โหมด "เปิดรับเฉพาะออนไลน์ (ออนไซต์เต็มแล้ว)"
+   =================================================================== */
+.badge-seat-online {
+  background: linear-gradient(135deg, #155e75 0%, #0891b2 100%) !important;
+  color: #ffffff !important;
+  border: 1.5px solid #67e8f9 !important;
+  box-shadow: 0 4px 14px rgba(8, 145, 178, 0.45) !important;
+  font-weight: 800 !important;
+}
+.sched-seat-tag.online,
+.schedule-seat.online {
+  background: #ecfeff;
+  color: #0e7490;
+}
+.cd-online-only-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-top: 2px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: #ecfeff;
+  border: 1.5px solid #67e8f9;
+  color: #164e63;
+  max-width: 720px;
+}
+.cd-online-only-notice > i {
+  font-size: 1.35rem;
+  color: #0891b2;
+  margin-top: 2px;
+}
+.cd-online-only-notice strong {
+  display: block;
+  font-size: 0.98rem;
+  color: #0e7490;
+}
+.cd-online-only-notice span {
+  display: block;
+  font-size: 0.84rem;
+  color: #155e75;
+  margin-top: 2px;
+}
+.enr-type-full-note {
+  color: #dc2626 !important;
+  font-weight: 700;
+  font-size: 0.74rem;
+}
+.enroll-type-radio-card.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: #f8fafc;
+}
+.enroll-type-radio-card.disabled input { cursor: not-allowed; }
+
+/* ฟอร์มสมัครแพ็คเกจ: ไม่มีรูปปก เหลือข้อความรายละเอียดแพ็ค */
+.enroll-course-review-card.no-cover .enroll-review-cover-wrap { display: none; }
+.enr-bundle-list-head {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: #9f1239;
+  margin-bottom: 4px;
+}
+.enr-bundle-list-head i { margin-right: 4px; }
+.enr-bundle-course-list {
+  list-style: none;
+  margin: 0 0 4px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.enr-bundle-course-list li {
+  position: relative;
+  padding-left: 16px;
+  font-size: 0.86rem;
+  color: #0f172a;
+  font-weight: 600;
+  line-height: 1.45;
+}
+.enr-bundle-course-list li::before {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 0.6em;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #e11d48;
+}
+.enr-bundle-course-list li small {
+  color: #64748b;
+  font-weight: 500;
+}
+
+/* ฟอร์มสมัครแพ็คเกจ: กล่องของแต่ละคอร์ส (รูปแบบการเรียน + รอบเรียน) */
+.bundle-sched-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.bundle-sched-num {
+  background: #e11d48;
+  color: #ffffff;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.78rem;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+.bundle-sched-title {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #0b1e3f;
+  line-height: 1.35;
+}
+.bundle-sched-count {
+  font-size: 0.74rem;
+  color: #64748b;
+  background: #ffffff;
+  padding: 2px 8px;
+  border-radius: 6px;
+  border: 1px solid #cbd5e1;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.bundle-sub-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #334155;
+  margin: 4px 0 6px;
+}
+.bundle-sub-label i { color: var(--color-blue-brand, #1d4ed8); margin-right: 4px; }
+.bundle-type-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.bundle-type-pill {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  padding: 9px 12px;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 10px;
+  background: #ffffff;
+  cursor: pointer;
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: #0b1e3f;
+  transition: all 0.2s ease;
+}
+.bundle-type-pill input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--color-blue-brand, #1d4ed8);
+  margin: 0;
+  flex-shrink: 0;
+}
+.bundle-type-pill i { color: var(--color-blue-brand, #1d4ed8); margin-right: 3px; }
+.bundle-type-pill.active {
+  border-color: var(--color-blue-brand, #1d4ed8);
+  background: #eff6ff;
+  box-shadow: 0 0 0 2px rgba(29, 78, 216, 0.12);
+}
+.bundle-type-pill.disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  background: #f8fafc;
+}
+.bundle-type-pill .enr-type-full-note {
+  flex-basis: 100%;
+  padding-left: 24px;
+}
+@media (max-width: 400px) {
+  .bundle-type-options { grid-template-columns: 1fr; }
 }
 
 .btn-slider-arrow:hover {
