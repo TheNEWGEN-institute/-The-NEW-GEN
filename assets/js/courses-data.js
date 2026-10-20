@@ -1515,8 +1515,10 @@ function getCourseEffectiveSeats(c) {
   const remainingSeats = (c.remainingSeats !== undefined && c.remainingSeats !== null && c.remainingSeats !== '')
     ? Number(c.remainingSeats)
     : Math.max(0, maxSeats - enrolledCount);
-  const isFull = (c.isFull === true) || (remainingSeats <= 0);
-  return { maxSeats, enrolledCount, remainingSeats, isFull };
+  // โหมด "เปิดรับเฉพาะออนไลน์ (ออนไซต์เต็มแล้ว)": ยังสมัครได้ (เฉพาะออนไลน์) แม้ที่นั่งออนไซต์จะหมด — ยกเว้นแอดมินกดปิดรับสมัคร
+  const onlineOnly = c.onlineOnly === true && c.forceClosed !== true;
+  const isFull = !onlineOnly && ((c.isFull === true) || (remainingSeats <= 0));
+  return { maxSeats, enrolledCount, remainingSeats, isFull, onlineOnly };
 }
 if (typeof window !== 'undefined') {
   window.getCourseEffectiveSeats = getCourseEffectiveSeats;
@@ -1557,7 +1559,8 @@ function isBundleFull(bundle, allCourses = null) {
       const eff = (typeof getCourseEffectiveSeats === 'function')
         ? getCourseEffectiveSeats(c)
         : (window.getCourseEffectiveSeats ? window.getCourseEffectiveSeats(c) : { isFull: c.isFull === true || (c.remainingSeats !== null && Number(c.remainingSeats) <= 0) });
-      if (eff.isFull || (eff.remainingSeats !== undefined && eff.remainingSeats !== null && eff.remainingSeats <= 0)) {
+      // คอร์สที่ "เปิดรับเฉพาะออนไลน์" ยังสมัครได้ (บังคับเรียนออนไลน์ในฟอร์ม) จึงไม่ทำให้แพ็คเกจเต็ม
+      if (!eff.onlineOnly && (eff.isFull || (eff.remainingSeats !== undefined && eff.remainingSeats !== null && eff.remainingSeats <= 0))) {
         fullCourses.push(c);
       }
     }
@@ -1583,6 +1586,9 @@ if (typeof window !== 'undefined') {
 function getCourseEffectiveStatus(c) {
   if (!c) return { text: 'เปิดรับสมัคร', badgeClass: 'badge-emerald', isNearFull: false, isFull: false };
   const eff = getCourseEffectiveSeats(c);
+  if (eff.onlineOnly) {
+    return { text: '💻 เหลือเฉพาะออนไลน์', badgeClass: 'badge-seat-online', isNearFull: false, isFull: false, onlineOnly: true };
+  }
   if (eff.isFull || eff.remainingSeats <= 0) {
     return { text: '🛑 เต็มแล้ว', badgeClass: 'badge-red', isNearFull: false, isFull: true };
   }
@@ -1615,6 +1621,9 @@ if (typeof window !== 'undefined') {
 function getCourseSeatBadgeHtml(c) {
   if (!c) return '';
   const eff = getCourseEffectiveSeats(c);
+  if (eff.onlineOnly) {
+    return `<span class="badge course-badge-status course-seat-cover-badge badge-seat-online"><i class="fa-solid fa-laptop"></i> เหลือเฉพาะออนไลน์</span>`;
+  }
   if (eff.isFull || eff.remainingSeats <= 0) {
     return `<span class="badge course-badge-status course-seat-cover-badge badge-seat-full"><i class="fa-solid fa-ban"></i> 🛑 ที่นั่งเต็มแล้ว</span>`;
   }
@@ -1773,6 +1782,22 @@ function formatCoursePriceHtml(c) {
 
 if (typeof window !== 'undefined') {
   window.formatCoursePriceHtml = formatCoursePriceHtml;
+}
+
+/**
+ * ตัวเลขราคาอย่างเดียว เช่น "12,500 บ" / "12,500 บ." / "12,500 บาท" → "12,500"
+ * (ใช้ตอนที่จะต่อท้ายด้วยหน่วย "บาท" เอง จะได้ไม่ซ้ำเป็น "12,500 บ บาท")
+ */
+function priceNumberText(v) {
+  return String(v === undefined || v === null ? '' : v)
+    .trim()
+    .replace(/\s*(บาท|บ\.?)\s*(\.-|-)?\s*$/u, '')
+    .replace(/\s*\.-\s*$/, '')
+    .trim();
+}
+
+if (typeof window !== 'undefined') {
+  window.priceNumberText = priceNumberText;
 }
 
 /**

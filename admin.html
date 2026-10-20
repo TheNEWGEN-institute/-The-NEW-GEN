@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Prompt:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
-  <link rel="stylesheet" href="assets/css/style.css?v=20261020-fix4">
+  <link rel="stylesheet" href="assets/css/style.css?v=20261020-fix5">
 </head>
 <body class="page-admin-body">
 
@@ -1978,7 +1978,13 @@
                   <input type="checkbox" id="cIsFull" style="width: 20px; height: 20px; accent-color: #dc2626; cursor: pointer;">
                   <span>🛑 บังคับปิดรับสมัครทันที ("ที่นั่งเต็มแล้ว")</span>
                 </label>
-                <small style="color: var(--text-muted); display: block; margin-top: 4px;">สวิตช์ปิดรับสมัครด้วยตนเอง (Manual Override) แม้ที่นั่งยังไม่ครบ</small>
+                <small style="color: var(--text-muted); display: block; margin-top: 4px;">สวิตช์ปิดรับสมัครด้วยตนเอง (Manual Override) แม้ที่นั่งยังไม่ครบ — ปิดทั้งออนไซต์และออนไลน์</small>
+
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 700; color: #0e7490; margin-top: 14px;">
+                  <input type="checkbox" id="cOnlineOnly" style="width: 20px; height: 20px; accent-color: #0891b2; cursor: pointer;">
+                  <span>💻 เปิดรับเฉพาะออนไลน์ (ออนไซต์เต็มแล้ว)</span>
+                </label>
+                <small style="color: var(--text-muted); display: block; margin-top: 4px;">ผู้สมัครเลือกได้เฉพาะ "เรียนออนไลน์" (ในแพ็คเกจก็บังคับเฉพาะคอร์สนี้) รอบที่ที่นั่งเต็มยังรับออนไลน์ได้ ยกเว้นรอบที่ติ๊ก "ปิดรับรอบนี้" — ถ้าติ๊ก "บังคับปิดรับสมัคร" ด้านบนด้วย จะปิดทั้งหมด</small>
               </div>
             </div>
             <input type="hidden" id="cRemainingSeats">
@@ -2625,6 +2631,7 @@
                 <select id="enLearningType" required style="font-weight: 600;">
                   <option value="onsite">🏫 เรียนสด Onsite (ที่สถาบัน)</option>
                   <option value="online">💻 เรียนสด Online (ระบบห้องเรียนสด)</option>
+                  <option value="mixed">🏫+💻 แพ็คเกจ: Onsite + Online (แยกตามคอร์ส)</option>
                 </select>
               </div>
             </div>
@@ -3258,7 +3265,7 @@
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-  <script src="assets/js/courses-data.js?v=20261020-fix4"></script>
-  <script src="assets/js/admin.js?v=20261020-fix4"></script>
+  <script src="assets/js/courses-data.js?v=20261020-fix5"></script>
+  <script src="assets/js/admin.js?v=20261020-fix5"></script>
 </body>
 </html>

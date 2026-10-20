@@ -376,18 +376,6 @@ function initCourseSlider() {
         <div class="bundle-card-body">
           <div>
             <h3 class="bundle-title" onclick="event.stopPropagation(); openBundleDetailModal('${b.id}')" style="cursor: pointer;" title="คลิกเพื่อดูรายละเอียดแพ็คเกจ">${escapeHtml(b.name)}</h3>
-            <div class="bundle-included-list">
-              <div class="bundle-included-heading"><i class="fa-solid fa-layer-group"></i> รวม ${childCourses.length} คอร์สเรียนในแพ็คนี้:</div>
-              ${childCourses.map(c => {
-                const isCFull = bundleStatus.fullCourses.some(fc => fc.id === c.id);
-                return `
-                  <div class="bundle-included-item">
-                    <i class="fa-solid ${isCFull ? 'fa-circle-xmark' : 'fa-circle-check'}" style="${isCFull ? 'color:#ef4444;' : ''}"></i>
-                    <span><strong>${escapeHtml(c.title)}</strong> ${isCFull ? '<span style="color:#ef4444; font-weight:800;">(ที่นั่งเต็ม)</span>' : ''}</span>
-                  </div>
-                `;
-              }).join('')}
-            </div>
           </div>
           <div class="course-footer">
             <div class="course-price-wrap">
@@ -423,7 +411,9 @@ function initCourseSlider() {
     filteredCourses.forEach(c => {
       const card = document.createElement('div');
       card.className = 'course-card';
-      const isFull = Boolean(c.isFull === true || (c.remainingSeats !== null && Number(c.remainingSeats) <= 0));
+      const isFull = window.getCourseEffectiveSeats
+        ? window.getCourseEffectiveSeats(c).isFull
+        : Boolean(c.isFull === true || (c.remainingSeats !== null && Number(c.remainingSeats) <= 0));
       card.innerHTML = `
         <a href="course-detail.html?id=${c.id}" class="course-thumbnail ${isFull ? 'is-full' : ''}" aria-label="ดูรายละเอียด ${escapeHtml(c.title)}">
           <img src="${c.cover || c.poster}" alt="${escapeHtml(c.title)}" loading="lazy">
@@ -459,7 +449,7 @@ function initCourseSlider() {
               </div>
             `)}
             <div class="course-actions-wrap">
-              ${c.isFull ? `
+              ${isFull ? `
                 <button type="button" class="btn-course-register disabled" disabled title="ที่นั่งคอร์สนี้เต็มแล้ว">
                   <i class="fa-solid fa-ban"></i> ที่นั่งเต็มแล้ว
                 </button>

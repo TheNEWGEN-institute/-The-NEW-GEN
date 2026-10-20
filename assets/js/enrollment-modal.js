@@ -141,8 +141,8 @@
                 </div>
               </div>
 
-              <!-- 2. รูปแบบการเรียน -->
-              <div class="enroll-section-block">
+              <!-- 2. รูปแบบการเรียน (แพ็คเกจ: เลือกแยกรายคอร์สในข้อ 1 แทน) -->
+              <div class="enroll-section-block" id="enrollLearningTypeSection">
                 <label class="enroll-section-label">
                   <i class="fa-solid fa-chalkboard-user" style="color: var(--color-blue-brand);"></i>
                   <strong>รูปแบบการเรียน</strong> <span class="req-star">*</span>
@@ -155,6 +155,7 @@
                       <div>
                         <strong id="enrOnsiteTitle">เรียนสด Onsite ที่สถาบัน</strong>
                         <small id="enrOnsiteDesc">ห้องเรียนแอร์กลุ่มเล็ก ติวเตอร์ดูแลใกล้ชิดรายบุคคล</small>
+                        <small class="enr-type-full-note" id="enrOnsiteFullNote" style="display: none;"><i class="fa-solid fa-ban"></i> ออนไซต์เต็มแล้ว</small>
                       </div>
                     </div>
                   </label>
@@ -557,22 +558,39 @@
     }
   };
 
+  // คอร์สนี้อยู่ในโหมด "เปิดรับเฉพาะออนไลน์ (ออนไซต์เต็มแล้ว)" หรือไม่
+  function isCourseOnlineOnly(c) {
+    if (!c) return false;
+    return window.getCourseEffectiveSeats
+      ? Boolean(window.getCourseEffectiveSeats(c).onlineOnly)
+      : (c.onlineOnly === true && c.forceClosed !== true);
+  }
+
+  // รอบเรียนนี้เลือกไม่ได้หรือไม่: ปกติ = เต็มหรือปิดรับ / โหมดเฉพาะออนไลน์ = เฉพาะรอบที่แอดมินปิดรับ (เรียนออนไลน์ไม่จำกัดที่นั่ง)
+  function isRoundBlocked(round, onlineOnly) {
+    const info = window.getRoundSeatInfo ? window.getRoundSeatInfo(round) : { isFull: false, closed: false };
+    return onlineOnly ? info.closed : info.isFull;
+  }
+
   // การ์ดเลือกรอบเรียน: แสดงที่นั่งคงเหลือ รอบที่เต็ม/ปิดรับกดไม่ได้ และเลือกรอบแรกที่ยังว่างไว้ให้
-  function renderRoundCards(schedules, inputName, extraAttrs, labelStyle) {
+  function renderRoundCards(schedules, inputName, extraAttrs, labelStyle, onlineOnly) {
     const seat = window.getRoundSeatInfo || (() => ({ isFull: false, capacity: null, remaining: null }));
-    const firstOpen = schedules.findIndex(s => !seat(s).isFull);
+    const firstOpen = schedules.findIndex(s => !isRoundBlocked(s, onlineOnly));
     return schedules.map((s, idx) => {
       const info = seat(s);
+      const blocked = isRoundBlocked(s, onlineOnly);
       const selected = idx === firstOpen;
       const value = `${s.type || ''} | ${s.time || ''} | ${s.dates || ''}`;
-      const seatTag = info.isFull
+      const seatTag = blocked
         ? `<span class="badge badge-seat-full" style="font-size: 0.72rem;">🛑 ${info.closed ? 'ปิดรับรอบนี้' : 'เต็มแล้ว'}</span>`
-        : (info.capacity !== null
-          ? `<span class="sched-seat-tag ${info.remaining <= 3 ? 'low' : ''}"><i class="fa-solid fa-chair"></i> เหลือ ${info.remaining}/${info.capacity} ที่</span>`
-          : '');
+        : (onlineOnly
+          ? '<span class="sched-seat-tag online"><i class="fa-solid fa-laptop"></i> รับเฉพาะเรียนออนไลน์</span>'
+          : (info.capacity !== null
+            ? `<span class="sched-seat-tag ${info.remaining <= 3 ? 'low' : ''}"><i class="fa-solid fa-chair"></i> เหลือ ${info.remaining}/${info.capacity} ที่</span>`
+            : ''));
       return `
-        <label class="enroll-schedule-card ${selected ? 'active' : ''} ${info.isFull ? 'disabled' : ''}" onclick="selectEnrollSchedule(this)" style="${labelStyle}">
-          <input type="radio" name="${inputName}" ${extraAttrs} value="${escapeHtml(value)}" ${selected ? 'checked' : ''} ${info.isFull ? 'disabled' : ''}>
+        <label class="enroll-schedule-card ${selected ? 'active' : ''} ${blocked ? 'disabled' : ''}" onclick="selectEnrollSchedule(this)" style="${labelStyle}">
+          <input type="radio" name="${inputName}" ${extraAttrs} value="${escapeHtml(value)}" ${selected ? 'checked' : ''} ${blocked ? 'disabled' : ''}>
           <div class="sched-card-body">
             <div class="sched-type-row">
               <strong>${escapeHtml(s.type)}</strong>
@@ -600,11 +618,14 @@
     };
     const radioFull = (courseId, value) => {
       const c = courses.find(x => x.id === courseId);
-      const round = c && Array.isArray(c.scheduleList)
+      if (!c) return false;
+      const round = Array.isArray(c.scheduleList)
         ? c.scheduleList.find(r => `${r.type || ''} | ${r.time || ''} | ${r.dates || ''}` === value || (r.type || '') === value.split(' | ')[0])
         : null;
-      return Boolean((c && c.isFull) || (round && seat(round).isFull));
+      const courseFull = window.getCourseEffectiveSeats ? window.getCourseEffectiveSeats(c).isFull : c.isFull === true;
+      return Boolean(courseFull || (round && isRoundBlocked(round, isCourseOnlineOnly(c))));
     };
+    applyLearningTypeLocks();
     if (currentEnrollCourse.isCampaign) {
       const camp = window.NewGenDB ? window.NewGenDB.getPopupCampaign() : null;
       const subs = camp && Array.isArray(camp.subjects) ? camp.subjects : [];
@@ -622,6 +643,47 @@
       });
     }
   }
+
+  // ล็อกตัวเลือก Onsite ของคอร์สที่ "ออนไซต์เต็มแล้ว" ให้เลือกได้เฉพาะ Online พร้อมข้อความกำกับ
+  function lockTypeInputs(inputName, onlineOnly, noteEl) {
+    const onsite = document.querySelector(`input[name="${inputName}"][value="onsite"]`);
+    const online = document.querySelector(`input[name="${inputName}"][value="online"]`);
+    if (!onsite || !online) return;
+    onsite.disabled = onlineOnly;
+    if (onlineOnly && onsite.checked) online.checked = true;
+    const onsiteCard = onsite.closest('label');
+    const onlineCard = online.closest('label');
+    if (onsiteCard) {
+      onsiteCard.classList.toggle('disabled', onlineOnly);
+      onsiteCard.classList.toggle('active', onsite.checked);
+    }
+    if (onlineCard) onlineCard.classList.toggle('active', online.checked);
+    if (noteEl) noteEl.style.display = onlineOnly ? '' : 'none';
+  }
+
+  function applyLearningTypeLocks() {
+    if (!currentEnrollCourse) return;
+    const courses = window.NewGenDB ? window.NewGenDB.getCourses() : (window.courseData || []);
+    const liveOf = c => courses.find(x => x.id === c.id) || c;
+    if (currentEnrollCourse.isBundle) {
+      (currentEnrollCourse.childCourses || []).forEach(cc => {
+        lockTypeInputs(`enrollLearningType_${cc.id}`, isCourseOnlineOnly(liveOf(cc)),
+          document.querySelector(`[data-full-note-for="${window.CSS && CSS.escape ? CSS.escape(cc.id) : cc.id}"]`));
+      });
+    } else {
+      const onlineOnly = !currentEnrollCourse.isCampaign && isCourseOnlineOnly(liveOf(currentEnrollCourse));
+      lockTypeInputs('enrollLearningType', onlineOnly, document.getElementById('enrOnsiteFullNote'));
+    }
+  }
+
+  window.syncBundleTypePill = function (input) {
+    const group = input.closest('.bundle-type-options');
+    if (!group) return;
+    group.querySelectorAll('.bundle-type-pill').forEach(p => {
+      const r = p.querySelector('input[type="radio"]');
+      p.classList.toggle('active', Boolean(r && r.checked));
+    });
+  };
 
   // Campaign form has no notes or shipping address fields
   function hideCampaignExcludedFields() {
@@ -781,9 +843,12 @@
 
     currentEnrollCourse = course;
 
-    // Populate Review Banner
+    // Populate Review Banner (แพ็คเกจ: ไม่แสดงรูปปก เหลือเฉพาะข้อความรายละเอียดแพ็ค)
+    const reviewCardEl = document.getElementById('enrollCourseReviewCard');
+    if (reviewCardEl) reviewCardEl.classList.toggle('no-cover', Boolean(course.isBundle));
     const coverEl = document.getElementById('enrReviewCover');
-    if (coverEl) coverEl.src = window.resolveMediaUrl ? window.resolveMediaUrl(course.cover || course.poster || 'assets/images/course-poster-primary.jpg') : (course.cover || course.poster);
+    if (coverEl && !course.isBundle) coverEl.src = window.resolveMediaUrl ? window.resolveMediaUrl(course.cover || course.poster || 'assets/images/course-poster-primary.jpg') : (course.cover || course.poster);
+    const courseOnlineOnly = !course.isBundle && !course.isCampaign && isCourseOnlineOnly(course);
 
     const titleEl = document.getElementById('enrReviewTitle');
     if (titleEl) titleEl.textContent = course.title || 'คอร์สเรียน The NEW GEN';
@@ -796,11 +861,22 @@
     if (subEl) {
       if (course.isCampaign) {
         subEl.style.display = 'none';
+      } else if (course.isBundle && Array.isArray(course.childCourses) && course.childCourses.length > 0) {
+        subEl.style.display = '';
+        subEl.innerHTML = `
+          <span class="enr-bundle-list-head"><i class="fa-solid fa-layer-group"></i> คอร์สในแพ็คเกจนี้</span>
+          <ul class="enr-bundle-course-list">
+            ${course.childCourses.map(cc => `<li><span>${escapeHtml(cc.title)}</span>${cc.totalHours ? ` <small>(${escapeHtml(cc.totalHours)})</small>` : ''}</li>`).join('')}
+          </ul>`;
       } else {
         subEl.style.display = '';
         subEl.innerHTML = `<i class="fa-solid fa-book-open"></i> ${course.subjects || 'วิทยาศาสตร์ • คณิตศาสตร์ • ภาษาอังกฤษ'}`;
       }
     }
+
+    // แพ็คเกจ: เลือกรูปแบบการเรียนแยกรายคอร์ส (ในกล่องของแต่ละคอร์สด้านบน) จึงซ่อนตัวเลือกรวม
+    const learningTypeSection = document.getElementById('enrollLearningTypeSection');
+    if (learningTypeSection) learningTypeSection.style.display = course.isBundle ? 'none' : '';
 
     // Campaign mode: show only learning-type titles (hide descriptions)
     ['enrOnsiteDesc', 'enrOnlineDesc'].forEach(id => {
@@ -814,13 +890,22 @@
     }
 
     const locEl = document.getElementById('enrReviewLocation');
-    if (locEl) locEl.textContent = course.location || 'เรียนสด Onsite สถาบัน The NEW GEN';
+    if (locEl) {
+      locEl.textContent = courseOnlineOnly
+        ? 'ออนไซต์เต็มแล้ว • เปิดรับเฉพาะเรียนออนไลน์ (Zoom)'
+        : (course.location || 'เรียนสด Onsite สถาบัน The NEW GEN');
+    }
 
     const hrsEl = document.getElementById('enrReviewHours');
-    if (hrsEl) hrsEl.textContent = course.totalHours || '42 ชั่วโมงตลอดเทอม';
+    if (hrsEl) {
+      hrsEl.textContent = course.totalHours || '42 ชั่วโมงตลอดเทอม';
+      // แพ็คเกจแสดงชั่วโมงเรียนรายคอร์สในรายการด้านบนแล้ว
+      const hrsChip = hrsEl.closest('.enr-meta-chip');
+      if (hrsChip) hrsChip.style.display = course.isBundle ? 'none' : '';
+    }
 
     const priceEl = document.getElementById('enrReviewPrice');
-    if (priceEl) priceEl.textContent = course.pricePromo || '4,500';
+    if (priceEl) priceEl.textContent = course.isBundle && window.priceNumberText ? window.priceNumberText(course.pricePromo || '0') : (course.pricePromo || '4,500');
 
     const unitEl = document.getElementById('enrReviewUnit');
     if (unitEl) unitEl.textContent = course.priceUnit || 'บาท / เทอม (แบ่งชำระได้)';
@@ -941,30 +1026,40 @@
             const schedules = Array.isArray(cc.scheduleList) && cc.scheduleList.length > 0
               ? cc.scheduleList
               : [{ type: 'รอบเรียนปกติ', time: 'ตามรอบสถาบัน', dates: 'เปิดเทอม' }];
+            const ccOnlineOnly = isCourseOnlineOnly(cc);
+            const typeName = `enrollLearningType_${cc.id}`;
 
             return `
               <div class="bundle-course-sched-group" style="background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 14px; padding: 14px 16px; margin-bottom: 14px;">
-                <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; flex-wrap: wrap;">
-                  <div style="font-size: 0.95rem; font-weight: 800; color: #0b1e3f; display: flex; align-items: center; gap: 8px;">
-                    <span style="background: #e11d48; color: #ffffff; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.78rem; font-weight: 800;">
-                      ${cIdx + 1}
-                    </span>
-                    <span>เลือกรอบเรียน: <strong>${escapeHtml(cc.title)}</strong></span>
-                    <span class="req-star">*</span>
-                  </div>
-                  <span style="font-size: 0.76rem; color: #64748b; background: #ffffff; padding: 2px 8px; border-radius: 6px; border: 1px solid #cbd5e1;">
-                    วิชาที่ ${cIdx + 1} จาก ${course.childCourses.length}
-                  </span>
+                <div class="bundle-sched-head">
+                  <span class="bundle-sched-num">${cIdx + 1}</span>
+                  <strong class="bundle-sched-title">${escapeHtml(cc.title)}</strong>
+                  <span class="bundle-sched-count">วิชาที่ ${cIdx + 1}/${course.childCourses.length}</span>
                 </div>
+
+                <div class="bundle-sub-label"><i class="fa-solid fa-chalkboard-user"></i> รูปแบบการเรียน <span class="req-star">*</span></div>
+                <div class="bundle-type-options">
+                  <label class="bundle-type-pill">
+                    <input type="radio" name="${typeName}" value="onsite" checked onchange="syncBundleTypePill(this)">
+                    <span><i class="fa-solid fa-school"></i> Onsite ที่สถาบัน</span>
+                    <small class="enr-type-full-note" data-full-note-for="${escapeHtml(cc.id)}" style="display: none;"><i class="fa-solid fa-ban"></i> ออนไซต์เต็มแล้ว</small>
+                  </label>
+                  <label class="bundle-type-pill">
+                    <input type="radio" name="${typeName}" value="online" onchange="syncBundleTypePill(this)">
+                    <span><i class="fa-solid fa-laptop"></i> Online (Zoom)</span>
+                  </label>
+                </div>
+
+                <div class="bundle-sub-label"><i class="fa-regular fa-calendar-check"></i> รอบเรียน <span class="req-star">*</span></div>
                 <div class="enroll-schedule-grid" style="display: grid; gap: 8px;">
-                  ${renderRoundCards(schedules, `enrollScheduleChoice_${cc.id}`, `data-course-id="${escapeHtml(cc.id)}" data-course-title="${escapeHtml(cc.title)}"`, 'margin: 0;')}
+                  ${renderRoundCards(schedules, `enrollScheduleChoice_${cc.id}`, `data-course-id="${escapeHtml(cc.id)}" data-course-title="${escapeHtml(cc.title)}"`, 'margin: 0;', ccOnlineOnly)}
                 </div>
               </div>
             `;
           }).join('');
         } else if (Array.isArray(course.scheduleList) && course.scheduleList.length > 0) {
           schedSection.style.display = 'block';
-          schedContainer.innerHTML = renderRoundCards(course.scheduleList, 'enrollScheduleChoice', '', '');
+          schedContainer.innerHTML = renderRoundCards(course.scheduleList, 'enrollScheduleChoice', '', '', courseOnlineOnly);
         } else {
           schedSection.style.display = 'none';
           schedContainer.innerHTML = `<input type="hidden" name="enrollScheduleChoice" value="ตารางเรียนมาตรฐานตามรอบคอร์ส">`;
@@ -1023,6 +1118,7 @@
     // Reset Form fields
     document.getElementById('studentEnrollForm').reset();
     toggleEnrollType('onsite');
+    applyLearningTypeLocks();
 
     // Seat capacity check for submit button
     const seatInfo = window.getCourseEffectiveSeats ? window.getCourseEffectiveSeats(course) : null;
@@ -1173,6 +1269,7 @@
     // Schedule choice collection (multi-course support for bundles and free campaign)
     let scheduleChoice = '';
     const childSchedulesMap = {};
+    const childLearningTypes = {};
     const isBundle = Boolean(currentEnrollCourse && currentEnrollCourse.isBundle);
     const childCourseIds = isBundle && Array.isArray(currentEnrollCourse.courseIds) ? currentEnrollCourse.courseIds : [];
     let selectedSubjects = [];
@@ -1209,16 +1306,26 @@
     } else if (isBundle && Array.isArray(currentEnrollCourse.childCourses) && currentEnrollCourse.childCourses.length > 0) {
       const scheduleLines = [];
       let missingRound = '';
+      let onsiteBlocked = '';
       currentEnrollCourse.childCourses.forEach(cc => {
         const radios = document.querySelectorAll(`input[name="enrollScheduleChoice_${cc.id}"]`);
         const sel = document.querySelector(`input[name="enrollScheduleChoice_${cc.id}"]:checked:not(:disabled)`);
         if (radios.length > 0 && !sel && !missingRound) missingRound = cc.title;
         const val = sel ? sel.value : (cc.scheduleList?.[0]?.type || 'รอบเรียนปกติ');
         childSchedulesMap[cc.id] = val;
-        scheduleLines.push(`• [${cc.title}]: ${val}`);
+        // รูปแบบการเรียนแยกรายคอร์ส (คอร์สที่ออนไซต์เต็ม = Online เท่านั้น)
+        const typeSel = document.querySelector(`input[name="enrollLearningType_${cc.id}"]:checked:not(:disabled)`);
+        const ccType = typeSel ? typeSel.value : (isCourseOnlineOnly(cc) ? 'online' : 'onsite');
+        if (ccType !== 'online' && isCourseOnlineOnly(cc) && !onsiteBlocked) onsiteBlocked = cc.title;
+        childLearningTypes[cc.id] = ccType;
+        scheduleLines.push(`• [${cc.title}]: ${val} (เรียน ${ccType === 'online' ? 'Online' : 'Onsite'})`);
       });
       if (missingRound) {
         alert(`⚠️ กรุณาเลือกรอบเรียนของ "${missingRound}" (รอบที่เต็มแล้วเลือกไม่ได้)`);
+        return;
+      }
+      if (onsiteBlocked) {
+        alert(`⚠️ "${onsiteBlocked}" ที่นั่งออนไซต์เต็มแล้ว กรุณาเลือกเรียน Online สำหรับคอร์สนี้`);
         return;
       }
       scheduleChoice = scheduleLines.join('\n');
@@ -1232,9 +1339,20 @@
       scheduleChoice = schedSelected ? schedSelected.value : (currentEnrollCourse.scheduleList?.[0]?.type || 'รอบเรียนปกติ');
     }
 
-    // Learning type
-    const typeSelected = document.querySelector('input[name="enrollLearningType"]:checked');
-    const learningType = typeSelected ? typeSelected.value : 'onsite';
+    // Learning type (แพ็คเกจ: ถ้าทุกคอร์สเหมือนกันใช้ค่านั้น ถ้าต่างกัน = "mixed" และดูรายคอร์สใน childLearningTypes)
+    let learningType;
+    if (isBundle && Object.keys(childLearningTypes).length > 0) {
+      const kinds = [...new Set(Object.values(childLearningTypes))];
+      learningType = kinds.length === 1 ? kinds[0] : 'mixed';
+    } else {
+      const typeSelected = document.querySelector('input[name="enrollLearningType"]:checked:not(:disabled)');
+      learningType = typeSelected ? typeSelected.value : 'onsite';
+      if (!currentEnrollCourse.isCampaign && learningType !== 'online' && isCourseOnlineOnly(currentEnrollCourse)) {
+        alert('⚠️ คอร์สนี้ที่นั่งออนไซต์เต็มแล้ว เปิดรับเฉพาะเรียนออนไลน์ กรุณาเลือก "เรียนสด Online"');
+        applyLearningTypeLocks();
+        return;
+      }
+    }
 
     const submitBtn = document.getElementById('btnEnrollSubmit');
     const origBtnHtml = submitBtn.innerHTML;
@@ -1314,6 +1432,7 @@
       scheduleChoice: scheduleChoice,
       childSchedulesMap: childSchedulesMap,
       learningType: learningType,
+      ...(isBundle ? { childLearningTypes: childLearningTypes } : {}),
       studentName: studentName,
       fullName: studentName,
       nickname: nickname,
@@ -1356,6 +1475,7 @@
           courseId: subId,
           courseTitle: subCourse ? subCourse.title : subId,
           scheduleChoice: childSchedulesMap[subId] || scheduleChoice,
+          learningType: childLearningTypes[subId] || learningType,
           isBundle: false,
           isFromBundle: true,
           bundleId: currentEnrollCourse.id,
@@ -1376,14 +1496,15 @@
       restoreSubmitBtn();
 
       // ที่นั่งเต็มระหว่างกรอกฟอร์ม (Supabase ปฏิเสธ) → แจ้งชัดเจน ดึงที่นั่งล่าสุด แล้วให้เลือกรอบอื่น
-      const full = String(err && err.message || '').match(/(ROUND_FULL|COURSE_FULL|SUBJECT_FULL|ROUND_UNKNOWN)\|([^"\\]*)/);
+      const full = String(err && err.message || '').match(/(ROUND_FULL|COURSE_FULL|SUBJECT_FULL|ROUND_UNKNOWN|ONSITE_FULL)\|([^"\\]*)/);
       if (full) {
         const parts = full[2].split('|');
         const msg = {
           ROUND_FULL: `ขออภัยครับ รอบ "${parts[1] || ''}" ของ ${parts[0] || 'คอร์สนี้'} เพิ่งเต็ม\nกรุณาเลือกรอบเวลาอื่นแล้วกดยืนยันอีกครั้ง`,
           COURSE_FULL: `ขออภัยครับ ${parts[0] || 'คอร์สนี้'} ที่นั่งเต็มแล้ว\nทัก LINE สถาบันเพื่อสอบถามรอบถัดไปได้เลยครับ`,
           SUBJECT_FULL: `ขออภัยครับ วิชา "${parts[0] || ''}" ที่นั่งเต็มแล้ว\nกรุณาเลือกวิชาอื่นแล้วกดยืนยันอีกครั้ง`,
-          ROUND_UNKNOWN: `รอบเรียนของ ${parts[0] || 'คอร์สนี้'} มีการเปลี่ยนแปลง\nกรุณาเลือกรอบเวลาใหม่แล้วกดยืนยันอีกครั้ง`
+          ROUND_UNKNOWN: `รอบเรียนของ ${parts[0] || 'คอร์สนี้'} มีการเปลี่ยนแปลง\nกรุณาเลือกรอบเวลาใหม่แล้วกดยืนยันอีกครั้ง`,
+          ONSITE_FULL: `ขออภัยครับ ${parts[0] || 'คอร์สนี้'} ที่นั่งออนไซต์เต็มแล้ว (เปิดรับเฉพาะเรียนออนไลน์)\nกรุณาเลือกเรียน Online แล้วกดยืนยันอีกครั้ง`
         }[full[1]];
         alert(msg);
         if (window.NewGenDB) await window.NewGenDB.syncFromSupabase();
@@ -1404,7 +1525,14 @@
     document.getElementById('confAppCode').textContent = `#${enrollId}`;
     document.getElementById('confCourseTitle').textContent = currentEnrollCourse.title;
     document.getElementById('confScheduleChoice').innerHTML = escapeHtml(scheduleChoice).replace(/\|/g, '<br>• ');
-    document.getElementById('confLearningType').textContent = learningType === 'onsite' ? '🏫 เรียนสด Onsite (ที่สถาบัน The NEW GEN)' : '💻 เรียนสด Online (Zoom)';
+    const confTypeEl = document.getElementById('confLearningType');
+    if (isBundle && Object.keys(childLearningTypes).length > 0) {
+      confTypeEl.innerHTML = currentEnrollCourse.childCourses.map(cc =>
+        `${escapeHtml(cc.title)}: <strong>${childLearningTypes[cc.id] === 'online' ? '💻 Online' : '🏫 Onsite'}</strong>`
+      ).join('<br>');
+    } else {
+      confTypeEl.textContent = learningType === 'online' ? '💻 เรียนสด Online (Zoom)' : '🏫 เรียนสด Onsite (ที่สถาบัน The NEW GEN)';
+    }
     document.getElementById('confStudentName').textContent = `${studentName} (น้อง${nickname}) ชั้น ${grade} - รร. ${school}`;
     document.getElementById('confContact').textContent = `โทร: ${parentPhone} | LINE ID: ${lineId}`;
 
@@ -1506,7 +1634,7 @@
 รหัสการสมัคร: ${lastEnrollmentData.id}
 คอร์สเรียน: ${lastEnrollmentData.courseTitle}
 รอบเรียน: ${schedFormatted}
-รูปแบบ: ${lastEnrollmentData.learningType === 'onsite' ? 'Onsite เรียนที่สถาบัน' : 'Online'}
+รูปแบบ: ${{ onsite: 'Onsite เรียนที่สถาบัน', online: 'Online', mixed: 'แยกตามคอร์ส (ดูในรอบเรียนด้านบน)' }[lastEnrollmentData.learningType] || 'Onsite เรียนที่สถาบัน'}
 ชื่อนักเรียน: ${lastEnrollmentData.studentName} (${lastEnrollmentData.nickname})
 ระดับชั้น: ${lastEnrollmentData.grade} | รร. ${lastEnrollmentData.school}
 เบอร์ผู้ปกครอง: ${lastEnrollmentData.parentPhone}
@@ -1541,42 +1669,45 @@ LINE ID: ${lastEnrollmentData.lineId}${customText}${lastEnrollmentData.studentIm
         <div class="modal-bundle-box" style="background: #ffffff; width: 100%; max-width: 840px; border-radius: 24px; box-shadow: 0 30px 70px -15px rgba(0,0,0,0.45); overflow: hidden; position: relative; border: 1px solid rgba(226, 232, 240, 0.8); margin: auto;">
           
           <!-- Header Banner -->
-          <div style="background: linear-gradient(135deg, #0b1e3f 0%, #1e3a8a 60%, #be123c 100%); color: #ffffff; padding: 26px 30px 22px; position: relative;">
+          <div class="bdm-header">
             <button type="button" class="btn-close-modal" onclick="closeBundleDetailModal()" aria-label="ปิดหน้าต่าง" style="position: absolute; top: 18px; right: 18px; background: rgba(255,255,255,0.22); border: 1px solid rgba(255,255,255,0.35); color: #ffffff; width: 36px; height: 36px; border-radius: 50%; font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;">
               <i class="fa-solid fa-xmark"></i>
             </button>
-            <div id="bundleDetailBadgeWrap" style="margin-bottom: 8px;">
-              <span id="bundleDetailBadge" style="display: inline-flex; align-items: center; gap: 6px; padding: 5px 14px; border-radius: 999px; background: rgba(244, 63, 94, 0.25); border: 1px solid #f43f5e; color: #ffccd5; font-size: 0.84rem; font-weight: 700;">
+            <div id="bundleDetailBadgeWrap" class="bdm-badge-wrap">
+              <span id="bundleDetailBadge" class="bdm-badge">
                 <i class="fa-solid fa-fire"></i> แพ็คเกจโปรโมชั่นสุดคุ้ม
               </span>
             </div>
-            <h2 id="bundleDetailTitle" style="font-size: 1.55rem; font-weight: 800; line-height: 1.3; margin: 0 0 6px 0; color: #ffffff;">ชื่อแพ็คเกจคอร์สเรียน</h2>
-            <p id="bundleDetailDesc" style="font-size: 0.92rem; color: #e2e8f0; margin: 0; line-height: 1.5; max-width: 680px;">รายละเอียดสรุปของแพ็คเกจ</p>
+            <h2 id="bundleDetailTitle" class="bdm-title">ชื่อแพ็คเกจคอร์สเรียน</h2>
+            <p id="bundleDetailDesc" class="bdm-desc">รายละเอียดสรุปของแพ็คเกจ</p>
           </div>
 
           <!-- Price & Savings Ribbon -->
-          <div style="background: #fff1f2; border-bottom: 1px solid #fecdd3; padding: 12px 30px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
-            <div style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;">
-              <span style="font-size: 0.9rem; color: #64748b; text-decoration: line-through;" id="bundleDetailPriceOld">จากปกติ 0 บาท</span>
-              <div style="display: flex; align-items: baseline; gap: 4px;">
-                <span style="font-size: 0.85rem; font-weight: 700; color: #be123c;">ราคาแพ็คเกจพิเศษเพียง</span>
-                <span id="bundleDetailPricePromo" style="font-size: 1.7rem; font-weight: 800; color: #e11d48; line-height: 1;">0</span>
-                <span id="bundleDetailPriceUnit" style="font-size: 0.85rem; color: #881337; font-weight: 600;">บาท / แพ็คเกจ</span>
+          <div class="bdm-price-ribbon">
+            <div class="bdm-price-block">
+              <span class="bdm-price-old" id="bundleDetailPriceOld">จากปกติ 0 บาท</span>
+              <div class="bdm-price-now">
+                <span class="bdm-price-label">ราคาแพ็คเกจพิเศษเพียง</span>
+                <span class="bdm-price-line">
+                  <span id="bundleDetailPricePromo" class="bdm-price-amount">0</span>
+                  <span id="bundleDetailPriceUnit" class="bdm-price-unit">บาท / แพ็คเกจ</span>
+                </span>
               </div>
             </div>
-            <div id="bundleDetailSavingsTag" style="display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #10b981, #059669); color: #ffffff; padding: 6px 14px; border-radius: 999px; font-size: 0.88rem; font-weight: 700; box-shadow: 0 3px 10px rgba(16, 185, 129, 0.3);">
+            <div id="bundleDetailSavingsTag" class="bdm-savings">
               <i class="fa-solid fa-gift"></i> ประหยัดทันที 0.-
             </div>
           </div>
 
           <!-- Modal Body Content -->
-          <div style="padding: 22px 30px; max-height: calc(85vh - 220px); overflow-y: auto;">
-            
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
-              <h3 style="font-size: 1.12rem; font-weight: 800; color: #0b1e3f; margin: 0; display: flex; align-items: center; gap: 8px;">
-                <i class="fa-solid fa-layer-group" style="color: #e11d48;"></i> คอร์สเรียนที่รวมอยู่ในแพ็คเกจนี้ (<span id="bundleDetailCourseCount">0</span> คอร์ส)
+          <div class="bdm-body">
+
+            <div class="bdm-list-head">
+              <h3 class="bdm-list-title">
+                <i class="fa-solid fa-layer-group" style="color: #e11d48;"></i>
+                <span>คอร์สเรียนที่รวมอยู่ในแพ็คเกจนี้ <span class="nowrap">(<span id="bundleDetailCourseCount">0</span> คอร์ส)</span></span>
               </h3>
-              <span style="font-size: 0.8rem; color: #166534; background: #dcfce7; padding: 4px 10px; border-radius: 6px; font-weight: 600;">
+              <span class="bdm-all-subjects">
                 <i class="fa-solid fa-circle-check" style="color: #16a34a;"></i> ได้รับสิทธิ์เรียนครบทุกวิชา
               </span>
             </div>
@@ -1614,14 +1745,14 @@ LINE ID: ${lastEnrollmentData.lineId}${customText}${lastEnrollmentData.studentIm
           </div>
 
           <!-- Footer Actions -->
-          <div style="background: #ffffff; border-top: 1px solid #e2e8f0; padding: 14px 30px; display: flex; align-items: center; justify-content: flex-end; gap: 12px; flex-wrap: wrap;">
-            <button type="button" class="btn-modal-cancel" onclick="closeBundleDetailModal()" style="padding: 10px 18px; border-radius: 999px; border: 1px solid #cbd5e1; background: #ffffff; color: #475569; font-weight: 600; cursor: pointer; transition: all 0.2s;">
+          <div class="bdm-footer">
+            <button type="button" class="btn-modal-cancel bdm-btn-close" onclick="closeBundleDetailModal()" style="padding: 10px 18px; border-radius: 999px; border: 1px solid #cbd5e1; background: #ffffff; color: #475569; font-weight: 600; cursor: pointer; transition: all 0.2s;">
               ปิดหน้าต่าง
             </button>
-            <a href="https://lin.ee/RXrzi1G" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 999px; background: #06c755; color: #ffffff; font-weight: 700; text-decoration: none; font-size: 0.9rem; box-shadow: 0 3px 10px rgba(6, 199, 85, 0.25);">
+            <a href="https://lin.ee/RXrzi1G" target="_blank" rel="noopener noreferrer" class="bdm-btn-line" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 20px; border-radius: 999px; background: #06c755; color: #ffffff; font-weight: 700; text-decoration: none; font-size: 0.9rem; box-shadow: 0 3px 10px rgba(6, 199, 85, 0.25);">
               <i class="fa-brands fa-line" style="font-size: 1.15rem;"></i> สอบถามทาง LINE
             </a>
-            <button type="button" id="btnBundleDetailApplyNow" style="display: inline-flex; align-items: center; gap: 8px; padding: 11px 24px; border-radius: 999px; border: none; background: linear-gradient(135deg, #e11d48, #be123c); color: #ffffff; font-weight: 700; font-size: 0.95rem; cursor: pointer; box-shadow: 0 4px 15px rgba(225, 29, 72, 0.35); transition: all 0.2s;">
+            <button type="button" id="btnBundleDetailApplyNow" class="bdm-btn-apply" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 11px 24px; border-radius: 999px; border: none; background: linear-gradient(135deg, #e11d48, #be123c); color: #ffffff; font-weight: 700; font-size: 0.95rem; cursor: pointer; box-shadow: 0 4px 15px rgba(225, 29, 72, 0.35); transition: all 0.2s;">
               <i class="fa-solid fa-bolt"></i> สมัครแพ็คเกจนี้ทันที
             </button>
           </div>
@@ -1687,14 +1818,16 @@ LINE ID: ${lastEnrollmentData.lineId}${customText}${lastEnrollmentData.studentIm
     const promoNum = parseInt(String(bundleObj.pricePromo || '0').replace(/[^0-9]/g, ''), 10) || 0;
     const savingsVal = Math.max(0, origNum - promoNum);
 
+    // ราคาที่แอดมินพิมพ์อาจมี "บ" ต่อท้ายอยู่แล้ว (เช่น "12,500 บ") → ตัดออกก่อนต่อด้วยหน่วย จะได้ไม่เป็น "บ บาท"
+    const priceNum = window.priceNumberText || (v => String(v || ''));
     const priceOldEl = document.getElementById('bundleDetailPriceOld');
     if (priceOldEl) {
-      priceOldEl.textContent = bundleObj.priceOriginal ? `จากปกติ ${bundleObj.priceOriginal} บาท` : (origNum > 0 ? `จากปกติ ${origNum.toLocaleString()} บาท` : '');
-      priceOldEl.style.display = (bundleObj.priceOriginal || origNum > 0) ? 'inline' : 'none';
+      priceOldEl.textContent = bundleObj.priceOriginal ? `จากปกติ ${priceNum(bundleObj.priceOriginal)} บาท` : (origNum > 0 ? `จากปกติ ${origNum.toLocaleString()} บาท` : '');
+      priceOldEl.style.display = (bundleObj.priceOriginal || origNum > 0) ? '' : 'none';
     }
 
     const pricePromoEl = document.getElementById('bundleDetailPricePromo');
-    if (pricePromoEl) pricePromoEl.textContent = bundleObj.pricePromo || '0';
+    if (pricePromoEl) pricePromoEl.textContent = priceNum(bundleObj.pricePromo || '0') || '0';
 
     const priceUnitEl = document.getElementById('bundleDetailPriceUnit');
     if (priceUnitEl) priceUnitEl.textContent = bundleObj.priceUnit || 'บาท / แพ็คเกจ';
@@ -1731,68 +1864,70 @@ LINE ID: ${lastEnrollmentData.lineId}${customText}${lastEnrollmentData.studentIm
         listHtml += childCourses.map((c, idx) => {
           // Tutor details
           const courseTutors = (c.tutorIds || []).map(tid => allTutors.find(t => t.id === tid)).filter(Boolean);
+          // ชื่อติวเตอร์: แสดงวงเล็บวิชา/ตำแหน่งเฉพาะเมื่อมีข้อมูล (ไม่ให้เหลือ "()" ว่าง ๆ)
           const tutorText = courseTutors.length > 0
-            ? courseTutors.map(t => `${t.nickname ? 'พี่' + t.nickname : t.name} (${t.subject || t.role || ''})`).join(' • ')
+            ? courseTutors.map(t => {
+                const nm = t.nickname ? 'พี่' + t.nickname : (t.name || '');
+                const extra = String(t.subject || t.role || '').trim();
+                return extra ? `${nm} (${extra})` : nm;
+              }).filter(Boolean).join(' • ')
             : 'ทีมติวเตอร์ The NEW GEN';
 
           // Check if this specific course is full
           const cEff = window.getCourseEffectiveSeats ? window.getCourseEffectiveSeats(c) : { isFull: c.isFull === true };
-          const isCourseFull = cEff.isFull || (cEff.remainingSeats !== undefined && cEff.remainingSeats <= 0);
+          const isCourseFull = cEff.isFull || (!cEff.onlineOnly && cEff.remainingSeats !== undefined && cEff.remainingSeats <= 0);
+          const isOnlineOnly = Boolean(cEff.onlineOnly);
 
-          // Schedule summaries
+          // Schedule summaries (วันที่อยู่บรรทัดของตัวเอง อ่านง่ายบนมือถือ)
           const schedItems = Array.isArray(c.scheduleList) && c.scheduleList.length > 0
             ? c.scheduleList.map(s => `
-                <div style="font-size: 0.8rem; color: #475569; display: flex; align-items: baseline; gap: 6px; margin-top: 3px;">
-                  <i class="fa-regular fa-clock" style="color: #64748b; font-size: 0.75rem;"></i>
-                  <span><strong>${escapeHtml(s.type)}:</strong> ${escapeHtml(s.time || '')} <small style="color: #94a3b8;">(${escapeHtml(s.dates || '')})</small></span>
+                <div class="bdm-sched-item">
+                  <i class="fa-regular fa-clock"></i>
+                  <div>
+                    <span><strong>${escapeHtml(s.type)}:</strong> ${escapeHtml(s.time || '')}</span>
+                    ${s.dates ? `<small>${escapeHtml(s.dates)}</small>` : ''}
+                  </div>
                 </div>
               `).join('')
-            : `<div style="font-size: 0.8rem; color: #64748b; margin-top: 3px;"><i class="fa-regular fa-calendar-check"></i> ตารางเรียนตามรอบสถาบัน</div>`;
+            : `<div class="bdm-sched-item"><i class="fa-regular fa-calendar-check"></i><div><span>ตารางเรียนตามรอบสถาบัน</span></div></div>`;
 
           const coverSrc = window.resolveMediaUrl
             ? window.resolveMediaUrl(c.cover || c.poster || 'assets/images/course-poster-primary.jpg')
             : (c.cover || c.poster || 'assets/images/course-poster-primary.jpg');
 
+          const singlePrice = (window.priceNumberText || (v => v))(c.pricePromo || c.priceOriginal || '');
+
           return `
             <div class="bundle-child-course-card" style="display: flex; gap: 16px; background: #ffffff; border: 1px solid ${isCourseFull ? '#fca5a5' : '#e2e8f0'}; border-radius: 16px; padding: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); transition: transform 0.2s, box-shadow 0.2s; align-items: flex-start;">
-              <div style="width: 125px; height: 165px; border-radius: 12px; overflow: hidden; flex-shrink: 0; position: relative; background: #0b1e3f; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 14px rgba(0,0,0,0.12); border: 1px solid #e2e8f0;">
-                <img src="${coverSrc}" alt="${escapeHtml(c.title)}" style="width: 100%; height: 100%; object-fit: contain; background: #0b1e3f;" loading="lazy">
-                <span style="position: absolute; top: 6px; left: 6px; background: #e11d48; color: #ffffff; font-size: 0.68rem; padding: 2px 8px; border-radius: 6px; font-weight: 800; box-shadow: 0 2px 6px rgba(0,0,0,0.35); z-index: 2;">
-                  คอร์สที่ ${idx + 1}
-                </span>
+              <div class="bdm-child-cover">
+                <img src="${coverSrc}" alt="${escapeHtml(c.title)}" loading="lazy">
+                <span class="bdm-child-num">คอร์สที่ ${idx + 1}</span>
                 ${isCourseFull ? `
                   <div style="position: absolute; inset: 0; background: rgba(185, 28, 28, 0.7); display: flex; align-items: center; justify-content: center; color: #ffffff; font-weight: 800; font-size: 0.82rem; z-index: 3;">
                     <i class="fa-solid fa-ban" style="margin-right: 4px;"></i> เต็มแล้ว
                   </div>
                 ` : ''}
               </div>
-              <div style="flex: 1; min-width: 0;">
-                <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin-bottom: 4px;">
-                  <span style="display: inline-block; font-size: 0.72rem; font-weight: 700; color: #0284c7; background: #e0f2fe; padding: 2px 8px; border-radius: 4px;">
-                    ${escapeHtml(c.categoryLabel || (c.category === 'primary' ? 'ประถม' : 'มัธยม'))}
-                  </span>
-                  <div style="display: flex; align-items: center; gap: 8px;">
-                    ${isCourseFull ? `
-                      <span class="badge" style="background: #fee2e2; color: #dc2626; border: 1px solid #f87171; font-weight: 800; font-size: 0.72rem; padding: 2px 8px; border-radius: 4px;">
-                        <i class="fa-solid fa-ban"></i> ที่นั่งเต็ม
-                      </span>
-                    ` : ''}
-                    <span style="font-size: 0.82rem; font-weight: 700; color: #64748b;">
-                      ราคาปกติเดี่ยว: <span style="color: #0f172a; font-weight: 800;">${escapeHtml(c.pricePromo || c.priceOriginal || '-')}.-</span>
+              <div style="flex: 1; min-width: 0; width: 100%;">
+                <div class="bdm-child-top">
+                  <span class="bdm-child-level">${escapeHtml(c.categoryLabel || (c.category === 'primary' ? 'ประถม' : 'มัธยม'))}</span>
+                  ${isCourseFull ? `
+                    <span class="badge" style="background: #fee2e2; color: #dc2626; border: 1px solid #f87171; font-weight: 800; font-size: 0.72rem; padding: 2px 8px; border-radius: 4px;">
+                      <i class="fa-solid fa-ban"></i> ที่นั่งเต็ม
                     </span>
-                  </div>
+                  ` : ''}
+                  ${isOnlineOnly ? `<span class="bdm-online-only-tag"><i class="fa-solid fa-laptop"></i> ออนไซต์เต็ม • เหลือเฉพาะออนไลน์</span>` : ''}
+                  ${singlePrice ? `<span class="bdm-child-price">ราคาปกติเดี่ยว <b>${escapeHtml(singlePrice)} บาท</b></span>` : ''}
                 </div>
-                <h4 style="font-size: 1rem; font-weight: 700; color: #0f172a; margin: 0 0 6px 0; line-height: 1.35;">
-                  ${escapeHtml(c.title)}
-                </h4>
-                <div style="font-size: 0.82rem; color: #0284c7; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+                <h4 class="bdm-child-title">${escapeHtml(c.title)}</h4>
+                <div class="bdm-child-subjects">
                   <i class="fa-solid fa-book-open"></i> <span>${escapeHtml(c.subjects || 'วิชาหลัก')}</span>
                 </div>
-                <div style="font-size: 0.8rem; color: #475569; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                <div class="bdm-child-meta">
                   <span><i class="fa-solid fa-user-graduate" style="color: #8b5cf6;"></i> ติวเตอร์: <strong>${escapeHtml(tutorText)}</strong></span>
-                  ${c.totalHours ? `<span style="color: #cbd5e1;">|</span> <span><i class="fa-regular fa-clock" style="color: #10b981;"></i> ${escapeHtml(c.totalHours)}</span>` : ''}
+                  ${c.totalHours ? `<span><i class="fa-regular fa-clock" style="color: #10b981;"></i> ${escapeHtml(c.totalHours)}</span>` : ''}
                 </div>
-                <div style="background: #f8fafc; border-radius: 8px; padding: 6px 10px; border: 1px dashed #cbd5e1;">
+                <div class="bdm-sched-box">
                   ${schedItems}
                 </div>
               </div>
@@ -2023,7 +2158,7 @@ LINE ID: ${lastEnrollmentData.lineId}${customText}${lastEnrollmentData.studentIm
     };
 
     drawRow('🎓', 'คอร์สเรียน / โครงการ', lastEnrollmentData.courseTitle, true, isCamp ? '#be123c' : '#1e3a8a');
-    drawRow('🏫', 'รูปแบบการเรียน', lastEnrollmentData.learningType === 'onsite' ? 'เรียนสด Onsite (ที่สถาบัน The NEW GEN)' : 'เรียนสด Online (Zoom)');
+    drawRow('🏫', 'รูปแบบการเรียน', { onsite: 'เรียนสด Onsite (ที่สถาบัน The NEW GEN)', online: 'เรียนสด Online (Zoom)', mixed: 'Onsite + Online (แยกตามคอร์ส)' }[lastEnrollmentData.learningType] || 'เรียนสด Onsite (ที่สถาบัน The NEW GEN)');
     drawRow('👤', 'ชื่อ - สกุล นักเรียน', `${lastEnrollmentData.studentName} (น้อง${lastEnrollmentData.nickname || '-'})`, true);
     drawRow('📚', 'ระดับชั้น / โรงเรียน', `ชั้น ${lastEnrollmentData.grade || '-'} | รร. ${lastEnrollmentData.school || '-'}`);
     drawRow('📞', 'เบอร์ติดต่อผู้ปกครอง', lastEnrollmentData.parentPhone || '-');

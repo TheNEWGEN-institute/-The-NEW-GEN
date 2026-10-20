@@ -75,11 +75,26 @@ function initCourseDetailPage() {
   const badgeStatus = document.getElementById('cdBadgeStatus');
   if (badgeStatus) {
     if (window.getCourseSeatBadgeHtml) {
-      badgeStatus.outerHTML = window.getCourseSeatBadgeHtml(course);
+      // คง id ไว้ เพื่อให้รอบ sync ถัดไปอัปเดตป้ายนี้ได้อีก
+      const tmp = document.createElement('div');
+      tmp.innerHTML = window.getCourseSeatBadgeHtml(course).trim();
+      const newBadge = tmp.firstElementChild;
+      if (newBadge) {
+        newBadge.id = 'cdBadgeStatus';
+        badgeStatus.replaceWith(newBadge);
+      }
     } else {
       badgeStatus.className = `badge ${course.statusClass}`;
       badgeStatus.textContent = course.statusBadge;
     }
+  }
+
+  const learnModeBadge = document.querySelector('.cd-badge-group .badge-genz');
+  if (learnModeBadge) {
+    const onlineOnlyNow = Boolean(window.getCourseEffectiveSeats && window.getCourseEffectiveSeats(course).onlineOnly);
+    learnModeBadge.innerHTML = onlineOnlyNow
+      ? '<i class="fa-solid fa-laptop"></i> เรียนสด Online (Zoom)'
+      : '<i class="fa-solid fa-chalkboard-user"></i> เรียนสด Onsite กลุ่มเล็ก';
   }
 
   const titleEl = document.getElementById('cdCourseTitle');
@@ -171,8 +186,11 @@ function initCourseDetailPage() {
         // ข้อความในวงเล็บไม่ถูกตัดกลางคำ เช่น "(8 พ.ย. - 21 ก.พ.)" ขึ้นบรรทัดใหม่ทั้งก้อน
         const keepParensTogether = html => html.replace(/\(([^)]*)\)/g, m => `<span class="nowrap">${m}</span>`);
         // ที่นั่งรายรอบ (คำนวณโดย Supabase): เหลือ X / Y ที่ หรือ เต็มแล้ว / ปิดรับ
+        const courseOnlineOnly = Boolean(window.getCourseEffectiveSeats && window.getCourseEffectiveSeats(course).onlineOnly);
         const roundSeatCell = s => {
           const info = window.getRoundSeatInfo ? window.getRoundSeatInfo(s) : { isFull: false, capacity: null };
+          // โหมดเปิดรับเฉพาะออนไลน์: ออนไซต์เต็มแล้ว แต่ยังสมัครเรียนออนไลน์ในรอบนี้ได้ (ยกเว้นรอบที่แอดมินปิดรับ)
+          if (courseOnlineOnly && !info.closed) return '<span class="schedule-seat online"><i class="fa-solid fa-laptop"></i> เหลือเฉพาะออนไลน์</span>';
           if (info.isFull) return `<span class="schedule-seat full"><i class="fa-solid fa-ban"></i> ${info.closed ? 'ปิดรับรอบนี้' : 'เต็มแล้ว'}</span>`;
           if (info.capacity !== null) return `<span class="schedule-seat ${info.remaining <= 3 ? 'low' : ''}"><i class="fa-solid fa-chair"></i> เหลือ ${info.remaining} / ${info.capacity} ที่</span>`;
           return '<span class="schedule-seat"><i class="fa-solid fa-circle-check"></i> เปิดรับสมัคร</span>';
@@ -521,11 +539,13 @@ function initCourseDetailPage() {
       };
       directRegisterBtn.classList.remove('disabled');
       directRegisterBtn.removeAttribute('aria-disabled');
-      if (directTitle) directTitle.textContent = 'สมัครเรียนเลย (จองที่นั่ง)';
+      if (directTitle) directTitle.textContent = eff.onlineOnly ? 'สมัครเรียนออนไลน์' : 'สมัครเรียนเลย (จองที่นั่ง)';
       if (directSub) {
-        directSub.textContent = (eff.remainingSeats > 0 && eff.remainingSeats <= 5)
-          ? `🔥 เหลือเพียง ${eff.remainingSeats} ที่นั่งสุดท้าย`
-          : 'กรอกข้อมูลและลงทะเบียนทันที';
+        directSub.textContent = eff.onlineOnly
+          ? '💻 ออนไซต์เต็มแล้ว • เปิดรับเฉพาะออนไลน์'
+          : ((eff.remainingSeats > 0 && eff.remainingSeats <= 5)
+            ? `🔥 เหลือเพียง ${eff.remainingSeats} ที่นั่งสุดท้าย`
+            : 'กรอกข้อมูลและลงทะเบียนทันที');
       }
     }
   }
@@ -602,6 +622,28 @@ function initCourseDetailPage() {
   } else if (hiddenBannerEl) {
     hiddenBannerEl.remove();
   }
+
+  // โหมดเปิดรับเฉพาะออนไลน์: แจ้งชัด ๆ ใต้ชื่อคอร์สว่าตอนนี้เหลือแค่เรียนออนไลน์
+  let onlineNotice = document.getElementById('cdOnlineOnlyNotice');
+  if (eff.onlineOnly) {
+    if (!onlineNotice) {
+      onlineNotice = document.createElement('div');
+      onlineNotice.id = 'cdOnlineOnlyNotice';
+      onlineNotice.className = 'cd-online-only-notice';
+      onlineNotice.innerHTML = `
+        <i class="fa-solid fa-laptop"></i>
+        <div>
+          <strong>ที่นั่งเรียนออนไซต์เต็มแล้ว — ตอนนี้เปิดรับเฉพาะเรียนออนไลน์</strong>
+          <span>เรียนสดผ่าน Zoom พร้อมเพื่อนในห้อง ตามรอบเวลาเดียวกับตารางเรียนด้านล่าง</span>
+        </div>
+      `;
+      const subjectsAnchor = document.getElementById('cdCourseSubjects');
+      if (subjectsAnchor) subjectsAnchor.insertAdjacentElement('afterend', onlineNotice);
+      else document.querySelector('.cd-header-meta')?.append(onlineNotice);
+    }
+  } else if (onlineNotice) {
+    onlineNotice.remove();
+  }
 }
 
 function renderRelatedCourses(currentCourseId) {
@@ -631,28 +673,32 @@ function renderRelatedCourses(currentCourseId) {
   const baseLineUrl = (contact && contact.lineUrl) ? contact.lineUrl : 'https://lin.ee/RXrzi1G';
 
   relatedGrid.innerHTML = filteredCourses.map(c => {
-    const isFull = Boolean(c.isFull === true || (c.remainingSeats !== null && Number(c.remainingSeats) <= 0));
+    const eff = window.getCourseEffectiveSeats ? window.getCourseEffectiveSeats(c) : null;
+    const isFull = eff ? eff.isFull : Boolean(c.isFull === true || (c.remainingSeats !== null && Number(c.remainingSeats) <= 0));
+    const modeText = (eff && eff.onlineOnly) ? 'ออนไซต์เต็ม • เหลือเฉพาะเรียนออนไลน์' : 'เรียนสด Onsite ได้ความรู้เต็มเปี่ยม';
+    // การ์ดแบบ "ไม่ครอปรูป + ข้อความบรรทัดเดียว" (ข้อความยาวเกินจะตัดด้วย … และดูเต็มได้เมื่อชี้เมาส์)
     return `
-    <div class="course-card" style="min-width: 290px; max-width: 310px; flex: 0 0 295px; margin: 0; display: flex; flex-direction: column;">
-      <a href="course-detail.html?id=${c.id}" class="course-thumbnail ${isFull ? 'is-full' : ''}" aria-label="ดูรายละเอียด ${c.title}">
-        <img src="${c.cover || c.poster}" alt="${c.title}" loading="lazy">
+    <div class="course-card cd-related-card">
+      <a href="course-detail.html?id=${escapeHtml(c.id)}" class="course-thumbnail ${isFull ? 'is-full' : ''}" aria-label="ดูรายละเอียด ${escapeHtml(c.title)}">
+        <img src="${escapeHtml(c.cover || c.poster || '')}" alt="${escapeHtml(c.title)}" loading="lazy">
         <span class="course-badge-level">${escapeHtml(c.categoryLabel || (c.category === 'primary' ? 'ประถมศึกษา' : 'มัธยมศึกษาตอนต้น'))}</span>
-        ${window.getCourseSeatBadgeHtml ? window.getCourseSeatBadgeHtml(c) : `<span class="badge ${c.statusClass} course-badge-status">${c.statusBadge}</span>`}
+        ${window.getCourseSeatBadgeHtml ? window.getCourseSeatBadgeHtml(c) : `<span class="badge ${c.statusClass} course-badge-status">${escapeHtml(c.statusBadge)}</span>`}
       </a>
-      <div class="course-body" style="flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
+      <div class="course-body">
         <div>
-          <h3 class="course-title">
-            <a href="course-detail.html?id=${c.id}">${c.title}</a>
+          <h3 class="course-title one-line" title="${escapeHtml(c.title)}">
+            <a href="course-detail.html?id=${escapeHtml(c.id)}">${escapeHtml(c.title)}</a>
           </h3>
-          <div class="course-subjects"><i class="fa-solid fa-graduation-cap"></i> ${c.subjects}</div>
+          <div class="course-subjects one-line" title="${escapeHtml(c.subjects)}"><i class="fa-solid fa-graduation-cap"></i> ${escapeHtml(c.subjects)}</div>
           <div class="course-meta-list">
-            <div class="course-meta-item">
+            ${c.totalHours ? `
+            <div class="course-meta-item one-line" title="เวลาเรียน: ${escapeHtml(c.totalHours)}">
               <i class="fa-regular fa-clock"></i>
-              <span>เวลาเรียน: ${c.totalHours}</span>
-            </div>
-            <div class="course-meta-item">
-              <i class="fa-solid fa-chalkboard-user"></i>
-              <span>เรียนสด Onsite ได้ความรู้เต็มเปี่ยม</span>
+              <span>เวลาเรียน: ${escapeHtml(c.totalHours)}</span>
+            </div>` : ''}
+            <div class="course-meta-item one-line" title="${escapeHtml(modeText)}">
+              <i class="fa-solid ${eff && eff.onlineOnly ? 'fa-laptop' : 'fa-chalkboard-user'}"></i>
+              <span>${escapeHtml(modeText)}</span>
             </div>
           </div>
         </div>
@@ -674,11 +720,11 @@ function renderRelatedCourses(currentCourseId) {
                 <i class="fa-solid fa-ban"></i> ที่นั่งเต็ม
               </button>
             ` : `
-              <button type="button" class="btn-course-register" onclick="openEnrollmentModal('${c.id}')" title="สมัครเรียนคอร์สนี้">
+              <button type="button" class="btn-course-register" onclick="openEnrollmentModal('${escapeHtml(c.id)}')" title="สมัครเรียนคอร์สนี้">
                 <i class="fa-solid fa-bolt"></i> สมัครเลย
               </button>
             `}
-            <a href="course-detail.html?id=${c.id}" class="btn-detail-link">
+            <a href="course-detail.html?id=${escapeHtml(c.id)}" class="btn-detail-link">
               รายละเอียด <i class="fa-solid fa-arrow-right"></i>
             </a>
           </div>
@@ -695,7 +741,8 @@ function renderRelatedCourses(currentCourseId) {
 function scrollRelatedCourses(direction) {
   const grid = document.getElementById('cdRelatedGrid');
   if (!grid) return;
-  const scrollAmount = 315 * direction;
+  const firstCard = grid.querySelector('.course-card');
+  const scrollAmount = (firstCard ? firstCard.offsetWidth + 20 : 315) * direction;
   grid.scrollBy({ left: scrollAmount, behavior: 'smooth' });
 }
 window.scrollRelatedCourses = scrollRelatedCourses;
