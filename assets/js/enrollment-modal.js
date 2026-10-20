@@ -593,7 +593,9 @@
 
   // การ์ดเลือกรอบเรียน: แสดงที่นั่งออนไซต์คงเหลือ/เหลือเฉพาะออนไลน์ รอบที่ปิดรับกดไม่ได้ และเลือกรอบแรกที่ยังรับได้ไว้ให้
   function renderRoundCards(schedules, inputName, extraAttrs, labelStyle) {
-    const firstOpen = schedules.findIndex(s => !isRoundBlocked(s));
+    // เลือกรอบที่ยังรับออนไซต์ได้ไว้ก่อน ถ้าไม่มีค่อยเลือกรอบแรกที่ยังสมัคร (ออนไลน์) ได้
+    const onsiteOpen = schedules.findIndex(s => !roundInfo(s).onsiteFull);
+    const firstOpen = onsiteOpen !== -1 ? onsiteOpen : schedules.findIndex(s => !isRoundBlocked(s));
     return schedules.map((s, idx) => {
       const info = roundInfo(s);
       const blocked = info.isFull;

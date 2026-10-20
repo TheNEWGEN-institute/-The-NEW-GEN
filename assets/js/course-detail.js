@@ -94,7 +94,7 @@ function initCourseDetailPage() {
     const onlineOnlyNow = Boolean(window.getCourseEffectiveSeats && window.getCourseEffectiveSeats(course).onlineOnly);
     learnModeBadge.innerHTML = onlineOnlyNow
       ? '<i class="fa-solid fa-laptop"></i> เรียนสด Online (Zoom)'
-      : '<i class="fa-solid fa-chalkboard-user"></i> เรียนสด Onsite กลุ่มเล็ก';
+      : '<i class="fa-solid fa-chalkboard-user"></i> เรียนสด Onsite &amp; Online';
   }
 
   const titleEl = document.getElementById('cdCourseTitle');
@@ -228,7 +228,7 @@ function initCourseDetailPage() {
           const noteLines = course.scheduleNote.split('\n').map(l => l.trim()).filter(Boolean);
           scheduleNoteEl.innerHTML = `<strong>หมายเหตุการสำรองที่นั่ง:</strong><br>${noteLines.map(l => escapeHtml(l)).join('<br>')}`;
         } else {
-          scheduleNoteEl.innerHTML = `<strong>หมายเหตุการสำรองที่นั่ง:</strong> เนื่องจากแต่ละกลุ่มเป็นห้องเรียนสด Onsite กลุ่มเล็กเพื่อการดูแลทั่วถึง โควตาในแต่ละรอบจึงมีจำนวนจำกัด หากรอบใดเต็มแล้วจะปิดรับสมัครทันที แนะนำให้ติดต่อสำรองที่นั่งล่วงหน้าครับ`;
+          scheduleNoteEl.innerHTML = `<strong>หมายเหตุการสำรองที่นั่ง:</strong> ห้องเรียน Onsite แต่ละรอบเป็นกลุ่มเล็กเพื่อการดูแลทั่วถึง ที่นั่งออนไซต์จึงมีจำนวนจำกัด หากรอบใดออนไซต์เต็มแล้ว ยังสมัครเรียน Online ในรอบนั้นได้ แนะนำให้ติดต่อสำรองที่นั่งล่วงหน้าครับ`;
         }
       }
     } else {
@@ -678,7 +678,7 @@ function renderRelatedCourses(currentCourseId) {
   relatedGrid.innerHTML = filteredCourses.map(c => {
     const eff = window.getCourseEffectiveSeats ? window.getCourseEffectiveSeats(c) : null;
     const isFull = eff ? eff.isFull : Boolean(c.isFull === true || (c.remainingSeats !== null && Number(c.remainingSeats) <= 0));
-    const modeText = (eff && eff.onlineOnly) ? 'ออนไซต์เต็ม • เหลือเฉพาะเรียนออนไลน์' : 'เรียนสด Onsite ได้ความรู้เต็มเปี่ยม';
+    const modeText = (eff && eff.onlineOnly) ? 'ออนไซต์เต็ม • เหลือเฉพาะเรียนออนไลน์' : 'เรียนสด Onsite & Online กลุ่มเล็ก';
     // การ์ดแบบ "ไม่ครอปรูป + ข้อความบรรทัดเดียว" (ข้อความยาวเกินจะตัดด้วย … และดูเต็มได้เมื่อชี้เมาส์)
     return `
     <div class="course-card cd-related-card">
