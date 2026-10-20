@@ -20,6 +20,7 @@ type Subject = { name?: string; date?: string; time?: string };
 type Enrollment = {
   id?: string;
   studentName?: string;
+  nickname?: string;
   grade?: string;
   courseId?: string;
   courseTitle?: string;
@@ -84,10 +85,14 @@ export function formatMessage(p: Payload): string {
   const lt = String(en.learningType ?? "").toLowerCase();
   const learning = lt === "online" ? "💻 Online" : lt === "mixed" ? "🏫+💻 แยกตามคอร์ส (ดูท้ายรอบเวลา)" : "🏫 Onsite";
 
+  // ชื่อเล่นต่อท้ายชื่อ เช่น "ด.ช. ธนภัทร ใจดี (น้องกาย)" — ถ้าพิมพ์ "น้อง" มาแล้วไม่เติมซ้ำ
+  const nick = String(en.nickname ?? "").trim();
+  const nickText = nick ? ` (${nick.startsWith("น้อง") ? nick : "น้อง" + nick})` : "";
+
   const lines = [
     isCampaign ? "🔔 มีผู้สมัครโครงการติวฟรีใหม่!" : "🔔 มีผู้สมัครคอร์สเรียนใหม่!",
     "",
-    `👤 ชื่อ-สกุล: ${en.studentName || "-"}`,
+    `👤 ชื่อ-สกุล: ${en.studentName || "-"}${nickText}`,
     `🎓 ระดับชั้น: ${en.grade || "-"}`,
   ];
 
