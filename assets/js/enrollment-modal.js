@@ -166,6 +166,7 @@
                       <div>
                         <strong id="enrOnlineTitle">เรียนสด Online (Zoom)</strong>
                         <small id="enrOnlineDesc">เรียนสดพร้อมถามตอบได้ทันที จัดส่งหนังสือฟรีถึงบ้าน</small>
+                        <small class="enr-type-full-note" id="enrOnlineClosedNote" style="display: none;"><i class="fa-solid fa-ban"></i> รอบนี้ไม่เปิดเรียนออนไลน์</small>
                       </div>
                     </div>
                   </label>
@@ -558,36 +559,60 @@
     }
   };
 
-  // คอร์สนี้อยู่ในโหมด "เปิดรับเฉพาะออนไลน์ (ออนไซต์เต็มแล้ว)" หรือไม่
+  // คอร์สนี้ "เหลือเฉพาะออนไลน์" ทั้งคอร์สหรือไม่ (ออนไซต์เต็มทุกรอบ แต่ยังมีรอบที่เปิดรับออนไลน์)
   function isCourseOnlineOnly(c) {
     if (!c) return false;
-    return window.getCourseEffectiveSeats
-      ? Boolean(window.getCourseEffectiveSeats(c).onlineOnly)
-      : (c.onlineOnly === true && c.forceClosed !== true);
+    return window.getCourseEffectiveSeats ? Boolean(window.getCourseEffectiveSeats(c).onlineOnly) : false;
   }
 
-  // รอบเรียนนี้เลือกไม่ได้หรือไม่: ปกติ = เต็มหรือปิดรับ / โหมดเฉพาะออนไลน์ = เฉพาะรอบที่แอดมินปิดรับ (เรียนออนไลน์ไม่จำกัดที่นั่ง)
-  function isRoundBlocked(round, onlineOnly) {
-    const info = window.getRoundSeatInfo ? window.getRoundSeatInfo(round) : { isFull: false, closed: false };
-    return onlineOnly ? info.closed : info.isFull;
+  const roundInfo = round => (window.getRoundSeatInfo
+    ? window.getRoundSeatInfo(round, { courseRound: true })
+    : { isFull: false, closed: false, onsiteFull: false, online: true, onlineOnly: false, capacity: null });
+
+  // รอบเรียนนี้รับใครไม่ได้แล้ว (ปิดรับ หรือ ออนไซต์เต็มและรอบนี้ไม่เปิดออนไลน์)
+  function isRoundBlocked(round) {
+    return roundInfo(round).isFull;
   }
 
-  // การ์ดเลือกรอบเรียน: แสดงที่นั่งคงเหลือ รอบที่เต็ม/ปิดรับกดไม่ได้ และเลือกรอบแรกที่ยังว่างไว้ให้
-  function renderRoundCards(schedules, inputName, extraAttrs, labelStyle, onlineOnly) {
-    const seat = window.getRoundSeatInfo || (() => ({ isFull: false, capacity: null, remaining: null }));
-    const firstOpen = schedules.findIndex(s => !isRoundBlocked(s, onlineOnly));
+  function findCourseRound(course, value) {
+    if (!course || !Array.isArray(course.scheduleList) || !value) return null;
+    return course.scheduleList.find(r => `${r.type || ''} | ${r.time || ''} | ${r.dates || ''}` === value)
+      || course.scheduleList.find(r => (r.type || '') === String(value).split(' | ')[0])
+      || null;
+  }
+
+  // รูปแบบการเรียนที่เลือกได้ ตามรอบที่เลือก: ออนไซต์เต็ม → Online เท่านั้น / รอบไม่เปิดออนไลน์ → Onsite เท่านั้น
+  // (ใช้ข้อมูลที่นั่งล่าสุดเสมอ ไม่ใช่สำเนาตอนเปิดฟอร์ม)
+  function learningTypeRule(courseRef, roundValue) {
+    const courses = window.NewGenDB ? window.NewGenDB.getCourses() : (window.courseData || []);
+    const course = (courseRef && courses.find(x => x.id === courseRef.id)) || courseRef;
+    const round = findCourseRound(course, roundValue);
+    if (!round) return { onsiteBlocked: isCourseOnlineOnly(course), onlineBlocked: false };
+    const info = roundInfo(round);
+    const eff = window.getCourseEffectiveSeats ? window.getCourseEffectiveSeats(course) : { remainingSeats: 1 };
+    const onsiteBlocked = info.onsiteFull || (info.capacity !== null && Number(eff.remainingSeats) <= 0);
+    return { onsiteBlocked: onsiteBlocked && info.online, onlineBlocked: !info.online };
+  }
+
+  // การ์ดเลือกรอบเรียน: แสดงที่นั่งออนไซต์คงเหลือ/เหลือเฉพาะออนไลน์ รอบที่รับไม่ได้กดไม่ได้ และเลือกรอบแรกที่ยังรับได้ไว้ให้
+  function renderRoundCards(schedules, inputName, extraAttrs, labelStyle) {
+    const firstOpen = schedules.findIndex(s => !isRoundBlocked(s));
     return schedules.map((s, idx) => {
-      const info = seat(s);
-      const blocked = isRoundBlocked(s, onlineOnly);
+      const info = roundInfo(s);
+      const blocked = info.isFull;
       const selected = idx === firstOpen;
       const value = `${s.type || ''} | ${s.time || ''} | ${s.dates || ''}`;
-      const seatTag = blocked
-        ? `<span class="badge badge-seat-full" style="font-size: 0.72rem;">🛑 ${info.closed ? 'ปิดรับรอบนี้' : 'เต็มแล้ว'}</span>`
-        : (onlineOnly
-          ? '<span class="sched-seat-tag online"><i class="fa-solid fa-laptop"></i> รับเฉพาะเรียนออนไลน์</span>'
-          : (info.capacity !== null
-            ? `<span class="sched-seat-tag ${info.remaining <= 3 ? 'low' : ''}"><i class="fa-solid fa-chair"></i> เหลือ ${info.remaining}/${info.capacity} ที่</span>`
-            : ''));
+      let seatTag = '';
+      if (blocked) {
+        seatTag = `<span class="badge badge-seat-full" style="font-size: 0.72rem;">🛑 ${info.closed ? 'ปิดรับรอบนี้' : 'เต็มแล้ว'}</span>`;
+      } else if (info.onlineOnly) {
+        seatTag = '<span class="sched-seat-tag online"><i class="fa-solid fa-laptop"></i> ออนไซต์เต็ม • เหลือเฉพาะออนไลน์</span>';
+      } else {
+        if (info.capacity !== null) seatTag += `<span class="sched-seat-tag ${info.remaining <= 3 ? 'low' : ''}"><i class="fa-solid fa-chair"></i> ออนไซต์เหลือ ${info.remaining}/${info.capacity} ที่</span> `;
+        seatTag += info.online
+          ? '<span class="sched-seat-tag online"><i class="fa-solid fa-laptop"></i> + ออนไลน์</span>'
+          : '<span class="sched-seat-tag onsite-only"><i class="fa-solid fa-school"></i> เฉพาะออนไซต์</span>';
+      }
       return `
         <label class="enroll-schedule-card ${selected ? 'active' : ''} ${blocked ? 'disabled' : ''}" onclick="selectEnrollSchedule(this)" style="${labelStyle}">
           <input type="radio" name="${inputName}" ${extraAttrs} value="${escapeHtml(value)}" ${selected ? 'checked' : ''} ${blocked ? 'disabled' : ''}>
@@ -619,13 +644,10 @@
     const radioFull = (courseId, value) => {
       const c = courses.find(x => x.id === courseId);
       if (!c) return false;
-      const round = Array.isArray(c.scheduleList)
-        ? c.scheduleList.find(r => `${r.type || ''} | ${r.time || ''} | ${r.dates || ''}` === value || (r.type || '') === value.split(' | ')[0])
-        : null;
+      const round = findCourseRound(c, value);
       const courseFull = window.getCourseEffectiveSeats ? window.getCourseEffectiveSeats(c).isFull : c.isFull === true;
-      return Boolean(courseFull || (round && isRoundBlocked(round, isCourseOnlineOnly(c))));
+      return Boolean(courseFull || (round && isRoundBlocked(round)));
     };
-    applyLearningTypeLocks();
     if (currentEnrollCourse.isCampaign) {
       const camp = window.NewGenDB ? window.NewGenDB.getPopupCampaign() : null;
       const subs = camp && Array.isArray(camp.subjects) ? camp.subjects : [];
@@ -642,37 +664,47 @@
         if (radioFull(currentEnrollCourse.id, rb.value)) disable(rb);
       });
     }
+    applyLearningTypeLocks();
   }
 
-  // ล็อกตัวเลือก Onsite ของคอร์สที่ "ออนไซต์เต็มแล้ว" ให้เลือกได้เฉพาะ Online พร้อมข้อความกำกับ
-  function lockTypeInputs(inputName, onlineOnly, noteEl) {
+  // ล็อกตัวเลือก Onsite / Online ตามรอบที่เลือก พร้อมข้อความกำกับ
+  function lockTypeInputs(inputName, rule, onsiteNote, onlineNote) {
     const onsite = document.querySelector(`input[name="${inputName}"][value="onsite"]`);
     const online = document.querySelector(`input[name="${inputName}"][value="online"]`);
     if (!onsite || !online) return;
-    onsite.disabled = onlineOnly;
-    if (onlineOnly && onsite.checked) online.checked = true;
-    const onsiteCard = onsite.closest('label');
-    const onlineCard = online.closest('label');
-    if (onsiteCard) {
-      onsiteCard.classList.toggle('disabled', onlineOnly);
-      onsiteCard.classList.toggle('active', onsite.checked);
-    }
-    if (onlineCard) onlineCard.classList.toggle('active', online.checked);
-    if (noteEl) noteEl.style.display = onlineOnly ? '' : 'none';
+    onsite.disabled = rule.onsiteBlocked;
+    online.disabled = rule.onlineBlocked;
+    if (rule.onsiteBlocked && onsite.checked) online.checked = true;
+    if (rule.onlineBlocked && online.checked) onsite.checked = true;
+    [[onsite, rule.onsiteBlocked], [online, rule.onlineBlocked]].forEach(([input, blocked]) => {
+      const card = input.closest('label');
+      if (!card) return;
+      card.classList.toggle('disabled', blocked);
+      card.classList.toggle('active', input.checked);
+    });
+    if (onsiteNote) onsiteNote.style.display = rule.onsiteBlocked ? '' : 'none';
+    if (onlineNote) onlineNote.style.display = rule.onlineBlocked ? '' : 'none';
   }
 
   function applyLearningTypeLocks() {
     if (!currentEnrollCourse) return;
     const courses = window.NewGenDB ? window.NewGenDB.getCourses() : (window.courseData || []);
     const liveOf = c => courses.find(x => x.id === c.id) || c;
+    const esc = v => (window.CSS && CSS.escape ? CSS.escape(v) : v);
     if (currentEnrollCourse.isBundle) {
       (currentEnrollCourse.childCourses || []).forEach(cc => {
-        lockTypeInputs(`enrollLearningType_${cc.id}`, isCourseOnlineOnly(liveOf(cc)),
-          document.querySelector(`[data-full-note-for="${window.CSS && CSS.escape ? CSS.escape(cc.id) : cc.id}"]`));
+        const sel = document.querySelector(`input[name="enrollScheduleChoice_${esc(cc.id)}"]:checked`);
+        lockTypeInputs(`enrollLearningType_${cc.id}`, learningTypeRule(liveOf(cc), sel ? sel.value : ''),
+          document.querySelector(`[data-full-note-for="${esc(cc.id)}"]`),
+          document.querySelector(`[data-online-note-for="${esc(cc.id)}"]`));
       });
+    } else if (currentEnrollCourse.isCampaign) {
+      lockTypeInputs('enrollLearningType', { onsiteBlocked: false, onlineBlocked: false },
+        document.getElementById('enrOnsiteFullNote'), document.getElementById('enrOnlineClosedNote'));
     } else {
-      const onlineOnly = !currentEnrollCourse.isCampaign && isCourseOnlineOnly(liveOf(currentEnrollCourse));
-      lockTypeInputs('enrollLearningType', onlineOnly, document.getElementById('enrOnsiteFullNote'));
+      const sel = document.querySelector('input[name="enrollScheduleChoice"]:checked');
+      lockTypeInputs('enrollLearningType', learningTypeRule(liveOf(currentEnrollCourse), sel ? sel.value : ''),
+        document.getElementById('enrOnsiteFullNote'), document.getElementById('enrOnlineClosedNote'));
     }
   }
 
@@ -1026,7 +1058,6 @@
             const schedules = Array.isArray(cc.scheduleList) && cc.scheduleList.length > 0
               ? cc.scheduleList
               : [{ type: 'รอบเรียนปกติ', time: 'ตามรอบสถาบัน', dates: 'เปิดเทอม' }];
-            const ccOnlineOnly = isCourseOnlineOnly(cc);
             const typeName = `enrollLearningType_${cc.id}`;
 
             return `
@@ -1037,7 +1068,12 @@
                   <span class="bundle-sched-count">วิชาที่ ${cIdx + 1}/${course.childCourses.length}</span>
                 </div>
 
-                <div class="bundle-sub-label"><i class="fa-solid fa-chalkboard-user"></i> รูปแบบการเรียน <span class="req-star">*</span></div>
+                <div class="bundle-sub-label"><i class="fa-regular fa-calendar-check"></i> รอบเรียน <span class="req-star">*</span></div>
+                <div class="enroll-schedule-grid" style="display: grid; gap: 8px; margin-bottom: 10px;">
+                  ${renderRoundCards(schedules, `enrollScheduleChoice_${cc.id}`, `data-course-id="${escapeHtml(cc.id)}" data-course-title="${escapeHtml(cc.title)}"`, 'margin: 0;')}
+                </div>
+
+                <div class="bundle-sub-label"><i class="fa-solid fa-chalkboard-user"></i> รูปแบบการเรียน (ตามรอบที่เลือก) <span class="req-star">*</span></div>
                 <div class="bundle-type-options">
                   <label class="bundle-type-pill">
                     <input type="radio" name="${typeName}" value="onsite" checked onchange="syncBundleTypePill(this)">
@@ -1047,19 +1083,15 @@
                   <label class="bundle-type-pill">
                     <input type="radio" name="${typeName}" value="online" onchange="syncBundleTypePill(this)">
                     <span><i class="fa-solid fa-laptop"></i> Online (Zoom)</span>
+                    <small class="enr-type-full-note" data-online-note-for="${escapeHtml(cc.id)}" style="display: none;"><i class="fa-solid fa-ban"></i> รอบนี้ไม่เปิดออนไลน์</small>
                   </label>
-                </div>
-
-                <div class="bundle-sub-label"><i class="fa-regular fa-calendar-check"></i> รอบเรียน <span class="req-star">*</span></div>
-                <div class="enroll-schedule-grid" style="display: grid; gap: 8px;">
-                  ${renderRoundCards(schedules, `enrollScheduleChoice_${cc.id}`, `data-course-id="${escapeHtml(cc.id)}" data-course-title="${escapeHtml(cc.title)}"`, 'margin: 0;', ccOnlineOnly)}
                 </div>
               </div>
             `;
           }).join('');
         } else if (Array.isArray(course.scheduleList) && course.scheduleList.length > 0) {
           schedSection.style.display = 'block';
-          schedContainer.innerHTML = renderRoundCards(course.scheduleList, 'enrollScheduleChoice', '', '', courseOnlineOnly);
+          schedContainer.innerHTML = renderRoundCards(course.scheduleList, 'enrollScheduleChoice', '', '');
         } else {
           schedSection.style.display = 'none';
           schedContainer.innerHTML = `<input type="hidden" name="enrollScheduleChoice" value="ตารางเรียนมาตรฐานตามรอบคอร์ส">`;
@@ -1177,6 +1209,8 @@
     cardEl.classList.add('active');
     const radio = cardEl.querySelector('input[type="radio"]');
     if (radio) radio.checked = true;
+    // รูปแบบการเรียนที่เลือกได้ขึ้นกับรอบ (ออนไซต์เต็ม → Online เท่านั้น)
+    applyLearningTypeLocks();
   };
 
   window.toggleEnrollType = function (type) {
@@ -1313,10 +1347,11 @@
         if (radios.length > 0 && !sel && !missingRound) missingRound = cc.title;
         const val = sel ? sel.value : (cc.scheduleList?.[0]?.type || 'รอบเรียนปกติ');
         childSchedulesMap[cc.id] = val;
-        // รูปแบบการเรียนแยกรายคอร์ส (คอร์สที่ออนไซต์เต็ม = Online เท่านั้น)
+        // รูปแบบการเรียนแยกรายคอร์ส ตามรอบที่เลือก (ออนไซต์เต็ม = Online เท่านั้น / รอบไม่เปิดออนไลน์ = Onsite เท่านั้น)
+        const rule = learningTypeRule(cc, val);
         const typeSel = document.querySelector(`input[name="enrollLearningType_${cc.id}"]:checked:not(:disabled)`);
-        const ccType = typeSel ? typeSel.value : (isCourseOnlineOnly(cc) ? 'online' : 'onsite');
-        if (ccType !== 'online' && isCourseOnlineOnly(cc) && !onsiteBlocked) onsiteBlocked = cc.title;
+        const ccType = typeSel ? typeSel.value : (rule.onsiteBlocked ? 'online' : 'onsite');
+        if (!onsiteBlocked && ((ccType !== 'online' && rule.onsiteBlocked) || (ccType === 'online' && rule.onlineBlocked))) onsiteBlocked = cc.title;
         childLearningTypes[cc.id] = ccType;
         scheduleLines.push(`• [${cc.title}]: ${val} (เรียน ${ccType === 'online' ? 'Online' : 'Onsite'})`);
       });
@@ -1325,7 +1360,8 @@
         return;
       }
       if (onsiteBlocked) {
-        alert(`⚠️ "${onsiteBlocked}" ที่นั่งออนไซต์เต็มแล้ว กรุณาเลือกเรียน Online สำหรับคอร์สนี้`);
+        alert(`⚠️ รูปแบบการเรียนของ "${onsiteBlocked}" ไม่ตรงกับรอบที่เลือก (ออนไซต์เต็ม หรือรอบนี้ไม่เปิดออนไลน์) กรุณาเลือกใหม่`);
+        applyLearningTypeLocks();
         return;
       }
       scheduleChoice = scheduleLines.join('\n');
@@ -1347,10 +1383,15 @@
     } else {
       const typeSelected = document.querySelector('input[name="enrollLearningType"]:checked:not(:disabled)');
       learningType = typeSelected ? typeSelected.value : 'onsite';
-      if (!currentEnrollCourse.isCampaign && learningType !== 'online' && isCourseOnlineOnly(currentEnrollCourse)) {
-        alert('⚠️ คอร์สนี้ที่นั่งออนไซต์เต็มแล้ว เปิดรับเฉพาะเรียนออนไลน์ กรุณาเลือก "เรียนสด Online"');
-        applyLearningTypeLocks();
-        return;
+      if (!currentEnrollCourse.isCampaign) {
+        const rule = learningTypeRule(currentEnrollCourse, scheduleChoice);
+        if ((learningType !== 'online' && rule.onsiteBlocked) || (learningType === 'online' && rule.onlineBlocked)) {
+          alert(rule.onsiteBlocked
+            ? '⚠️ รอบนี้ที่นั่งออนไซต์เต็มแล้ว เหลือเฉพาะเรียนออนไลน์ กรุณาเลือก "เรียนสด Online"'
+            : '⚠️ รอบนี้ไม่เปิดเรียนออนไลน์ กรุณาเลือก "เรียนสด Onsite"');
+          applyLearningTypeLocks();
+          return;
+        }
       }
     }
 
@@ -1496,7 +1537,7 @@
       restoreSubmitBtn();
 
       // ที่นั่งเต็มระหว่างกรอกฟอร์ม (Supabase ปฏิเสธ) → แจ้งชัดเจน ดึงที่นั่งล่าสุด แล้วให้เลือกรอบอื่น
-      const full = String(err && err.message || '').match(/(ROUND_FULL|COURSE_FULL|SUBJECT_FULL|ROUND_UNKNOWN|ONSITE_FULL)\|([^"\\]*)/);
+      const full = String(err && err.message || '').match(/(ROUND_FULL|COURSE_FULL|SUBJECT_FULL|ROUND_UNKNOWN|ONSITE_FULL|ONLINE_CLOSED)\|([^"\\]*)/);
       if (full) {
         const parts = full[2].split('|');
         const msg = {
@@ -1504,7 +1545,8 @@
           COURSE_FULL: `ขออภัยครับ ${parts[0] || 'คอร์สนี้'} ที่นั่งเต็มแล้ว\nทัก LINE สถาบันเพื่อสอบถามรอบถัดไปได้เลยครับ`,
           SUBJECT_FULL: `ขออภัยครับ วิชา "${parts[0] || ''}" ที่นั่งเต็มแล้ว\nกรุณาเลือกวิชาอื่นแล้วกดยืนยันอีกครั้ง`,
           ROUND_UNKNOWN: `รอบเรียนของ ${parts[0] || 'คอร์สนี้'} มีการเปลี่ยนแปลง\nกรุณาเลือกรอบเวลาใหม่แล้วกดยืนยันอีกครั้ง`,
-          ONSITE_FULL: `ขออภัยครับ ${parts[0] || 'คอร์สนี้'} ที่นั่งออนไซต์เต็มแล้ว (เปิดรับเฉพาะเรียนออนไลน์)\nกรุณาเลือกเรียน Online แล้วกดยืนยันอีกครั้ง`
+          ONSITE_FULL: `ขออภัยครับ ${parts[1] ? `รอบ "${parts[1]}" ของ ` : ''}${parts[0] || 'คอร์สนี้'} ที่นั่งออนไซต์เพิ่งเต็ม (เหลือเฉพาะเรียนออนไลน์)\nกรุณาเลือกเรียน Online หรือรอบอื่น แล้วกดยืนยันอีกครั้ง`,
+          ONLINE_CLOSED: `ขออภัยครับ ${parts[1] ? `รอบ "${parts[1]}" ของ ` : ''}${parts[0] || 'คอร์สนี้'} ไม่เปิดเรียนออนไลน์\nกรุณาเลือกเรียน Onsite หรือรอบอื่น แล้วกดยืนยันอีกครั้ง`
         }[full[1]];
         alert(msg);
         if (window.NewGenDB) await window.NewGenDB.syncFromSupabase();
