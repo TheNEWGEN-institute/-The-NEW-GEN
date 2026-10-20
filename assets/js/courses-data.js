@@ -1515,10 +1515,18 @@ function getCourseEffectiveSeats(c) {
   const remainingSeats = (c.remainingSeats !== undefined && c.remainingSeats !== null && c.remainingSeats !== '')
     ? Number(c.remainingSeats)
     : Math.max(0, maxSeats - enrolledCount);
-  // โหมด "เปิดรับเฉพาะออนไลน์ (ออนไซต์เต็มแล้ว)": ยังสมัครได้ (เฉพาะออนไลน์) แม้ที่นั่งออนไซต์จะหมด — ยกเว้นแอดมินกดปิดรับสมัคร
-  const onlineOnly = c.onlineOnly === true && c.forceClosed !== true;
-  const isFull = !onlineOnly && ((c.isFull === true) || (remainingSeats <= 0));
-  return { maxSeats, enrolledCount, remainingSeats, isFull, onlineOnly };
+  const forceClosed = c.forceClosed === true;
+  const rounds = (Array.isArray(c.scheduleList) ? c.scheduleList : []).filter(r => r && (r.type || r.time || r.dates));
+  // ที่นั่งรายรอบ = ที่นั่งออนไซต์ / รอบที่ "เปิดรับออนไลน์" ยังสมัครออนไลน์ได้แม้ออนไซต์เต็ม (ออนไลน์ไม่จำกัด)
+  if (rounds.some(r => Number(r.capacity) > 0)) {
+    const infos = rounds.map(r => getRoundSeatInfo(r, { courseRound: true }));
+    const anyOnsite = remainingSeats > 0 && infos.some(i => !i.onsiteFull);
+    const anyOnline = infos.some(i => i.online && !i.closed);
+    const isFull = forceClosed || (!anyOnsite && !anyOnline);
+    return { maxSeats, enrolledCount, remainingSeats, isFull, onlineOnly: !isFull && !anyOnsite };
+  }
+  const isFull = forceClosed || (c.isFull === true) || (remainingSeats <= 0);
+  return { maxSeats, enrolledCount, remainingSeats, isFull, onlineOnly: false };
 }
 if (typeof window !== 'undefined') {
   window.getCourseEffectiveSeats = getCourseEffectiveSeats;
@@ -1526,15 +1534,23 @@ if (typeof window !== 'undefined') {
 
 /**
  * สถานะที่นั่งของรอบเรียน 1 รอบ (หรือวิชาติวฟรี 1 วิชา)
- * capacity / remaining / isFull ถูกคำนวณโดย Supabase; รองรับรอบเก่าที่พิมพ์ "เต็มแล้ว" / "ปิดรับ" ไว้ในข้อความ
+ * capacity / remaining ถูกคำนวณโดย Supabase; รองรับรอบเก่าที่พิมพ์ "เต็มแล้ว" / "ปิดรับ" ไว้ในข้อความ
+ * รอบเรียนของคอร์ส (opts.courseRound): capacity = ที่นั่งออนไซต์, online = รอบนี้เปิดรับออนไลน์ด้วย (ค่าเริ่มต้น = เปิด)
+ *   onsiteFull  = ออนไซต์เต็ม/ปิดรับ
+ *   onlineOnly  = ออนไซต์เต็ม แต่ยังสมัครออนไลน์ได้ ("เหลือเฉพาะออนไลน์")
+ *   isFull      = รอบนี้รับใครไม่ได้แล้ว
  */
-function getRoundSeatInfo(s) {
-  if (!s) return { capacity: null, remaining: null, isFull: false, closed: false };
+function getRoundSeatInfo(s, opts) {
+  if (!s) return { capacity: null, remaining: null, isFull: false, closed: false, onsiteFull: false, online: false, onlineOnly: false };
   const legacyClosed = String(s.time || '').includes('เต็มแล้ว') || String(s.dates || '').includes('ปิดรับ');
   const closed = s.closed === true || s.active === false || s.enabled === false || legacyClosed;
   const capacity = Number(s.capacity) > 0 ? Number(s.capacity) : null;
   const remaining = capacity === null ? null : (typeof s.remaining === 'number' ? s.remaining : capacity);
-  return { capacity, remaining, closed, isFull: closed || s.isFull === true || (capacity !== null && remaining <= 0) };
+  const courseRound = Boolean(opts && opts.courseRound);
+  const onsiteFull = closed || (capacity !== null && remaining <= 0) || (!courseRound && s.isFull === true);
+  const online = courseRound && s.online !== false;
+  const onlineOnly = online && !closed && onsiteFull;
+  return { capacity, remaining, closed, onsiteFull, online, onlineOnly, isFull: closed || (onsiteFull && !online) };
 }
 if (typeof window !== 'undefined') {
   window.getRoundSeatInfo = getRoundSeatInfo;

@@ -1,15 +1,16 @@
 -- =====================================================================
--- The NEW GEN — "เปิดรับเฉพาะออนไลน์ (ออนไซต์เต็มแล้ว)"
+-- The NEW GEN — Onsite seats per round + "เหลือเฉพาะออนไลน์" automatically
 -- Run in Supabase → SQL Editor AFTER 05-round-capacity.sql. Safe to run more than once.
 --
--- What it does (only for courses where the admin ticked "เปิดรับเฉพาะออนไลน์"):
---   * REJECTS an Onsite application for that course       → error ONSITE_FULL|<course>
---     (also each course inside a bundle — every bundle course has its own learning type)
---   * ACCEPTS an Online application even when the round's seats are used up
---     (online is not limited by classroom seats), except rounds the admin closed
---     ("ปิดรับรอบนี้") and courses closed with "บังคับปิดรับสมัคร"
---   * Everything else is exactly the same as 05-round-capacity.sql
--- Seat counting is unchanged: every application that is not cancelled counts.
+-- Rules
+--   * "รับได้" of a round = ONSITE seats. Only Onsite applications use a seat
+--     (Online applications and cancelled ones do not).
+--   * Every round has "online" (เปิดรับออนไลน์), default = on. Online is unlimited.
+--   * Onsite full in a round:
+--       - online on  → the round stays open for Online only ("เหลือเฉพาะออนไลน์")
+--       - online off → the round is full
+--   * "ปิดรับรอบนี้" closes the round for everyone; "บังคับปิดรับสมัคร" closes the course.
+-- Errors the website understands (new): ONSITE_FULL|<course>|<round>, ONLINE_CLOSED|<course>|<round>
 -- =====================================================================
 
 do $$
@@ -20,6 +21,175 @@ begin
   end if;
 end $$;
 
+-- Online application? (everything else counts as Onsite)
+create or replace function public.is_online_app(d jsonb)
+returns boolean
+language sql
+immutable
+as $$
+  select lower(coalesce(d ->> 'learningType', 'onsite')) = 'online';
+$$;
+
+-- ---------------------------------------------------------------------
+-- 1) Recalculate seats (courses + free-campaign subjects)
+-- ---------------------------------------------------------------------
+create or replace function public.recompute_course_seats(p_course_ids text[] default null)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_courses    jsonb;
+  v_new        jsonb := '[]'::jsonb;
+  c            jsonb;
+  rounds       jsonb;
+  r            jsonb;
+  new_rounds   jsonb;
+  i            int;
+  n            int;
+  cap          int;
+  rem          int;
+  round_cnt    int;
+  online_cnt   int;
+  total_onsite int;
+  total_online int;
+  sum_cap      int;
+  sum_rem      int;
+  per_round    boolean;
+  course_cap   int;
+  course_rem   int;
+  closed       boolean;
+  online_on    boolean;
+  onsite_full  boolean;
+  any_open     boolean;
+  v_camp       jsonb;
+  subs         jsonb;
+  s            jsonb;
+  new_subs     jsonb;
+  sub_cnt      int;
+begin
+  select data into v_courses from public.app_data where key = 'courses' for update;
+  if v_courses is not null and jsonb_typeof(v_courses) = 'array' then
+    for c in select t.value from jsonb_array_elements(v_courses) with ordinality as t(value, ord) order by t.ord loop
+      if p_course_ids is null or c ->> 'id' = any (p_course_ids) then
+        rounds := case when jsonb_typeof(c -> 'scheduleList') = 'array' then c -> 'scheduleList' else '[]'::jsonb end;
+        n := jsonb_array_length(rounds);
+
+        select count(*) filter (where not public.is_online_app(e.data)),
+               count(*) filter (where public.is_online_app(e.data))
+          into total_onsite, total_online
+        from public.enrollments e
+        where e.course_id = c ->> 'id' and coalesce(e.data ->> 'status', 'pending') <> 'cancelled';
+
+        per_round := exists (select 1 from jsonb_array_elements(rounds) x where coalesce(public.json_int(x -> 'capacity'), 0) > 0);
+
+        new_rounds := '[]'::jsonb;
+        sum_cap := 0;
+        sum_rem := 0;
+        any_open := false;
+        for i in 0 .. n - 1 loop
+          r := rounds -> i;
+          select count(*) filter (where not public.is_online_app(e.data)),
+                 count(*) filter (where public.is_online_app(e.data))
+            into round_cnt, online_cnt
+          from public.enrollments e
+          where e.course_id = c ->> 'id'
+            and coalesce(e.data ->> 'status', 'pending') <> 'cancelled'
+            and public.match_round_index(rounds, e.data ->> 'scheduleChoice') = i;
+
+          closed := coalesce((r -> 'closed') = 'true'::jsonb, false)
+                    or coalesce(r ->> 'time', '') like '%เต็มแล้ว%'
+                    or coalesce(r ->> 'dates', '') like '%ปิดรับ%';
+          online_on := coalesce((r -> 'online') <> 'false'::jsonb, true);
+          cap := public.json_int(r -> 'capacity');
+          if cap is not null and cap > 0 then
+            rem := case when closed then 0 else greatest(0, cap - round_cnt) end;
+            sum_cap := sum_cap + cap;
+            sum_rem := sum_rem + rem;
+          else
+            cap := null;
+            rem := null;
+          end if;
+          onsite_full := closed or (cap is not null and rem <= 0);
+          if not closed and (not onsite_full or online_on) then
+            any_open := true;
+          end if;
+
+          new_rounds := new_rounds || jsonb_build_array(r || jsonb_build_object(
+            'enrolled', round_cnt,
+            'onlineEnrolled', online_cnt,
+            'remaining', rem,
+            'onsiteFull', onsite_full,
+            'onlineOnly', (not closed) and onsite_full and online_on,
+            'isFull', closed or (onsite_full and not online_on)
+          ));
+        end loop;
+
+        if per_round then
+          course_cap := sum_cap;
+          -- onsite applications without a round still use up the course total
+          course_rem := greatest(0, least(sum_rem, sum_cap - total_onsite));
+        else
+          course_cap := coalesce(public.json_int(c -> 'maxSeats'), 12);
+          course_rem := greatest(0, course_cap - total_onsite);
+          any_open := course_rem > 0;
+        end if;
+
+        c := c - 'onlineOnly' || jsonb_build_object(
+          'scheduleList', new_rounds,
+          'seatMode', case when per_round then 'round' else 'course' end,
+          'maxSeats', course_cap,
+          'remainingSeats', course_rem,
+          'enrolledCount', total_onsite,
+          'onlineEnrolledCount', total_online,
+          'isFull', coalesce((c -> 'forceClosed') = 'true'::jsonb, false) or not any_open
+        );
+      end if;
+      v_new := v_new || jsonb_build_array(c);
+    end loop;
+
+    update public.app_data set data = v_new, updated_at = now() where key = 'courses';
+  end if;
+
+  -- ----- free-campaign subjects (unchanged) -----
+  select data into v_camp from public.app_data where key = 'popupCampaign' for update;
+  if v_camp is not null and jsonb_typeof(v_camp -> 'subjects') = 'array' then
+    subs := v_camp -> 'subjects';
+    new_subs := '[]'::jsonb;
+    for s in select t.value from jsonb_array_elements(subs) with ordinality as t(value, ord) order by t.ord loop
+      select count(*) into sub_cnt
+      from public.enrollments e
+      where (e.course_id in ('campaign-free', 'campaign') or e.data ->> 'isCampaign' = 'true')
+        and coalesce(e.data ->> 'status', 'pending') <> 'cancelled'
+        and jsonb_typeof(e.data -> 'selectedSubjects') = 'array'
+        and exists (select 1 from jsonb_array_elements(e.data -> 'selectedSubjects') x where x ->> 'id' = s ->> 'id');
+
+      cap := public.json_int(s -> 'capacity');
+      if cap is not null and cap > 0 then
+        rem := greatest(0, cap - sub_cnt);
+      else
+        cap := null;
+        rem := null;
+      end if;
+      new_subs := new_subs || jsonb_build_array(s || jsonb_build_object(
+        'enrolled', sub_cnt,
+        'remaining', rem,
+        'isFull', cap is not null and rem <= 0
+      ));
+    end loop;
+    update public.app_data
+    set data = v_camp || jsonb_build_object('subjects', new_subs), updated_at = now()
+    where key = 'popupCampaign';
+  end if;
+end;
+$$;
+
+revoke execute on function public.recompute_course_seats(text[]) from public, anon, authenticated;
+
+-- ---------------------------------------------------------------------
+-- 2) Public submission with the onsite / online rules (all-or-nothing)
+-- ---------------------------------------------------------------------
 create or replace function public.submit_enrollment(items jsonb)
 returns jsonb
 language plpgsql
@@ -27,20 +197,21 @@ security definer
 set search_path = public
 as $$
 declare
-  it          jsonb;
-  v_id        text;
-  v_course    text;
-  v_ids       text[] := '{}';
-  v_c         jsonb;
-  rounds      jsonb;
-  idx         int;
-  r           jsonb;
-  cap         int;
-  cnt         int;
-  per_round   boolean;
-  online_only boolean;
-  sub         jsonb;
-  camp_sub    jsonb;
+  it        jsonb;
+  v_id      text;
+  v_course  text;
+  v_ids     text[] := '{}';
+  v_c       jsonb;
+  rounds    jsonb;
+  idx       int;
+  r         jsonb;
+  cap       int;
+  cnt       int;
+  per_round boolean;
+  is_online boolean;
+  online_on boolean;
+  sub       jsonb;
+  camp_sub  jsonb;
 begin
   if items is null or jsonb_typeof(items) <> 'array' then
     raise exception 'invalid payload';
@@ -77,7 +248,7 @@ begin
                'createdAt', to_char(now() at time zone 'utc', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')
              );
 
-    -- ----- capacity: regular course (incl. each course inside a bundle) -----
+    -- ----- regular course (incl. each course inside a bundle) -----
     v_c := null;
     select x into v_c
     from (select data from public.app_data where key = 'courses' and jsonb_typeof(data) = 'array') a
@@ -90,11 +261,7 @@ begin
         raise exception 'COURSE_FULL|%', v_c ->> 'title';
       end if;
 
-      online_only := coalesce((v_c -> 'onlineOnly') = 'true'::jsonb, false);
-      if online_only and lower(coalesce(it ->> 'learningType', 'onsite')) <> 'online' then
-        raise exception 'ONSITE_FULL|%', v_c ->> 'title';
-      end if;
-
+      is_online := public.is_online_app(it);
       rounds := case when jsonb_typeof(v_c -> 'scheduleList') = 'array' then v_c -> 'scheduleList' else '[]'::jsonb end;
       per_round := exists (select 1 from jsonb_array_elements(rounds) x where coalesce(public.json_int(x -> 'capacity'), 0) > 0);
       idx := public.match_round_index(rounds, it ->> 'scheduleChoice');
@@ -112,29 +279,40 @@ begin
         if idx is null then
           raise exception 'ROUND_UNKNOWN|%', v_c ->> 'title';
         end if;
-        -- online-only course: online seats are not limited by the classroom
-        if not online_only then
+        online_on := coalesce((r -> 'online') <> 'false'::jsonb, true);
+        if is_online then
+          -- online: unlimited, only when this round offers online
+          if not online_on then
+            raise exception 'ONLINE_CLOSED|%|%', v_c ->> 'title', r ->> 'type';
+          end if;
+        else
           cap := public.json_int(r -> 'capacity');
           select count(*) into cnt
           from public.enrollments e
           where e.course_id = v_course
             and coalesce(e.data ->> 'status', 'pending') <> 'cancelled'
+            and not public.is_online_app(e.data)
             and public.match_round_index(rounds, e.data ->> 'scheduleChoice') = idx;
           if cap is not null and cnt >= cap then
+            if online_on then
+              raise exception 'ONSITE_FULL|%|%', v_c ->> 'title', r ->> 'type';
+            end if;
             raise exception 'ROUND_FULL|%|%', v_c ->> 'title', r ->> 'type';
           end if;
         end if;
-      elsif not online_only then
+      elsif not is_online then
         select count(*) into cnt
         from public.enrollments e
-        where e.course_id = v_course and coalesce(e.data ->> 'status', 'pending') <> 'cancelled';
+        where e.course_id = v_course
+          and coalesce(e.data ->> 'status', 'pending') <> 'cancelled'
+          and not public.is_online_app(e.data);
         if cnt >= coalesce(public.json_int(v_c -> 'maxSeats'), 12) then
           raise exception 'COURSE_FULL|%', v_c ->> 'title';
         end if;
       end if;
     end if;
 
-    -- ----- capacity: free-campaign subjects -----
+    -- ----- free-campaign subjects (unchanged) -----
     if v_course in ('campaign-free', 'campaign') and jsonb_typeof(it -> 'selectedSubjects') = 'array' then
       for sub in select value from jsonb_array_elements(it -> 'selectedSubjects') loop
         camp_sub := null;
@@ -180,9 +358,19 @@ $$;
 revoke all on function public.submit_enrollment(jsonb) from public;
 grant execute on function public.submit_enrollment(jsonb) to anon, authenticated;
 
--- Result check: courses currently in online-only mode
+-- ---------------------------------------------------------------------
+-- 3) Recount now with the new rules
+-- ---------------------------------------------------------------------
+select public.recompute_course_seats(null);
+
+-- Result check: onsite seats per round (+ online count)
 select c ->> 'title' as course,
-       c ->> 'onlineOnly' as online_only,
-       c ->> 'forceClosed' as force_closed
+       c ->> 'remainingSeats' as onsite_remaining,
+       c ->> 'isFull' as is_full,
+       (select string_agg(concat(r ->> 'type', ': ออนไซต์ ', coalesce(r ->> 'enrolled', '0'), '/', coalesce(r ->> 'capacity', '-'),
+                                 case when (r -> 'online') = 'false'::jsonb then ' (ไม่เปิดออนไลน์)' else concat(' + ออนไลน์ ', coalesce(r ->> 'onlineEnrolled', '0')) end,
+                                 case when (r -> 'onlineOnly') = 'true'::jsonb then ' → เหลือเฉพาะออนไลน์'
+                                      when (r -> 'isFull') = 'true'::jsonb then ' (เต็ม/ปิดรับ)' else '' end), ' • ')
+        from jsonb_array_elements(c -> 'scheduleList') r) as rounds
 from public.app_data a, jsonb_array_elements(a.data) c
-where a.key = 'courses' and (c -> 'onlineOnly') = 'true'::jsonb;
+where a.key = 'courses';

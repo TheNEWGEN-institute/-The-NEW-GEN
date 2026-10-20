@@ -11988,6 +11988,15 @@ button {
   background: #ecfeff;
   color: #0e7490;
 }
+.sched-seat-tag.onsite-only {
+  background: #f1f5f9;
+  color: #475569;
+}
+.c-sched-enrolled.online-only {
+  background: #ecfeff !important;
+  color: #0e7490 !important;
+}
+.sched-online-field input { accent-color: #0891b2; }
 .cd-online-only-notice {
   display: flex;
   align-items: flex-start;

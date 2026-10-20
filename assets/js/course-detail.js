@@ -185,15 +185,14 @@ function initCourseDetailPage() {
       if (scheduleBody) {
         // ข้อความในวงเล็บไม่ถูกตัดกลางคำ เช่น "(8 พ.ย. - 21 ก.พ.)" ขึ้นบรรทัดใหม่ทั้งก้อน
         const keepParensTogether = html => html.replace(/\(([^)]*)\)/g, m => `<span class="nowrap">${m}</span>`);
-        // ที่นั่งรายรอบ (คำนวณโดย Supabase): เหลือ X / Y ที่ หรือ เต็มแล้ว / ปิดรับ
-        const courseOnlineOnly = Boolean(window.getCourseEffectiveSeats && window.getCourseEffectiveSeats(course).onlineOnly);
+        // ที่นั่งรายรอบ (คำนวณโดย Supabase): ออนไซต์เหลือ X / Y ที่ (+ ออนไลน์) / เหลือเฉพาะออนไลน์ / เต็มแล้ว / ปิดรับ
         const roundSeatCell = s => {
-          const info = window.getRoundSeatInfo ? window.getRoundSeatInfo(s) : { isFull: false, capacity: null };
-          // โหมดเปิดรับเฉพาะออนไลน์: ออนไซต์เต็มแล้ว แต่ยังสมัครเรียนออนไลน์ในรอบนี้ได้ (ยกเว้นรอบที่แอดมินปิดรับ)
-          if (courseOnlineOnly && !info.closed) return '<span class="schedule-seat online"><i class="fa-solid fa-laptop"></i> เหลือเฉพาะออนไลน์</span>';
+          const info = window.getRoundSeatInfo ? window.getRoundSeatInfo(s, { courseRound: true }) : { isFull: false, capacity: null };
           if (info.isFull) return `<span class="schedule-seat full"><i class="fa-solid fa-ban"></i> ${info.closed ? 'ปิดรับรอบนี้' : 'เต็มแล้ว'}</span>`;
-          if (info.capacity !== null) return `<span class="schedule-seat ${info.remaining <= 3 ? 'low' : ''}"><i class="fa-solid fa-chair"></i> เหลือ ${info.remaining} / ${info.capacity} ที่</span>`;
-          return '<span class="schedule-seat"><i class="fa-solid fa-circle-check"></i> เปิดรับสมัคร</span>';
+          if (info.onlineOnly) return '<span class="schedule-seat online"><i class="fa-solid fa-laptop"></i> ออนไซต์เต็ม • เหลือเฉพาะออนไลน์</span>';
+          const onlineTag = info.online ? ' <span class="schedule-seat online"><i class="fa-solid fa-laptop"></i> + ออนไลน์</span>' : '';
+          if (info.capacity !== null) return `<span class="schedule-seat ${info.remaining <= 3 ? 'low' : ''}"><i class="fa-solid fa-chair"></i> ออนไซต์เหลือ ${info.remaining} / ${info.capacity} ที่</span>${onlineTag}`;
+          return `<span class="schedule-seat"><i class="fa-solid fa-circle-check"></i> เปิดรับสมัคร</span>${onlineTag}`;
         };
         scheduleBody.innerHTML = validSchedules.map(s => `
           <tr>
