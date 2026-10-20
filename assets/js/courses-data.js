@@ -1517,7 +1517,7 @@ function getCourseEffectiveSeats(c) {
     : Math.max(0, maxSeats - enrolledCount);
   const forceClosed = c.forceClosed === true;
   const rounds = (Array.isArray(c.scheduleList) ? c.scheduleList : []).filter(r => r && (r.type || r.time || r.dates));
-  // ที่นั่งรายรอบ = ที่นั่งออนไซต์ / รอบที่ "เปิดรับออนไลน์" ยังสมัครออนไลน์ได้แม้ออนไซต์เต็ม (ออนไลน์ไม่จำกัด)
+  // ที่นั่งรายรอบ = ที่นั่งออนไซต์ / ทุกรอบที่ไม่ได้ปิดรับ สมัครออนไลน์ได้เสมอ (ออนไลน์ไม่จำกัด)
   if (rounds.some(r => Number(r.capacity) > 0)) {
     const infos = rounds.map(r => getRoundSeatInfo(r, { courseRound: true }));
     const anyOnsite = remainingSeats > 0 && infos.some(i => !i.onsiteFull);
@@ -1535,10 +1535,11 @@ if (typeof window !== 'undefined') {
 /**
  * สถานะที่นั่งของรอบเรียน 1 รอบ (หรือวิชาติวฟรี 1 วิชา)
  * capacity / remaining ถูกคำนวณโดย Supabase; รองรับรอบเก่าที่พิมพ์ "เต็มแล้ว" / "ปิดรับ" ไว้ในข้อความ
- * รอบเรียนของคอร์ส (opts.courseRound): capacity = ที่นั่งออนไซต์, online = รอบนี้เปิดรับออนไลน์ด้วย (ค่าเริ่มต้น = เปิด)
- *   onsiteFull  = ออนไซต์เต็ม/ปิดรับ
- *   onlineOnly  = ออนไซต์เต็ม แต่ยังสมัครออนไลน์ได้ ("เหลือเฉพาะออนไลน์")
- *   isFull      = รอบนี้รับใครไม่ได้แล้ว
+ * รอบเรียนของคอร์ส (opts.courseRound): capacity = ที่นั่งออนไซต์ / ออนไลน์รับได้เสมอ ไม่จำกัดจำนวน
+ *   s.onlineOnly = ติ๊ก "เปิดรับเฉพาะออนไลน์" (แอดมินติ๊กเอง หรือระบบติ๊กให้เมื่อออนไซต์เต็ม)
+ *   onsiteFull  = สมัครออนไซต์ไม่ได้ (ปิดรับ / ติ๊กเฉพาะออนไลน์ / ที่นั่งออนไซต์หมด)
+ *   onlineOnly  = ยังสมัครได้ แต่เฉพาะออนไลน์ ("เหลือเฉพาะออนไลน์")
+ *   isFull      = รอบนี้รับใครไม่ได้แล้ว (คอร์สปกติ = ติ๊กปิดรับรอบนี้เท่านั้น)
  */
 function getRoundSeatInfo(s, opts) {
   if (!s) return { capacity: null, remaining: null, isFull: false, closed: false, onsiteFull: false, online: false, onlineOnly: false };
@@ -1547,8 +1548,9 @@ function getRoundSeatInfo(s, opts) {
   const capacity = Number(s.capacity) > 0 ? Number(s.capacity) : null;
   const remaining = capacity === null ? null : (typeof s.remaining === 'number' ? s.remaining : capacity);
   const courseRound = Boolean(opts && opts.courseRound);
-  const onsiteFull = closed || (capacity !== null && remaining <= 0) || (!courseRound && s.isFull === true);
-  const online = courseRound && s.online !== false;
+  const onsiteFull = closed || (capacity !== null && remaining <= 0)
+    || (courseRound ? s.onlineOnly === true : s.isFull === true);
+  const online = courseRound;
   const onlineOnly = online && !closed && onsiteFull;
   return { capacity, remaining, closed, onsiteFull, online, onlineOnly, isFull: closed || (onsiteFull && !online) };
 }
