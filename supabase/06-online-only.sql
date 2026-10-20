@@ -3,14 +3,15 @@
 -- Run in Supabase → SQL Editor AFTER 05-round-capacity.sql. Safe to run more than once.
 --
 -- Rules
---   * "รับได้" of a round = ONSITE seats. Only Onsite applications use a seat
+--   * "ออนไซต์รับได้" of a round = ONSITE seats. Only Onsite applications use a seat
 --     (Online applications and cancelled ones do not).
---   * Every round has "online" (เปิดรับออนไลน์), default = on. Online is unlimited.
---   * Onsite full in a round:
---       - online on  → the round stays open for Online only ("เหลือเฉพาะออนไลน์")
---       - online off → the round is full
+--   * Every round accepts Online, unlimited.
+--   * "onlineOnly" of a round (เปิดรับเฉพาะออนไลน์) = Onsite closed for that round.
+--       - the admin can tick it any time
+--       - when Onsite reaches the quota the database ticks it automatically and it STAYS
+--         ticked (even after a cancellation) until the admin unticks it
 --   * "ปิดรับรอบนี้" closes the round for everyone; "บังคับปิดรับสมัคร" closes the course.
--- Errors the website understands (new): ONSITE_FULL|<course>|<round>, ONLINE_CLOSED|<course>|<round>
+-- Error the website understands (new): ONSITE_FULL|<course>|<round>
 -- =====================================================================
 
 do $$
@@ -60,7 +61,7 @@ declare
   course_cap   int;
   course_rem   int;
   closed       boolean;
-  online_on    boolean;
+  online_only  boolean;
   onsite_full  boolean;
   any_open     boolean;
   v_camp       jsonb;
@@ -101,28 +102,31 @@ begin
           closed := coalesce((r -> 'closed') = 'true'::jsonb, false)
                     or coalesce(r ->> 'time', '') like '%เต็มแล้ว%'
                     or coalesce(r ->> 'dates', '') like '%ปิดรับ%';
-          online_on := coalesce((r -> 'online') <> 'false'::jsonb, true);
           cap := public.json_int(r -> 'capacity');
           if cap is not null and cap > 0 then
             rem := case when closed then 0 else greatest(0, cap - round_cnt) end;
             sum_cap := sum_cap + cap;
-            sum_rem := sum_rem + rem;
           else
             cap := null;
             rem := null;
           end if;
-          onsite_full := closed or (cap is not null and rem <= 0);
-          if not closed and (not onsite_full or online_on) then
-            any_open := true;
+          onsite_full := cap is not null and round_cnt >= cap;
+          -- ticked by the admin, or onsite quota reached → ticked and kept ticked (sticky)
+          online_only := coalesce((r -> 'onlineOnly') = 'true'::jsonb, false) or onsite_full;
+          if not closed then
+            any_open := true;   -- online is always possible in an open round
+            if not online_only then
+              sum_rem := sum_rem + coalesce(rem, 0);
+            end if;
           end if;
 
-          new_rounds := new_rounds || jsonb_build_array(r || jsonb_build_object(
+          new_rounds := new_rounds || jsonb_build_array((r - 'online') || jsonb_build_object(
             'enrolled', round_cnt,
             'onlineEnrolled', online_cnt,
             'remaining', rem,
-            'onsiteFull', onsite_full,
-            'onlineOnly', (not closed) and onsite_full and online_on,
-            'isFull', closed or (onsite_full and not online_on)
+            'onsiteFull', closed or online_only,
+            'onlineOnly', online_only,
+            'isFull', closed
           ));
         end loop;
 
@@ -209,7 +213,6 @@ declare
   cnt       int;
   per_round boolean;
   is_online boolean;
-  online_on boolean;
   sub       jsonb;
   camp_sub  jsonb;
 begin
@@ -279,13 +282,11 @@ begin
         if idx is null then
           raise exception 'ROUND_UNKNOWN|%', v_c ->> 'title';
         end if;
-        online_on := coalesce((r -> 'online') <> 'false'::jsonb, true);
-        if is_online then
-          -- online: unlimited, only when this round offers online
-          if not online_on then
-            raise exception 'ONLINE_CLOSED|%|%', v_c ->> 'title', r ->> 'type';
+        -- online: always accepted (unlimited) in an open round
+        if not is_online then
+          if coalesce((r -> 'onlineOnly') = 'true'::jsonb, false) then
+            raise exception 'ONSITE_FULL|%|%', v_c ->> 'title', r ->> 'type';
           end if;
-        else
           cap := public.json_int(r -> 'capacity');
           select count(*) into cnt
           from public.enrollments e
@@ -294,10 +295,7 @@ begin
             and not public.is_online_app(e.data)
             and public.match_round_index(rounds, e.data ->> 'scheduleChoice') = idx;
           if cap is not null and cnt >= cap then
-            if online_on then
-              raise exception 'ONSITE_FULL|%|%', v_c ->> 'title', r ->> 'type';
-            end if;
-            raise exception 'ROUND_FULL|%|%', v_c ->> 'title', r ->> 'type';
+            raise exception 'ONSITE_FULL|%|%', v_c ->> 'title', r ->> 'type';
           end if;
         end if;
       elsif not is_online then
@@ -368,9 +366,9 @@ select c ->> 'title' as course,
        c ->> 'remainingSeats' as onsite_remaining,
        c ->> 'isFull' as is_full,
        (select string_agg(concat(r ->> 'type', ': ออนไซต์ ', coalesce(r ->> 'enrolled', '0'), '/', coalesce(r ->> 'capacity', '-'),
-                                 case when (r -> 'online') = 'false'::jsonb then ' (ไม่เปิดออนไลน์)' else concat(' + ออนไลน์ ', coalesce(r ->> 'onlineEnrolled', '0')) end,
-                                 case when (r -> 'onlineOnly') = 'true'::jsonb then ' → เหลือเฉพาะออนไลน์'
-                                      when (r -> 'isFull') = 'true'::jsonb then ' (เต็ม/ปิดรับ)' else '' end), ' • ')
+                                 concat(' + ออนไลน์ ', coalesce(r ->> 'onlineEnrolled', '0')),
+                                 case when (r -> 'isFull') = 'true'::jsonb then ' (ปิดรับรอบนี้)'
+                                      when (r -> 'onlineOnly') = 'true'::jsonb then ' → เหลือเฉพาะออนไลน์' else '' end), ' • ')
         from jsonb_array_elements(c -> 'scheduleList') r) as rounds
 from public.app_data a, jsonb_array_elements(a.data) c
 where a.key = 'courses';

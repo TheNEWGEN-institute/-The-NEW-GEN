@@ -718,12 +718,12 @@ function renderSchedulesBuilder(schedules) {
   if (!container) return;
   container.innerHTML = '';
   const list = (schedules && schedules.length) ? schedules : [{ type: 'แบบรายเทอม (วันเสาร์)', time: '09.00 - 12.15 น.', dates: 'เปิดเทอม 2/69' }];
-  list.forEach(s => addScheduleInputRow(s.type || '', s.time || '', s.dates || '', s.capacity, s.closed === true, s.online !== false));
+  list.forEach(s => addScheduleInputRow(s.type || '', s.time || '', s.dates || '', s.capacity, s.closed === true, s.onlineOnly === true));
   updateCourseSeatCalcPreview();
 }
 
-// รอบใหม่ (และรอบเดิมที่ยังไม่เคยตั้งค่า) เปิดรับออนไลน์ไว้ก่อน
-function addScheduleInputRow(type = '', time = '', dates = '', capacity = '', closed = false, online = true) {
+// ทุกรอบรับออนไลน์ได้เสมอ / onlineOnly = ปิดรับออนไซต์ของรอบนี้ (แอดมินติ๊กเอง หรือระบบติ๊กให้เมื่อออนไซต์เต็ม)
+function addScheduleInputRow(type = '', time = '', dates = '', capacity = '', closed = false, onlineOnly = false) {
   const container = document.getElementById('courseSchedulesContainer');
   if (!container) return;
   const div = document.createElement('div');
@@ -741,8 +741,8 @@ function addScheduleInputRow(type = '', time = '', dates = '', capacity = '', cl
         <input type="number" class="c-sched-capacity" min="1" value="${Number(capacity) > 0 ? Number(capacity) : ''}" placeholder="-" oninput="updateCourseSeatCalcPreview()">
         คน
       </label>
-      <label class="sched-closed-field sched-online-field" title="ติ๊ก = รอบนี้เรียนออนไลน์ได้ด้วย (ไม่จำกัดจำนวน) และเมื่อออนไซต์เต็ม ระบบจะเปลี่ยนเป็น &quot;เหลือเฉพาะออนไลน์&quot; ให้อัตโนมัติ">
-        <input type="checkbox" class="c-sched-online" ${online ? 'checked' : ''} onchange="updateCourseSeatCalcPreview()"> 💻 เปิดรับออนไลน์
+      <label class="sched-closed-field sched-online-field" title="ติ๊ก = ปิดรับออนไซต์ของรอบนี้ ผู้สมัครเลือกได้เฉพาะออนไลน์ (ระบบติ๊กให้อัตโนมัติเมื่อออนไซต์เต็ม — ถ้าจะเปิดออนไซต์อีก ให้เอาติ๊กออกเอง)">
+        <input type="checkbox" class="c-sched-onlineonly" ${onlineOnly ? 'checked' : ''} onchange="this.dataset.manual = this.checked ? '1' : '0'; updateCourseSeatCalcPreview()"> 💻 เปิดรับเฉพาะออนไลน์
       </label>
       <label class="sched-closed-field">
         <input type="checkbox" class="c-sched-closed" ${closed ? 'checked' : ''} onchange="updateCourseSeatCalcPreview()"> ปิดรับรอบนี้
@@ -763,9 +763,9 @@ function getSchedulesFromBuilder() {
     const dates = el.querySelector('.c-sched-dates')?.value.trim() || '';
     const capacity = parseInt(el.querySelector('.c-sched-capacity')?.value, 10);
     const closed = Boolean(el.querySelector('.c-sched-closed')?.checked);
-    const online = Boolean(el.querySelector('.c-sched-online')?.checked);
+    const onlineOnly = Boolean(el.querySelector('.c-sched-onlineonly')?.checked);
     if (type || time || dates) {
-      arr.push({ type, time, dates, capacity: capacity > 0 ? capacity : null, closed, online });
+      arr.push({ type, time, dates, capacity: capacity > 0 ? capacity : null, closed, onlineOnly });
     }
   });
   return arr;
@@ -1083,21 +1083,32 @@ function updateCourseSeatCalcPreview() {
   const draftCourse = { scheduleList: draftRounds };
 
   // จำนวนผู้สมัครแต่ละรอบ (เทียบด้วยชื่อรอบ แบบเดียวกับฝั่ง Supabase)
+  let onsiteOpenSeats = 0;
   rows.forEach((el, i) => {
     const n = active.filter(e => getEnrollmentRoundKey(e, draftCourse) === String(i)).length;
     const closed = el.querySelector('.c-sched-closed')?.checked;
-    const online = el.querySelector('.c-sched-online')?.checked;
+    const onlineOnlyBox = el.querySelector('.c-sched-onlineonly');
     const nOnline = onlineAll.filter(e => getEnrollmentRoundKey(e, draftCourse) === String(i)).length;
     const out = el.querySelector('.c-sched-enrolled');
     if (!out) return;
     const onsiteFull = caps[i] > 0 && n >= caps[i];
-    const full = closed || (onsiteFull && !online);
-    out.className = `c-sched-enrolled ${full ? 'full' : (onsiteFull ? 'online-only' : '')}`;
-    const status = closed ? ' • ปิดรับ'
-      : (onsiteFull ? (online ? ' • ออนไซต์เต็ม → เหลือเฉพาะออนไลน์' : ' • เต็ม') : ` • เหลือ ${caps[i] - n}`);
-    out.textContent = caps[i] > 0
-      ? `ออนไซต์ ${n}/${caps[i]}${status}${online ? ` | ออนไลน์ ${nOnline} คน` : ''}`
-      : `ออนไซต์ ${n}${closed ? ' • ปิดรับ' : ''}${online ? ` | ออนไลน์ ${nOnline} คน` : ''}`;
+    // ออนไซต์เต็มโควตา → ติ๊ก "เปิดรับเฉพาะออนไลน์" ให้และล็อกไว้ (จะเอาออกได้เมื่อเพิ่มจำนวนรับ)
+    // ไม่เต็ม → กลับเป็นค่าที่แอดมินเลือกเอง (dataset.manual) — กันติ๊กค้างระหว่างพิมพ์ตัวเลข
+    if (onlineOnlyBox) {
+      if (onlineOnlyBox.dataset.manual === undefined) onlineOnlyBox.dataset.manual = onlineOnlyBox.checked ? '1' : '0';
+      onlineOnlyBox.checked = onsiteFull || onlineOnlyBox.dataset.manual === '1';
+      onlineOnlyBox.disabled = onsiteFull;
+      onlineOnlyBox.closest('label')?.setAttribute('title', onsiteFull
+        ? 'ออนไซต์เต็มแล้ว ระบบติ๊กให้อัตโนมัติ — เพิ่มจำนวน "ออนไซต์รับได้" ถ้าต้องการเปิดรับออนไซต์อีก'
+        : 'ติ๊ก = ปิดรับออนไซต์ของรอบนี้ ผู้สมัครเลือกได้เฉพาะออนไลน์');
+    }
+    const onlineOnly = Boolean(onlineOnlyBox && onlineOnlyBox.checked);
+    if (!closed && !onlineOnly && caps[i] > 0) onsiteOpenSeats += Math.max(0, caps[i] - n);
+    out.className = `c-sched-enrolled ${closed ? 'full' : (onlineOnly ? 'online-only' : '')}`;
+    const status = closed ? ' • ปิดรับรอบนี้'
+      : (onsiteFull ? ' • ออนไซต์เต็ม → รับเฉพาะออนไลน์ (ติ๊กให้อัตโนมัติ)'
+        : (onlineOnly ? ' • ปิดรับออนไซต์ → รับเฉพาะออนไลน์' : (caps[i] > 0 ? ` • เหลือ ${caps[i] - n}` : '')));
+    out.textContent = `${caps[i] > 0 ? `ออนไซต์ ${n}/${caps[i]}` : `ออนไซต์ ${n}`}${status} | ออนไลน์ ${nOnline} คน`;
   });
 
   // จำนวนรับทั้งคอร์ส = ผลรวมของทุกรอบ (ไม่มีช่องกรอกยอดรวมแยกแล้ว)
@@ -1105,7 +1116,8 @@ function updateCourseSeatCalcPreview() {
   maxSeatsInput.value = total || '';
   const totalEl = document.getElementById('cSeatTotalDisplay');
   if (totalEl) totalEl.textContent = total ? `${total} คน` : 'ยังไม่ได้กรอก';
-  const remaining = Math.max(0, total - active.length);
+  // ที่นั่งออนไซต์ที่ยังสมัครได้จริง (ไม่นับรอบที่ปิดรับ / รับเฉพาะออนไลน์)
+  const remaining = Math.max(0, Math.min(onsiteOpenSeats, total - active.length));
   const color = remaining === 0 ? '#dc2626' : (remaining <= 3 ? '#ea580c' : '#16a34a');
   const missing = rows.length === 0 || caps.some(c => !(c > 0));
   previewEl.innerHTML = `ผู้สมัครออนไซต์ (ไม่นับที่ยกเลิก): <strong>${active.length}</strong> คน | ที่นั่งออนไซต์คงเหลือ: <strong style="color: ${color};">${remaining}</strong> ที่นั่ง | ออนไลน์: <strong>${onlineAll.length}</strong> คน`
@@ -4773,7 +4785,7 @@ function renderCourseCapacityCards(courses, enrollments) {
       const n = enrForCourse.filter(e => getEnrollmentRoundKey(e, c) === key).length;
       const nOnline = enrAll.filter(e => isOnlineEnrollment(e) && getEnrollmentRoundKey(e, c) === key).length;
       const state = info.closed ? 'ปิดรับ' : `${n}/${info.capacity}${info.onlineOnly ? ' 💻 เหลือออนไลน์' : (info.isFull ? ' เต็ม' : '')}`;
-      return `<div class="cap-round-line ${info.isFull ? 'full' : ''}"><span>${escapeHtml(r.type || '-')}</span><b>${state}${info.online && nOnline ? ` <small>(+ออนไลน์ ${nOnline})</small>` : ''}</b></div>`;
+      return `<div class="cap-round-line ${info.isFull ? 'full' : ''}"><span>${escapeHtml(r.type || '-')}</span><b>${state}${nOnline ? ` <small>(+ออนไลน์ ${nOnline})</small>` : ''}</b></div>`;
     }).join('');
 
     let statusPillClass = 'safe';
@@ -5786,9 +5798,9 @@ function updateEnrollmentModalForCourse() {
         // ที่นั่ง = ออนไซต์ (ออนไลน์ไม่จำกัด)
         const n = active.filter(e => !isOnlineEnrollment(e) && getEnrollmentRoundKey(e, course) === String(i)).length;
         const cap = Number(r.capacity) > 0 ? Number(r.capacity) : null;
-        const full = cap !== null && n >= cap;
+        const onlineOnly = (cap !== null && n >= cap) || r.onlineOnly === true;
         const seat = r.closed ? ' — ปิดรับ' : (cap !== null
-          ? ` — ออนไซต์ ${n}/${cap}${full ? (r.online !== false ? ' (เหลือเฉพาะออนไลน์)' : ' (เต็ม)') : ''}`
+          ? ` — ออนไซต์ ${n}/${cap}${onlineOnly ? ' (เหลือเฉพาะออนไลน์)' : ''}`
           : ` — สมัครแล้ว ${n}`);
         return `<option value="${escapeHtml(value)}">${escapeHtml(getRoundLabel(r, i))}${seat}</option>`;
       }).join('');

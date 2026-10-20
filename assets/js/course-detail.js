@@ -189,7 +189,7 @@ function initCourseDetailPage() {
         const roundSeatCell = s => {
           const info = window.getRoundSeatInfo ? window.getRoundSeatInfo(s, { courseRound: true }) : { isFull: false, capacity: null };
           if (info.isFull) return `<span class="schedule-seat full"><i class="fa-solid fa-ban"></i> ${info.closed ? 'ปิดรับรอบนี้' : 'เต็มแล้ว'}</span>`;
-          if (info.onlineOnly) return '<span class="schedule-seat online"><i class="fa-solid fa-laptop"></i> ออนไซต์เต็ม • เหลือเฉพาะออนไลน์</span>';
+          if (info.onlineOnly) return '<span class="schedule-seat online"><i class="fa-solid fa-laptop"></i> เหลือเฉพาะออนไลน์</span>';
           // ป้ายออนไซต์ + ออนไลน์ เรียงบน-ล่าง ไม่ดันคอลัมน์อื่นให้แคบ
           const onlineTag = info.online ? '<span class="schedule-seat online"><i class="fa-solid fa-laptop"></i> + เรียนออนไลน์ได้</span>' : '';
           const onsiteTag = info.capacity !== null
