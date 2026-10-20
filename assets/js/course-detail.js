@@ -190,15 +190,19 @@ function initCourseDetailPage() {
           const info = window.getRoundSeatInfo ? window.getRoundSeatInfo(s, { courseRound: true }) : { isFull: false, capacity: null };
           if (info.isFull) return `<span class="schedule-seat full"><i class="fa-solid fa-ban"></i> ${info.closed ? 'ปิดรับรอบนี้' : 'เต็มแล้ว'}</span>`;
           if (info.onlineOnly) return '<span class="schedule-seat online"><i class="fa-solid fa-laptop"></i> ออนไซต์เต็ม • เหลือเฉพาะออนไลน์</span>';
-          const onlineTag = info.online ? ' <span class="schedule-seat online"><i class="fa-solid fa-laptop"></i> + ออนไลน์</span>' : '';
-          if (info.capacity !== null) return `<span class="schedule-seat ${info.remaining <= 3 ? 'low' : ''}"><i class="fa-solid fa-chair"></i> ออนไซต์เหลือ ${info.remaining} / ${info.capacity} ที่</span>${onlineTag}`;
-          return `<span class="schedule-seat"><i class="fa-solid fa-circle-check"></i> เปิดรับสมัคร</span>${onlineTag}`;
+          // ป้ายออนไซต์ + ออนไลน์ เรียงบน-ล่าง ไม่ดันคอลัมน์อื่นให้แคบ
+          const onlineTag = info.online ? '<span class="schedule-seat online"><i class="fa-solid fa-laptop"></i> + เรียนออนไลน์ได้</span>' : '';
+          const onsiteTag = info.capacity !== null
+            ? `<span class="schedule-seat ${info.remaining <= 3 ? 'low' : ''}"><i class="fa-solid fa-chair"></i> ออนไซต์เหลือ ${info.remaining}/${info.capacity} ที่</span>`
+            : '<span class="schedule-seat"><i class="fa-solid fa-circle-check"></i> เปิดรับสมัคร</span>';
+          return `<div class="schedule-seat-stack">${onsiteTag}${onlineTag}</div>`;
         };
         scheduleBody.innerHTML = validSchedules.map(s => `
           <tr>
             <td>
               <div class="schedule-group-name">
-                <i class="fa-solid fa-chalkboard"></i> ${escapeHtml(s.type || '')}
+                <i class="fa-solid fa-chalkboard"></i>
+                <span>${keepParensTogether(escapeHtml(s.type || ''))}</span>
               </div>
             </td>
             <td>

@@ -2972,6 +2972,29 @@ button {
   white-space: nowrap;
 }
 
+/* ชื่อกลุ่มเรียนไม่ถูกบีบจนตกบรรทัดทีละคำ */
+.cd-schedule-table td:first-child {
+  min-width: 170px;
+}
+
+.schedule-group-name {
+  align-items: flex-start;
+  line-height: 1.45;
+}
+
+.schedule-group-name i {
+  margin-top: 4px;
+  flex-shrink: 0;
+}
+
+/* ป้ายที่นั่ง (ออนไซต์ / ออนไลน์) เรียงบน-ล่าง */
+.schedule-seat-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+
 .cd-schedule-table .nowrap {
   white-space: nowrap;
 }
@@ -3013,6 +3036,13 @@ button {
 
   .cd-schedule-table td:first-child {
     font-size: 1rem !important;
+    min-width: 0;
+  }
+
+  /* มือถือ: ป้ายที่นั่งเรียงต่อกันในแถวเดียว ถ้าไม่พอค่อยขึ้นบรรทัดใหม่ทั้งป้าย */
+  .schedule-seat-stack {
+    flex-direction: row;
+    flex-wrap: wrap;
   }
 
   .cd-schedule-table td:last-child {
