@@ -26,7 +26,7 @@ const DEFAULT_COURSES = [
     ],
     highlights: [
       'ปูพื้นฐาน 3 วิชาหลัก วิทย์-คณิต-อังกฤษ ให้แน่นเพื่อต่อยอดสู่วัยมัธยมอย่างมั่นใจ',
-      'เรียนสด Onsite กลุ่มเล็ก ทีมติวเตอร์ The NEW GEN ดูแลใกล้ชิด ซักถามได้ทันที',
+      'เรียนสด Onsite & Online กลุ่มเล็ก ทีมติวเตอร์ The NEW GEN ดูแลใกล้ชิด ซักถามได้ทันที',
       'มีทั้งแบบรายเดือนยืดหยุ่น และแบบเหมาเทอมสุดคุ้มแบ่งชำระได้',
       'รับฟรี! เอกสารประกอบการเรียนชุดพิเศษและแบบฝึกหัดเก็งแนวข้อสอบตลอดคอร์ส'
     ],
@@ -198,7 +198,7 @@ const DEFAULT_WHYUS = {
     {
       id: 'feat-2',
       icon: 'fa-solid fa-users-viewfinder',
-      title: 'เรียนสด Onsite กลุ่มเล็ก',
+      title: 'เรียนสด Onsite & Online กลุ่มเล็ก',
       desc: 'บรรยากาศเป็นกันเอง ถาม-ตอบได้ทันทีในห้องเรียน ดูแลเด็กๆ ได้อย่างทั่วถึงทุกคน'
     },
     {
@@ -316,15 +316,15 @@ const DEFAULT_HOME = {
   leadText: 'เปิดสอนระดับชั้น ป.4 – ม.6 เน้นการเรียนการสอนแบบกลุ่มเล็ก ดูแลนักเรียนอย่างใกล้ชิดและทั่วถึง ครอบคลุมทั้งการเรียนเพื่อเพิ่มผลสัมฤทธิ์ทางการเรียน การเรียนล่วงหน้าเพื่อเสริมความเข้าใจ และการเตรียมสอบเข้าศึกษาต่อระดับชั้น ม.1 และ ม.4 ในโรงเรียนชั้นนำ พร้อมให้คำแนะนำและวางแผนการเตรียมตัวสอบเข้ามหาวิทยาลัยในระบบ TCAS โดยทีมติวเตอร์คุณภาพที่มีประสบการณ์การสอนมากกว่า 10 ปี',
   trustBadges: [
     '100% ทีมติวเตอร์ The NEW GEN',
-    'Onsite กลุ่มเล็กดูแลทั่วถึง',
+    'Onsite & Online กลุ่มเล็กดูแลทั่วถึง',
     'แบ่งชำระค่าเรียนได้'
   ],
   heroTutorsHeaderPill: 'ทีมติวเตอร์ The NEW GEN ประจำสถาบัน',
   heroTutorLeftId: 'tutor-non',
   heroTutorCenterId: 'tutor-au',
   heroTutorRightId: 'tutor-mac',
-  coursesBadge: 'POPULAR ONSITE COURSES',
-  coursesTitle: 'คอร์สเรียน Onsite แนะนำ',
+  coursesBadge: 'POPULAR ONSITE & ONLINE COURSES',
+  coursesTitle: 'คอร์สเรียน Onsite & Online แนะนำ',
   coursesHighlight: 'เปิดเทอม 2/69'
 };
 
@@ -526,7 +526,7 @@ const DEFAULT_POPUP_CAMPAIGN = {
   badge: "🔥 โครงการติวฟรี โควตาจำกัด 30 ที่นั่ง",
   image: "https://wdazilhmlttnurpfewlk.supabase.co/storage/v1/object/public/uploads/img-1791819087634-e5ri.png",
   description: "สัมผัสเทคนิคการสอนจริงโดยทีมติวเตอร์ The NEW GEN ฟรี! ไม่มีค่าใช้จ่าย พร้อมรับเอกสารสรุปสูตรเก็งข้อสอบจริง และแนวคิดลัดที่นำไปใช้สอบได้ทันที",
-  highlights: "- เรียนสด Onsite กลุ่มเล็ก ติวเตอร์ประกบดูแลใกล้ชิด ซักถามได้ทันที\n- ฟรี! ชุดเอกสารแบบฝึกหัดและแนวข้อสอบเก็งพิเศษตลอดโครงการ\n- วิเคราะห์จุดอ่อนรายบุคคล พร้อมแนะแนววางแผนสอบเข้า รร. ดัง",
+  highlights: "- เรียนสด Onsite & Online กลุ่มเล็ก ติวเตอร์ประกบดูแลใกล้ชิด ซักถามได้ทันที\n- ฟรี! ชุดเอกสารแบบฝึกหัดและแนวข้อสอบเก็งพิเศษตลอดโครงการ\n- วิเคราะห์จุดอ่อนรายบุคคล พร้อมแนะแนววางแผนสอบเข้า รร. ดัง",
   btnRegisterText: "สมัครเข้าเรียนฟรีทันที",
   btnLineText: "สอบถามเพิ่มเติมทาง LINE",
   lineUrl: "https://lin.ee/RXrzi1G",
@@ -818,7 +818,7 @@ const NewGenDB = {
       benefits: c.benefits !== undefined ? c.benefits : '',
       subjectBreakdown: Array.isArray(c.subjectBreakdown) ? c.subjectBreakdown : [],
       monthlyPrice: c.monthlyPrice !== undefined ? c.monthlyPrice : '1,500 บาท / เดือน (20 ชม.)',
-      location: c.location !== undefined ? c.location : 'สถาบัน The NEW GEN (เรียนสด Onsite)',
+      location: c.location !== undefined ? c.location : 'สถาบัน The NEW GEN (เรียนสด Onsite & Online)',
       classSize: c.classSize !== undefined ? c.classSize : 'กลุ่มเล็ก ดูแลใกล้ชิด ถามได้ทันที',
       materials: c.materials !== undefined ? c.materials : 'ฟรี! หนังสือและแนวข้อสอบเก็งพิเศษ',
       trustGuarantee: c.trustGuarantee !== undefined ? c.trustGuarantee : 'การันตีการสอนโดยทีมติวเตอร์ The NEW GEN',

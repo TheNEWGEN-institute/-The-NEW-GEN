@@ -1016,7 +1016,7 @@ function openAddCourseModal() {
   document.getElementById('cPricePromo').value = '4,500';
   document.getElementById('cPriceUnit').value = 'บาท / เทอม';
   if (document.getElementById('cMonthlyPrice')) document.getElementById('cMonthlyPrice').value = '1,500 บาท / เดือน (20 ชม.)';
-  if (document.getElementById('cLocation')) document.getElementById('cLocation').value = 'สถาบัน The NEW GEN (เรียนสด Onsite)';
+  if (document.getElementById('cLocation')) document.getElementById('cLocation').value = 'สถาบัน The NEW GEN (เรียนสด Onsite & Online)';
   document.getElementById('cTotalHours').value = '42 ชั่วโมง (รายเทอม) / 20 ชม. (รายเดือน)';
   if (document.getElementById('cClassSize')) document.getElementById('cClassSize').value = 'กลุ่มเล็ก ดูแลใกล้ชิด ถามได้ทันที';
   if (document.getElementById('cMaterials')) document.getElementById('cMaterials').value = 'ฟรี! หนังสือและแนวข้อสอบเก็งพิเศษ';
@@ -1035,7 +1035,7 @@ function openAddCourseModal() {
   renderCourseTutorsBuilder(['tutor-non', 'tutor-au', 'tutor-mac']);
   renderCourseGalleryBuilder([]);
   renderHighlightsBuilder([
-    'เรียนสด Onsite กลุ่มเล็ก ทีมติวเตอร์ The NEW GEN ดูแลใกล้ชิด ซักถามได้ทันที',
+    'เรียนสด Onsite & Online กลุ่มเล็ก ทีมติวเตอร์ The NEW GEN ดูแลใกล้ชิด ซักถามได้ทันที',
     'ปูพื้นฐานเข้มข้น ครบทั้งเทคนิคคิดลัดและตะลุยโจทย์สอบแข่งขัน',
     'ฟรี! เอกสารประกอบการเรียนและแบบฝึกหัดเก็งแนวข้อสอบตลอดคอร์ส'
   ]);
@@ -1154,7 +1154,7 @@ function openEditCourseModal(id) {
   document.getElementById('cPricePromo').value = c.pricePromo || '';
   document.getElementById('cPriceUnit').value = c.priceUnit || '';
   if (document.getElementById('cMonthlyPrice')) document.getElementById('cMonthlyPrice').value = c.monthlyPrice || '';
-  if (document.getElementById('cLocation')) document.getElementById('cLocation').value = c.location !== undefined ? c.location : 'สถาบัน The NEW GEN (เรียนสด Onsite)';
+  if (document.getElementById('cLocation')) document.getElementById('cLocation').value = c.location !== undefined ? c.location : 'สถาบัน The NEW GEN (เรียนสด Onsite & Online)';
   document.getElementById('cTotalHours').value = c.totalHours || '';
   if (document.getElementById('cClassSize')) document.getElementById('cClassSize').value = c.classSize !== undefined ? c.classSize : 'กลุ่มเล็ก ดูแลใกล้ชิด ถามได้ทันที';
   if (document.getElementById('cMaterials')) document.getElementById('cMaterials').value = c.materials !== undefined ? c.materials : 'ฟรี! หนังสือและแนวข้อสอบเก็งพิเศษ';
@@ -2113,8 +2113,8 @@ function loadHomeSettings() {
   const coursesBadgeInput = document.getElementById('homeCoursesBadge');
   const coursesTitleInput = document.getElementById('homeCoursesTitle');
   const coursesHighlightInput = document.getElementById('homeCoursesHighlight');
-  if (coursesBadgeInput) coursesBadgeInput.value = home.coursesBadge || 'POPULAR ONSITE COURSES';
-  if (coursesTitleInput) coursesTitleInput.value = home.coursesTitle || 'คอร์สเรียน Onsite แนะนำ';
+  if (coursesBadgeInput) coursesBadgeInput.value = home.coursesBadge || 'POPULAR ONSITE & ONLINE COURSES';
+  if (coursesTitleInput) coursesTitleInput.value = home.coursesTitle || 'คอร์สเรียน Onsite & Online แนะนำ';
   if (coursesHighlightInput) coursesHighlightInput.value = home.coursesHighlight || 'เปิดเทอม 2/69';
 
   populateHeroTutorDropdowns();
@@ -2177,8 +2177,8 @@ async function saveHomeSettingsForm() {
   const t3 = document.getElementById('homeTrustBadge3')?.value.trim();
   home.trustBadges = [t1, t2, t3].filter(Boolean);
 
-  home.coursesBadge = document.getElementById('homeCoursesBadge')?.value.trim() || 'POPULAR ONSITE COURSES';
-  home.coursesTitle = document.getElementById('homeCoursesTitle')?.value.trim() || 'คอร์สเรียน Onsite แนะนำ';
+  home.coursesBadge = document.getElementById('homeCoursesBadge')?.value.trim() || 'POPULAR ONSITE & ONLINE COURSES';
+  home.coursesTitle = document.getElementById('homeCoursesTitle')?.value.trim() || 'คอร์สเรียน Onsite & Online แนะนำ';
   home.coursesHighlight = document.getElementById('homeCoursesHighlight')?.value.trim() || 'เปิดเทอม 2/69';
 
   home.heroTutorLeftId = document.getElementById('homeTutorLeft')?.value || '';
@@ -2247,7 +2247,7 @@ function loadAdminPopupCampaign() {
     if (Array.isArray(popup.highlights)) {
       highlightsInput.value = popup.highlights.join('\n');
     } else {
-      highlightsInput.value = popup.highlights || '- เรียนสด Onsite กลุ่มเล็ก ติวเตอร์ประกบดูแลใกล้ชิด ซักถามได้ทันที\n- ฟรี! ชุดเอกสารแบบฝึกหัดและแนวข้อสอบเก็งพิเศษตลอดโครงการ\n- วิเคราะห์จุดอ่อนรายบุคคล พร้อมแนะแนววางแผนสอบเข้า รร. ดัง';
+      highlightsInput.value = popup.highlights || '- เรียนสด Onsite & Online กลุ่มเล็ก ติวเตอร์ประกบดูแลใกล้ชิด ซักถามได้ทันที\n- ฟรี! ชุดเอกสารแบบฝึกหัดและแนวข้อสอบเก็งพิเศษตลอดโครงการ\n- วิเคราะห์จุดอ่อนรายบุคคล พร้อมแนะแนววางแผนสอบเข้า รร. ดัง';
     }
   }
 
@@ -2756,7 +2756,7 @@ function resetPopupCampaignDefaults() {
           image: "https://wdazilhmlttnurpfewlk.supabase.co/storage/v1/object/public/uploads/img-1791819087634-e5ri.png",
           description: "สัมผัสเทคนิคการสอนจริงโดยทีมติวเตอร์ The NEW GEN ฟรี! ไม่มีค่าใช้จ่าย พร้อมรับเอกสารสรุปสูตรเก็งข้อสอบจริง และแนวคิดลัดที่นำไปใช้สอบได้ทันที",
           highlights: [
-            "- เรียนสด Onsite กลุ่มเล็ก ติวเตอร์ประกบดูแลใกล้ชิด ซักถามได้ทันที",
+            "- เรียนสด Onsite & Online กลุ่มเล็ก ติวเตอร์ประกบดูแลใกล้ชิด ซักถามได้ทันที",
             "- ฟรี! ชุดเอกสารแบบฝึกหัดและแนวข้อสอบเก็งพิเศษตลอดโครงการ",
             "- วิเคราะห์จุดอ่อนรายบุคคล พร้อมแนะแนววางแผนสอบเข้า รร. ดัง"
           ],

@@ -433,7 +433,7 @@ function initCourseSlider() {
             </div>` : ''}
             <div class="course-meta-item">
               <i class="fa-solid fa-chalkboard-user"></i>
-              <span>${escapeHtml(c.location || 'เรียนสด Onsite กลุ่มเล็กดูแลทั่วถึง')}</span>
+              <span>${escapeHtml(c.location || 'เรียนสด Onsite & Online กลุ่มเล็กดูแลทั่วถึง')}</span>
             </div>
           </div>
           <div class="course-footer">
