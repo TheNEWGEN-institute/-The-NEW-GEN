@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Prompt:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
-  <link rel="stylesheet" href="assets/css/style.css?v=20261021-fix1">
+  <link rel="stylesheet" href="assets/css/style.css?v=20261021-fix2">
 </head>
 <body class="page-admin-body">
 
@@ -92,6 +92,9 @@
         </button>
         <button type="button" class="admin-nav-item" onclick="switchAdminTab('contact', this)">
           <i class="fa-solid fa-address-book"></i> 8. จัดการข้อมูลติดต่อ &amp; แผนที่
+        </button>
+        <button type="button" class="admin-nav-item" onclick="switchAdminTab('faq', this)" id="navTabFaq">
+          <i class="fa-solid fa-circle-question" style="color: #0891b2;"></i> 8.1 คำถามที่พบบ่อย (FAQ)
         </button>
         <button type="button" class="admin-nav-item" onclick="switchAdminTab('system', this)" id="navTabSystem">
           <i class="fa-solid fa-sliders"></i> 9. ตั้งค่าระบบ (สำรองข้อมูล &amp; รหัสผ่าน)
@@ -1762,6 +1765,46 @@
 
       
 
+      <!-- ================= 8.1 FAQ TAB ================= -->
+      <section id="tab-faq" class="admin-tab-pane">
+        <div class="admin-pane-header">
+          <div>
+            <h2><i class="fa-solid fa-circle-question" style="color: #0891b2;"></i> คำถามที่พบบ่อย (FAQ)</h2>
+            <p>เพิ่ม แก้ไข เรียงลำดับ และซ่อน/แสดงคำถาม-คำตอบ ที่หน้า <a href="faq.html" target="_blank" rel="noopener" style="font-weight: 700;">คำถามที่พบบ่อย <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.75rem;"></i></a> — แก้เสร็จแล้วกด "บันทึก" ด้านล่าง</p>
+          </div>
+          <button type="button" class="btn-primary" onclick="addFaqItem()">
+            <i class="fa-solid fa-plus"></i> เพิ่มคำถามใหม่
+          </button>
+        </div>
+
+        <div class="admin-table-card" style="padding: 16px 18px; margin-bottom: 16px;">
+          <div class="form-row-2col">
+            <div class="form-group-luxury" style="margin-bottom: 8px;">
+              <label for="faqSubtitleInput">ข้อความเล็กเหนือหัวข้อ (ภาษาอังกฤษ)</label>
+              <input type="text" id="faqSubtitleInput" placeholder="FREQUENTLY ASKED QUESTIONS" oninput="markFaqDirty()">
+            </div>
+            <div class="form-group-luxury" style="margin-bottom: 8px;">
+              <label for="faqDescInput">คำอธิบายใต้หัวข้อ</label>
+              <input type="text" id="faqDescInput" placeholder="รวมคำถามที่ผู้ปกครองและน้อง ๆ สอบถามเข้ามาบ่อย ..." oninput="markFaqDirty()">
+            </div>
+          </div>
+          <small style="color: var(--text-muted);">เคล็ดลับ: ในช่องคำตอบ กด Enter เพื่อขึ้นบรรทัดใหม่ / บรรทัดที่ขึ้นต้นด้วย "- " จะแสดงเป็นหัวข้อย่อย</small>
+        </div>
+
+        <div class="faq-admin-list" id="faqAdminList">
+          <!-- Dynamically populated via JS -->
+        </div>
+
+        <div class="faq-admin-savebar">
+          <span class="faq-admin-dirty" id="faqDirtyNote" style="display: none;"><i class="fa-solid fa-circle-exclamation"></i> มีการแก้ไขที่ยังไม่ได้บันทึก</span>
+          <span id="faqCountNote" style="color: var(--text-muted); font-size: 0.85rem;"></span>
+          <div style="display: flex; gap: 8px; margin-left: auto;">
+            <button type="button" class="btn-secondary" onclick="addFaqItem()"><i class="fa-solid fa-plus"></i> เพิ่มคำถาม</button>
+            <button type="button" class="btn-primary" id="btnSaveFaq" onclick="saveFaqSettings()"><i class="fa-solid fa-floppy-disk"></i> บันทึกคำถามที่พบบ่อย</button>
+          </div>
+        </div>
+      </section>
+
     <!-- ================= 9. SYSTEM SETTINGS TAB ================= -->
       <section id="tab-system" class="admin-tab-pane">
         <div class="admin-pane-header">
@@ -3259,7 +3302,7 @@
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-  <script src="assets/js/courses-data.js?v=20261021-fix1"></script>
-  <script src="assets/js/admin.js?v=20261021-fix1"></script>
+  <script src="assets/js/courses-data.js?v=20261021-fix2"></script>
+  <script src="assets/js/admin.js?v=20261021-fix2"></script>
 </body>
 </html>

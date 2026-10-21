@@ -216,6 +216,25 @@ const DEFAULT_WHYUS = {
   ]
 };
 
+// คำถามที่พบบ่อย (หน้า faq.html) — แก้ไข/เพิ่ม/ซ่อนได้ในหลังบ้าน เมนู "คำถามที่พบบ่อย"
+const DEFAULT_FAQ = {
+  subtitle: 'FREQUENTLY ASKED QUESTIONS',
+  title: 'คำถามที่พบบ่อย',
+  desc: 'รวมคำถามที่ผู้ปกครองและน้อง ๆ สอบถามเข้ามาบ่อย หากไม่พบคำตอบที่ต้องการ ทัก LINE สถาบันได้เลยครับ',
+  items: [
+    { id: 'faq-1', visible: true, question: 'สมัครเรียนได้อย่างไร?', answer: 'กดปุ่ม "สมัครเลย" ที่คอร์สที่สนใจ เลือกรอบเรียนและรูปแบบการเรียน (Onsite / Online) แล้วกรอกข้อมูลนักเรียนให้ครบ เมื่อส่งใบสมัครแล้วจะได้รับรหัสการสมัคร จากนั้นทัก LINE สถาบันเพื่อยืนยันที่นั่งได้เลยครับ' },
+    { id: 'faq-2', visible: true, question: 'สมัครในเว็บไซต์แล้ว ต้องทำอะไรต่อ?', answer: 'กดปุ่มทัก LINE ในหน้ายืนยันการสมัคร (หรือคัดลอกข้อมูลสรุปส่งใน LINE) พร้อมแนบหลักฐานการชำระเงิน เจ้าหน้าที่จะตรวจสอบและยืนยันที่นั่งให้ครับ' },
+    { id: 'faq-3', visible: true, question: 'เรียนได้ทั้ง Onsite และ Online ใช่ไหม?', answer: 'ใช่ครับ ทุกคอร์สเปิดรับทั้งเรียนสด Onsite ที่สถาบัน และเรียนสด Online ผ่าน Zoom พร้อมกับห้องเรียนจริง ถาม-ตอบกับติวเตอร์ได้ทันที' },
+    { id: 'faq-4', visible: true, question: 'ถ้าที่นั่ง Onsite เต็มแล้ว ยังสมัครได้ไหม?', answer: 'ยังสมัครได้ครับ หากรอบใดที่นั่ง Onsite เต็มแล้ว ระบบจะเปิดรับเฉพาะเรียน Online ในรอบนั้นให้อัตโนมัติ เรียนเนื้อหาเดียวกัน เวลาเดียวกันกับห้องเรียนจริง' },
+    { id: 'faq-5', visible: true, question: 'เรียน Online ได้รับหนังสือหรือเอกสารไหม?', answer: 'ได้รับครับ สถาบันจัดส่งหนังสือและเอกสารประกอบการเรียนถึงบ้านฟรี กรุณากรอกที่อยู่จัดส่งในใบสมัครให้ครบถ้วน' },
+    { id: 'faq-6', visible: true, question: 'แบ่งชำระค่าเรียนได้ไหม?', answer: 'ได้ครับ มีทั้งคอร์สรายเดือนและรายเทอม และสามารถแบ่งชำระค่าเรียนได้ สอบถามรายละเอียดการแบ่งชำระทาง LINE สถาบันได้เลยครับ' },
+    { id: 'faq-7', visible: true, question: 'สมัครเป็นแพ็คเกจหลายวิชาได้ไหม?', answer: 'ได้ครับ แพ็คเกจรวมหลายวิชาราคาประหยัดกว่าสมัครแยก และเลือกรอบเรียนกับรูปแบบการเรียน (Onsite / Online) แยกแต่ละวิชาได้' },
+    { id: 'faq-8', visible: true, question: 'จับกลุ่มเพื่อนมาเรียนเองได้ไหม?', answer: 'ได้ครับ รวมกลุ่มตั้งแต่ 6 คนขึ้นไป สถาบันพร้อมเปิดกลุ่มเรียนเฉพาะ (Private Group) ให้ทันที ทัก LINE เพื่อสอบถามรายละเอียดได้เลยครับ' },
+    { id: 'faq-9', visible: true, question: 'มีทดลองเรียนก่อนสมัครไหม?', answer: 'ดูคลิปตัวอย่างการสอนจริงได้ที่หน้า "ทดลองเรียนฟรี" หรือทัก LINE สถาบันเพื่อสอบถามและนัดทดลองเรียนได้ครับ' },
+    { id: 'faq-10', visible: true, question: 'สถาบันอยู่ที่ไหน ติดต่ออย่างไร?', answer: 'ดูแผนที่และช่องทางติดต่อทั้งหมดได้ที่หน้า "เกี่ยวกับเรา" หรือทัก LINE / โทรหาสถาบันได้ตามช่องทางด้านล่างของเว็บไซต์ครับ' }
+  ]
+};
+
 const DEFAULT_REVIEWS = [
   {
     id: 'rev-1',
@@ -595,7 +614,8 @@ const SUPABASE_KEY_MAPPING = {
   about: 'newgen_about',
   enrollmentConfig: 'newgen_enrollment_config',
   popupCampaign: 'newgen_popup_campaign',
-  bundles: 'newgen_bundles'
+  bundles: 'newgen_bundles',
+  faq: 'newgen_faq'
 };
 
 // Global Store Helper with Integrated Supabase Cloud Sync
@@ -708,6 +728,11 @@ const NewGenDB = {
           window.bundlesData = val;
           if (typeof window.renderBundlesOnPage === 'function') window.renderBundlesOnPage();
           if (typeof window.loadAdminBundles === 'function') window.loadAdminBundles();
+        }
+        if (key === 'faq' && typeof window !== 'undefined') {
+          window.faqData = val;
+          window._supabaseFaqSynced = true;
+          if (typeof window.renderFaqPage === 'function') window.renderFaqPage();
         }
       });
 
@@ -1062,6 +1087,26 @@ const NewGenDB = {
     }
     if (typeof window !== 'undefined') window.whyUsData = whyus;
     return NewGenDB.saveToSupabase('whyus', whyus);
+  },
+
+  // คำถามที่พบบ่อย (FAQ) — ลบจนหมดก็ยังเป็น "ว่าง" (ไม่กลับไปใช้คำถามตัวอย่าง)
+  getFaq: () => {
+    const valid = d => d && typeof d === 'object' && Array.isArray(d.items);
+    if (typeof window !== 'undefined' && valid(window.faqData)) return window.faqData;
+    try {
+      const data = JSON.parse(localStorage.getItem('newgen_faq') || 'null');
+      if (valid(data)) return data;
+    } catch (e) {}
+    return DEFAULT_FAQ;
+  },
+  saveFaq: (faq) => {
+    try {
+      localStorage.setItem('newgen_faq', JSON.stringify(faq));
+    } catch (e) {
+      console.warn('LocalStorage save error:', e);
+    }
+    if (typeof window !== 'undefined') window.faqData = faq;
+    return NewGenDB.saveToSupabase('faq', faq);
   },
 
   // Categories (ระดับชั้น)
@@ -1499,6 +1544,7 @@ const NewGenDB = {
     localStorage.removeItem('newgen_videos');
     localStorage.removeItem('newgen_contact');
     localStorage.removeItem('newgen_whyus');
+    localStorage.removeItem('newgen_faq');
     localStorage.removeItem('newgen_home');
     localStorage.removeItem('newgen_about');
   }
@@ -1723,6 +1769,7 @@ if (typeof window !== 'undefined') {
   window.videosData = NewGenDB.getVideos();
   window.contactData = NewGenDB.getContact();
   window.whyUsData = NewGenDB.getWhyUs();
+  window.DEFAULT_FAQ = DEFAULT_FAQ;
   window.homeData = NewGenDB.getHome();
   window.aboutData = NewGenDB.getAbout();
   window.enrollmentsData = NewGenDB.getEnrollments();
