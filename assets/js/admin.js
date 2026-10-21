@@ -40,6 +40,8 @@ function initAdminDashboard() {
   try { loadAdminEnrollmentConfig(); } catch (e) { console.warn('loadAdminEnrollmentConfig error:', e); }
   try { loadAdminPopupCampaign(); } catch (e) { console.warn('loadAdminPopupCampaign error:', e); }
   try { loadAdminBundles(); } catch (e) { console.warn('loadAdminBundles error:', e); }
+  // คำถามที่พบบ่อย: ไม่ทับสิ่งที่กำลังแก้อยู่ (ยังไม่กดบันทึก)
+  try { if (!_faqDirty) loadAdminFaq(); } catch (e) { console.warn('loadAdminFaq error:', e); }
   try {
     if (document.getElementById('tab-analytics')?.classList.contains('active')) loadAdminAnalytics();
   } catch (e) { console.warn('loadAdminAnalytics error:', e); }
@@ -227,6 +229,8 @@ function switchAdminTab(tabKey, btn) {
       loadAdminVideos();
     } else if (tabKey === 'contact') {
       loadAdminContact();
+    } else if (tabKey === 'faq') {
+      loadAdminFaq();
     } else if (tabKey === 'system') {
       loadSecuritySettings();
     }
@@ -4181,6 +4185,7 @@ function exportDataToJson() {
     videos: window.NewGenDB.getVideos(),
     contact: window.NewGenDB.getContact(),
     whyus: window.NewGenDB.getWhyUs(),
+    faq: window.NewGenDB.getFaq(),
     enrollments: window.NewGenDB.getEnrollments(),
     enrollmentConfig: (window.NewGenDB && typeof window.NewGenDB.getEnrollmentConfig === 'function')
       ? window.NewGenDB.getEnrollmentConfig()
@@ -4226,6 +4231,7 @@ function importDataFromJson(event) {
       if (data.videos) await window.NewGenDB.saveVideos(data.videos);
       if (data.contact) await window.NewGenDB.saveContact(data.contact);
       if (data.whyus) await window.NewGenDB.saveWhyUs(data.whyus);
+      if (data.faq && Array.isArray(data.faq.items)) await window.NewGenDB.saveFaq(data.faq);
       if (data.enrollments) await window.NewGenDB.saveEnrollments(data.enrollments);
       if (data.enrollmentConfig) await window.NewGenDB.saveEnrollmentConfig(data.enrollmentConfig);
 
@@ -7461,7 +7467,7 @@ async function scanCleanupJunk() {
   if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังสแกน...'; }
   const items = [];
   const errors = [];
-  const knownKeys = new Set(['courses', 'tutors', 'tutorsQuote', 'reviews', 'achievements', 'videos', 'contact', 'whyus', 'categories', 'privilege', 'home', 'about', 'enrollmentConfig', 'popupCampaign', 'bundles', 'admin_ping']);
+  const knownKeys = new Set(['courses', 'tutors', 'tutorsQuote', 'reviews', 'achievements', 'videos', 'contact', 'whyus', 'categories', 'privilege', 'home', 'about', 'enrollmentConfig', 'popupCampaign', 'bundles', 'faq', 'admin_ping']);
   let rows = [];
   try {
     rows = await window.NewGenDB.fetchAllAppDataRows();
@@ -7635,3 +7641,156 @@ window.scanCleanupJunk = scanCleanupJunk;
 window.executeCleanup = executeCleanup;
 
 
+
+/* ===================================================================
+   8.1 คำถามที่พบบ่อย (FAQ) — เพิ่ม / แก้ไข / เรียงลำดับ / ซ่อน-แสดง แล้วกดบันทึกครั้งเดียว
+   =================================================================== */
+var _faqDraft = null;
+var _faqDirty = false;
+
+function markFaqDirty(dirty = true) {
+  _faqDirty = dirty;
+  const note = document.getElementById('faqDirtyNote');
+  if (note) note.style.display = dirty ? '' : 'none';
+}
+
+function loadAdminFaq() {
+  const data = window.NewGenDB.getFaq();
+  _faqDraft = {
+    subtitle: data.subtitle || '',
+    title: data.title || 'คำถามที่พบบ่อย',
+    desc: data.desc || '',
+    items: (Array.isArray(data.items) ? data.items : []).map(it => ({
+      id: it.id || `faq-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      question: it.question || '',
+      answer: it.answer || '',
+      visible: it.visible !== false
+    }))
+  };
+  const sub = document.getElementById('faqSubtitleInput');
+  const desc = document.getElementById('faqDescInput');
+  if (sub) sub.value = _faqDraft.subtitle;
+  if (desc) desc.value = _faqDraft.desc;
+  renderFaqAdminList();
+  markFaqDirty(false);
+}
+
+function renderFaqAdminList() {
+  const box = document.getElementById('faqAdminList');
+  if (!box || !_faqDraft) return;
+  const items = _faqDraft.items;
+  if (items.length === 0) {
+    box.innerHTML = `
+      <div style="text-align: center; color: #94a3b8; padding: 30px; background: #f8fafc; border-radius: 14px; border: 1.5px dashed #cbd5e1;">
+        <i class="fa-regular fa-comment-dots" style="font-size: 1.8rem; display: block; margin-bottom: 6px;"></i>
+        ยังไม่มีคำถาม กดปุ่ม <b>"+ เพิ่มคำถามใหม่"</b> เพื่อเริ่มต้น
+      </div>`;
+  } else {
+    box.innerHTML = items.map((it, idx) => `
+      <div class="faq-admin-card ${it.visible ? '' : 'is-hidden'}" data-idx="${idx}">
+        <div class="faq-admin-head">
+          <span class="faq-admin-num">${idx + 1}</span>
+          <span class="faq-admin-status">${it.visible ? '👁️ แสดงบนเว็บ' : '🙈 ซ่อนอยู่'}</span>
+          <div class="faq-admin-tools">
+            <button type="button" onclick="moveFaqItem(${idx}, -1)" ${idx === 0 ? 'disabled' : ''} title="เลื่อนขึ้น"><i class="fa-solid fa-chevron-up"></i></button>
+            <button type="button" onclick="moveFaqItem(${idx}, 1)" ${idx === items.length - 1 ? 'disabled' : ''} title="เลื่อนลง"><i class="fa-solid fa-chevron-down"></i></button>
+            <button type="button" class="faq-admin-visible" onclick="toggleFaqVisible(${idx})" title="ซ่อน/แสดงบนเว็บไซต์">
+              <i class="fa-solid ${it.visible ? 'fa-eye' : 'fa-eye-slash'}"></i> ${it.visible ? 'ซ่อน' : 'แสดง'}
+            </button>
+            <button type="button" class="faq-admin-delete" onclick="deleteFaqItem(${idx})" title="ลบคำถามนี้"><i class="fa-solid fa-trash-can"></i> ลบ</button>
+          </div>
+        </div>
+        <label for="faqQ_${idx}">คำถาม</label>
+        <input type="text" class="faq-admin-q" id="faqQ_${idx}" value="${escapeHtml(it.question)}" placeholder="เช่น แบ่งชำระค่าเรียนได้ไหม?" oninput="updateFaqField(${idx}, 'question', this.value)">
+        <label for="faqA_${idx}">คำตอบ</label>
+        <textarea class="faq-admin-a" id="faqA_${idx}" rows="3" placeholder="พิมพ์คำตอบ (กด Enter เพื่อขึ้นบรรทัดใหม่ / ขึ้นต้นบรรทัดด้วย &quot;- &quot; เพื่อทำหัวข้อย่อย)" oninput="updateFaqField(${idx}, 'answer', this.value)">${escapeHtml(it.answer)}</textarea>
+      </div>
+    `).join('');
+  }
+  const shown = items.filter(it => it.visible).length;
+  const count = document.getElementById('faqCountNote');
+  if (count) count.textContent = `ทั้งหมด ${items.length} ข้อ • แสดงบนเว็บ ${shown} ข้อ`;
+}
+
+function updateFaqField(idx, field, value) {
+  if (!_faqDraft || !_faqDraft.items[idx]) return;
+  _faqDraft.items[idx][field] = value;
+  markFaqDirty();
+}
+
+function addFaqItem() {
+  if (!_faqDraft) loadAdminFaq();
+  _faqDraft.items.push({ id: `faq-${Date.now()}`, question: '', answer: '', visible: true });
+  renderFaqAdminList();
+  markFaqDirty();
+  const last = document.getElementById(`faqQ_${_faqDraft.items.length - 1}`);
+  if (last) {
+    last.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    setTimeout(() => last.focus(), 250);
+  }
+}
+
+function moveFaqItem(idx, dir) {
+  const items = _faqDraft && _faqDraft.items;
+  const to = idx + dir;
+  if (!items || to < 0 || to >= items.length) return;
+  [items[idx], items[to]] = [items[to], items[idx]];
+  renderFaqAdminList();
+  markFaqDirty();
+}
+
+function toggleFaqVisible(idx) {
+  const it = _faqDraft && _faqDraft.items[idx];
+  if (!it) return;
+  it.visible = !it.visible;
+  renderFaqAdminList();
+  markFaqDirty();
+}
+
+function deleteFaqItem(idx) {
+  const it = _faqDraft && _faqDraft.items[idx];
+  if (!it) return;
+  const label = it.question.trim() ? `"${it.question.trim()}"` : 'คำถามนี้';
+  if (!confirm(`ลบ ${label} ใช่ไหม?\n(ถ้ากดลบผิด ยังไม่กด "บันทึก" ให้รีเฟรชหน้าเพื่อยกเลิกได้)`)) return;
+  _faqDraft.items.splice(idx, 1);
+  renderFaqAdminList();
+  markFaqDirty();
+}
+
+async function saveFaqSettings() {
+  if (!_faqDraft) loadAdminFaq();
+  _faqDraft.subtitle = (document.getElementById('faqSubtitleInput')?.value || '').trim();
+  _faqDraft.desc = (document.getElementById('faqDescInput')?.value || '').trim();
+
+  // ข้อที่ว่างทั้งคำถามและคำตอบ = ไม่บันทึก / มีคำตอบแต่ไม่มีคำถาม = ให้กรอกก่อน
+  const missing = _faqDraft.items.findIndex(it => !it.question.trim() && it.answer.trim());
+  if (missing !== -1) {
+    alert(`กรุณากรอก "คำถาม" ของข้อที่ ${missing + 1} ก่อนบันทึก`);
+    document.getElementById(`faqQ_${missing}`)?.focus();
+    return;
+  }
+  const items = _faqDraft.items
+    .map(it => ({ ...it, question: it.question.trim(), answer: it.answer.trim() }))
+    .filter(it => it.question);
+
+  const btn = document.getElementById('btnSaveFaq');
+  const orig = btn ? btn.innerHTML : '';
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังบันทึก...'; }
+  const payload = { subtitle: _faqDraft.subtitle, title: _faqDraft.title, desc: _faqDraft.desc, items };
+  const res = await window.NewGenDB.saveFaq(payload);
+  if (btn) { btn.disabled = false; btn.innerHTML = orig; }
+  if (res && res.success) {
+    loadAdminFaq();
+    showToast(`✅ บันทึกคำถามที่พบบ่อยแล้ว (${items.filter(it => it.visible).length} ข้อแสดงบนเว็บ)`, 'success');
+  } else {
+    showToast(`⚠️ บันทึกขึ้นระบบไม่สำเร็จ: ${(res && res.error) || 'ลองใหม่อีกครั้ง'}`, 'warning');
+  }
+}
+
+// เตือนก่อนปิดหน้า ถ้าแก้คำถามแล้วยังไม่บันทึก
+window.addEventListener('beforeunload', (e) => {
+  if (_faqDirty) {
+    e.preventDefault();
+    e.returnValue = '';
+  }
+});

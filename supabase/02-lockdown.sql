@@ -54,7 +54,7 @@ create policy "public can read site content" on public.app_data
   using (key in (
     'courses', 'tutors', 'tutorsQuote', 'reviews', 'achievements', 'videos', 'contact',
     'whyus', 'categories', 'privilege', 'home', 'about', 'enrollmentConfig',
-    'popupCampaign', 'bundles'
+    'popupCampaign', 'bundles', 'faq'
   ));
 
 create policy "admin full access app_data" on public.app_data
