@@ -1325,30 +1325,34 @@ body[data-fx-trust="a"] .trust-mini-item i {
 }
 
 /* B — ขอบไล่เฉดวิ่งรอบ + ไอคอนมีวงคลื่นกระเพื่อม */
+/* แบบ B ที่ใช้บนเว็บ: เล็กลง 10% */
+body[data-fx-trust="b"] .hero-trust-row {
+  max-width: 612px;
+  gap: 11px;
+}
+
 body[data-fx-trust="b"] .trust-mini-item {
   flex-direction: row;
   align-items: center;
-  gap: 12px;
-  padding: 14px 16px;
+  gap: 11px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  /* มินิมอล: ขอบบาง สีอ่อน วิ่งช้า ๆ พื้นกระจกโปร่ง */
   background:
-    linear-gradient(rgba(10, 22, 60, 0.88), rgba(10, 22, 60, 0.88)) padding-box,
-    conic-gradient(from var(--ng-ang), rgba(255, 42, 95, 0.95), rgba(58, 120, 255, 0.95), rgba(125, 211, 252, 0.95), rgba(255, 42, 95, 0.95)) border-box;
-  border: 1.5px solid transparent;
-  animation: ngAng 6s linear infinite;
-  font-size: 0.94rem;
-  font-weight: 700;
+    linear-gradient(rgba(12, 24, 64, 0.55), rgba(12, 24, 64, 0.55)) padding-box,
+    conic-gradient(from var(--ng-ang), rgba(255, 90, 122, 0.7), rgba(255, 255, 255, 0.12) 25%, rgba(96, 165, 250, 0.7) 50%, rgba(255, 255, 255, 0.12) 75%, rgba(255, 90, 122, 0.7)) border-box;
+  border: 1px solid transparent;
+  animation: ngAng 9s linear infinite;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #f1f5ff;
 }
 
 body[data-fx-trust="b"] .trust-mini-item i {
   flex-shrink: 0;
-  border-radius: 50%;
-  color: #ff5a7a !important;
-  font-size: 1.45rem;
-  animation: ngRing 2s ease-out infinite;
+  color: #ff6b88 !important;
+  font-size: 1.05rem;
 }
-
-body[data-fx-trust="b"] .trust-mini-item:nth-child(2) i { animation-delay: 0.6s; }
-body[data-fx-trust="b"] .trust-mini-item:nth-child(3) i { animation-delay: 1.2s; }
 
 @keyframes ngRing {
   0% { box-shadow: 0 0 0 0 rgba(255, 90, 122, 0.6); }
