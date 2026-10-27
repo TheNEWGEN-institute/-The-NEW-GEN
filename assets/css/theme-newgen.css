@@ -867,10 +867,11 @@ body.ng-theme .hero-left-col {
   padding-bottom: clamp(24px, 4vw, 70px);
 }
 
-/* จอคอม: ยกก้อนข้อความด้านซ้ายขึ้นเล็กน้อย (มีพื้นที่ว่างด้านบน) */
+/* จอคอม: ก้อนข้อความด้านซ้ายอยู่กึ่งกลางแนวตั้ง → ช่องว่างใต้เมนูเท่ากับช่องว่างเหนือกล่องคำอธิบาย */
 @media (min-width: 981px) {
   body.ng-theme .hero-left-col {
-    padding-bottom: clamp(56px, 6.2vw, 102px);
+    align-self: center;
+    padding-bottom: 0;
   }
 }
 
