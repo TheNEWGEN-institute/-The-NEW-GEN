@@ -867,6 +867,13 @@ body.ng-theme .hero-left-col {
   padding-bottom: clamp(24px, 4vw, 70px);
 }
 
+/* จอคอม: ยกก้อนข้อความด้านซ้ายขึ้นเล็กน้อย (มีพื้นที่ว่างด้านบน) */
+@media (min-width: 981px) {
+  body.ng-theme .hero-left-col {
+    padding-bottom: clamp(56px, 6.2vw, 102px);
+  }
+}
+
 body.ng-theme .hero-title-impact {
   margin: 0 0 14px;
   line-height: 1.08;
@@ -1174,15 +1181,242 @@ body.ng-theme .hero-right-col.rd-stage-col {
   transform: translateY(-2px);
 }
 
-body.ng-theme .hero-bottom-statement {
-  margin-top: 26px;
-  background: var(--ng-glass);
-  border: 1px solid var(--ng-glass-border);
-  border-radius: 20px;
+/* ---------- ป้ายชื่อติวเตอร์ 3 แบบ (body[data-fx-tag="a|b|c"]) ---------- */
+/* A — การ์ดขาว ชื่อตัวใหญ่ แถบสีแดง-น้ำเงินด้านซ้าย */
+body[data-fx-tag="a"] .rd-tag {
+  background: #ffffff;
+  border: none;
+  color: #0b1e3f;
+  padding: 10px 16px 11px 20px;
+  border-radius: 16px;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
 }
 
-body.ng-theme .hero-statement-text {
-  color: var(--ng-muted);
+body[data-fx-tag="a"] .rd-tag::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 5px;
+  background: linear-gradient(180deg, #e11d48, #2a54d6);
+}
+
+body[data-fx-tag="a"] .rd-tag strong {
+  font-size: 1.18rem;
+  color: #0b1e3f;
+}
+
+body[data-fx-tag="a"] .rd-tag span {
+  color: #475569;
+  font-weight: 600;
+}
+
+/* B — ริบบิ้นชื่อไล่เฉดแดง + แถบดีกรีสีเข้ม */
+body[data-fx-tag="b"] .rd-tag {
+  padding: 0 0 9px;
+  gap: 0;
+  border-radius: 16px;
+  background: rgba(8, 18, 46, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  overflow: hidden;
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.4);
+}
+
+body[data-fx-tag="b"] .rd-tag strong {
+  display: block;
+  padding: 7px 14px 6px;
+  background: linear-gradient(90deg, #e11d48 0%, #f43f5e 55%, #ff8a5c 100%);
+  color: #ffffff;
+  font-size: 1.15rem;
+  letter-spacing: 0.01em;
+}
+
+body[data-fx-tag="b"] .rd-tag span {
+  padding: 7px 14px 0;
+  color: #e2e8f0;
+  font-weight: 600;
+}
+
+body[data-fx-tag="b"] .rd-tag span i {
+  color: #fbbf24;
+}
+
+/* C — กระจกเข้ม ขอบนีออนวิ่งรอบ ชื่อไล่เฉดขาว-ฟ้า */
+body[data-fx-tag="c"] .rd-tag {
+  background:
+    linear-gradient(rgba(8, 16, 44, 0.9), rgba(8, 16, 44, 0.9)) padding-box,
+    conic-gradient(from var(--ng-ang), #ff2a5f, #ffb3c4, #3a78ff, #7dd3fc, #ff2a5f) border-box;
+  border: 2px solid transparent;
+  border-radius: 16px;
+  animation: ngAng 4s linear infinite;
+  box-shadow: 0 0 18px rgba(255, 42, 95, 0.35), 0 0 32px rgba(58, 120, 255, 0.25);
+}
+
+body[data-fx-tag="c"] .rd-tag strong {
+  font-size: 1.16rem;
+  background: linear-gradient(90deg, #ffffff 0%, #c7d7fe 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+body[data-fx-tag="c"] .rd-tag span {
+  color: #c7d7fe;
+}
+
+/* ---------- คำเน้น 3 ข้อใต้ปุ่ม 3 แบบ (body[data-fx-trust="a|b|c"]) ---------- */
+/* A — ไอคอนในกล่องไล่เฉดแดง ตัวหนังสือหนา เส้นไล่เฉดด้านล่าง */
+body[data-fx-trust="a"] .trust-mini-item {
+  position: relative;
+  overflow: hidden;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.04));
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  font-size: 0.94rem;
+  font-weight: 700;
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), background 0.3s ease;
+}
+
+body[data-fx-trust="a"] .trust-mini-item::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #f43f5e, #ff8aa1 50%, #3a78ff);
+}
+
+body[data-fx-trust="a"] .trust-mini-item:hover {
+  transform: translateY(-3px);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.08));
+}
+
+body[data-fx-trust] .hero-trust-row {
+  max-width: 680px;
+}
+
+body[data-fx-trust="a"] .trust-mini-item i {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f43f5e, #be123c);
+  color: #ffffff !important;
+  font-size: 1.1rem;
+  box-shadow: 0 8px 18px rgba(225, 29, 72, 0.45);
+}
+
+/* B — ขอบไล่เฉดวิ่งรอบ + ไอคอนมีวงคลื่นกระเพื่อม */
+body[data-fx-trust="b"] .trust-mini-item {
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background:
+    linear-gradient(rgba(10, 22, 60, 0.88), rgba(10, 22, 60, 0.88)) padding-box,
+    conic-gradient(from var(--ng-ang), rgba(255, 42, 95, 0.95), rgba(58, 120, 255, 0.95), rgba(125, 211, 252, 0.95), rgba(255, 42, 95, 0.95)) border-box;
+  border: 1.5px solid transparent;
+  animation: ngAng 6s linear infinite;
+  font-size: 0.94rem;
+  font-weight: 700;
+}
+
+body[data-fx-trust="b"] .trust-mini-item i {
+  flex-shrink: 0;
+  border-radius: 50%;
+  color: #ff5a7a !important;
+  font-size: 1.45rem;
+  animation: ngRing 2s ease-out infinite;
+}
+
+body[data-fx-trust="b"] .trust-mini-item:nth-child(2) i { animation-delay: 0.6s; }
+body[data-fx-trust="b"] .trust-mini-item:nth-child(3) i { animation-delay: 1.2s; }
+
+@keyframes ngRing {
+  0% { box-shadow: 0 0 0 0 rgba(255, 90, 122, 0.6); }
+  100% { box-shadow: 0 0 0 12px rgba(255, 90, 122, 0); }
+}
+
+/* C — การ์ดขาวเด่นบนพื้นน้ำเงิน ไอคอนวงกลมคนละสี */
+body[data-fx-trust="c"] .trust-mini-item {
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 16px;
+  background: #ffffff;
+  border: none;
+  color: #0b1e3f;
+  font-size: 0.94rem;
+  font-weight: 700;
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.28);
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+body[data-fx-trust="c"] .trust-mini-item:hover {
+  transform: translateY(-3px);
+}
+
+body[data-fx-trust="c"] .trust-mini-item i {
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff1f3;
+  color: #e11d48 !important;
+  font-size: 1.15rem;
+}
+
+body[data-fx-trust="c"] .trust-mini-item:nth-child(2) i { background: #eef2ff; color: #2a54d6 !important; }
+body[data-fx-trust="c"] .trust-mini-item:nth-child(3) i { background: #ecfdf5; color: #059669 !important; }
+
+@media (max-width: 640px) {
+  body[data-fx-tag] .rd-tag strong {
+    font-size: 0.95rem;
+  }
+  body[data-fx-tag="b"] .rd-tag strong {
+    padding: 5px 10px 4px;
+  }
+  body[data-fx-tag="b"] .rd-tag span {
+    padding: 5px 10px 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body[data-fx-tag="c"] .rd-tag,
+  body[data-fx-trust="b"] .trust-mini-item,
+  body[data-fx-trust="b"] .trust-mini-item i {
+    animation: none;
+  }
+}
+
+/* คำอธิบายใต้ส่วนบน: ตัวขาวสว่างบนกระจกเข้ม อ่านง่าย */
+body.ng-theme .hero-bottom-statement {
+  margin-top: 26px;
+  background: rgba(6, 14, 40, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 20px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+body.ng-theme .hero-statement-text,
+body.ng-theme .hero-statement-text span {
+  color: #f4f7ff !important;
+  font-weight: 500;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
 }
 
 /* ===================================================================
