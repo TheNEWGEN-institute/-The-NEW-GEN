@@ -10,7 +10,8 @@
   'use strict';
 
   // เอฟเฟคที่ใช้บนเว็บจริง: รีวิว a|b|c, ป้ายประหยัด a|b|c
-  const FX_DEFAULTS = { reviews: 'a', save: 'a' };
+  // ป้ายชื่อติวเตอร์ a|b|c, คำเน้น 3 ข้อใต้ปุ่ม a|b|c
+  const FX_DEFAULTS = { reviews: 'a', save: 'a', tag: 'a', trust: 'b' };
 
   // รูปตัดพื้นหลังของติวเตอร์
   const CUTOUTS = {
@@ -675,6 +676,8 @@
   function applyFx() {
     if (!document.body.dataset.fxReviews) document.body.dataset.fxReviews = FX_DEFAULTS.reviews;
     if (!document.body.dataset.fxSave) document.body.dataset.fxSave = FX_DEFAULTS.save;
+    if (!document.body.dataset.fxTag) document.body.dataset.fxTag = FX_DEFAULTS.tag;
+    if (!document.body.dataset.fxTrust) document.body.dataset.fxTrust = FX_DEFAULTS.trust;
   }
 
   let swapQueued = false;
