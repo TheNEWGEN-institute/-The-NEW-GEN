@@ -134,73 +134,145 @@
     return rest.replace(/^[\s\-–,]+|[\s\-–,]+$/g, '').trim();
   }
 
-  // สีปกสลับน้ำเงิน/แดงตามลำดับในข้อมูล (ปกเดียวกันจึงสีเดียวกันทุกหน้า)
-  function toneOf(kind, id) {
-    const list = kind === 'bundle' ? allBundles() : allCourses();
-    const i = list.findIndex(x => x.id === id);
-    return (i < 0 ? 0 : i) % 2 ? 'red' : 'navy';
+  // สีปก: ม.ปลาย แยกตามวิชา / แพ็คแยกตามจำนวนวิชา / ประถม-ม.ต้น ใช้โทนของระดับชั้น
+  const SUBJECT_TONE = { 'คณิต': 'math', 'ฟิสิกส์': 'phys', 'เคมี': 'chem', 'อังกฤษ': 'eng' };
+  const SUBJECT_ICON = {
+    'คณิต': 'fa-square-root-variable', 'วิทย์': 'fa-flask', 'อังกฤษ': 'fa-language', 'ฟิสิกส์': 'fa-atom',
+    'เคมี': 'fa-flask-vial', 'ชีวะ': 'fa-dna', 'ไทย': 'fa-book-open', 'สังคม': 'fa-earth-asia'
+  };
+
+  // ระดับชั้น: 'upper' (ม.4–6) | 'lower' (ม.1–3) | 'primary' (ป.) | 'private'
+  function levelOfCourse(c) {
+    const cat = String(c.category || '');
+    if (/private/i.test(cat) || /private|คอร์สเดี่ยว/i.test(c.title || '')) return 'private';
+    if (/^highschool/.test(cat)) return 'upper';
+    if (/^secondary/.test(cat)) return 'lower';
+    if (/^primary/.test(cat)) return 'primary';
+    const g = gradeOf(c.title);
+    if (!g) return 'lower';
+    if (g[0] === 'ป') return 'primary';
+    return Number(g[2]) >= 4 ? 'upper' : 'lower';
+  }
+
+  // ติวเตอร์ประจำวิชา: ดูจากคอร์สวิชาเดียวที่มีติวเตอร์คนเดียว (เช่น ม.4 คณิต = พี่แม็ค)
+  function subjectTutorMap() {
+    const votes = {};
+    allCourses().forEach(c => {
+      const subs = shortSubjects(c.subjects);
+      if (subs.length !== 1 || (c.tutorIds || []).length !== 1) return;
+      const key = subs[0];
+      votes[key] = votes[key] || {};
+      votes[key][c.tutorIds[0]] = (votes[key][c.tutorIds[0]] || 0) + 1;
+    });
+    const map = {};
+    Object.keys(votes).forEach(s => {
+      map[s] = Object.keys(votes[s]).sort((a, b) => votes[s][b] - votes[s][a])[0];
+    });
+    return map;
+  }
+
+  // คอร์สวิชาเดียว → ติวเตอร์ 1 คน (คนประจำวิชา ถ้าอยู่ในรายชื่อคอร์ส)
+  function mainTutorIdOf(c, map) {
+    const ids = c.tutorIds || [];
+    const subs = shortSubjects(c.subjects);
+    const preferred = subs.length === 1 ? map[subs[0]] : null;
+    return (preferred && ids.includes(preferred)) ? preferred : ids[0];
   }
 
   function courseBanner(c) {
     const subs = shortSubjects(c.subjects);
     const grade = gradeOf(c.title);
-    const isPrivate = /private/i.test(c.title || '') || /คอร์สเดี่ยว/.test(c.title || '');
-    const topics = window.getCourseCoverTopics ? window.getCourseCoverTopics(c) : [];
-    let big;
-    let accent = grade;
-    let sub = '';
-    if (isPrivate) {
-      big = 'Private';
-      accent = 'Class';
-      sub = subs.join(' · ');
-    } else if (subs.length === 1) {
-      big = subs[0];
-      sub = extraOf(c.title);
-    } else if (subs.length > 1) {
-      big = `${subs.length} วิชาหลัก`;
-      sub = subs.join(' · ');
-    } else {
-      big = 'คอร์สเรียน';
-    }
+    const level = levelOfCourse(c);
     const extra = extraOf(c.title);
-    return {
-      kind: 'course', id: c.id, tone: toneOf('course', c.id),
-      symbol: subs.length === 1 ? (SYMBOL[subs[0]] || 'Σ') : 'Σ',
-      kicker: courseKind(c.title) + (subs.length > 1 && extra ? ` · ${extra}` : ''),
-      big, accent, sub, topics,
-      tutors: tutorsFor(c.tutorIds)
-    };
+    const base = { kind: 'course', id: c.id, kicker: courseKind(c.title), subs, topics: [], tutors: [] };
+
+    if (level === 'upper') {
+      const map = subjectTutorMap();
+      const tid = mainTutorIdOf(c, map);
+      const topics = window.getCourseCoverTopics ? window.getCourseCoverTopics(c) : [];
+      return Object.assign(base, {
+        layout: 'tutor',
+        tone: subs.length === 1 ? (SUBJECT_TONE[subs[0]] || 'royal') : (subs.length >= 4 ? 'pk4' : subs.length === 3 ? 'pk3' : 'pk2'),
+        symbol: subs.length === 1 ? (SYMBOL[subs[0]] || 'Σ') : 'Σ',
+        big: subs.length === 1 ? subs[0] : `${subs.length} วิชาหลัก`,
+        accent: grade,
+        sub: subs.length === 1 ? extra : subs.join(' · '),
+        topics,
+        tutors: tid ? tutorsFor([tid]) : []
+      });
+    }
+
+    // ประถม / ม.ต้น / คอร์สเดี่ยว: ไม่มีรูปติวเตอร์ เน้นตัวหนังสือใหญ่ชัด
+    const isPrivate = level === 'private';
+    return Object.assign(base, {
+      layout: 'text',
+      tone: isPrivate ? 'private' : (level === 'primary' ? 'sky' : 'royal'),
+      symbol: 'Σ',
+      big: isPrivate ? 'Private Class' : (grade || 'คอร์สเรียน'),
+      accent: '',
+      count: isPrivate ? 'เรียนตัวต่อตัว / กลุ่มส่วนตัว' : (subs.length > 1 ? `${subs.length} วิชาหลัก` : (subs[0] || '')),
+      tag: isPrivate ? '' : extra,
+      sub: ''
+    });
   }
 
   function bundleBanner(b) {
     const kids = allCourses().filter(c => (b.courseIds || []).includes(c.id));
     const subs = shortSubjects(kids.map(k => k.subjects).join(' • '));
-    const tutorIds = [...new Set(kids.flatMap(k => k.tutorIds || []))];
+    const grade = gradeOf(b.name);
+    const upper = kids.length ? kids.every(k => levelOfCourse(k) === 'upper') : /ม\.\s?[456]/.test(grade);
+    const n = kids.length;
+    const map = subjectTutorMap();
+    // 1 รูปต่อติวเตอร์ 1 คน (พี่อู๋สอน 2 วิชาในแพ็คเดียวกันก็แสดงรูปเดียว)
+    const tutorIds = upper ? [...new Set(kids.map(k => mainTutorIdOf(k, map)).filter(Boolean))] : [];
     return {
-      kind: 'bundle', id: b.id, tone: toneOf('bundle', b.id),
+      kind: 'bundle', id: b.id, layout: upper ? 'tutor' : 'text',
+      tone: n >= 4 ? 'pk4' : (n === 3 ? 'pk3' : (n === 2 ? 'pk2' : (SUBJECT_TONE[subs[0]] || 'royal'))),
       symbol: subs.map(s => SYMBOL[s]).filter(Boolean)[0] || 'Σ',
-      kicker: 'แพ็คเกจสุดคุ้ม',
-      big: `แพ็ค ${kids.length} วิชา`, accent: gradeOf(b.name),
-      sub: subs.join(' · '), topics: [],
+      kicker: `${n >= 4 ? 'บิ๊กแพ็คเกจ' : (n === 2 ? 'แพ็คคู่' : 'แพ็คเกจ')}${grade ? ' ' + grade : ''}`,
+      big: `แพ็ค ${n} วิชา`, accent: upper ? '' : '',
+      count: '', tag: '',
+      sub: '', subs, topics: [], chips: subs,
       tutors: tutorsFor(tutorIds), kids, tutorIds
     };
   }
 
+  function subjectChipsHtml(subs) {
+    return subs.length
+      ? `<div class="ng-bn-chips">${subs.map(s => `<span class="ng-chip-${SUBJECT_TONE[s] || 'other'}"><i class="fa-solid ${SUBJECT_ICON[s] || 'fa-book'}"></i>${esc(s)}</span>`).join('')}</div>`
+      : '';
+  }
+
   function bannerHtml(m) {
-    const cuts = m.tutors.filter(t => cutoutOf(t)).slice(0, 2);
     const bigText = m.big + (m.accent ? ' ' + m.accent : '');
+    if (m.layout === 'text') {
+      const icons = (m.subs || []).slice(0, 3);
+      return `
+        <div class="ng-bn ng-bn-textonly ng-tone-${m.tone}" role="img" aria-label="${esc(bigText + ' ' + (m.tag || ''))}">
+          <span class="ng-bn-mark" aria-hidden="true">${esc(m.big.replace(/–.*$/, ''))}</span>
+          <div class="ng-bn-text">
+            <span class="ng-bn-kicker">${esc(m.kicker)}</span>
+            <span class="ng-bn-grade ${m.big.length > 7 ? 'is-long' : ''}">${esc(m.big)}</span>
+            <span class="ng-bn-count">${esc(m.count || '')}${m.tag ? ` <b>${esc(m.tag)}</b>` : ''}</span>
+            ${subjectChipsHtml(m.subs || [])}
+          </div>
+          ${icons.length ? `<div class="ng-bn-icons n${icons.length}" aria-hidden="true">${icons.map(s =>
+            `<span><i class="fa-solid ${SUBJECT_ICON[s] || 'fa-book'}"></i></span>`).join('')}</div>` : ''}
+        </div>`;
+    }
+    const cuts = m.tutors.filter(t => cutoutOf(t)).slice(0, 3);
     return `
-      <div class="ng-bn ng-tone-${m.tone} ${m.topics.length ? 'has-topics' : ''}" role="img" aria-label="${esc(bigText)}">
+      <div class="ng-bn ng-tone-${m.tone} ${m.topics.length ? 'has-topics' : ''} ${m.kind === 'bundle' ? 'is-bundle' : ''} tutors-${cuts.length}" role="img" aria-label="${esc(bigText)}">
         <span class="ng-bn-sym" aria-hidden="true">${esc(m.symbol)}</span>
         <div class="ng-bn-text">
           <span class="ng-bn-kicker">${esc(m.kicker)}</span>
           <span class="ng-bn-big ${bigText.length > 11 ? 'is-long' : ''}">${esc(m.big)}${m.accent ? ` <em>${esc(m.accent)}</em>` : ''}</span>
           ${m.topics.length
             ? `<ul class="ng-bn-topics">${m.topics.map(t => `<li>${esc(t)}</li>`).join('')}</ul>`
-            : (m.sub ? `<span class="ng-bn-sub">${esc(m.sub)}</span>` : '')}
+            : (m.chips ? subjectChipsHtml(m.chips) : (m.sub ? `<span class="ng-bn-sub">${esc(m.sub)}</span>` : ''))}
         </div>
         ${cuts.length ? `<div class="ng-bn-tutors n${cuts.length}">${cuts.map(t =>
-          `<img src="${esc(cutoutOf(t))}" alt="" loading="lazy">`).join('')}</div>` : ''}
+          `<img src="${esc(cutoutOf(t))}" alt="${esc(t.name)}" loading="lazy">`).join('')}</div>` : ''}
       </div>`;
   }
 
@@ -226,7 +298,7 @@
         : (save ? saveFlagHtml(save) : '<span class="nx-flag">แพ็คคุ้ม</span>'),
       chips: [`แพ็คเกจ ${m.kids.length} คอร์ส`, 'Onsite & Online'],
       title: b.name,
-      meta: [['fa-solid fa-layer-group', `${m.kids.length} คอร์ส`], ['fa-solid fa-chalkboard-user', m.tutors.map(t => t.name).join(', ') || 'ทีมติวเตอร์']],
+      meta: [['fa-solid fa-layer-group', `${m.kids.length} คอร์ส`], ['fa-solid fa-chalkboard-user', (m.tutors.length ? m.tutors : tutorsFor([...new Set(m.kids.flatMap(k => k.tutorIds || []))])).map(t => t.name).join(', ') || 'ทีมติวเตอร์']],
       price: priceNum(b.pricePromo || '0'), old: b.priceOriginal ? priceNum(b.priceOriginal) : '', unit: 'แพ็ค'
     };
   }
@@ -246,7 +318,7 @@
       id: c.id, kind: 'course', banner: m, full: eff.isFull, flagHtml,
       chips: [c.categoryLabel || 'คอร์สเรียน', 'Onsite & Online'],
       title: c.title,
-      meta: [['fa-regular fa-clock', hoursShort(c.totalHours)], ['fa-regular fa-calendar-check', rounds ? `${rounds} รอบเรียน` : 'นัดเวลาได้'], ['fa-solid fa-chalkboard-user', m.tutors.map(t => t.name).join(', ') || 'ทีมติวเตอร์']].filter(x => x[1]),
+      meta: [['fa-regular fa-clock', hoursShort(c.totalHours)], ['fa-regular fa-calendar-check', rounds ? `${rounds} รอบเรียน` : 'นัดเวลาได้'], ['fa-solid fa-chalkboard-user', tutorsFor(c.tutorIds).map(t => t.name).join(', ') || 'ทีมติวเตอร์']].filter(x => x[1]),
       price: priceNum(c.pricePromo || '0'), old: c.priceOriginal ? priceNum(c.priceOriginal) : '', unit: unitShort(c.priceUnit)
     };
   }
@@ -397,6 +469,56 @@
       wrap.dataset.key = key;
       wrap.innerHTML = bannerHtml(m);
       host.appendChild(wrap);
+    });
+  }
+
+  /* ---------------- หัวข้อทุกหน้า: เส้นใต้ + ลอยขึ้นเมื่อเลื่อนมาเห็น ---------------- */
+  const HEADING_SEL = '.section-title, .reviews-section-title, .tutor-group-title, .about-inspiration-title, .section-heading-box > h3, .cd-related-section h2';
+  const EYEBROW_SEL = '.section-subtitle, .badge, .tutor-group-badge, .about-header-badge';
+  let revealObs = null;
+
+  function setupHeadings() {
+    if (!('IntersectionObserver' in window)) return;
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!revealObs) {
+      revealObs = new IntersectionObserver(entries => entries.forEach(en => {
+        if (!en.isIntersecting) return;
+        en.target.classList.add('ng-in');
+        revealObs.unobserve(en.target);
+      }), { threshold: 0.15, rootMargin: '0px 0px -30px 0px' });
+    }
+    document.querySelectorAll(HEADING_SEL).forEach(h => {
+      if (h.closest('.hero-section, .subpage-hero, .nx-card, .ng-bn')) return;
+      // ข้อความหัวข้อบางอันถูกเขียนใหม่ตอนโหลดข้อมูล → ใส่เส้นใต้กลับ
+      if (!h.querySelector(':scope > .ng-underline')) h.insertAdjacentHTML('beforeend', '<span class="ng-underline" aria-hidden="true"></span>');
+      if (h.dataset.ngHead) return;
+      h.dataset.ngHead = '1';
+      if (getComputedStyle(h).textAlign === 'center') h.classList.add('ng-center');
+      const prev = h.previousElementSibling;
+      const eyebrow = prev && prev.matches(EYEBROW_SEL) ? prev : null;
+      [eyebrow, h].forEach((el, i) => {
+        if (!el) return;
+        if (!reduce) {
+          el.classList.add('ng-reveal');
+          el.style.transitionDelay = i ? '0.1s' : '0s';
+        }
+        revealObs.observe(el);
+      });
+    });
+  }
+
+  /* ---------------- หน้าทีมติวเตอร์: ใช้รูปตัดพื้นหลังบนพื้นน้ำเงิน ---------------- */
+  function useTutorCutouts() {
+    document.querySelectorAll('.tutor-profile-card[data-tutor-id]').forEach(card => {
+      const t = allTutors().find(x => x.id === card.dataset.tutorId) || { id: card.dataset.tutorId };
+      const cut = cutoutOf(t);
+      const wrap = card.querySelector('.tutor-card-img-wrap');
+      const img = wrap && wrap.querySelector('img');
+      if (!cut || !img || img.getAttribute('src') === cut) return;
+      img.setAttribute('src', cut);
+      img.removeAttribute('width');
+      img.removeAttribute('height');
+      wrap.classList.add('ng-cutout');
     });
   }
 
@@ -559,7 +681,12 @@
   function queueSwap() {
     if (swapQueued) return;
     swapQueued = true;
-    setTimeout(() => { swapQueued = false; swapCoverImages(); }, 40);
+    setTimeout(() => {
+      swapQueued = false;
+      swapCoverImages();
+      setupHeadings();
+      useTutorCutouts();
+    }, 40);
   }
 
   function watch() {
@@ -591,6 +718,8 @@
     ['allCoursesGrid', 'cdRelatedGrid'].forEach(id => convertLegacyGrid(document.getElementById(id)));
     renderReviews();
     swapCoverImages();
+    setupHeadings();
+    useTutorCutouts();
   }
 
   NGTheme.refresh = () => {
