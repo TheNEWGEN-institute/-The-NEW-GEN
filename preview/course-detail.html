@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <base href="../">
+  <meta name="robots" content="noindex, nofollow">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>[ตัวอย่างธีมใหม่] รายละเอียดคอร์สเรียน | สถาบันกวดวิชา The NEW GEN</title>
+  <meta name="description" content="ดูรายละเอียดคอร์สเรียน ตารางเรียน วันเวลา ค่าเรียน และเนื้อหาหลักสูตร สถาบันกวดวิชา The NEW GEN ติวเข้มโดยทีมติวเตอร์ The NEW GEN">
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="assets/images/tutor-au.jpg">
+
+  <!-- Google Fonts & Font Awesome Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Prompt:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  <!-- Main Stylesheet -->
+  <link rel="stylesheet" href="assets/css/style.css?v=20261021-fix2">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/theme-newgen.css?v=1793114175212">
+  <link rel="stylesheet" href="preview/preview-tools.css?v=1793114175212">
+</head>
+<body class="ng-theme page-course-detail">
+
+  <!-- ===================================================================
+       Header & Navigation Bar (Pure White with Deep Navy Links)
+       =================================================================== -->
+  <header class="site-header navbar-white scrolled" id="topHeader">
+    <div class="container navbar">
+      <!-- Logo -->
+      <a href="index.html" class="brand-logo" aria-label="หน้าแรก The NEW GEN">
+        <div>
+          <div class="brand-logo-text logo-v2">
+            <span>The</span> <span class="new"><svg class="logo-glyph logo-glyph-n" viewBox="0 0 74 75" aria-hidden="true"><path d="M7 0h15v44H7zM52 0h16v75H52zM7 0h19l42 75H49z"/></svg><svg class="logo-glyph logo-glyph-e" viewBox="0 0 59 75" aria-hidden="true"><path d="M7 0h50v14H7zM7 24h15v51H7zM22 31h31v13H22zM22 61h35v14H22z"/></svg>W</span> <span class="gen">G<svg class="logo-glyph logo-glyph-e" viewBox="0 0 59 75" aria-hidden="true"><path d="M7 0h50v14H7zM7 24h15v51H7zM22 31h31v13H22zM22 61h35v14H22z"/></svg><svg class="logo-glyph logo-glyph-n" viewBox="0 0 74 75" aria-hidden="true"><path d="M7 0h15v44H7zM52 0h16v75H52zM7 0h19l42 75H49z"/></svg></span>
+          </div>
+          <span class="brand-subtext">กวดวิชาของเด็ก <span class="highlight-gen">GEN</span> ใหม่</span>
+        </div>
+      </a>
+
+      <!-- Desktop Nav Menu -->
+      <nav class="nav-links">
+        <a href="index.html" class="nav-link">หน้าแรก</a>
+        <a href="tutors.html" class="nav-link">ทีมติวเตอร์</a>
+        <a href="courses.html" class="nav-link active">คอร์สเรียนทั้งหมด</a>
+        <a href="reviews.html" class="nav-link">ความสำเร็จของรุ่นพี่</a>
+        <a href="free-trial.html" class="nav-link">ทดลองเรียนฟรี</a>
+        <a href="faq.html" class="nav-link">คำถามที่พบบ่อย</a>
+        <a href="about.html" class="nav-link">เกี่ยวกับเรา</a>
+        <a href="courses.html" class="btn-back-home">
+          <i class="fa-solid fa-arrow-left"></i> ดูคอร์สอื่นๆ
+        </a>
+      </nav>
+
+      <!-- Mobile Hamburger Button -->
+      <button type="button" class="menu-toggle" aria-label="เปิดเมนูหลัก">
+        <i class="fa-solid fa-bars-staggered"></i>
+      </button>
+    </div>
+
+    <!-- Mobile Dropdown Navigation -->
+    <div class="mobile-menu">
+      <a href="index.html" class="mobile-nav-link">หน้าแรก</a>
+      <a href="tutors.html" class="mobile-nav-link">ทีมติวเตอร์</a>
+      <a href="courses.html" class="mobile-nav-link active">คอร์สเรียนทั้งหมด</a>
+      <a href="reviews.html" class="mobile-nav-link">ความสำเร็จของรุ่นพี่</a>
+      <a href="free-trial.html" class="mobile-nav-link">ทดลองเรียนฟรี</a>
+      <a href="faq.html" class="mobile-nav-link">คำถามที่พบบ่อย</a>
+      <a href="about.html" class="mobile-nav-link">เกี่ยวกับเรา</a>
+    </div>
+  </header>
+
+  <!-- ===================================================================
+       Course Detail Hero / Breadcrumb Header
+       =================================================================== -->
+  <section class="cd-hero-section">
+    <div class="container">
+      <!-- Breadcrumbs -->
+      <nav class="cd-breadcrumbs" aria-label="Breadcrumb">
+        <a href="index.html"><i class="fa-solid fa-house"></i> หน้าแรก</a>
+        <i class="fa-solid fa-chevron-right separator"></i>
+        <a href="index.html#courses">คอร์สเรียนทั้งหมด</a>
+        <i class="fa-solid fa-chevron-right separator"></i>
+        <span id="breadcrumbCurrentCourse" class="current">กำลังโหลดข้อมูลคอร์ส...</span>
+      </nav>
+
+      <div class="cd-header-meta">
+        <div class="cd-badge-group">
+          <span class="badge" id="cdBadgeCategory">ระดับชั้น</span>
+          <span class="badge" id="cdBadgeStatus">สถานะการรับสมัคร</span>
+          <span class="badge badge-genz"><i class="fa-solid fa-chalkboard-user"></i> เรียนสด Onsite &amp; Online</span>
+        </div>
+        <h1 class="cd-title" id="cdCourseTitle">กำลังโหลดชื่อคอร์ส...</h1>
+        <div class="cd-subtitle" id="cdCourseSubjects">
+          <i class="fa-solid fa-graduation-cap"></i> กำลังโหลดวิชาที่เปิดสอน...
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================================================================
+       Course Detail Main Content Grid
+       =================================================================== -->
+  <main class="cd-main-section">
+    <div class="container">
+      <div class="cd-layout-grid">
+        
+        <!-- ================= LEFT COLUMN: MAIN CONTENT & POSTER ================= -->
+        <div class="cd-col-main">
+
+          <!-- 1. Full Poster Showcase Card -->
+          <div class="cd-card cd-poster-card" id="cdPosterCard">
+            <div class="cd-card-header">
+              <h2 class="cd-card-title">
+                <i class="fa-solid fa-image" style="color: var(--color-cyan);"></i> โปสเตอร์รายละเอียดคอร์ส & ตารางเรียน
+              </h2>
+              <span class="cd-card-tag">คลิกที่รูปเพื่อขยายใหญ่</span>
+            </div>
+            
+            <div class="cd-poster-view-box" id="cdPosterViewBox" title="คลิกเพื่อดูโปสเตอร์ขนาดเต็ม">
+              <img id="cdPosterImg" src="" alt="โปสเตอร์คอร์สเรียน The NEW GEN" loading="eager">
+              <div class="cd-poster-overlay">
+                <div class="cd-poster-zoom-btn">
+                  <i class="fa-solid fa-magnifying-glass-plus"></i> คลิกเพื่อขยายดูรูปขนาดเต็ม
+                </div>
+              </div>
+            </div>
+
+            <div class="cd-poster-hint">
+              <i class="fa-solid fa-circle-info"></i> หากตัวหนังสือในโปสเตอร์มีขนาดเล็ก ท่านสามารถคลิกที่รูปเพื่อเปิดดูแบบเต็มหน้าจอหรือซูมดูรายละเอียดตารางเรียนได้ทันที
+            </div>
+          </div>
+
+          <!-- Extra Posters / Gallery Strip (Item 4) -->
+          <div class="cd-card cd-gallery-card" id="cdExtraGalleryCard" style="display: none;">
+            <div class="cd-card-header">
+              <h2 class="cd-card-title">
+                <i class="fa-solid fa-images" style="color: var(--color-cyan);"></i> รูปภาพรายละเอียดเพิ่มเติมของคอร์ส
+              </h2>
+              <span class="cd-card-tag">คลิกที่รูปเพื่อขยายใหญ่</span>
+            </div>
+            <div class="cd-gallery-grid" id="cdExtraGalleryContainer">
+              <!-- Dynamically populated via JS -->
+            </div>
+          </div>
+
+          <!-- 2. Schedule & Timetable Table (Moved to TOP after posters as requested) -->
+          <div class="cd-card cd-schedule-card" id="cdScheduleCard">
+            <div class="cd-card-header">
+              <h2 class="cd-card-title">
+                <i class="fa-solid fa-calendar-days" style="color: #0284c7;"></i> ตารางเรียนและรอบเวลา (Schedule)
+              </h2>
+              <span class="cd-hours-badge" id="cdTotalHoursBadge">
+                <i class="fa-regular fa-clock"></i> ชั่วโมงเรียน
+              </span>
+            </div>
+
+            <div class="cd-table-responsive">
+              <table class="cd-schedule-table">
+                <thead>
+                  <tr>
+                    <th>กลุ่มเรียน</th>
+                    <th>เวลาเรียน</th>
+                    <th>วันที่เรียน</th>
+                    <th>ที่นั่ง</th>
+                  </tr>
+                </thead>
+                <tbody id="cdScheduleTableBody">
+                  <!-- Dynamically populated via JS -->
+                </tbody>
+              </table>
+            </div>
+
+            <div class="cd-schedule-note">
+              <i class="fa-solid fa-bell" style="color: var(--color-gold);"></i>
+              <div id="cdScheduleNoteContent">
+                <strong>หมายเหตุการสำรองที่นั่ง:</strong> ห้องเรียน Onsite แต่ละรอบเป็นกลุ่มเล็กเพื่อการดูแลทั่วถึง ที่นั่งออนไซต์จึงมีจำนวนจำกัด หากรอบใดออนไซต์เต็มแล้ว ยังสมัครเรียน Online ในรอบนั้นได้ แนะนำให้ติดต่อสำรองที่นั่งล่วงหน้าครับ
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. Course Highlights & Benefits -->
+          <div class="cd-card cd-highlights-card" id="cdHighlightsCard">
+            <div class="cd-card-header">
+              <h2 class="cd-card-title">
+                <i class="fa-solid fa-star" style="color: var(--color-gold);"></i> จุดเด่นและสิทธิประโยชน์ของคอร์สนี้
+              </h2>
+            </div>
+            <ul class="cd-highlights-list" id="cdHighlightsList">
+              <!-- Dynamically populated via JS -->
+            </ul>
+          </div>
+
+          <!-- Target Audience Card (Item 4) -->
+          <div class="cd-card cd-target-audience-card" id="cdTargetAudienceCard" style="display: none;">
+            <div class="cd-card-header">
+              <h2 class="cd-card-title">
+                <i class="fa-solid fa-bullseye" style="color: #0284c7;"></i> คอร์สนี้เหมาะกับใคร ?
+              </h2>
+            </div>
+            <div class="cd-target-audience-body" id="cdTargetAudienceContent">
+              <!-- Dynamically populated via JS -->
+            </div>
+          </div>
+
+          <!-- Benefits Card (Item 4) -->
+          <div class="cd-card cd-benefits-card" id="cdBenefitsCard" style="display: none;">
+            <div class="cd-card-header">
+              <h2 class="cd-card-title">
+                <i class="fa-solid fa-gift" style="color: #c026d3;"></i> สิ่งที่จะได้รับจากคอร์สนี้
+              </h2>
+            </div>
+            <div class="cd-benefits-body" id="cdBenefitsContent">
+              <!-- Dynamically populated via JS -->
+            </div>
+          </div>
+
+          <!-- Subject Breakdown (Item 5: Separate Subjects Pricing & Details - Cards + Summary Table) -->
+          <div class="cd-card cd-subject-breakdown-card" id="cdSubjectBreakdownCard" style="display: none;">
+            <div class="cd-card-header" style="flex-wrap: wrap; gap: 8px;">
+              <div>
+                <h2 class="cd-card-title" style="margin-bottom: 4px;">
+                  <i class="fa-solid fa-layer-group" style="color: #f59e0b;"></i> รายละเอียดและค่าเรียนแยกรายวิชา
+                </h2>
+                <p style="font-size: 0.88rem; color: var(--text-secondary); margin: 0;">
+                  สามารถเลือกเรียนเฉพาะวิชาที่ต้องการเสริม หรือสมัครแพ็กเกจรวมทุกวิชาเพื่อรับราคาส่วนลดพิเศษ
+                </p>
+              </div>
+            </div>
+
+            <!-- 5.1 Grid of Subject Cards -->
+            <div class="cd-subjects-grid" id="cdSubjectsGrid">
+              <!-- Dynamically populated via JS -->
+            </div>
+
+            <!-- 5.2 Bundle Promo Section (Requirement 6: Package promo for this grade level instead of summary table) -->
+            <div id="cdBundlePromoSection" class="cd-bundle-promo-section" style="margin-top: 24px;"></div>
+          </div>
+
+          <!-- Dynamic Custom Sections (Admin Configured Extra Topics) -->
+          <div id="cdCustomSectionsContainer"></div>
+
+          <!-- 4. Meet The Tutors -->
+          <div class="cd-card cd-tutors-card" id="cdTutorsSection">
+            <div class="cd-card-header">
+              <h2 class="cd-card-title">
+                <i class="fa-solid fa-user-tie" style="color: var(--color-cyan);"></i> ทีมติวเตอร์ผู้สอนประจำหลักสูตร
+              </h2>
+            </div>
+
+            <div class="cd-tutors-grid" id="cdTutorsGrid">
+              <!-- Dynamically populated via JS -->
+            </div>
+          </div>
+
+          <!-- 5. FAQ & Information (Item 4: Dynamically populated / can be hidden) -->
+          <div class="cd-card cd-faq-card" id="cdParentFaqCard">
+            <div class="cd-card-header">
+              <h2 class="cd-card-title">
+                <i class="fa-solid fa-circle-question" style="color: var(--color-gold);"></i> ข้อมูลเพิ่มเติม &amp; สิ่งที่ผู้ปกครองควรรู้
+              </h2>
+            </div>
+            <div class="cd-faq-list" id="cdParentFaqList">
+              <!-- Dynamically populated via JS -->
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ================= RIGHT COLUMN: STICKY ENROLLMENT SIDEBAR ================= -->
+        <aside class="cd-col-sidebar">
+          <div class="cd-sticky-box">
+            
+            <div class="cd-sidebar-card">
+              <!-- Price header -->
+              <div class="cd-price-section">
+                <span class="cd-price-label" id="cdPriceLabel">ค่าลงทะเบียนเรียนพิเศษ</span>
+                <div class="cd-price-display">
+                  <span class="cd-price-old" id="cdPriceOld">จาก 5,900 บ.</span>
+                  <div class="cd-price-main">
+                    <span class="price-num" id="cdPricePromo">4,500</span>
+                    <span class="price-suffix">.- <span id="cdPriceUnit">บาท / เทอม</span></span>
+                  </div>
+                </div>
+                <div class="cd-installment-badge" id="cdMonthlyPriceBadge">
+                  <i class="fa-solid fa-check"></i> <span id="cdMonthlyPrice">1,500 บาท / เดือน (20 ชม.)</span>
+                </div>
+              </div>
+
+              <!-- Quick Info List -->
+              <div class="cd-sidebar-info-list">
+                <div class="cd-info-row" id="cdLocationRow">
+                  <i class="fa-solid fa-location-dot"></i>
+                  <div>
+                    <strong>สถานที่เรียน:</strong>
+                    <span id="cdLocationText">สถาบัน The NEW GEN (เรียนสด Onsite &amp; Online)</span>
+                  </div>
+                </div>
+                <div class="cd-info-row" id="cdHoursRow">
+                  <i class="fa-solid fa-clock"></i>
+                  <div>
+                    <strong>เวลาเรียนรวม:</strong>
+                    <span id="cdSidebarHours">42 ชั่วโมง</span>
+                  </div>
+                </div>
+                <div class="cd-info-row" id="cdClassSizeRow">
+                  <i class="fa-solid fa-users"></i>
+                  <div>
+                    <strong>ขนาดห้องเรียน:</strong>
+                    <span id="cdClassSizeText">กลุ่มเล็ก ดูแลใกล้ชิด ถามได้ทันที</span>
+                  </div>
+                </div>
+                <div class="cd-info-row" id="cdMaterialsRow">
+                  <i class="fa-solid fa-file-lines"></i>
+                  <div>
+                    <strong>ชุดเอกสาร:</strong>
+                    <span id="cdMaterialsText">ฟรี! หนังสือและแนวข้อสอบเก็งพิเศษ</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Action Buttons: 1. สมัครเลย (ลิงก์คอร์ส) vs 2. สอบถามข้อมูล (LINE) -->
+              <div class="cd-action-buttons">
+                <!-- 1. ปุ่มสมัครเรียนเลย -->
+                <a href="#" target="_blank" rel="noopener noreferrer" class="btn-cd-register" id="btnDirectRegister">
+                  <i class="fa-solid fa-bolt"></i>
+                  <div>
+                    <strong id="btnDirectRegisterTitle">สมัครเรียนเลย (จองที่นั่ง)</strong>
+                    <small id="btnDirectRegisterSub">กรอกข้อมูลและลงทะเบียนทันที</small>
+                  </div>
+                </a>
+
+                <!-- 2. ปุ่มสอบถามข้อมูลเพิ่มเติมผ่าน LINE -->
+                <a href="https://lin.ee/RXrzi1G" target="_blank" rel="noopener noreferrer" class="btn-cd-line" id="btnLineEnroll">
+                  <i class="fa-brands fa-line"></i>
+                  <div>
+                    <strong>สอบถามข้อมูลเพิ่มเติมผ่าน LINE</strong>
+                    <small>ทักคุยกับพี่แอดมิน ปรึกษาหลักสูตรและโปรโมชั่น</small>
+                  </div>
+                </a>
+
+                <!-- Phone buttons -->
+                <div class="cd-phone-buttons">
+                  <a href="tel:0954721072" class="btn-cd-phone">
+                    <i class="fa-solid fa-phone"></i> โทร 095-4721072 (พี่อู๋)
+                  </a>
+                  <a href="tel:0985322791" class="btn-cd-phone">
+                    <i class="fa-solid fa-phone"></i> โทร 098-5322791 (พี่นนท์)
+                  </a>
+                </div>
+
+                <!-- Share Button -->
+                <button type="button" class="btn-cd-share" id="btnShareCourse">
+                  <i class="fa-solid fa-share-nodes"></i> คัดลอกลิงก์คอร์สนี้เพื่อแชร์
+                </button>
+                <div class="share-toast" id="shareToast">คัดลอกลิงก์สำเร็จแล้ว!</div>
+              </div>
+
+              <!-- Trust Guarantee -->
+              <div class="cd-trust-badges" id="cdTrustBadges">
+                <div class="trust-item" id="cdTrustGuaranteeItem">
+                  <i class="fa-solid fa-shield-halved"></i>
+                  <span id="cdTrustGuaranteeText">การันตีการสอนโดยทีมติวเตอร์ The NEW GEN</span>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+        </aside>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================================================================
+       Related Courses Section (คอร์สเรียนอื่นๆ ที่น่าสนใจ)
+       =================================================================== -->
+  <section class="cd-related-section">
+    <div class="container">
+      <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; flex-wrap: wrap; gap: 14px;">
+        <div>
+          <span class="badge badge-genz">เปิดรับสมัครควบคู่กัน</span>
+          <h2 style="font-size: 1.8rem; font-weight: 800; color: var(--color-navy); margin-top: 8px; margin-bottom: 4px;">
+            คอร์สเรียนอื่นๆ ของสถาบัน The NEW GEN
+          </h2>
+          <p style="color: var(--text-secondary); font-size: 0.95rem; margin: 0;" id="cdRelatedSubtitle">เลือกดูคอร์สในระดับชั้นที่กำลังเข้าดู</p>
+        </div>
+        <div class="slider-nav-arrows" style="display: flex; gap: 8px;">
+          <button type="button" class="btn-slider-arrow" onclick="scrollRelatedCourses(-1)" aria-label="เลื่อนซ้าย" title="เลื่อนดูคอร์สก่อนหน้า" style="width: 44px; height: 44px; border-radius: 50%; border: 1.5px solid #cbd5e1; background: #ffffff; color: var(--color-navy); font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.06); transition: all 0.2s;">
+            <i class="fa-solid fa-chevron-left"></i>
+          </button>
+          <button type="button" class="btn-slider-arrow" onclick="scrollRelatedCourses(1)" aria-label="เลื่อนขวา" title="เลื่อนดูคอร์สถัดไป" style="width: 44px; height: 44px; border-radius: 50%; border: 1.5px solid #cbd5e1; background: #ffffff; color: var(--color-navy); font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.06); transition: all 0.2s;">
+            <i class="fa-solid fa-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="cd-related-grid" id="cdRelatedGrid" style="display: flex; flex-direction: row; flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden; gap: 20px; scroll-behavior: smooth; padding: 6px 4px 20px 4px; -webkit-overflow-scrolling: touch;">
+        <!-- Dynamically injected via JS -->
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================================================================
+       Poster Fullscreen Lightbox Modal
+       =================================================================== -->
+  <div class="cd-lightbox" id="cdLightbox" role="dialog" aria-modal="true" aria-label="ขยายภาพโปสเตอร์">
+    <div class="cd-lightbox-backdrop" id="cdLightboxBackdrop"></div>
+    <div class="cd-lightbox-container">
+      <button type="button" class="cd-lightbox-close" id="cdLightboxClose" aria-label="ปิดภาพขยาย">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+      <div class="cd-lightbox-content">
+        <img id="cdLightboxImg" src="" alt="ภาพโปสเตอร์ขนาดเต็ม">
+      </div>
+      <div class="cd-lightbox-bar">
+        <span id="cdLightboxCaption">โปสเตอร์คอร์สเรียน</span>
+        <a href="" id="cdLightboxDownload" target="_blank" download class="btn-lightbox-action">
+          <i class="fa-solid fa-arrow-up-right-from-square"></i> เปิดรูปต้นฉบับในแท็บใหม่
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================
+       Footer (ข้อมูลติดต่อ & แผนที่)
+       =================================================================== -->
+  <footer class="site-footer" id="contact">
+    <div class="container">
+      <div class="footer-top">
+        <!-- Col 1: Brand Info -->
+        <div class="footer-brand">
+          <a href="#hero" class="brand-logo">
+            <div>
+              <div class="brand-logo-text logo-v2">
+                <span>The</span> <span class="new"><svg class="logo-glyph logo-glyph-n" viewBox="0 0 74 75" aria-hidden="true"><path d="M7 0h15v44H7zM52 0h16v75H52zM7 0h19l42 75H49z"/></svg><svg class="logo-glyph logo-glyph-e" viewBox="0 0 59 75" aria-hidden="true"><path d="M7 0h50v14H7zM7 24h15v51H7zM22 31h31v13H22zM22 61h35v14H22z"/></svg>W</span> <span class="gen">G<svg class="logo-glyph logo-glyph-e" viewBox="0 0 59 75" aria-hidden="true"><path d="M7 0h50v14H7zM7 24h15v51H7zM22 31h31v13H22zM22 61h35v14H22z"/></svg><svg class="logo-glyph logo-glyph-n" viewBox="0 0 74 75" aria-hidden="true"><path d="M7 0h15v44H7zM52 0h16v75H52zM7 0h19l42 75H49z"/></svg></span>
+              </div>
+              <span class="brand-subtext">กวดวิชาของเด็ก <span class="highlight-gen">GEN</span> ใหม่</span>
+            </div>
+          </a>
+          <p class="footer-desc" id="footerBrandDesc">
+            สถาบันกวดวิชา The NEW GEN กวดวิชาของเด็ก GENZ เรียนสนุก ครบทุกเนื้อหา จบที่ The NEW GEN 
+            พัฒนาทักษะวิชาการและความมั่นใจสู่อนาคตที่สดใส
+          </p>
+          <div class="footer-social-links">
+            <a href="https://www.facebook.com/thenewgen2" target="_blank" rel="noopener noreferrer" class="social-icon-btn fb" title="Facebook Page: สถาบันกวดวิชา The NEW GEN">
+              <i class="fa-brands fa-facebook-f"></i>
+            </a>
+            <a href="https://lin.ee/RXrzi1G" target="_blank" rel="noopener noreferrer" class="social-icon-btn line" title="LINE: @390gussc">
+              <i class="fa-brands fa-line"></i>
+            </a>
+            <a href="https://www.tiktok.com/@thenewgen89?_r=1&_t=ZS-9AUULZATQT2" target="_blank" rel="noopener noreferrer" class="social-icon-btn tiktok" title="TikTok: @thenewgen89">
+              <i class="fa-brands fa-tiktok"></i>
+            </a>
+            <a href="https://www.instagram.com/the_.newgen?psln=MXRhdW56ZnRqajFkaw==" target="_blank" rel="noopener noreferrer" class="social-icon-btn ig" title="Instagram: the._newgen">
+              <i class="fa-brands fa-instagram"></i>
+            </a>
+            <a href="https://www.youtube.com/@macthenewgen" target="_blank" rel="noopener noreferrer" class="social-icon-btn yt" title="YouTube Channel">
+              <i class="fa-brands fa-youtube"></i>
+            </a>
+            <a href="tel:0954721072" class="social-icon-btn phone" title="โทรติดต่อสอบถาม">
+              <i class="fa-solid fa-phone"></i>
+            </a>
+          </div>
+        </div>
+
+        <!-- Col 2: Navigation Links -->
+        <div class="footer-col">
+          <h3 class="footer-col-title">เมนูหลัก</h3>
+          <ul class="footer-nav-list">
+            <li><a href="index.html"><i class="fa-solid fa-angle-right"></i> หน้าแรก</a></li>
+            <li><a href="tutors.html"><i class="fa-solid fa-angle-right"></i> ทีมติวเตอร์</a></li>
+            <li><a href="courses.html"><i class="fa-solid fa-angle-right"></i> คอร์สเรียนทั้งหมด</a></li>
+            <li><a href="reviews.html"><i class="fa-solid fa-angle-right"></i> ความสำเร็จของรุ่นพี่</a></li>
+            <li><a href="free-trial.html"><i class="fa-solid fa-angle-right"></i> ทดลองเรียนฟรี</a></li>
+            <li><a href="faq.html"><i class="fa-solid fa-angle-right"></i> คำถามที่พบบ่อย</a></li>
+            <li><a href="about.html"><i class="fa-solid fa-angle-right"></i> เกี่ยวกับเรา</a></li>
+          </ul>
+        </div>
+
+        <!-- Col 3: Courses List -->
+        <div class="footer-col">
+          <h3 class="footer-col-title">คอร์สยอดนิยม</h3>
+          <ul class="footer-nav-list">
+            <li><a href="#courses"><i class="fa-solid fa-angle-right"></i> คอร์ส ป.4 - ป.5 (วิทย์-คณิต-อังกฤษ)</a></li>
+            <li><a href="#courses"><i class="fa-solid fa-angle-right"></i> ติวสอบเข้า ม.1 (ป.6 เข้มข้น)</a></li>
+            <li><a href="#courses"><i class="fa-solid fa-angle-right"></i> คอร์สปรับเกรด ม.1 - ม.2</a></li>
+            <li><a href="#courses"><i class="fa-solid fa-angle-right"></i> ติวสอบเข้า ม.4 (ม.3 โค้งสุดท้าย)</a></li>
+            <li><a href="#free-trial"><i class="fa-solid fa-angle-right"></i> วิดีโอทดลองเรียนฟรี</a></li>
+          </ul>
+        </div>
+
+        <!-- Col 4: Contact Info (ครบทุกช่องทาง พร้อม TikTok และ LINE) -->
+        <div class="footer-col">
+          <h3 class="footer-col-title">ช่องทางการติดต่อ</h3>
+          <div class="footer-contact-list">
+            <div class="contact-card-item">
+              <i class="fa-brands fa-line" style="color: #06c755; font-size: 1.35rem;"></i>
+              <div>
+                <span class="contact-highlight">LINE Official:</span><br>
+                <a href="https://lin.ee/RXrzi1G" target="_blank" rel="noopener noreferrer" class="footer-line-link" style="color: #4ade80; font-weight: 700;">@390gussc</a>
+              </div>
+            </div>
+            <div class="contact-card-item">
+              <i class="fa-brands fa-tiktok" style="color: #ffffff; font-size: 1.25rem;"></i>
+              <div>
+                <span class="contact-highlight">TikTok:</span><br>
+                <a href="https://www.tiktok.com/@thenewgen89?_r=1&_t=ZS-9AUULZATQT2" target="_blank" rel="noopener noreferrer" class="footer-tiktok-link" style="color: #38bdf8; font-weight: 700;">@thenewgen89</a>
+              </div>
+            </div>
+            <div class="contact-card-item">
+              <i class="fa-brands fa-facebook" style="color: #60a5fa; font-size: 1.25rem;"></i>
+              <div>
+                <span class="contact-highlight">Facebook Page:</span><br>
+                <a href="https://www.facebook.com/thenewgen2" target="_blank" rel="noopener noreferrer" class="footer-fb-link" style="color: #38bdf8; font-weight: 700;">สถาบันกวดวิชา The NEW GEN</a>
+              </div>
+            </div>
+            <div class="contact-card-item">
+              <i class="fa-brands fa-instagram" style="color: #f472b6; font-size: 1.25rem;"></i>
+              <div>
+                <span class="contact-highlight">Instagram:</span><br>
+                <a href="https://www.instagram.com/the_.newgen?psln=MXRhdW56ZnRqajFkaw==" target="_blank" rel="noopener noreferrer" class="footer-ig-link" style="color: #38bdf8; font-weight: 700;">the_.newgen</a>
+              </div>
+            </div>
+            <div class="contact-card-item">
+              <i class="fa-solid fa-phone" style="color: #38bdf8; font-size: 1.25rem;"></i>
+              <div>
+                <span class="contact-highlight">เบอร์โทรศัพท์:</span><br>
+                <a href="tel:0954721072" class="phone-number-link" style="color: #38bdf8; font-weight: 700; text-decoration: none;">095-4721072</a> <span class="phone-owner-text" style="color: #f1f5f9; font-weight: 600;">(พี่อู๋)</span><br>
+                <a href="tel:0985322791" class="phone-number-link" style="color: #38bdf8; font-weight: 700; text-decoration: none;">098-5322791</a> <span class="phone-owner-text" style="color: #f1f5f9; font-weight: 600;">(พี่นนท์)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer Bottom -->
+      <div class="footer-bottom">
+        <div>
+          © 2026 สถาบันกวดวิชา The NEW GEN. All Rights Reserved.
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+          <a href="admin-login.html" class="footer-admin-link" title="ระบบจัดการหลังบ้าน">
+            <i class="fa-solid fa-lock"></i> จัดการระบบ
+          </a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Mobile Sticky Quick Action Bar (แสดงเฉพาะบนมือถือ) -->
+  <aside class="cd-mobile-sticky-bar" id="cdMobileStickyBar" aria-label="แถบสมัครเรียนด่วนบนมือถือ">
+    <div class="cd-msb-container">
+      <div class="cd-msb-price-wrap">
+        <span class="cd-msb-label">ค่าลงทะเบียนพิเศษ</span>
+        <div class="cd-msb-price">
+          <span class="cd-msb-num" id="cdMsbPricePromo">4,500</span><span class="cd-msb-dash">.-</span>
+          <span class="cd-msb-unit" id="cdMsbPriceUnit">บาท / เทอม</span>
+        </div>
+      </div>
+      <div class="cd-msb-actions">
+        <a href="#" target="_blank" rel="noopener noreferrer" class="btn-msb-register" id="btnMsbRegister">
+          <i class="fa-solid fa-bolt"></i> สมัครเลย
+        </a>
+        <a href="https://lin.ee/RXrzi1G" target="_blank" rel="noopener noreferrer" class="btn-msb-line" id="btnMsbLine" title="สอบถามทาง LINE" aria-label="สอบถามทาง LINE">
+          <i class="fa-brands fa-line"></i> <span class="msb-line-text">สอบถาม</span>
+        </a>
+        <a href="tel:0954721072" class="btn-msb-phone" id="btnMsbPhone" title="โทรสอบถาม">
+          <i class="fa-solid fa-phone"></i>
+        </a>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Floating Actions -->
+  <div class="floating-actions" aria-label="เมนูติดต่อด่วน">
+    <a href="tel:0954721072" class="floating-btn phone-btn" title="โทรสอบถาม 095-4721072">
+      <i class="fa-solid fa-mobile-screen-button"></i>
+      <span class="floating-tooltip">โทรสอบถาม</span>
+    </a>
+    <a href="https://lin.ee/RXrzi1G" target="_blank" rel="noopener noreferrer" class="floating-btn line-btn" title="แอดไลน์: @390gussc">
+      <i class="fa-brands fa-line"></i>
+      <span class="floating-tooltip">ทัก LINE</span>
+    </a>
+    <button type="button" class="floating-btn top-btn" id="backToTopBtn" title="เลื่อนขึ้นด้านบน">
+      <i class="fa-solid fa-arrow-up"></i>
+    </button>
+  </div>
+
+  <!-- Scripts -->
+  <script src="assets/js/courses-data.js?v=20261021-fix2"></script>
+  <script src="assets/js/enrollment-modal.js?v=20261021-fix2"></script>
+  <script src="assets/js/course-detail.js?v=20261021-fix2"></script>
+  <script src="assets/js/main.js?v=20261021-fix2"></script>
+  <script src="assets/js/theme-newgen.js?v=1793114175212"></script>
+  <script src="preview/preview-tools.js?v=1793114175212"></script>
+</body>
+</html>
