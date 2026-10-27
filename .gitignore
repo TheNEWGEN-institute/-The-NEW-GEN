@@ -28,3 +28,10 @@ desktop.ini
 .idea/
 *.swp
 *.swo
+
+# รหัสกู้คืนบัญชี / ไฟล์ลับ — ห้ามขึ้น GitHub
+*recovery-codes*
+*recovery_codes*
+*.secret
+.env
+.env.*
