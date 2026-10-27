@@ -1,0 +1,105 @@
+/* แถบเครื่องมือเฉพาะหน้าตัวอย่าง (/preview/) */
+.pv-bar {
+  position: fixed;
+  left: 50%;
+  bottom: 14px;
+  transform: translateX(-50%);
+  z-index: 99990;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: calc(100% - 16px);
+  overflow-x: auto;
+  padding: 6px 8px;
+  border-radius: 999px;
+  background: rgba(8, 18, 46, 0.94);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+  font-family: 'Prompt', sans-serif;
+  scrollbar-width: none;
+}
+
+.pv-tag {
+  color: #ffffff;
+  background: #e11d48;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.pv-group {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding-left: 8px;
+  border-left: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.pv-label {
+  color: #94a3b8;
+  font-size: 0.72rem;
+  padding: 0 6px 0 2px;
+  white-space: nowrap;
+}
+
+.pv-bar button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 4px 11px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: #e2e8f0;
+  font: 800 0.85rem/1.1 'Prompt', sans-serif;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.pv-bar button small {
+  font-size: 0.6rem;
+  font-weight: 500;
+  color: #94a3b8;
+}
+
+.pv-bar button.active {
+  background: #f43f5e;
+  color: #ffffff;
+}
+
+.pv-bar button.active small {
+  color: #ffe4e6;
+}
+
+.pv-old {
+  color: #e2e8f0;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 999px;
+  padding: 7px 12px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.floating-actions {
+  bottom: 84px !important;
+}
+
+@media (max-width: 640px) {
+  .pv-bar {
+    bottom: 8px;
+    left: 8px;
+    right: 8px;
+    transform: none;
+    border-radius: 18px;
+  }
+  .pv-tag {
+    display: none;
+  }
+  .pv-bar button small {
+    display: none;
+  }
+}

@@ -1028,6 +1028,7 @@ function openAddCourseModal() {
   document.getElementById('cImgUrl').value = 'assets/images/course-poster-primary.jpg';
   document.getElementById('cImgPreview').src = 'assets/images/course-poster-primary.jpg';
   if (document.getElementById('cShortDesc')) document.getElementById('cShortDesc').value = '';
+  setCoverTopicsField([], []);
   if (document.getElementById('cTargetAudience')) document.getElementById('cTargetAudience').value = '';
   if (document.getElementById('cBenefits')) document.getElementById('cBenefits').value = '';
   if (document.getElementById('cIsFeatured')) document.getElementById('cIsFeatured').checked = true;
@@ -1166,6 +1167,7 @@ function openEditCourseModal(id) {
   document.getElementById('cImgUrl').value = c.cover || c.poster;
   document.getElementById('cImgPreview').src = c.cover || c.poster;
   document.getElementById('cShortDesc').value = c.shortDesc || '';
+  setCoverTopicsField(c.coverTopics, c.highlights);
   if (document.getElementById('cTargetAudience')) document.getElementById('cTargetAudience').value = c.targetAudience || '';
   if (document.getElementById('cBenefits')) document.getElementById('cBenefits').value = c.benefits || '';
   if (document.getElementById('cIsFeatured')) document.getElementById('cIsFeatured').checked = c.isFeatured !== false;
@@ -1186,6 +1188,26 @@ function openEditCourseModal(id) {
   renderCourseParentFaqBuilder(c.parentFaq || []);
 
   document.getElementById('modalCourse').classList.add('active');
+}
+
+// หัวข้อบนปกคอร์ส: ว่าง = ใช้ค่าที่ดึงอัตโนมัติจากจุดเด่น ("ได้แก่ ...")
+function setCoverTopicsField(manual, highlights) {
+  const el = document.getElementById('cCoverTopics');
+  if (!el) return;
+  el.value = (Array.isArray(manual) ? manual : []).join('\n');
+  const auto = window.extractCourseTopics ? window.extractCourseTopics(highlights || []) : [];
+  const hint = document.getElementById('cCoverTopicsAuto');
+  if (hint) {
+    hint.textContent = auto.length
+      ? `ดึงอัตโนมัติได้: ${auto.join(' • ')}`
+      : 'ยังไม่มีจุดเด่นที่มีคำว่า "ได้แก่ ..." — ถ้าเว้นว่าง ปกจะแสดงรายชื่อวิชาแทน';
+  }
+}
+
+function getCoverTopicsFromField() {
+  const el = document.getElementById('cCoverTopics');
+  if (!el) return [];
+  return el.value.split('\n').map(s => s.trim()).filter(Boolean).slice(0, 6);
 }
 
 async function handleSaveCourse(e) {
@@ -1238,6 +1260,7 @@ async function handleSaveCourse(e) {
     materials: document.getElementById('cMaterials') ? document.getElementById('cMaterials').value.trim() : '',
     trustGuarantee: document.getElementById('cTrustGuarantee') ? document.getElementById('cTrustGuarantee').value.trim() : '',
     shortDesc: document.getElementById('cShortDesc').value.trim(),
+    coverTopics: getCoverTopicsFromField(),
     isFeatured: isFeatured,
     isHidden: isHidden,
     maxSeats: maxSeatsVal,

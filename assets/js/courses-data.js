@@ -1866,6 +1866,42 @@ if (typeof window !== 'undefined') {
 }
 
 /**
+ * หัวข้อเนื้อหาที่แสดงบนปกคอร์ส (สูงสุด 6 ข้อ)
+ * 1) ถ้าแอดมินกรอก "หัวข้อบนปก" ไว้ (course.coverTopics) ใช้ค่านั้น
+ * 2) ไม่ได้กรอก → ดึงจากจุดเด่นที่มีคำว่า "ได้แก่ ..." เช่น
+ *    "... ได้แก่ สมดุลกล, งานและพลังงาน, โมเมนตัมและการชน และการเคลื่อนที่แนวโค้ง"
+ */
+function extractCourseTopics(highlights) {
+  const line = (Array.isArray(highlights) ? highlights : []).find(h => /ได้แก่/.test(String(h || '')));
+  if (!line) return [];
+  const tail = String(line).replace(/[​-‍﻿]/g, '').split('ได้แก่').slice(1).join('ได้แก่');
+  const parts = tail.split(/\s*,\s*/).map(s => s.trim()).filter(Boolean);
+  if (!parts.length) return [];
+  // ข้อสุดท้ายมักเป็น "ก และ ข" → แยกเป็น 2 ข้อ (แต่ "งานและพลังงาน" ไม่มีเว้นวรรคหน้า "และ" จึงไม่ถูกแยก)
+  const last = parts.pop().split(/\s+และ\s*/).map(s => s.trim()).filter(Boolean);
+  return parts.concat(last)
+    .map(t => t.replace(/\s+และ/g, 'และ').replace(/[.。]+$/, '').trim())
+    .map(t => {
+      // "ไวยากรณ์เชิงลึก (Grammar)" → "Grammar" (สั้นกว่า อ่านง่ายบนปก)
+      const en = t.match(/\(([A-Za-z][A-Za-z\s&-]*)\)/);
+      return en ? en[1].replace(/\s+Skills?$/i, '').trim() : t;
+    })
+    .filter(Boolean);
+}
+
+function getCourseCoverTopics(course) {
+  if (!course) return [];
+  const manual = (Array.isArray(course.coverTopics) ? course.coverTopics : String(course.coverTopics || '').split('\n'))
+    .map(s => String(s).trim()).filter(Boolean);
+  return (manual.length ? manual : extractCourseTopics(course.highlights)).slice(0, 6);
+}
+
+if (typeof window !== 'undefined') {
+  window.extractCourseTopics = extractCourseTopics;
+  window.getCourseCoverTopics = getCourseCoverTopics;
+}
+
+/**
  * Universal Footer and Contact Synchronization across all pages
  */
 function renderFooterContactInfo() {
