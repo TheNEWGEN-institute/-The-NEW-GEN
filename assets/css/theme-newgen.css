@@ -183,28 +183,144 @@ body.ng-theme .btn-primary:hover {
   box-shadow: 0 16px 32px rgba(225, 29, 72, 0.42);
 }
 
-body.ng-theme .section-subtitle {
-  display: inline-flex;
+/* ---------- หัวข้อส่วนต่าง ๆ (ทุกหน้า) ----------
+   ป้ายเล็ก: แคปซูลไล่เฉดแดง→น้ำเงิน + จุดกะพริบ + แสงวิ่ง
+   หัวข้อ: กรมท่า คำเน้นไล่เฉดสีเคลื่อนไหว + เส้นใต้วาดตัวเองเมื่อเลื่อนมาถึง */
+body.ng-theme :is(.section-header .section-subtitle, .reviews-section-header > .badge, .tutor-group-badge, .about-header-badge, .section-heading-box > .badge, .cd-related-section .badge-genz) {
+  position: relative;
+  display: inline-flex !important;
   align-items: center;
-  gap: 8px;
-  padding: 6px 14px;
-  border-radius: 999px;
-  background: #fff1f3;
-  color: var(--ng-accent-deep);
-  font-weight: 800;
+  gap: 9px;
+  width: auto;
+  padding: 7px 16px 7px 13px !important;
+  border-radius: 999px !important;
+  border: none !important;
+  background: linear-gradient(90deg, #e11d48 0%, #f43f5e 35%, #2a54d6 100%) !important;
+  background-size: 200% 100% !important;
+  color: #ffffff !important;
+  font-size: 0.78rem !important;
+  font-weight: 800 !important;
   letter-spacing: 0.12em;
+  text-transform: uppercase;
+  line-height: 1.3;
+  box-shadow: 0 8px 20px rgba(225, 29, 72, 0.25);
+  overflow: hidden;
+  animation: ngPillFlow 6s ease-in-out infinite;
+  margin-bottom: 12px;
 }
 
-body.ng-theme .section-title {
-  color: var(--ng-navy);
+body.ng-theme :is(.section-header .section-subtitle, .reviews-section-header > .badge, .tutor-group-badge, .about-header-badge, .section-heading-box > .badge, .cd-related-section .badge-genz) i {
+  color: #ffffff !important;
+}
+
+body.ng-theme :is(.section-header .section-subtitle, .reviews-section-header > .badge, .tutor-group-badge, .about-header-badge, .section-heading-box > .badge, .cd-related-section .badge-genz)::before {
+  content: '';
+  flex-shrink: 0;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #ffffff;
+  animation: ngDotPulse 1.8s ease-out infinite;
+}
+
+body.ng-theme :is(.section-header .section-subtitle, .reviews-section-header > .badge, .tutor-group-badge, .about-header-badge, .section-heading-box > .badge, .cd-related-section .badge-genz)::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -40%;
+  width: 30%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+  transform: skewX(-20deg);
+  animation: ngShine 4s ease-in-out infinite;
+}
+
+@keyframes ngPillFlow {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@keyframes ngDotPulse {
+  0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.85); }
+  100% { box-shadow: 0 0 0 9px rgba(255, 255, 255, 0); }
+}
+
+body.ng-theme :is(.section-title, .reviews-section-title, .tutor-group-title, .about-inspiration-title, .section-heading-box > h3, .cd-related-section h2) {
+  color: var(--ng-navy) !important;
+  font-weight: 800;
   letter-spacing: -0.01em;
 }
 
-body.ng-theme .section-title .text-gradient-cyan,
+/* คำเน้น: ไล่เฉดแดง-ชมพู-น้ำเงิน เคลื่อนไหวช้า ๆ */
+body.ng-theme :is(.section-title, .tutor-group-title, .about-inspiration-title, .video-info-title) :is(.text-gradient-cyan, .text-gradient-red) {
+  background: linear-gradient(90deg, #e11d48 0%, #ff5a7a 30%, #2a54d6 60%, #e11d48 100%) !important;
+  background-size: 250% 100% !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  color: transparent !important;
+  animation: ngTextFlow 6s linear infinite;
+}
+
+@keyframes ngTextFlow {
+  from { background-position: 0% 50%; }
+  to { background-position: 250% 50%; }
+}
+
+/* เส้นใต้หัวข้อ (วาดเมื่อเลื่อนมาเห็น — เพิ่มโดย theme-newgen.js) */
+.ng-underline {
+  display: block;
+  width: 76px;
+  height: 5px;
+  margin: 12px 0 0;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #e11d48, #ff8aa1 45%, #2a54d6);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.25s;
+}
+
+.ng-center > .ng-underline {
+  margin-left: auto;
+  margin-right: auto;
+  transform-origin: center;
+}
+
+.ng-in > .ng-underline,
+.ng-in .ng-underline {
+  transform: scaleX(1);
+}
+
+/* หัวข้อค่อย ๆ ลอยขึ้น */
+.ng-reveal {
+  opacity: 0;
+  transform: translateY(22px);
+  transition: opacity 0.7s ease, transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.ng-reveal.ng-in {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ng-reveal {
+    opacity: 1;
+    transform: none;
+  }
+  .ng-underline {
+    transform: none;
+  }
+  body.ng-theme :is(.section-header .section-subtitle, .reviews-section-header > .badge, .tutor-group-badge, .about-header-badge, .section-heading-box > .badge, .cd-related-section .badge-genz),
+  body.ng-theme :is(.section-header .section-subtitle, .reviews-section-header > .badge, .tutor-group-badge, .about-header-badge, .section-heading-box > .badge, .cd-related-section .badge-genz)::before,
+  body.ng-theme :is(.section-header .section-subtitle, .reviews-section-header > .badge, .tutor-group-badge, .about-header-badge, .section-heading-box > .badge, .cd-related-section .badge-genz)::after,
+  body.ng-theme :is(.section-title, .tutor-group-title, .about-inspiration-title, .video-info-title) :is(.text-gradient-cyan, .text-gradient-red) {
+    animation: none;
+  }
+}
+
 body.ng-theme .video-info-title .text-gradient-cyan {
-  background: none;
-  -webkit-text-fill-color: currentColor;
-  color: var(--ng-accent-deep);
+  background-image: linear-gradient(90deg, #ff8aa1 0%, #ffd1dc 40%, #93c5fd 70%, #ff8aa1 100%) !important;
 }
 
 /* ===================================================================
@@ -299,9 +415,381 @@ body.ng-theme .page-content-wrapper {
   padding-top: 40px;
 }
 
-/* หน้าทีมติวเตอร์ออกแบบไว้บนพื้นมืด → ใช้กรมท่าของธีม */
-body.ng-theme .page-content-wrapper:has(.tutor-group-section) {
-  background: linear-gradient(180deg, #0b1a45 0%, #08122e 100%);
+/* ===================================================================
+   หน้าเกี่ยวกับเรา — กล่อง "ความตั้งใจจริงของเรา"
+   =================================================================== */
+body.ng-theme .about-story-card {
+  background-color: #0b1a45 !important;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    var(--ng-hero-bg) !important;
+  background-size: 48px 48px, 48px 48px, auto !important;
+  border: none !important;
+  border-radius: 32px !important;
+  box-shadow: 0 30px 60px rgba(11, 30, 63, 0.28) !important;
+  color: #ffffff;
+  isolation: isolate;
+}
+
+body.ng-theme .about-story-card::after {
+  content: '';
+  position: absolute;
+  right: -180px;
+  top: -220px;
+  width: 560px;
+  height: 560px;
+  border-radius: 50%;
+  background: radial-gradient(circle,
+    transparent 44%, rgba(147, 197, 253, 0.26) 44.3%, transparent 44.8%,
+    transparent 66%, rgba(147, 197, 253, 0.16) 66.3%, transparent 66.8%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+body.ng-theme .about-story-watermark-bg {
+  opacity: 0.13 !important;
+  mix-blend-mode: luminosity;
+  filter: grayscale(1) contrast(1.1);
+}
+
+body.ng-theme .about-story-pill {
+  background: rgba(255, 255, 255, 0.12) !important;
+  border: 1px solid rgba(255, 255, 255, 0.28) !important;
+  color: #ffffff !important;
+  padding: 7px 16px;
+}
+
+body.ng-theme .about-story-pill i {
+  color: #ff5a7a !important;
+  animation: ngHeartBeat 1.6s ease-in-out infinite;
+}
+
+@keyframes ngHeartBeat {
+  0%, 60%, 100% { transform: scale(1); }
+  20% { transform: scale(1.25); }
+  40% { transform: scale(0.95); }
+}
+
+body.ng-theme .about-story-sparkle {
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(251, 191, 36, 0.2), rgba(251, 191, 36, 0.08));
+  border: 1px solid rgba(251, 191, 36, 0.45);
+  color: #fde68a !important;
+  font-weight: 700;
+}
+
+body.ng-theme .about-story-sparkle i {
+  color: #fbbf24 !important;
+}
+
+body.ng-theme .about-story-body {
+  color: #dbe6ff !important;
+}
+
+body.ng-theme .about-story-body p {
+  position: relative;
+  padding-left: 22px;
+  color: #dbe6ff !important;
+}
+
+body.ng-theme .about-story-body p::before {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 0.72em;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ff5a7a, #60a5fa);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.08);
+}
+
+body.ng-theme .about-story-body p.lead-para {
+  position: relative;
+  padding: 18px 22px 18px 64px;
+  margin-bottom: 22px;
+  border: none !important;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.07);
+  box-shadow: inset 4px 0 0 #f43f5e;
+  color: #ffffff !important;
+  font-size: clamp(1.08rem, 1.6vw, 1.3rem);
+  font-weight: 700;
+  line-height: 1.6;
+}
+
+body.ng-theme .about-story-body p.lead-para::before {
+  content: '“';
+  left: 18px;
+  top: 4px;
+  width: auto;
+  height: auto;
+  border-radius: 0;
+  background: linear-gradient(180deg, #ff5a7a, #f43f5e);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  box-shadow: none;
+  font-family: Georgia, serif;
+  font-size: 3.6rem;
+  line-height: 1;
+}
+
+body.ng-theme .about-pillars-grid {
+  border-top: 1px solid rgba(255, 255, 255, 0.14) !important;
+  gap: 16px;
+}
+
+body.ng-theme .about-pillar-item {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  border-radius: 20px !important;
+  padding: 16px 18px !important;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), background 0.3s ease, box-shadow 0.3s ease;
+}
+
+body.ng-theme .about-pillar-item:hover {
+  transform: translateY(-5px);
+  background: rgba(255, 255, 255, 0.14) !important;
+  box-shadow: 0 16px 30px rgba(0, 0, 0, 0.25);
+}
+
+body.ng-theme .pillar-icon {
+  width: 48px !important;
+  height: 48px !important;
+  border-radius: 15px !important;
+  border: none !important;
+  color: #ffffff !important;
+  font-size: 1.2rem !important;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.25);
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+body.ng-theme .pillar-icon i {
+  color: #ffffff !important;
+}
+
+body.ng-theme .about-pillar-item:nth-child(1) .pillar-icon { background: linear-gradient(135deg, #be123c, #fb7185) !important; }
+body.ng-theme .about-pillar-item:nth-child(2) .pillar-icon { background: linear-gradient(135deg, #1d4ed8, #60a5fa) !important; }
+body.ng-theme .about-pillar-item:nth-child(3) .pillar-icon { background: linear-gradient(135deg, #6d28d9, #a78bfa) !important; }
+body.ng-theme .about-pillar-item:nth-child(4) .pillar-icon { background: linear-gradient(135deg, #047857, #34d399) !important; }
+
+body.ng-theme .about-pillar-item:hover .pillar-icon {
+  transform: rotate(-8deg) scale(1.1);
+}
+
+body.ng-theme .pillar-title {
+  color: #ffffff !important;
+  font-size: 1rem;
+}
+
+body.ng-theme .pillar-sub {
+  color: #b9c8ef !important;
+}
+
+/* ===================================================================
+   หน้าทีมติวเตอร์ — พื้นสว่าง การ์ดขาว รูปติวเตอร์บนพื้นน้ำเงินไล่เฉด
+   =================================================================== */
+body.ng-theme .tutor-group-desc {
+  color: #475569;
+}
+
+body.ng-theme .tutor-group-badge.badge-online {
+  background: linear-gradient(90deg, #7c3aed 0%, #a855f7 40%, #2a54d6 100%) !important;
+  background-size: 200% 100% !important;
+}
+
+body.ng-theme .tutor-cat-pill {
+  background: #ffffff;
+  border: 1.5px solid #dbe3f0;
+  color: var(--ng-navy);
+  box-shadow: 0 6px 16px rgba(11, 30, 63, 0.08);
+  backdrop-filter: none;
+}
+
+body.ng-theme .tutor-cat-pill:hover,
+body.ng-theme .tutor-cat-pill.active {
+  background: linear-gradient(135deg, #0b1e3f 0%, #2a54d6 100%);
+  border-color: transparent;
+  color: #ffffff;
+  box-shadow: 0 10px 24px rgba(42, 84, 214, 0.32);
+}
+
+body.ng-theme .tutor-cat-pill.pill-online:hover,
+body.ng-theme .tutor-cat-pill.pill-online.active {
+  background: linear-gradient(135deg, #6d28d9 0%, #a855f7 100%);
+  box-shadow: 0 10px 24px rgba(124, 58, 237, 0.32);
+}
+
+body.ng-theme .tutor-profile-card {
+  background: #ffffff;
+  border: none;
+  box-shadow: 0 18px 40px rgba(11, 30, 63, 0.1);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+body.ng-theme .tutor-profile-card::before {
+  width: 6px;
+  background: linear-gradient(180deg, #e11d48 0%, #f43f5e 40%, #2a54d6 100%);
+  box-shadow: none;
+  z-index: 2;
+}
+
+body.ng-theme .tutor-profile-card:hover {
+  box-shadow: 0 28px 56px rgba(11, 30, 63, 0.18);
+  border-color: transparent;
+}
+
+body.ng-theme .tutor-card-img-wrap {
+  background-color: #0b1a45;
+  background-image:
+    radial-gradient(circle at 50% 42%, transparent 0 34%, rgba(147, 197, 253, 0.28) 34.3%, transparent 34.9%, transparent 50%, rgba(147, 197, 253, 0.18) 50.3%, transparent 50.9%),
+    linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    var(--ng-hero-bg);
+  background-size: auto, 40px 40px, 40px 40px, auto;
+  border-right: none;
+}
+
+/* รูปตัดพื้นหลัง: ยืนบนพื้นน้ำเงิน ไม่ถูกครอปหัว */
+body.ng-theme .tutor-card-img-wrap.ng-cutout .tutor-avatar-circle {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-top: 26px;
+}
+
+body.ng-theme .tutor-card-img-wrap.ng-cutout img {
+  width: auto;
+  max-width: 92%;
+  height: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  object-position: center bottom;
+  filter: drop-shadow(0 18px 28px rgba(0, 0, 0, 0.35));
+  -webkit-mask-image: linear-gradient(to bottom, #000 86%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 86%, transparent 100%);
+}
+
+body.ng-theme .tutor-card-honor-pill {
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--ng-navy);
+  border: none;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.25);
+  z-index: 2;
+}
+
+body.ng-theme .tutor-card-honor-pill i {
+  color: #e11d48;
+}
+
+body.ng-theme .tutor-card-name,
+body.ng-theme .tutor-card-name-mobile {
+  color: var(--ng-navy);
+  text-shadow: none;
+}
+
+body.ng-theme .tutor-card-name-overlay .tutor-card-name-mobile {
+  color: #ffffff;
+}
+
+body.ng-theme .tutor-card-subjects {
+  background: #fff1f3;
+  color: #be123c;
+  border: 1px solid #fecdd3;
+  box-shadow: none;
+}
+
+body.ng-theme .tutor-card-degree {
+  color: #1d3fae;
+}
+
+body.ng-theme .tutor-card-bio {
+  color: #475569;
+}
+
+body.ng-theme .tutor-card-tagline {
+  color: var(--ng-navy);
+  background: linear-gradient(90deg, #fff1f3 0%, #eef2ff 100%);
+  border: none;
+  border-left: 4px solid #e11d48;
+}
+
+/* มือถือ: style.css บังคับพื้นมืดด้วย !important → บังคับกลับเป็นการ์ดขาว */
+@media (max-width: 860px) {
+  body.ng-theme .tutor-profile-card {
+    background: #ffffff !important;
+    border: none !important;
+    box-shadow: 0 14px 30px rgba(11, 30, 63, 0.12) !important;
+  }
+  body.ng-theme .tutor-card-img-wrap {
+    background-color: #0b1a45 !important;
+    background-image:
+      radial-gradient(circle at 50% 42%, transparent 0 34%, rgba(147, 197, 253, 0.28) 34.3%, transparent 34.9%),
+      var(--ng-hero-bg) !important;
+    border-right: none !important;
+  }
+  body.ng-theme .tutor-card-img-wrap.ng-cutout .tutor-avatar-circle {
+    display: flex !important;
+    align-items: flex-end !important;
+    justify-content: center !important;
+    padding-top: 14px !important;
+  }
+  body.ng-theme .tutor-card-img-wrap.ng-cutout img {
+    width: auto !important;
+    max-width: 100% !important;
+    height: 100% !important;
+    object-fit: contain !important;
+    object-position: center bottom !important;
+  }
+  body.ng-theme .tutor-card-name-overlay {
+    background: linear-gradient(to top, rgba(8, 18, 46, 0.92) 0%, rgba(15, 37, 99, 0.6) 70%, transparent 100%) !important;
+    border-top: none !important;
+    box-shadow: none !important;
+  }
+  body.ng-theme .tutor-card-name-mobile {
+    color: #ffffff !important;
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.6) !important;
+  }
+  body.ng-theme .tutor-card-subjects {
+    background: #fff1f3 !important;
+    border: 1px solid #fecdd3 !important;
+    color: #be123c !important;
+    box-shadow: none !important;
+  }
+  body.ng-theme .tutor-card-degree {
+    color: #1d3fae !important;
+    background: #eef2ff !important;
+    border: 1px solid #dbe3f0 !important;
+  }
+  body.ng-theme .tutor-card-bio {
+    color: #475569 !important;
+  }
+  body.ng-theme .tutor-card-tagline {
+    color: var(--ng-navy) !important;
+    background: linear-gradient(90deg, #fff1f3 0%, #eef2ff 100%) !important;
+    border: none !important;
+    border-left: 3px solid #e11d48 !important;
+  }
+}
+
+body.ng-theme .tutor-online-empty-card {
+  background: #ffffff !important;
+  border: 2px dashed #c4b5fd !important;
+  box-shadow: 0 18px 40px rgba(11, 30, 63, 0.08) !important;
+}
+
+body.ng-theme .tutor-online-empty-card h3 {
+  color: var(--ng-navy) !important;
+}
+
+body.ng-theme .tutor-online-empty-card p {
+  color: #475569 !important;
 }
 
 /* หน้ารายละเอียดคอร์ส */
@@ -815,15 +1303,8 @@ body.ng-theme .reviews-section {
   overflow: hidden;
 }
 
-body.ng-theme .reviews-section .section-subtitle {
-  background: rgba(244, 63, 94, 0.16);
-  color: #ff8aa1;
-}
-
-body.ng-theme .reviews-section .section-title,
-body.ng-theme .reviews-section .section-desc,
-body.ng-theme .reviews-section .section-header p {
-  color: #ffffff;
+body.ng-theme .reviews-section .section-title {
+  color: #ffffff !important;
 }
 
 body.ng-theme .reviews-section .section-header p {
@@ -831,7 +1312,7 @@ body.ng-theme .reviews-section .section-header p {
 }
 
 body.ng-theme .reviews-section .section-title .text-gradient-cyan {
-  color: #ff5a7a;
+  background-image: linear-gradient(90deg, #ff6b88 0%, #ffd1dc 35%, #93c5fd 65%, #ff6b88 100%) !important;
 }
 
 body.ng-theme #homeReviewsGrid.ng-hidden {
@@ -1144,8 +1625,44 @@ body.ng-theme .footer-bottom {
   isolation: isolate;
 }
 
-.ng-bn.ng-tone-navy { background: var(--ng-card-navy, linear-gradient(135deg, #0b1e3f 0%, #17337f 60%, #2448c4 100%)); }
-.ng-bn.ng-tone-red { background: var(--ng-card-red, linear-gradient(135deg, #be123c 0%, #e11d48 55%, #f43f5e 100%)); }
+/* สีปก — ม.ปลายตามวิชา, แพ็คตามจำนวนวิชา, ประถม/ม.ต้น/คอร์สเดี่ยว */
+.ng-bn { --bn-bg: linear-gradient(135deg, #0b1e3f 0%, #17337f 60%, #2448c4 100%); --bn-acc: #ff6b88; background: var(--bn-bg); }
+.ng-bn.ng-tone-math { --bn-bg: linear-gradient(135deg, #881337 0%, #e11d48 58%, #fb7185 100%); --bn-acc: #ffe08a; }
+.ng-bn.ng-tone-chem { --bn-bg: linear-gradient(135deg, #172554 0%, #1d4ed8 58%, #60a5fa 100%); --bn-acc: #ffd166; }
+.ng-bn.ng-tone-phys { --bn-bg: linear-gradient(135deg, #2e1065 0%, #6d28d9 58%, #a78bfa 100%); --bn-acc: #fde68a; }
+.ng-bn.ng-tone-eng { --bn-bg: linear-gradient(135deg, #022c22 0%, #047857 58%, #34d399 100%); --bn-acc: #fef08a; }
+.ng-bn.ng-tone-pk2 { --bn-bg: linear-gradient(135deg, #500724 0%, #a21caf 55%, #e879f9 100%); --bn-acc: #fff1a8; }
+.ng-bn.ng-tone-pk3 { --bn-bg: linear-gradient(135deg, #050d24 0%, #0f2563 55%, #1e40af 100%); --bn-acc: #fbbf24; }
+.ng-bn.ng-tone-pk4 { --bn-bg: radial-gradient(circle at 85% 20%, #3f3a2a 0%, transparent 45%), linear-gradient(135deg, #050505 0%, #18181b 55%, #27272a 100%); --bn-acc: #f5d27a; }
+.ng-bn.ng-tone-sky { --bn-bg: linear-gradient(135deg, #0c4a6e 0%, #0284c7 55%, #38bdf8 100%); --bn-acc: #fef08a; }
+.ng-bn.ng-tone-royal { --bn-bg: linear-gradient(135deg, #0b1e3f 0%, #1d3fae 55%, #3b6cf0 100%); --bn-acc: #ff8aa1; }
+.ng-bn.ng-tone-private { --bn-bg: linear-gradient(135deg, #0b1e3f 0%, #1e1b4b 50%, #9f1239 100%); --bn-acc: #fda4af; }
+
+/* แพ็ค 3 วิชา = เส้นทอง, บิ๊กแพ็ค 4 วิชา = ดำ-ทอง พรีเมียม */
+.ng-bn.ng-tone-pk3::after,
+.ng-bn.ng-tone-pk4::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #a16207, #fde68a, #ca8a04, #fde68a, #a16207);
+  z-index: 3;
+}
+
+.ng-bn.ng-tone-pk4 .ng-bn-big {
+  background: linear-gradient(180deg, #fff7d1 0%, #f5d27a 45%, #c99a2e 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: none;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.5));
+}
+
+.ng-bn.ng-tone-pk4 .ng-bn-kicker {
+  color: #f5d27a;
+}
 
 .ng-bn::before {
   content: '';
@@ -1210,11 +1727,7 @@ body.ng-theme .footer-bottom {
 
 .ng-bn-big em {
   font-style: normal;
-  color: #ff6b88;
-}
-
-.ng-tone-red .ng-bn-big em {
-  color: #0b1e3f;
+  color: var(--bn-acc);
 }
 
 .ng-bn-sub {
@@ -1254,13 +1767,8 @@ body.ng-theme .footer-bottom {
   width: 0.38em;
   height: 0.38em;
   border-radius: 50%;
-  background: #ff6b88;
-  box-shadow: 0 0 0 0.12em rgba(255, 107, 136, 0.25);
-}
-
-.ng-tone-red .ng-bn-topics li::before {
-  background: #ffffff;
-  box-shadow: 0 0 0 0.12em rgba(255, 255, 255, 0.3);
+  background: var(--bn-acc);
+  box-shadow: 0 0 0 0.12em rgba(255, 255, 255, 0.22);
 }
 
 /* แสดงหัวข้อได้ไม่เกิน 4 ข้อในการ์ด (กล่องใหญ่แสดงครบ 2 คอลัมน์) */
@@ -1294,12 +1802,13 @@ body.ng-theme .footer-bottom {
   }
 }
 
+/* รูปติวเตอร์: 1 คน = ยืนเดี่ยว, 2 คน = ยืนเหลื่อมกัน, 3 คน = คนกลางยืนหลัง สองข้างยืนหน้า
+   (ซ้อนกันแค่ช่วงไหล่ เห็นหน้าครบทุกคน) */
 .ng-bn-tutors {
   position: absolute;
-  right: 1%;
+  right: 2cqw;
   bottom: 0;
-  height: 94%;
-  max-width: 46%;
+  height: 100%;
   display: flex;
   align-items: flex-end;
   justify-content: flex-end;
@@ -1307,28 +1816,197 @@ body.ng-theme .footer-bottom {
 }
 
 .ng-bn-tutors img {
-  height: 100%;
+  position: relative;
+  height: 94%;
   width: auto;
   max-width: none;
   display: block;
-  filter: drop-shadow(0 10px 16px rgba(0, 0, 0, 0.3));
+  filter: drop-shadow(0 10px 16px rgba(0, 0, 0, 0.32));
 }
 
-.ng-bn-tutors.n2 img + img {
-  margin-left: -15cqw;
+.ng-bn-tutors.n2 img {
+  height: 88%;
 }
 
 .ng-bn-tutors.n2 img:first-child {
-  height: 86%;
+  height: 80%;
+  z-index: 1;
+  margin-right: -5cqw;
 }
 
-/* เมื่อมีหัวข้อ ให้ข้อความกว้างขึ้นและติวเตอร์ขยับชิดขวา */
+.ng-bn-tutors.n2 img:last-child {
+  z-index: 2;
+}
+
+.ng-bn-tutors.n3 img {
+  height: 70%;
+  z-index: 2;
+}
+
+.ng-bn-tutors.n3 img:nth-child(1) {
+  margin-right: -6cqw;
+}
+
+.ng-bn-tutors.n3 img:nth-child(2) {
+  height: 86%;
+  z-index: 1;
+}
+
+.ng-bn-tutors.n3 img:nth-child(3) {
+  margin-left: -6cqw;
+}
+
 .ng-bn.has-topics .ng-bn-text {
   width: 62%;
 }
 
-.ng-bn.has-topics .ng-bn-tutors {
-  max-width: 40%;
+.ng-bn.tutors-2 .ng-bn-text,
+.ng-bn.tutors-3 .ng-bn-text {
+  width: 50%;
+}
+
+/* ชื่อวิชาในแพ็ค: ป้ายเล็กสีตามวิชา */
+.ng-bn-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45em;
+  margin-top: 0.35em;
+  font-size: clamp(8px, 2.75cqw, 18px);
+  font-weight: 700;
+  text-shadow: none;
+}
+
+.ng-bn-chips span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+  padding: 0.28em 0.75em;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.95);
+  color: #0b1e3f;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.18);
+  white-space: nowrap;
+}
+
+.ng-bn-chips i { font-size: 0.9em; }
+.ng-bn-chips .ng-chip-math i { color: #e11d48; }
+.ng-bn-chips .ng-chip-chem i { color: #1d4ed8; }
+.ng-bn-chips .ng-chip-phys i { color: #7c3aed; }
+.ng-bn-chips .ng-chip-eng i { color: #059669; }
+.ng-bn-chips .ng-chip-other i { color: #0284c7; }
+
+/* ปกตัวหนังสือ (ประถม / ม.ต้น / คอร์สเดี่ยว) — ไม่มีรูปติวเตอร์ */
+.ng-bn-textonly .ng-bn-text {
+  width: 66%;
+}
+
+.ng-bn-grade {
+  font-size: clamp(22px, 15cqw, 120px);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  margin: 0.04em 0 0.06em;
+  white-space: nowrap;
+  color: #ffffff;
+  text-shadow: 0 4px 18px rgba(0, 0, 0, 0.3);
+}
+
+.ng-bn-grade.is-long {
+  font-size: clamp(18px, 10.5cqw, 84px);
+}
+
+.ng-bn-count {
+  font-size: clamp(9px, 3.9cqw, 26px);
+  font-weight: 700;
+  color: #ffffff;
+  white-space: nowrap;
+}
+
+.ng-bn-count b {
+  display: inline-block;
+  margin-left: 0.3em;
+  padding: 0.12em 0.6em;
+  border-radius: 999px;
+  background: var(--bn-acc);
+  color: #0b1e3f;
+  font-size: 0.82em;
+  font-weight: 800;
+  text-shadow: none;
+}
+
+.ng-bn-textonly .ng-bn-chips {
+  margin-top: 0.6em;
+}
+
+/* ตัวเลขชั้นจาง ๆ ด้านหลัง */
+.ng-bn-mark {
+  position: absolute;
+  right: -2cqw;
+  bottom: -9cqw;
+  font-size: clamp(60px, 42cqw, 340px);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.05em;
+  color: transparent;
+  -webkit-text-stroke: 2px rgba(255, 255, 255, 0.16);
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* ไอคอนวิชาลอยด้านขวา */
+.ng-bn-icons {
+  position: absolute;
+  right: 5cqw;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 26cqw;
+  height: 26cqw;
+  z-index: 1;
+}
+
+.ng-bn-icons span {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 12.5cqw;
+  height: 12.5cqw;
+  border-radius: 30%;
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  color: #ffffff;
+  font-size: 5.6cqw;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18);
+  animation: ngFloat 4.5s ease-in-out infinite;
+}
+
+.ng-bn-icons span:nth-child(1) { left: 0; top: 0; transform: rotate(-8deg); }
+.ng-bn-icons span:nth-child(2) { right: 0; top: 22%; animation-delay: -1.5s; }
+.ng-bn-icons span:nth-child(3) { left: 22%; bottom: 0; animation-delay: -3s; }
+.ng-bn-icons.n1 span { left: 25%; top: 25%; width: 14cqw; height: 14cqw; }
+
+@keyframes ngFloat {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -1.2cqw; }
+}
+
+@container (max-width: 240px) {
+  .ng-bn-icons,
+  .ng-bn-textonly .ng-bn-chips {
+    display: none;
+  }
+  .ng-bn-textonly .ng-bn-text {
+    width: 88%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ng-bn-icons span {
+    animation: none;
+  }
 }
 
 /* ปกที่ถูกแทนที่รูปเดิม (ในฟอร์มสมัคร / รายละเอียดแพ็ค / หน้ารายละเอียดคอร์ส) */
@@ -1385,7 +2063,7 @@ body.ng-theme .cd-poster-view-box .ng-bn-swap {
   position: relative;
   height: 196px;
   flex-shrink: 0;
-  --ng-bn-top: 18px;
+  --ng-bn-top: 28px;
 }
 
 .nx-flag {
