@@ -22,6 +22,7 @@ type Enrollment = {
   studentName?: string;
   nickname?: string;
   grade?: string;
+  school?: string;
   courseId?: string;
   courseTitle?: string;
   learningType?: string;
@@ -94,6 +95,7 @@ export function formatMessage(p: Payload): string {
     "",
     `👤 ชื่อ-สกุล: ${en.studentName || "-"}${nickText}`,
     `🎓 ระดับชั้น: ${en.grade || "-"}`,
+    `🏫 โรงเรียน: ${String(en.school ?? "").trim() || "-"}`,
   ];
 
   if (isCampaign) {

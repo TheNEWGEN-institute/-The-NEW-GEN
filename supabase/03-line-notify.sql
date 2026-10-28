@@ -57,7 +57,7 @@ begin
 
   select coalesce(jsonb_object_agg(k, v), '{}'::jsonb) into v_enrollment
   from jsonb_each(new.data) as e(k, v)
-  where k in ('id', 'studentName', 'nickname', 'grade', 'courseId', 'courseTitle', 'learningType',
+  where k in ('id', 'studentName', 'nickname', 'grade', 'school', 'courseId', 'courseTitle', 'learningType',
               'isCampaign', 'isBundle', 'bundleName', 'selectedSubjects', 'subjectsChosen',
               'scheduleChoice', 'createdAt');
 
