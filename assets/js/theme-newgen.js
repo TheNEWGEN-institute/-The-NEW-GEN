@@ -508,6 +508,13 @@
     });
   }
 
+  /* ---------------- จุดเด่น 3 ข้อใต้ปุ่ม: ข้อ Onsite & Online ขึ้นแถวบนเต็มกว้าง (มือถือ) ---------------- */
+  function markTrustItems() {
+    document.querySelectorAll('.hero-trust-row .trust-mini-item').forEach(el => {
+      el.classList.toggle('ng-trust-wide', /online|onsite|ออนไลน์|ออนไซต์/i.test(el.textContent));
+    });
+  }
+
   /* ---------------- หน้าทีมติวเตอร์: ใช้รูปตัดพื้นหลังบนพื้นน้ำเงิน ---------------- */
   function useTutorCutouts() {
     document.querySelectorAll('.tutor-profile-card[data-tutor-id]').forEach(card => {
@@ -689,6 +696,7 @@
       swapCoverImages();
       setupHeadings();
       useTutorCutouts();
+      markTrustItems();
     }, 40);
   }
 
@@ -723,6 +731,7 @@
     swapCoverImages();
     setupHeadings();
     useTutorCutouts();
+    markTrustItems();
   }
 
   NGTheme.refresh = () => {

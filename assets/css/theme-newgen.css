@@ -1395,6 +1395,28 @@ body[data-fx-trust="c"] .trust-mini-item i {
 body[data-fx-trust="c"] .trust-mini-item:nth-child(2) i { background: #eef2ff; color: #2a54d6 !important; }
 body[data-fx-trust="c"] .trust-mini-item:nth-child(3) i { background: #ecfdf5; color: #059669 !important; }
 
+/* มือถือ: 2 แถว — แถวบน "Onsite & Online …" เต็มกว้าง, แถวล่าง 2 ข้อที่เหลือคู่กัน */
+@media (max-width: 640px) {
+  body.ng-theme .hero-section .hero-trust-row {
+    grid-template-columns: 1fr 1fr;
+    gap: 9px;
+  }
+  body.ng-theme .hero-section .hero-trust-row .ng-trust-wide {
+    order: -1;
+    grid-column: 1 / -1;
+    justify-content: center;
+  }
+  body[data-fx-trust="b"] .trust-mini-item:not(.ng-trust-wide) {
+    gap: 7px;
+    padding: 10px 10px;
+    font-size: 0.78rem;
+    line-height: 1.3;
+  }
+  body[data-fx-trust="b"] .trust-mini-item:not(.ng-trust-wide) i {
+    font-size: 0.95rem;
+  }
+}
+
 @media (max-width: 640px) {
   body[data-fx-tag] .rd-tag strong {
     font-size: 0.92rem;
