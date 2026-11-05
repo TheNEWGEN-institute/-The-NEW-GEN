@@ -68,6 +68,9 @@
           <i class="fa-solid fa-boxes-stacked" style="color: #e11d48;"></i> 1.1 จัดการแพ็คคอร์สเรียน
           <span class="badge" id="navBundlesCountBadge" style="margin-left: auto; font-size: 0.72rem; background: #e11d48; color: #fff; border-radius: 99px; padding: 2px 7px; font-weight: 700;">0</span>
         </button>
+        <button type="button" class="admin-nav-item" onclick="switchAdminTab('schedule', this)" id="navTabSchedule">
+          <i class="fa-solid fa-calendar-days" style="color: #7c3aed;"></i> 1.2 ตารางเรียน (วิชา / ติวเตอร์ / ห้อง)
+        </button>
         <button type="button" class="admin-nav-item" onclick="switchAdminTab('enrollments', this)" id="navTabEnrollments">
           <i class="fa-solid fa-users-rectangle"></i> 2. รายชื่อผู้สมัครเรียน
           <span class="badge" id="navEnrollCountBadge" style="margin-left: auto; font-size: 0.72rem; background: #2563eb; color: #fff; border-radius: 99px; padding: 2px 7px; font-weight: 700;">0</span>
@@ -95,9 +98,6 @@
         </button>
         <button type="button" class="admin-nav-item" onclick="switchAdminTab('faq', this)" id="navTabFaq">
           <i class="fa-solid fa-circle-question" style="color: #0891b2;"></i> 8.1 คำถามที่พบบ่อย (FAQ)
-        </button>
-        <button type="button" class="admin-nav-item" onclick="switchAdminTab('schedule', this)" id="navTabSchedule">
-          <i class="fa-solid fa-calendar-days" style="color: #7c3aed;"></i> 8.2 ตารางเรียน (วิชา / ติวเตอร์ / ห้อง)
         </button>
         <button type="button" class="admin-nav-item" onclick="switchAdminTab('system', this)" id="navTabSystem">
           <i class="fa-solid fa-sliders"></i> 9. ตั้งค่าระบบ (สำรองข้อมูล &amp; รหัสผ่าน)
@@ -1808,7 +1808,7 @@
         </div>
       </section>
 
-      <!-- ================= 8.2 SCHEDULE TAB ================= -->
+      <!-- ================= 1.2 SCHEDULE TAB ================= -->
       <section id="tab-schedule" class="admin-tab-pane">
         <div class="admin-pane-header">
           <div>
