@@ -1,5 +1,5 @@
 /* ===================================================================
-   ตัวอย่างหน้า "ตารางเรียน" แบบการ์ดรายคอร์ส — 3 แบบตกแต่ง (body.sc-v1|2|3)
+   ตัวอย่างหน้า "ตารางเรียน" — ตัวกรอง 3 แบบ + การ์ดคอร์สเต็มจอ (สไตล์สีสันตามวิชา)
    =================================================================== */
 .sc-root {
   --navy: #0b1e3f;
@@ -18,246 +18,337 @@
 .sc-tone-private { --t1: #9f1239; --t2: #4338ca; --tbg: #fdf2f8; --tink: #9f1239; }
 
 /* สีประจำวัน */
-.sc-d0 { --d: #eab308; --dbg: #fefce8; --dink: #a16207; }
-.sc-d1 { --d: #ec4899; --dbg: #fdf2f8; --dink: #be185d; }
-.sc-d2 { --d: #16a34a; --dbg: #f0fdf4; --dink: #15803d; }
-.sc-d3 { --d: #f97316; --dbg: #fff7ed; --dink: #c2410c; }
-.sc-d4 { --d: #2563eb; --dbg: #eff6ff; --dink: #1d4ed8; }
-.sc-d5 { --d: #9333ea; --dbg: #faf5ff; --dink: #7e22ce; }
-.sc-d6 { --d: #dc2626; --dbg: #fef2f2; --dink: #b91c1c; }
+.sc-d0 { --d: #eab308; }
+.sc-d1 { --d: #ec4899; }
+.sc-d2 { --d: #16a34a; }
+.sc-d3 { --d: #f97316; }
+.sc-d4 { --d: #2563eb; }
+.sc-d5 { --d: #9333ea; }
+.sc-d6 { --d: #dc2626; }
 
 .sc-note {
   display: flex;
   gap: 8px;
   align-items: flex-start;
-  margin-bottom: 18px;
-  padding: 10px 14px;
+  margin: 0 0 14px;
+  padding: 9px 14px;
   border-radius: 14px;
   background: #fffbeb;
   border: 1px solid #fde68a;
   color: #92400e;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
 }
 
-.sc-list {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 20px;
-  align-items: start;
+/* ===================================================================
+   ตัวกรอง
+   =================================================================== */
+.sf {
+  margin-bottom: 16px;
+  padding: 16px 18px;
+  border-radius: 22px;
+  background: #ffffff;
+  box-shadow: 0 14px 30px rgba(11, 30, 63, 0.08);
 }
 
-/* ---------- โครงร่วม ---------- */
-.sc-card { position: relative; border-radius: 24px; overflow: hidden; }
-.sc-head { position: relative; padding: 18px 22px 14px; }
-.sc-head-icons { position: absolute; right: 20px; top: 18px; display: flex; gap: 8px; font-size: 1.05rem; }
-.sc-level { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.04em; }
-.sc-head h3 { margin: 2px 0 2px; font-size: 1.4rem; font-weight: 800; line-height: 1.25; padding-right: 90px; }
-.sc-head p { margin: 0; font-size: 0.85rem; }
+.sf-scroll {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 2px 2px 4px;
+}
 
-.sc-sess { padding: 12px 22px 4px; }
-.sc-sess-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 8px; }
+.sf-scroll::-webkit-scrollbar { display: none; }
 
-.sc-day {
+.sf-course {
+  flex-shrink: 0;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 5px 12px;
+  gap: 8px;
+  padding: 9px 16px;
   border-radius: 999px;
-  font-weight: 800;
-  font-size: 0.88rem;
+  border: 1.5px solid var(--line);
+  background: #ffffff;
+  color: var(--navy);
+  font: 700 0.92rem/1.2 inherit;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
 }
 
-.sc-group { font-weight: 700; font-size: 0.8rem; }
-.sc-term { margin-left: auto; font-size: 0.75rem; }
+.sf-course i { color: var(--t1); }
+.sf-course:hover { border-color: var(--t2); }
 
-.sc-rows { list-style: none; margin: 0; padding: 0; }
-
-.sc-row {
-  display: grid;
-  grid-template-columns: 112px 1fr;
-  gap: 12px;
-  align-items: start;
-  padding: 10px 0;
+.sf-course.on {
+  border-color: transparent;
+  background: linear-gradient(135deg, var(--t1), var(--t2));
+  color: #ffffff;
+  box-shadow: 0 8px 18px color-mix(in srgb, var(--t1) 35%, transparent);
 }
 
-.sc-time { display: flex; align-items: baseline; gap: 4px; font-size: 0.95rem; padding-top: 7px; white-space: nowrap; }
-.sc-time span { opacity: 0.6; }
-.sc-items { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.sf-course.on i { color: #ffffff; }
 
-.sc-item {
-  display: grid;
-  grid-template-columns: minmax(84px, auto) 1fr auto;
-  align-items: center;
-  gap: 10px;
-  padding: 7px 10px;
-  border-radius: 14px;
-}
+/* แบบ 1 — ชิป 2 แถว */
+.sf-v1 { display: flex; flex-direction: column; gap: 10px; }
+.sf-row { display: grid; grid-template-columns: 112px 1fr; align-items: center; gap: 10px; min-width: 0; }
 
-.sc-subj { display: inline-flex; align-items: center; gap: 7px; font-weight: 800; white-space: nowrap; }
-.sc-subj i { width: 16px; text-align: center; }
-.sc-tutor { display: inline-flex; align-items: center; gap: 7px; font-weight: 600; font-size: 0.88rem; min-width: 0; }
-.sc-room { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; font-size: 0.78rem; font-weight: 700; white-space: nowrap; }
+.sf-label { display: inline-flex; align-items: center; gap: 8px; color: var(--navy); font-weight: 800; font-size: 0.9rem; white-space: nowrap; }
 
-.sc-ava {
-  width: 28px;
-  height: 28px;
-  flex-shrink: 0;
+.sf-label b {
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
-  overflow: hidden;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  background: linear-gradient(135deg, #e11d48, #2a54d6);
+  color: #ffffff;
+  font-size: 0.75rem;
+}
+
+.sf-level {
+  flex-shrink: 0;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 18px;
+  border-radius: 16px;
+  border: 1.5px solid var(--line);
+  background: #f8fafc;
+  color: var(--navy);
+  font: 800 1rem/1.15 inherit;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.sf-level small { font-size: 0.68rem; font-weight: 600; color: var(--muted); }
+
+.sf-level.on {
+  border-color: transparent;
   background: linear-gradient(135deg, #0b1e3f, #2a54d6);
   color: #ffffff;
-  font-size: 0.8rem;
+  box-shadow: 0 8px 18px rgba(42, 84, 214, 0.3);
 }
 
-.sc-ava img { width: 100%; height: 130%; object-fit: cover; object-position: top center; }
+.sf-level.on small { color: #c7d7fe; }
 
-.sc-alt {
+/* แบบ 2 — การ์ดระดับชั้น */
+.sf-title { margin: 0 0 10px; color: var(--navy); font-weight: 800; font-size: 0.95rem; }
+.sf-title i { color: #e11d48; margin-right: 4px; }
+.sf-title-2 { margin-top: 16px; }
+
+.sf-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+  gap: 10px;
+}
+
+.sf-tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 14px 14px 12px;
+  border-radius: 18px;
+  border: none;
+  background: linear-gradient(135deg, #f1f5ff, #e6edff);
+  color: var(--navy);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.sf-tile b { font-size: 1.5rem; font-weight: 800; line-height: 1.05; }
+.sf-tile small { font-size: 0.72rem; color: var(--muted); font-weight: 600; }
+.sf-tile:hover { transform: translateY(-2px); }
+
+.sf-tile.on {
+  color: #ffffff;
+  background: linear-gradient(135deg, #0b1e3f 0%, #1d3fae 60%, #3b6cf0 100%);
+  box-shadow: 0 12px 24px rgba(42, 84, 214, 0.35);
+}
+
+.sf-tile.on small { color: #c7d7fe; }
+
+.sf-tile.on::after {
+  content: '\f00c';
+  font-family: 'Font Awesome 6 Free';
+  font-weight: 900;
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f43f5e;
+  font-size: 0.65rem;
+}
+
+.sf-segs { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* แบบ 3 — ดรอปดาวน์ */
+.sf-v3 { display: grid; grid-template-columns: 1fr 1.4fr auto; gap: 12px; align-items: end; }
+.sf-select { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.sf-select span { color: var(--navy); font-weight: 800; font-size: 0.85rem; }
+.sf-select span i { color: #e11d48; margin-right: 4px; }
+
+.sf-select select {
+  width: 100%;
+  appearance: none;
+  -webkit-appearance: none;
+  padding: 12px 40px 12px 14px;
+  border-radius: 14px;
+  border: 1.5px solid #dbe3f0;
+  background: #f8fafc url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%230b1e3f' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 14px center;
+  color: var(--navy);
+  font: 700 0.95rem/1.2 inherit;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.sf-select select:focus { outline: none; border-color: #2a54d6; box-shadow: 0 0 0 4px rgba(42, 84, 214, 0.12); }
+.sf-select select:disabled { opacity: 0.7; cursor: default; }
+
+.sf-share {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  align-self: flex-start;
-  margin-left: 10px;
-  font-size: 0.74rem;
-  font-weight: 700;
+  gap: 8px;
+  padding: 12px 16px;
+  border-radius: 14px;
+  border: 1.5px solid #dbe3f0;
+  background: #ffffff;
+  color: var(--navy);
+  font: 700 0.85rem/1.2 inherit;
+  font-family: inherit;
+  white-space: nowrap;
+  cursor: pointer;
 }
 
-.sc-none { color: var(--muted); font-size: 0.88rem; padding: 6px 0; }
-.sc-free { padding: 16px 22px; margin: 0; }
-
-.sc-foot { padding: 10px 22px 16px; text-align: right; }
-.sc-foot a { font-weight: 700; font-size: 0.85rem; }
+.sf-share i { color: #2a54d6; }
 
 /* ===================================================================
-   แบบ 1 — ขาวมินิมอล
+   การ์ดคอร์สเต็มจอ
    =================================================================== */
-.sc-v1 .sc-card { background: #ffffff; box-shadow: 0 16px 34px rgba(11, 30, 63, 0.08); }
-.sc-v1 .sc-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 5px; background: linear-gradient(180deg, var(--t1), var(--t2)); }
-.sc-v1 .sc-head { border-bottom: 1px solid var(--line); }
-.sc-v1 .sc-head-icons { color: var(--t1); opacity: 0.8; }
-.sc-v1 .sc-level { color: var(--tink); }
-.sc-v1 .sc-head h3 { color: var(--navy); }
-.sc-v1 .sc-head p { color: var(--muted); }
-.sc-v1 .sc-sess + .sc-sess { border-top: 1px dashed var(--line); }
-.sc-v1 .sc-day { background: var(--dbg); color: var(--dink); }
-.sc-v1 .sc-group { color: var(--navy); }
-.sc-v1 .sc-term { color: var(--muted); }
-.sc-v1 .sc-row + .sc-row { border-top: 1px dashed #eef2f7; }
-.sc-v1 .sc-time b { color: var(--navy); }
-.sc-v1 .sc-item { background: #f8fafc; }
-.sc-v1 .sc-subj { color: var(--tink); }
-.sc-v1 .sc-tutor { color: #334155; }
-.sc-v1 .sc-room { background: #ffffff; color: #475569; border: 1px solid var(--line); }
-.sc-v1 .sc-alt { color: var(--muted); }
-.sc-v1 .sc-foot a { color: var(--navy); }
+.sc-card { position: relative; border-radius: 28px; overflow: hidden; background: #ffffff; box-shadow: 0 20px 44px rgba(11, 30, 63, 0.1); }
 
-/* ===================================================================
-   แบบ 2 — กรมท่าเรืองแสง (พื้นมืดเหมือนส่วนบนของเว็บ)
-   =================================================================== */
-body.sc-v2 .page-content-wrapper {
-  background-color: #0b1a45;
-  background-image:
-    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
-    linear-gradient(160deg, #08122e 0%, #0f2563 60%, #1d3fae 100%);
-  background-size: 56px 56px, 56px 56px, auto;
-}
-
-.sc-v2 .sc-note { background: rgba(251, 191, 36, 0.12); border-color: rgba(251, 191, 36, 0.4); color: #fde68a; }
-
-.sc-v2 .sc-card {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-  color: #e2e8f0;
-}
-
-.sc-v2 .sc-head { border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
-.sc-v2 .sc-head::after { content: ''; position: absolute; left: 22px; bottom: -1px; width: 70px; height: 3px; border-radius: 3px; background: linear-gradient(90deg, var(--t1), var(--t2)); box-shadow: 0 0 12px var(--t1); }
-.sc-v2 .sc-head-icons { color: var(--t2); filter: drop-shadow(0 0 6px var(--t1)); }
-.sc-v2 .sc-level { color: var(--t2); }
-.sc-v2 .sc-head h3 { color: #ffffff; }
-.sc-v2 .sc-head p { color: #a5b8e8; }
-.sc-v2 .sc-day { background: rgba(255, 255, 255, 0.08); color: #ffffff; box-shadow: inset 0 0 0 1px var(--d); }
-.sc-v2 .sc-day i { color: var(--d); }
-.sc-v2 .sc-group { color: #ffffff; }
-.sc-v2 .sc-term { color: #a5b8e8; }
-.sc-v2 .sc-row + .sc-row { border-top: 1px solid rgba(255, 255, 255, 0.07); }
-.sc-v2 .sc-time b { color: #ffffff; }
-.sc-v2 .sc-item { background: rgba(255, 255, 255, 0.06); box-shadow: inset 3px 0 0 var(--t1); }
-.sc-v2 .sc-subj { color: #ffffff; }
-.sc-v2 .sc-subj i { color: var(--t2); }
-.sc-v2 .sc-tutor { color: #dbe6ff; }
-.sc-v2 .sc-ava { box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.25); }
-.sc-v2 .sc-room { background: rgba(255, 255, 255, 0.1); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.18); }
-.sc-v2 .sc-alt { color: #fbbf24; }
-.sc-v2 .sc-none { color: #a5b8e8; }
-.sc-v2 .sc-foot a { color: #ff8aa1; }
-
-/* ===================================================================
-   แบบ 3 — สีสันตามวิชา (หัวการ์ดสีเต็ม + เส้นเวลา)
-   =================================================================== */
-.sc-v3 .sc-card { background: #ffffff; box-shadow: 0 18px 38px rgba(11, 30, 63, 0.1); }
-
-.sc-v3 .sc-head {
+.sc-head {
+  position: relative;
+  padding: 22px 28px 20px;
   color: #ffffff;
   background: linear-gradient(135deg, var(--t1), var(--t2));
   overflow: hidden;
 }
 
-.sc-v3 .sc-head::after {
+.sc-head::after {
   content: '';
   position: absolute;
-  right: -50px;
-  top: -70px;
-  width: 190px;
-  height: 190px;
+  right: -40px;
+  top: -80px;
+  width: 230px;
+  height: 230px;
   border-radius: 50%;
   border: 1.5px solid rgba(255, 255, 255, 0.28);
-  box-shadow: 0 0 0 28px rgba(255, 255, 255, 0.07);
+  box-shadow: 0 0 0 34px rgba(255, 255, 255, 0.07);
 }
 
-.sc-v3 .sc-head-icons { z-index: 1; }
-.sc-v3 .sc-head-icons i { width: 34px; height: 34px; border-radius: 11px; display: inline-flex; align-items: center; justify-content: center; background: rgba(255, 255, 255, 0.2); font-size: 0.95rem; }
-.sc-v3 .sc-level { opacity: 0.92; }
-.sc-v3 .sc-head h3 { color: #ffffff; }
-.sc-v3 .sc-head p { opacity: 0.92; }
-.sc-v3 .sc-day { background: var(--d); color: #ffffff; box-shadow: 0 6px 14px color-mix(in srgb, var(--d) 35%, transparent); }
-.sc-v3 .sc-group { color: var(--navy); background: #f1f5f9; padding: 4px 10px; border-radius: 999px; }
-.sc-v3 .sc-term { color: var(--muted); }
+.sc-head-icons { position: absolute; right: 26px; top: 50%; transform: translateY(-50%); display: flex; gap: 8px; z-index: 1; }
+.sc-head-icons i { width: 42px; height: 42px; border-radius: 13px; display: inline-flex; align-items: center; justify-content: center; background: rgba(255, 255, 255, 0.2); font-size: 1.1rem; }
+.sc-level { font-size: 0.8rem; font-weight: 700; letter-spacing: 0.04em; opacity: 0.92; }
+.sc-head h3 { margin: 2px 0 2px; font-size: 1.8rem; font-weight: 800; line-height: 1.2; color: #ffffff; padding-right: 160px; }
+.sc-head p { margin: 0; font-size: 0.9rem; opacity: 0.92; }
+
+.sc-body { display: grid; grid-template-columns: 340px 1fr; gap: 26px; padding: 22px 28px 26px; }
+
+.sc-cover { position: relative; aspect-ratio: 16 / 9; border-radius: 18px; overflow: hidden; background: #eef2f9; box-shadow: 0 10px 24px rgba(11, 30, 63, 0.12); }
+.sc-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.sc-facts { list-style: none; margin: 16px 0 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.sc-facts li { display: grid; grid-template-columns: 22px 70px 1fr; align-items: baseline; gap: 6px; font-size: 0.88rem; }
+.sc-facts i { color: var(--t1); }
+.sc-facts span { color: var(--muted); }
+.sc-facts b { color: var(--navy); }
+
+.sc-actions { display: flex; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
+
+.sc-btn-detail, .sc-btn-apply {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 11px 14px;
+  border-radius: 999px;
+  font: 700 0.9rem/1.2 inherit;
+  font-family: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.sc-btn-detail { border: 1.5px solid #dbe3f0; color: var(--navy); background: #ffffff; }
+.sc-btn-apply { border: none; color: #ffffff; background: linear-gradient(135deg, #f43f5e, #e11d48); box-shadow: 0 10px 20px rgba(225, 29, 72, 0.3); }
+
+/* รอบเรียนวางคู่กันเมื่อจอกว้าง */
+.sc-sessions { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 430px), 1fr)); gap: 18px; align-content: start; }
+
+.sc-sess { --d: #2a54d6; padding: 14px 16px 4px; border-radius: 20px; background: #f8fafc; }
+.sc-sess:has(.sc-d0) { --d: #eab308; }
+.sc-sess:has(.sc-d1) { --d: #ec4899; }
+.sc-sess:has(.sc-d2) { --d: #16a34a; }
+.sc-sess:has(.sc-d3) { --d: #f97316; }
+.sc-sess:has(.sc-d4) { --d: #2563eb; }
+.sc-sess:has(.sc-d5) { --d: #9333ea; }
+.sc-sess:has(.sc-d6) { --d: #dc2626; }
+
+.sc-sess-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 8px; }
+.sc-day { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 999px; font-weight: 800; font-size: 0.95rem; background: var(--d); color: #ffffff; box-shadow: 0 6px 14px color-mix(in srgb, var(--d) 35%, transparent); }
+.sc-group { font-weight: 700; font-size: 0.82rem; color: var(--navy); background: #ffffff; padding: 4px 11px; border-radius: 999px; }
 
 /* เส้นเวลา */
-.sc-v3 .sc-rows { position: relative; }
-.sc-v3 .sc-row { position: relative; padding-left: 0; }
-.sc-v3 .sc-row::before { content: ''; position: absolute; left: 118px; top: 0; bottom: 0; width: 2px; background: #e2e8f0; }
-.sc-v3 .sc-row:first-child::before { top: 18px; }
-.sc-v3 .sc-row:last-child::before { bottom: calc(100% - 18px); }
-.sc-v3 .sc-row:only-child::before { display: none; }
-.sc-v3 .sc-row::after { content: ''; position: absolute; left: 112px; top: 15px; width: 14px; height: 14px; border-radius: 50%; background: #ffffff; border: 3px solid var(--d, #2a54d6); box-sizing: border-box; }
-.sc-v3 .sc-sess { --d: #2a54d6; }
-.sc-v3 .sc-sess:has(.sc-d0) { --d: #eab308; }
-.sc-v3 .sc-sess:has(.sc-d1) { --d: #ec4899; }
-.sc-v3 .sc-sess:has(.sc-d2) { --d: #16a34a; }
-.sc-v3 .sc-sess:has(.sc-d3) { --d: #f97316; }
-.sc-v3 .sc-sess:has(.sc-d4) { --d: #2563eb; }
-.sc-v3 .sc-sess:has(.sc-d5) { --d: #9333ea; }
-.sc-v3 .sc-sess:has(.sc-d6) { --d: #dc2626; }
-.sc-v3 .sc-row { grid-template-columns: 104px 1fr; gap: 30px; }
-.sc-v3 .sc-time { flex-direction: column; align-items: flex-end; gap: 0; padding-top: 4px; line-height: 1.2; }
-.sc-v3 .sc-time b:first-child { color: var(--navy); font-size: 1.05rem; }
-.sc-v3 .sc-time b:last-child { color: var(--muted); font-weight: 600; font-size: 0.8rem; }
-.sc-v3 .sc-time span { display: none; }
-.sc-v3 .sc-item { background: var(--tbg); border-left: 4px solid var(--t1); border-radius: 12px; }
-.sc-v3 .sc-subj { color: var(--tink); }
-.sc-v3 .sc-tutor { color: #1e293b; }
-.sc-v3 .sc-room { background: linear-gradient(135deg, var(--t1), var(--t2)); color: #ffffff; }
-.sc-v3 .sc-alt { color: var(--muted); }
-.sc-v3 .sc-foot { background: #f8fafc; }
-.sc-v3 .sc-foot a { color: var(--navy); }
+.sc-rows { list-style: none; margin: 0; padding: 0; }
+.sc-row { position: relative; display: grid; grid-template-columns: 70px 1fr; gap: 30px; align-items: start; padding: 10px 0; }
+.sc-row::before { content: ''; position: absolute; left: 84px; top: 0; bottom: 0; width: 2px; background: #e2e8f0; }
+.sc-row:first-child::before { top: 18px; }
+.sc-row:last-child::before { bottom: calc(100% - 18px); }
+.sc-row:only-child::before { display: none; }
+.sc-row::after { content: ''; position: absolute; left: 78px; top: 15px; width: 14px; height: 14px; border-radius: 50%; background: #ffffff; border: 3px solid var(--d); box-sizing: border-box; }
+
+.sc-time { display: flex; flex-direction: column; align-items: flex-end; padding-top: 4px; line-height: 1.2; white-space: nowrap; }
+.sc-time b:first-child { color: var(--navy); font-size: 1.05rem; }
+.sc-time b:last-child { color: var(--muted); font-weight: 600; font-size: 0.8rem; }
+.sc-time span { display: none; }
+
+.sc-items { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+
+.sc-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 14px;
+  padding: 9px 12px;
+  border-radius: 12px;
+  background: #ffffff;
+  border-left: 4px solid var(--t1);
+  box-shadow: 0 4px 10px rgba(11, 30, 63, 0.05);
+}
+
+.sc-subj { display: inline-flex; align-items: center; gap: 7px; font-weight: 800; color: var(--tink); white-space: nowrap; }
+.sc-subj i { width: 16px; text-align: center; }
+.sc-tutor { display: inline-flex; align-items: center; gap: 7px; font-weight: 700; font-size: 0.9rem; color: #1e293b; white-space: nowrap; }
+.sc-item .sc-room { margin-left: auto; }
+.sc-tutor i { color: var(--t1); font-size: 0.8rem; }
+.sc-room { display: inline-flex; align-items: center; gap: 6px; padding: 4px 11px; border-radius: 999px; font-size: 0.78rem; font-weight: 700; white-space: nowrap; color: #ffffff; background: linear-gradient(135deg, var(--t1), var(--t2)); }
+.sc-alt { display: inline-flex; align-items: center; gap: 6px; margin-left: 10px; font-size: 0.75rem; font-weight: 700; color: var(--muted); }
+
+.sc-none { color: var(--muted); font-size: 0.9rem; padding: 6px 0; }
+.sc-free { margin: 0; padding: 22px; border-radius: 20px; background: #f8fafc; }
 
 /* ---------- แถบเลือกแบบ (เฉพาะหน้าตัวอย่าง) ---------- */
 .sd-switch {
@@ -288,30 +379,48 @@ body.sc-v2 .page-content-wrapper {
 /* ===================================================================
    แท็บเล็ต / มือถือ
    =================================================================== */
-@media (max-width: 1000px) {
-  .sc-list { grid-template-columns: 1fr; }
+@media (max-width: 980px) {
+  .sc-body { grid-template-columns: 1fr; }
+  .sc-side { display: grid; grid-template-columns: 260px 1fr; gap: 18px; align-items: start; }
+  .sc-facts { margin-top: 0; }
+  .sc-actions { grid-column: 1 / -1; margin-top: 0; }
+  .sf-v3 { grid-template-columns: 1fr 1fr; }
+  .sf-share { grid-column: 1 / -1; justify-content: center; }
 }
 
 @media (max-width: 640px) {
-  .sc-head { padding: 16px 16px 12px; }
-  .sc-head h3 { font-size: 1.25rem; }
-  .sc-sess { padding: 12px 14px 2px; }
-  .sc-term { margin-left: 0; width: 100%; }
-  .sc-row { grid-template-columns: 1fr; gap: 6px; padding: 9px 0; }
-  .sc-time { padding-top: 0; }
-  .sc-item { grid-template-columns: 1fr auto; gap: 6px 8px; padding: 8px 10px; }
+  .sf { padding: 12px; border-radius: 18px; }
+  .sf-row { grid-template-columns: 1fr; gap: 6px; }
+  .sf-tiles { grid-template-columns: repeat(4, 1fr); gap: 6px; }
+  .sf-tile { padding: 10px 8px; border-radius: 14px; align-items: center; text-align: center; }
+  .sf-tile b { font-size: 1.05rem; }
+  .sf-tile small { font-size: 0.6rem; }
+  .sf-tile.on::after { width: 16px; height: 16px; right: 4px; top: 4px; font-size: 0.5rem; }
+  .sf-v3 { grid-template-columns: 1fr; }
+  .sf-segs .sf-course { flex: 1 1 calc(50% - 8px); justify-content: center; }
+
+  .sc-card { border-radius: 22px; }
+  .sc-head { padding: 18px 18px 16px; }
+  .sc-head h3 { font-size: 1.4rem; padding-right: 0; }
+  .sc-head-icons { top: 16px; right: 16px; transform: none; }
+  .sc-head-icons i { width: 32px; height: 32px; font-size: 0.85rem; }
+  .sc-level { display: block; padding-right: 120px; }
+  .sc-body { padding: 16px 14px 18px; gap: 18px; }
+  .sc-side { grid-template-columns: 1fr; gap: 14px; }
+  .sc-sessions { grid-template-columns: 1fr; gap: 14px; }
+  .sc-sess { padding: 12px 12px 2px; }
+
+  /* เวลาอยู่บน เส้นเวลาชิดซ้าย */
+  .sc-row { grid-template-columns: 1fr; gap: 6px; padding: 9px 0 9px 24px; }
+  .sc-row::before { left: 6px; }
+  .sc-row::after { left: 0; top: 13px; }
+  .sc-row:first-child::before { top: 18px; }
+  .sc-time { flex-direction: row; align-items: baseline; gap: 6px; padding-top: 0; }
+  .sc-time span { display: inline; color: var(--muted); }
+  .sc-time b:last-child { font-size: 1.05rem; color: var(--navy); font-weight: 800; }
+  .sc-item { display: grid; grid-template-columns: 1fr auto; gap: 6px 8px; padding: 8px 10px; }
   .sc-tutor { grid-column: 1 / -1; grid-row: 2; }
   .sc-room { grid-column: 2; grid-row: 1; }
-  .sc-foot { padding: 8px 16px 14px; }
-
-  /* แบบ 3 มือถือ: เวลาอยู่บน เส้นเวลาชิดซ้าย */
-  .sc-v3 .sc-row { grid-template-columns: 1fr; gap: 6px; padding-left: 24px; }
-  .sc-v3 .sc-row::before { left: 6px; }
-  .sc-v3 .sc-row::after { left: 0; top: 4px; }
-  .sc-v3 .sc-row:first-child::before { top: 8px; }
-  .sc-v3 .sc-time { flex-direction: row; align-items: baseline; gap: 6px; }
-  .sc-v3 .sc-time span { display: inline; }
-  .sc-v3 .sc-time b:last-child { font-size: 0.95rem; color: var(--navy); font-weight: 800; }
 
   .sd-switch { bottom: 8px; }
   .sd-switch > span, .sd-switch a small { display: none; }
