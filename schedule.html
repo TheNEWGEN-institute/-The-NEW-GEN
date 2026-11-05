@@ -1,22 +1,20 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <base href="../">
-  <meta name="robots" content="noindex, nofollow">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>[ตัวอย่าง] ตารางเรียน | สถาบันกวดวิชา The NEW GEN</title>
-  <meta name="description" content="คำถามที่พบบ่อยเกี่ยวกับการสมัครเรียน ค่าเรียน การเรียน Onsite &amp; Online และกลุ่มเรียนเฉพาะ ของสถาบันกวดวิชา The NEW GEN">
+  <title>ตารางเรียน | สถาบันกวดวิชา The NEW GEN</title>
+  <meta name="description" content="ตารางเรียนของแต่ละคอร์ส สถาบันกวดวิชา The NEW GEN — วัน เวลา วิชา ติวเตอร์ผู้สอน และห้องเรียน แยกตามระดับชั้น">
   
   <link rel="icon" type="image/png" href="assets/images/tutor-au.jpg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Prompt:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
-  <link rel="stylesheet" href="assets/css/style.css?v=20261028-trust2">
+  <link rel="stylesheet" href="assets/css/style.css?v=20261105-schedule">
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/theme-newgen.css?v=20261028-trust2">
-  <link rel="stylesheet" href="preview/schedule-demo.css?v=1793889444408">
+  <link rel="stylesheet" href="assets/css/theme-newgen.css?v=20261105-schedule">
+  <link rel="stylesheet" href="assets/css/schedule.css?v=20261105-schedule">
 </head>
 <body class="ng-theme page-luxury">
 
@@ -36,7 +34,7 @@
         <a href="index.html" class="nav-link">หน้าแรก</a>
         <a href="tutors.html" class="nav-link">ทีมติวเตอร์</a>
         <a href="courses.html" class="nav-link">คอร์สเรียนทั้งหมด</a>
-        <a href="preview/schedule.html" class="nav-link active">ตารางเรียน</a>
+        <a href="schedule.html" class="nav-link active">ตารางเรียน</a>
         <a href="reviews.html" class="nav-link">ความสำเร็จของรุ่นพี่</a>
         <a href="free-trial.html" class="nav-link">ทดลองเรียนฟรี</a>
         <a href="faq.html" class="nav-link">คำถามที่พบบ่อย</a>
@@ -52,7 +50,7 @@
       <a href="index.html" class="mobile-nav-link">หน้าแรก</a>
       <a href="tutors.html" class="mobile-nav-link">ทีมติวเตอร์</a>
       <a href="courses.html" class="mobile-nav-link">คอร์สเรียนทั้งหมด</a>
-      <a href="preview/schedule.html" class="mobile-nav-link active">ตารางเรียน</a>
+      <a href="schedule.html" class="mobile-nav-link active">ตารางเรียน</a>
       <a href="reviews.html" class="mobile-nav-link">ความสำเร็จของรุ่นพี่</a>
       <a href="free-trial.html" class="mobile-nav-link">ทดลองเรียนฟรี</a>
       <a href="faq.html" class="mobile-nav-link">คำถามที่พบบ่อย</a>
@@ -66,16 +64,16 @@
       <div class="subpage-hero-badge">
         <i class="fa-solid fa-calendar-days"></i> CLASS SCHEDULE
       </div>
-      <h1 class="subpage-hero-title">ตารางเรียน<span class="text-navy">ทั้งหมด</span></h1>
+      <h1 class="subpage-hero-title">ตารางเรียน<span class="text-navy">ของน้อง ๆ</span></h1>
       <p class="subpage-hero-desc">
-        วัน-เวลาเรียนของแต่ละคอร์ส พร้อมวิชา ติวเตอร์ผู้สอน และห้องเรียน
+        เลือกระดับชั้นและคอร์สที่เรียน เพื่อดูวัน เวลา วิชา ติวเตอร์ผู้สอน และห้องเรียน
       </p>
     </div>
   </section>
 
   <main class="page-content-wrapper">
     <div class="container">
-      <div id="scheduleDemo" class="sd-root" aria-live="polite"></div>
+      <div id="scheduleRoot" class="sc-root" aria-live="polite"></div>
     </div>
   </main>
 
@@ -124,6 +122,7 @@
             <li><a href="index.html"><i class="fa-solid fa-angle-right"></i> หน้าแรก</a></li>
             <li><a href="tutors.html"><i class="fa-solid fa-angle-right"></i> ทีมติวเตอร์</a></li>
             <li><a href="courses.html"><i class="fa-solid fa-angle-right"></i> คอร์สเรียนทั้งหมด</a></li>
+            <li><a href="schedule.html"><i class="fa-solid fa-angle-right"></i> ตารางเรียน</a></li>
             <li><a href="reviews.html"><i class="fa-solid fa-angle-right"></i> ความสำเร็จของรุ่นพี่</a></li>
             <li><a href="free-trial.html"><i class="fa-solid fa-angle-right"></i> ทดลองเรียนฟรี</a></li>
             <li><a href="faq.html"><i class="fa-solid fa-angle-right"></i> คำถามที่พบบ่อย</a></li>
@@ -198,10 +197,10 @@
     </button>
   </div>
 
-  <script src="assets/js/courses-data.js?v=20261028-trust2"></script>
-  <script src="assets/js/enrollment-modal.js?v=1793889444408"></script>
-  <script src="preview/schedule-demo.js?v=1793889444408"></script>
-  <script src="assets/js/main.js?v=20261028-trust2"></script>
-  <script src="assets/js/theme-newgen.js?v=20261028-trust2"></script>
+  <script src="assets/js/courses-data.js?v=20261105-schedule"></script>
+  <script src="assets/js/enrollment-modal.js?v=20261105-schedule"></script>
+  <script src="assets/js/schedule-page.js?v=20261105-schedule"></script>
+  <script src="assets/js/main.js?v=20261105-schedule"></script>
+  <script src="assets/js/theme-newgen.js?v=20261105-schedule"></script>
 </body>
 </html>

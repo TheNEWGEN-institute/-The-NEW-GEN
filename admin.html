@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Prompt:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
-  <link rel="stylesheet" href="assets/css/style.css?v=20261021-fix2">
+  <link rel="stylesheet" href="assets/css/style.css?v=20261105-schedule">
 </head>
 <body class="page-admin-body">
 
@@ -95,6 +95,9 @@
         </button>
         <button type="button" class="admin-nav-item" onclick="switchAdminTab('faq', this)" id="navTabFaq">
           <i class="fa-solid fa-circle-question" style="color: #0891b2;"></i> 8.1 คำถามที่พบบ่อย (FAQ)
+        </button>
+        <button type="button" class="admin-nav-item" onclick="switchAdminTab('schedule', this)" id="navTabSchedule">
+          <i class="fa-solid fa-calendar-days" style="color: #7c3aed;"></i> 8.2 ตารางเรียน (วิชา / ติวเตอร์ / ห้อง)
         </button>
         <button type="button" class="admin-nav-item" onclick="switchAdminTab('system', this)" id="navTabSystem">
           <i class="fa-solid fa-sliders"></i> 9. ตั้งค่าระบบ (สำรองข้อมูล &amp; รหัสผ่าน)
@@ -1805,6 +1808,36 @@
         </div>
       </section>
 
+      <!-- ================= 8.2 SCHEDULE TAB ================= -->
+      <section id="tab-schedule" class="admin-tab-pane">
+        <div class="admin-pane-header">
+          <div>
+            <h2><i class="fa-solid fa-calendar-days" style="color: #7c3aed;"></i> ตารางเรียน</h2>
+            <p>เลือกคอร์ส แล้วแก้วันเรียน เวลา วิชา ติวเตอร์ และห้องเรียน ที่หน้า <a href="schedule.html" target="_blank" rel="noopener" style="font-weight: 700;">ตารางเรียน <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.75rem;"></i></a> — คอร์สที่ยังไม่ได้แก้ ระบบดึงวัน-เวลาจากรอบเรียนของคอร์สให้อัตโนมัติ</p>
+          </div>
+        </div>
+
+        <div class="admin-table-card" style="padding: 16px 18px; margin-bottom: 16px;">
+          <div class="form-group-luxury" style="margin-bottom: 6px;">
+            <label for="schedCourseSelect">เลือกคอร์สที่จะแก้ตารางเรียน <small style="font-weight: 500; color: #64748b;">(✏️ = แก้เองแล้ว)</small></label>
+            <select id="schedCourseSelect" onchange="selectSchedCourse(this.value)"></select>
+          </div>
+          <small style="color: var(--text-muted);">เคล็ดลับ: 1 คาบ = 1 ช่วงเวลา ถ้าคาบไหนเรียนวิชาสลับกันคนละสัปดาห์ (เช่น วิทย์ ⇄ อังกฤษ) ให้เปลี่ยน "รูปแบบคาบนี้" เป็น "สลับกันคนละสัปดาห์" แล้วกรอกทั้งสองวิชา</small>
+        </div>
+
+        <div id="schedEditor" class="sched-editor"></div>
+        <datalist id="schedSubjectList"></datalist>
+        <datalist id="schedTutorList"></datalist>
+        <datalist id="schedRoomList"></datalist>
+
+        <div class="faq-admin-savebar">
+          <span class="faq-admin-dirty" id="schedDirtyNote" style="display: none;"><i class="fa-solid fa-circle-exclamation"></i> มีการแก้ไขที่ยังไม่ได้บันทึก</span>
+          <div style="display: flex; gap: 8px; margin-left: auto;">
+            <button type="button" class="btn-primary" id="btnSaveSchedule" onclick="saveScheduleSettings()"><i class="fa-solid fa-floppy-disk"></i> บันทึกตารางเรียน</button>
+          </div>
+        </div>
+      </section>
+
     <!-- ================= 9. SYSTEM SETTINGS TAB ================= -->
       <section id="tab-system" class="admin-tab-pane">
         <div class="admin-pane-header">
@@ -3308,7 +3341,7 @@
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-  <script src="assets/js/courses-data.js?v=20261027-topics"></script>
-  <script src="assets/js/admin.js?v=20261027-topics"></script>
+  <script src="assets/js/courses-data.js?v=20261105-schedule"></script>
+  <script src="assets/js/admin.js?v=20261105-schedule"></script>
 </body>
 </html>

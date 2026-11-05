@@ -42,6 +42,7 @@ function initAdminDashboard() {
   try { loadAdminBundles(); } catch (e) { console.warn('loadAdminBundles error:', e); }
   // คำถามที่พบบ่อย: ไม่ทับสิ่งที่กำลังแก้อยู่ (ยังไม่กดบันทึก)
   try { if (!_faqDirty) loadAdminFaq(); } catch (e) { console.warn('loadAdminFaq error:', e); }
+  try { if (!_schedDirty) loadAdminSchedule(); } catch (e) { console.warn('loadAdminSchedule error:', e); }
   try {
     if (document.getElementById('tab-analytics')?.classList.contains('active')) loadAdminAnalytics();
   } catch (e) { console.warn('loadAdminAnalytics error:', e); }
@@ -231,6 +232,8 @@ function switchAdminTab(tabKey, btn) {
       loadAdminContact();
     } else if (tabKey === 'faq') {
       loadAdminFaq();
+    } else if (tabKey === 'schedule') {
+      if (!_schedDirty) loadAdminSchedule();
     } else if (tabKey === 'system') {
       loadSecuritySettings();
     }
@@ -4209,6 +4212,7 @@ function exportDataToJson() {
     contact: window.NewGenDB.getContact(),
     whyus: window.NewGenDB.getWhyUs(),
     faq: window.NewGenDB.getFaq(),
+    schedule: window.NewGenDB.getSchedule(),
     enrollments: window.NewGenDB.getEnrollments(),
     enrollmentConfig: (window.NewGenDB && typeof window.NewGenDB.getEnrollmentConfig === 'function')
       ? window.NewGenDB.getEnrollmentConfig()
@@ -4255,6 +4259,7 @@ function importDataFromJson(event) {
       if (data.contact) await window.NewGenDB.saveContact(data.contact);
       if (data.whyus) await window.NewGenDB.saveWhyUs(data.whyus);
       if (data.faq && Array.isArray(data.faq.items)) await window.NewGenDB.saveFaq(data.faq);
+      if (data.schedule && data.schedule.courses && typeof data.schedule.courses === 'object') await window.NewGenDB.saveSchedule(data.schedule);
       if (data.enrollments) await window.NewGenDB.saveEnrollments(data.enrollments);
       if (data.enrollmentConfig) await window.NewGenDB.saveEnrollmentConfig(data.enrollmentConfig);
 
@@ -7490,7 +7495,7 @@ async function scanCleanupJunk() {
   if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังสแกน...'; }
   const items = [];
   const errors = [];
-  const knownKeys = new Set(['courses', 'tutors', 'tutorsQuote', 'reviews', 'achievements', 'videos', 'contact', 'whyus', 'categories', 'privilege', 'home', 'about', 'enrollmentConfig', 'popupCampaign', 'bundles', 'faq', 'admin_ping']);
+  const knownKeys = new Set(['courses', 'tutors', 'tutorsQuote', 'reviews', 'achievements', 'videos', 'contact', 'whyus', 'categories', 'privilege', 'home', 'about', 'enrollmentConfig', 'popupCampaign', 'bundles', 'faq', 'schedule', 'admin_ping']);
   let rows = [];
   try {
     rows = await window.NewGenDB.fetchAllAppDataRows();
@@ -7810,9 +7815,288 @@ async function saveFaqSettings() {
   }
 }
 
-// เตือนก่อนปิดหน้า ถ้าแก้คำถามแล้วยังไม่บันทึก
+/* ===================================================================
+   ตารางเรียน (หน้า schedule.html) — แก้วัน / เวลา / วิชา / ติวเตอร์ / ห้อง ได้ทุกช่อง
+   คอร์สที่ยังไม่ได้แก้ ใช้วัน-เวลาจากรอบเรียนของคอร์สอัตโนมัติ
+   =================================================================== */
+var _schedDraft = null;   // { courses: { [id]: { hidden, sessions } } }
+var _schedDirty = false;
+var _schedCourseId = '';
+
+const SCHED_SUBJECTS = ['คณิตศาสตร์', 'วิทยาศาสตร์', 'ภาษาอังกฤษ', 'ฟิสิกส์', 'เคมี', 'ชีววิทยา', 'ภาษาไทย', 'สังคมศึกษา'];
+const SCHED_MODES = [
+  ['single', 'เรียนวิชาเดียว'],
+  ['alternate', 'สลับกันคนละสัปดาห์'],
+  ['rotate', 'หมุนเวียนตามวัน']
+];
+
+function markSchedDirty(dirty = true) {
+  _schedDirty = dirty;
+  const note = document.getElementById('schedDirtyNote');
+  if (note) note.style.display = dirty ? 'inline-flex' : 'none';
+}
+
+function schedCourses() {
+  const cats = window.NewGenDB.getCategories();
+  const order = id => { const i = cats.findIndex(c => c.id === id); return i < 0 ? 99 : i; };
+  return window.NewGenDB.getCourses().slice().sort((a, b) => order(a.category) - order(b.category));
+}
+
+function loadAdminSchedule() {
+  const data = window.NewGenDB.getSchedule();
+  _schedDraft = JSON.parse(JSON.stringify({ courses: data.courses || {} }));
+  const courses = schedCourses();
+  if (!courses.some(c => c.id === _schedCourseId)) _schedCourseId = courses[0] ? courses[0].id : '';
+  renderSchedCourseSelect();
+  renderSchedEditor();
+  markSchedDirty(false);
+}
+
+function renderSchedCourseSelect() {
+  const sel = document.getElementById('schedCourseSelect');
+  if (!sel) return;
+  const cats = window.NewGenDB.getCategories();
+  const groups = {};
+  schedCourses().forEach(c => {
+    const cat = cats.find(x => x.id === c.category);
+    const name = cat ? cat.name : (c.categoryLabel || 'อื่น ๆ');
+    (groups[name] = groups[name] || []).push(c);
+  });
+  sel.innerHTML = Object.keys(groups).map(g => `<optgroup label="${escapeHtml(g)}">${groups[g].map(c =>
+    `<option value="${escapeHtml(c.id)}" ${c.id === _schedCourseId ? 'selected' : ''}>${_schedDraft.courses[c.id] ? '✏️ ' : ''}${escapeHtml(c.title)}${c.isHidden ? ' (ซ่อนอยู่)' : ''}</option>`).join('')}</optgroup>`).join('');
+}
+
+function selectSchedCourse(id) {
+  _schedCourseId = id;
+  renderSchedEditor();
+}
+
+// ตารางของคอร์สที่เลือก (ถ้ายังไม่เคยแก้ = สร้างจากรอบเรียนของคอร์สให้ก่อน)
+function schedEntry(create) {
+  const id = _schedCourseId;
+  if (!id) return null;
+  if (!_schedDraft.courses[id] && create) {
+    const course = window.NewGenDB.getCourses().find(c => c.id === id);
+    _schedDraft.courses[id] = { hidden: false, sessions: window.autoScheduleSessions ? window.autoScheduleSessions(course) : [] };
+  }
+  return _schedDraft.courses[id] || null;
+}
+
+function renderSchedEditor() {
+  const box = document.getElementById('schedEditor');
+  if (!box || !_schedDraft) return;
+  const course = window.NewGenDB.getCourses().find(c => c.id === _schedCourseId);
+  if (!course) { box.innerHTML = '<p style="color: var(--text-muted);">ยังไม่มีคอร์ส</p>'; return; }
+  const own = _schedDraft.courses[course.id];
+  const sessions = own ? own.sessions : (window.autoScheduleSessions ? window.autoScheduleSessions(course) : []);
+  const status = own
+    ? `<span class="sched-badge sched-badge-own"><i class="fa-solid fa-pen"></i> แก้เองแล้ว</span>`
+    : `<span class="sched-badge"><i class="fa-solid fa-wand-magic-sparkles"></i> อัตโนมัติจากรอบเรียนของคอร์ส (แก้ช่องไหนก็ได้ ระบบจะเก็บเป็นตารางของคอร์สนี้)</span>`;
+
+  box.innerHTML = `
+    <div class="sched-toolbar">
+      ${status}
+      <label class="sched-hide"><input type="checkbox" ${own && own.hidden ? 'checked' : ''} onchange="setSchedHidden(this.checked)"> ซ่อนคอร์สนี้จากหน้าตารางเรียน</label>
+      <button type="button" class="btn-xs-action" onclick="resetSchedFromCourse()" title="ล้างที่แก้เอง แล้วดึงวัน-เวลาจากรอบเรียนของคอร์สใหม่"><i class="fa-solid fa-rotate"></i> ดึงจากคอร์สใหม่</button>
+    </div>
+    ${sessions.map((s, si) => `
+      <div class="sched-sess">
+        <div class="sched-sess-head">
+          <span class="sched-num">${si + 1}</span>
+          <label>วันเรียน<input type="text" value="${escapeHtml(s.day)}" placeholder="เช่น วันเสาร์" oninput="updateSchedSession(${si}, 'day', this.value)"></label>
+          <label>กลุ่ม<input type="text" value="${escapeHtml(s.group)}" placeholder="เช่น กลุ่ม 1 (เว้นว่างได้)" oninput="updateSchedSession(${si}, 'group', this.value)"></label>
+          <label>หมายเหตุ / ช่วงเปิดเทอม<input type="text" value="${escapeHtml(s.note)}" placeholder="เช่น 7 พ.ย. – 20 ก.พ." oninput="updateSchedSession(${si}, 'note', this.value)"></label>
+          <div class="sched-tools">
+            <button type="button" onclick="moveSchedSession(${si}, -1)" ${si === 0 ? 'disabled' : ''} title="เลื่อนขึ้น"><i class="fa-solid fa-chevron-up"></i></button>
+            <button type="button" onclick="moveSchedSession(${si}, 1)" ${si === sessions.length - 1 ? 'disabled' : ''} title="เลื่อนลง"><i class="fa-solid fa-chevron-down"></i></button>
+            <button type="button" class="sched-del" onclick="deleteSchedSession(${si})" title="ลบวันเรียนนี้"><i class="fa-solid fa-trash-can"></i></button>
+          </div>
+        </div>
+        ${(s.periods || []).map((p, pi) => `
+          <div class="sched-period sched-mode-${escapeHtml(p.mode || 'single')}">
+            <div class="sched-period-head">
+              <label>เริ่ม<input type="text" class="sched-time" value="${escapeHtml(p.start)}" placeholder="09.00" oninput="updateSchedPeriod(${si}, ${pi}, 'start', this.value)"></label>
+              <label>ถึง<input type="text" class="sched-time" value="${escapeHtml(p.end)}" placeholder="10.30" oninput="updateSchedPeriod(${si}, ${pi}, 'end', this.value)"></label>
+              <label>รูปแบบคาบนี้
+                <select onchange="setSchedMode(${si}, ${pi}, this.value)">
+                  ${SCHED_MODES.map(([v, t]) => `<option value="${v}" ${(p.mode || 'single') === v ? 'selected' : ''}>${t}</option>`).join('')}
+                </select>
+              </label>
+              <button type="button" class="sched-del" onclick="deleteSchedPeriod(${si}, ${pi})" title="ลบคาบนี้"><i class="fa-solid fa-trash-can"></i> ลบคาบ</button>
+            </div>
+            ${(p.items || []).map((it, ii) => `
+              ${ii > 0 ? `<div class="sched-alt-label"><i class="fa-solid fa-right-left"></i> ${p.mode === 'rotate' ? 'หมุนเวียนกับ' : 'สลับกับ'}</div>` : ''}
+              <div class="sched-item">
+                <label>วิชา<input type="text" list="schedSubjectList" value="${escapeHtml(it.subject)}" placeholder="เช่น คณิตศาสตร์" oninput="updateSchedItem(${si}, ${pi}, ${ii}, 'subject', this.value)"></label>
+                <label>ติวเตอร์<input type="text" list="schedTutorList" value="${escapeHtml(it.tutor)}" placeholder="เช่น พี่แม็ค" oninput="updateSchedItem(${si}, ${pi}, ${ii}, 'tutor', this.value)"></label>
+                <label>ห้องเรียน<input type="text" list="schedRoomList" value="${escapeHtml(it.room)}" placeholder="เช่น ห้อง 1" oninput="updateSchedItem(${si}, ${pi}, ${ii}, 'room', this.value)"></label>
+                ${(p.items || []).length > 1 ? `<button type="button" class="sched-del" onclick="deleteSchedItem(${si}, ${pi}, ${ii})" title="ลบวิชานี้ออกจากคาบ"><i class="fa-solid fa-xmark"></i></button>` : ''}
+              </div>`).join('')}
+            ${(p.mode && p.mode !== 'single') ? `<button type="button" class="btn-xs-action sched-add-item" onclick="addSchedItem(${si}, ${pi})"><i class="fa-solid fa-plus"></i> เพิ่มวิชาที่${p.mode === 'rotate' ? 'หมุนเวียน' : 'สลับ'}ในคาบนี้</button>` : ''}
+          </div>`).join('')}
+        <button type="button" class="btn-xs-action" onclick="addSchedPeriod(${si})"><i class="fa-solid fa-plus"></i> เพิ่มคาบเรียน</button>
+      </div>`).join('') || '<p style="color: var(--text-muted); margin: 10px 0;">คอร์สนี้ยังไม่มีวันเรียน — กด "เพิ่มวันเรียน"</p>'}
+    <button type="button" class="btn-secondary" onclick="addSchedSession()" style="margin-top: 6px;"><i class="fa-solid fa-calendar-plus"></i> เพิ่มวันเรียน</button>`;
+  renderSchedDatalists();
+}
+
+function renderSchedDatalists() {
+  const fill = (id, values) => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = [...new Set(values.filter(Boolean))].map(v => `<option value="${escapeHtml(v)}">`).join('');
+  };
+  const used = Object.values(_schedDraft.courses).flatMap(c => (c.sessions || []).flatMap(s => (s.periods || []).flatMap(p => p.items || [])));
+  fill('schedSubjectList', SCHED_SUBJECTS.concat(used.map(i => i.subject)));
+  fill('schedTutorList', window.NewGenDB.getTutors().map(t => t.name).concat(used.map(i => i.tutor)));
+  fill('schedRoomList', ['ห้อง 1', 'ห้อง 2', 'ห้อง 3', 'ห้อง 4', 'Zoom (ออนไลน์)'].concat(used.map(i => i.room)));
+}
+
+// ทุกการแก้ไข: ถ้ายังเป็นตารางอัตโนมัติ ให้คัดลอกมาเป็นตารางของคอร์สนี้ก่อน
+function schedEdit(fn, rerender = true) {
+  const entry = schedEntry(true);
+  if (!entry) return;
+  fn(entry);
+  markSchedDirty();
+  if (rerender) {
+    renderSchedEditor();
+    renderSchedCourseSelect();
+  }
+}
+
+// พิมพ์ในช่อง: ไม่วาดฟอร์มใหม่ (ช่องที่กำลังพิมพ์จะไม่หลุด) แค่อัปเดตป้ายสถานะ
+function schedTyping(fn) {
+  const wasAuto = !_schedDraft.courses[_schedCourseId];
+  schedEdit(fn, false);
+  if (wasAuto) {
+    const badge = document.querySelector('#schedEditor .sched-badge');
+    if (badge) { badge.className = 'sched-badge sched-badge-own'; badge.innerHTML = '<i class="fa-solid fa-pen"></i> แก้เองแล้ว'; }
+    renderSchedCourseSelect();
+  }
+}
+
+function updateSchedSession(si, field, value) {
+  schedTyping(e => { if (e.sessions[si]) e.sessions[si][field] = value; });
+}
+
+function updateSchedPeriod(si, pi, field, value) {
+  schedTyping(e => { const p = e.sessions[si] && e.sessions[si].periods[pi]; if (p) p[field] = value; });
+}
+
+function updateSchedItem(si, pi, ii, field, value) {
+  schedTyping(e => { const it = e.sessions[si] && e.sessions[si].periods[pi] && e.sessions[si].periods[pi].items[ii]; if (it) it[field] = value; });
+}
+
+function setSchedMode(si, pi, mode) {
+  schedEdit(e => {
+    const p = e.sessions[si] && e.sessions[si].periods[pi];
+    if (!p) return;
+    p.mode = mode;
+    if (mode === 'single') p.items = p.items.slice(0, 1);
+    else if (p.items.length < 2) p.items.push({ subject: '', tutor: '', room: '' });
+  });
+}
+
+function setSchedHidden(hidden) {
+  schedEdit(e => { e.hidden = hidden; });
+}
+
+function addSchedSession() {
+  schedEdit(e => e.sessions.push({ day: '', group: '', note: '', periods: [{ start: '', end: '', mode: 'single', items: [{ subject: '', tutor: '', room: '' }] }] }));
+}
+
+function moveSchedSession(si, dir) {
+  schedEdit(e => {
+    const to = si + dir;
+    if (to < 0 || to >= e.sessions.length) return;
+    [e.sessions[si], e.sessions[to]] = [e.sessions[to], e.sessions[si]];
+  });
+}
+
+function deleteSchedSession(si) {
+  const entry = schedEntry(false);
+  const s = entry ? entry.sessions[si] : null;
+  if (!confirm(`ลบวันเรียน "${(s && s.day) || 'นี้'}" และทุกคาบในวันนี้?`)) return;
+  schedEdit(e => e.sessions.splice(si, 1));
+}
+
+function addSchedPeriod(si) {
+  schedEdit(e => {
+    const s = e.sessions[si];
+    if (!s) return;
+    const last = s.periods[s.periods.length - 1];
+    s.periods.push({ start: last ? last.end : '', end: '', mode: 'single', items: [{ subject: '', tutor: '', room: '' }] });
+  });
+}
+
+function deleteSchedPeriod(si, pi) {
+  schedEdit(e => { if (e.sessions[si]) e.sessions[si].periods.splice(pi, 1); });
+}
+
+function addSchedItem(si, pi) {
+  schedEdit(e => { const p = e.sessions[si] && e.sessions[si].periods[pi]; if (p) p.items.push({ subject: '', tutor: '', room: '' }); });
+}
+
+function deleteSchedItem(si, pi, ii) {
+  schedEdit(e => {
+    const p = e.sessions[si] && e.sessions[si].periods[pi];
+    if (!p || p.items.length < 2) return;
+    p.items.splice(ii, 1);
+    if (p.items.length === 1) p.mode = 'single';
+  });
+}
+
+function resetSchedFromCourse() {
+  if (!confirm('ล้างตารางที่แก้เองของคอร์สนี้ แล้วกลับไปใช้วัน-เวลาจากรอบเรียนของคอร์ส?\n(มีผลเมื่อกด "บันทึกตารางเรียน")')) return;
+  delete _schedDraft.courses[_schedCourseId];
+  markSchedDirty();
+  renderSchedEditor();
+  renderSchedCourseSelect();
+}
+
+// เวลา "9.00" / "9:00" → "09.00" และเรียงคาบตามเวลาเริ่ม
+function normalizeSchedTime(t) {
+  const m = String(t || '').trim().match(/^(\d{1,2})[.:](\d{2})$/);
+  return m ? `${m[1].padStart(2, '0')}.${m[2]}` : String(t || '').trim();
+}
+
+async function saveScheduleSettings() {
+  if (!_schedDraft) loadAdminSchedule();
+  const courses = {};
+  const ids = new Set(window.NewGenDB.getCourses().map(c => c.id));
+  Object.entries(_schedDraft.courses).forEach(([id, entry]) => {
+    if (!ids.has(id)) return; // คอร์สที่ถูกลบไปแล้ว
+    courses[id] = {
+      hidden: entry.hidden === true,
+      sessions: (entry.sessions || []).map(s => ({
+        day: String(s.day || '').trim(),
+        group: String(s.group || '').trim(),
+        note: String(s.note || '').trim(),
+        periods: (s.periods || []).map(p => {
+          const items = (p.items || []).map(it => ({ subject: String(it.subject || '').trim(), tutor: String(it.tutor || '').trim(), room: String(it.room || '').trim() }))
+            .filter(it => it.subject || it.tutor || it.room);
+          return { start: normalizeSchedTime(p.start), end: normalizeSchedTime(p.end), mode: items.length > 1 ? (p.mode === 'rotate' ? 'rotate' : 'alternate') : 'single', items };
+        }).filter(p => p.start || p.items.length)
+          .sort((a, b) => (parseFloat(a.start) || 99) - (parseFloat(b.start) || 99))
+      })).filter(s => s.day || s.periods.length)
+    };
+  });
+
+  const btn = document.getElementById('btnSaveSchedule');
+  const orig = btn ? btn.innerHTML : '';
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังบันทึก...'; }
+  const res = await window.NewGenDB.saveSchedule({ courses, updatedAt: new Date().toISOString() });
+  if (btn) { btn.disabled = false; btn.innerHTML = orig; }
+  if (res && res.success) {
+    loadAdminSchedule();
+    showToast(`✅ บันทึกตารางเรียนแล้ว (แก้เอง ${Object.keys(courses).length} คอร์ส)`, 'success');
+  } else {
+    showToast(`⚠️ บันทึกขึ้นระบบไม่สำเร็จ: ${(res && res.error) || 'ลองใหม่อีกครั้ง'}`, 'warning');
+  }
+}
+
+// เตือนก่อนปิดหน้า ถ้าแก้คำถามหรือตารางเรียนแล้วยังไม่บันทึก
 window.addEventListener('beforeunload', (e) => {
-  if (_faqDirty) {
+  if (_faqDirty || _schedDirty) {
     e.preventDefault();
     e.returnValue = '';
   }

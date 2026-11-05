@@ -13620,3 +13620,146 @@ button {
   font-weight: 700;
   color: #b45309;
 }
+
+/* ===================================================================
+   หลังบ้าน: ตารางเรียน (แท็บ 8.2)
+   =================================================================== */
+.sched-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  margin-bottom: 14px;
+}
+
+.sched-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #3730a3;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.sched-badge-own { background: #ecfdf5; color: #047857; }
+.sched-editor label.sched-hide { flex-direction: row; align-items: center; gap: 6px; font-size: 0.85rem; font-weight: 600; color: #475569; cursor: pointer; }
+.sched-toolbar .btn-xs-action { margin-left: auto; }
+
+.sched-sess {
+  margin-bottom: 14px;
+  padding: 14px;
+  border-radius: 16px;
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+}
+
+.sched-sess-head,
+.sched-period-head,
+.sched-item {
+  display: grid;
+  gap: 10px;
+  align-items: end;
+}
+
+.sched-sess-head { grid-template-columns: 30px 1fr 1fr 1.4fr auto; margin-bottom: 12px; }
+.sched-period-head { grid-template-columns: 110px 110px 1fr auto; }
+.sched-item { grid-template-columns: 1fr 1fr 1fr auto; }
+
+.sched-editor label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #475569;
+  min-width: 0;
+}
+
+.sched-editor input[type="text"],
+.sched-editor select {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 9px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  color: #0f172a;
+  background: #ffffff;
+}
+
+.sched-editor input[type="text"]:focus,
+.sched-editor select:focus { outline: none; border-color: #7c3aed; box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12); }
+
+.sched-num {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #7c3aed, #2a54d6);
+  color: #ffffff;
+  font-weight: 800;
+  align-self: center;
+}
+
+.sched-tools { display: flex; gap: 4px; }
+
+.sched-tools button,
+.sched-del {
+  height: 36px;
+  min-width: 36px;
+  padding: 0 10px;
+  border-radius: 9px;
+  border: 1.5px solid #e2e8f0;
+  background: #f8fafc;
+  color: #334155;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.sched-tools button:disabled { opacity: 0.4; cursor: default; }
+.sched-del { background: #fff1f2; border-color: #fecdd3; color: #be123c; }
+
+.sched-period {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0 0 10px 40px;
+  padding: 12px;
+  border-radius: 12px;
+  background: #f8fafc;
+  border-left: 4px solid #2a54d6;
+}
+
+.sched-mode-alternate { border-left-color: #f59e0b; background: #fffbeb; }
+.sched-mode-rotate { border-left-color: #0ea5e9; background: #f0f9ff; }
+
+.sched-alt-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #b45309;
+}
+
+.sched-mode-rotate .sched-alt-label { color: #0369a1; }
+.sched-add-item { align-self: flex-start; }
+.sched-sess > .btn-xs-action { margin-left: 40px; }
+
+@media (max-width: 860px) {
+  .sched-sess-head { grid-template-columns: 30px 1fr 1fr; }
+  .sched-sess-head label:nth-of-type(3) { grid-column: 2 / -1; }
+  .sched-tools { grid-column: 1 / -1; justify-content: flex-end; }
+  .sched-period { margin-left: 0; }
+  .sched-sess > .btn-xs-action { margin-left: 0; }
+  .sched-period-head { grid-template-columns: 1fr 1fr; }
+  .sched-item { grid-template-columns: 1fr 1fr; }
+}

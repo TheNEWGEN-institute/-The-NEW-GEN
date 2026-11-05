@@ -615,7 +615,8 @@ const SUPABASE_KEY_MAPPING = {
   enrollmentConfig: 'newgen_enrollment_config',
   popupCampaign: 'newgen_popup_campaign',
   bundles: 'newgen_bundles',
-  faq: 'newgen_faq'
+  faq: 'newgen_faq',
+  schedule: 'newgen_schedule'
 };
 
 // Global Store Helper with Integrated Supabase Cloud Sync
@@ -733,6 +734,9 @@ const NewGenDB = {
           window.faqData = val;
           window._supabaseFaqSynced = true;
           if (typeof window.renderFaqPage === 'function') window.renderFaqPage();
+        }
+        if (key === 'schedule' && typeof window !== 'undefined') {
+          window.scheduleData = val;
         }
       });
 
@@ -1107,6 +1111,27 @@ const NewGenDB = {
     }
     if (typeof window !== 'undefined') window.faqData = faq;
     return NewGenDB.saveToSupabase('faq', faq);
+  },
+
+  // ตารางเรียน (หน้า schedule.html) — { courses: { [courseId]: { sessions: [...] } } }
+  // คอร์สที่ยังไม่ได้แก้เอง ใช้วัน-เวลาจากรอบเรียนของคอร์สแทน (getCourseScheduleView)
+  getSchedule: () => {
+    const valid = d => d && typeof d === 'object' && d.courses && typeof d.courses === 'object';
+    if (typeof window !== 'undefined' && valid(window.scheduleData)) return window.scheduleData;
+    try {
+      const data = JSON.parse(localStorage.getItem('newgen_schedule') || 'null');
+      if (valid(data)) return data;
+    } catch (e) {}
+    return { courses: {} };
+  },
+  saveSchedule: (schedule) => {
+    try {
+      localStorage.setItem('newgen_schedule', JSON.stringify(schedule));
+    } catch (e) {
+      console.warn('LocalStorage save error:', e);
+    }
+    if (typeof window !== 'undefined') window.scheduleData = schedule;
+    return NewGenDB.saveToSupabase('schedule', schedule);
   },
 
   // Categories (ระดับชั้น)
@@ -1545,6 +1570,7 @@ const NewGenDB = {
     localStorage.removeItem('newgen_contact');
     localStorage.removeItem('newgen_whyus');
     localStorage.removeItem('newgen_faq');
+    localStorage.removeItem('newgen_schedule');
     localStorage.removeItem('newgen_home');
     localStorage.removeItem('newgen_about');
   }
@@ -1894,6 +1920,44 @@ function getCourseCoverTopics(course) {
   const manual = (Array.isArray(course.coverTopics) ? course.coverTopics : String(course.coverTopics || '').split('\n'))
     .map(s => String(s).trim()).filter(Boolean);
   return (manual.length ? manual : extractCourseTopics(course.highlights)).slice(0, 6);
+}
+
+/**
+ * ตารางเรียนของคอร์ส: sessions = [{ day, group, note, periods: [{ start, end, mode, items: [{ subject, tutor, room }] }] }]
+ * mode: 'single' = เรียนวิชาเดียว / 'alternate' = สลับกันคนละสัปดาห์ / 'rotate' = หมุนเวียนตามวัน
+ * ถ้าแอดมินยังไม่ได้แก้ตารางของคอร์สนี้ → สร้างจากรอบเรียนของคอร์ส (วัน-เวลาเท่านั้น)
+ */
+function parseScheduleTime(text) {
+  const m = String(text || '').match(/(\d{1,2})[.:](\d{2})\s*[-–]\s*(\d{1,2})[.:](\d{2})/);
+  const p2 = n => String(n).padStart(2, '0');
+  return m ? { start: `${p2(m[1])}.${m[2]}`, end: `${p2(m[3])}.${m[4]}` } : { start: String(text || '').replace(/\s*น\.?\s*$/, '').trim(), end: '' };
+}
+
+function autoScheduleSessions(course) {
+  if (!course) return [];
+  const tutors = (typeof NewGenDB !== 'undefined' && NewGenDB.getTutors) ? NewGenDB.getTutors() : [];
+  const tutorText = (course.tutorIds || []).map(id => (tutors.find(t => t.id === id) || {}).name).filter(Boolean).join(', ');
+  const subjectText = String(course.subjects || '').split(/\s*[•,·|\/]\s*/).map(s => s.trim()).filter(Boolean).join(', ');
+  return (course.scheduleList || []).filter(s => s && (s.type || s.time)).map(s => ({
+    day: String(s.type || '').replace(/\s*\((กลุ่ม[^)]*)\)/, '').replace(/\*/g, '').trim(),
+    group: (String(s.type || '').match(/\((กลุ่ม[^)]*)\)/) || [])[1] || '',
+    note: (String(s.dates || '').match(/\(([^)]*)\)/) || [])[1] || '',
+    periods: [{ ...parseScheduleTime(s.time), mode: 'single', items: [{ subject: subjectText, tutor: tutorText, room: '' }] }]
+  }));
+}
+
+function getCourseScheduleView(course) {
+  if (!course) return { custom: false, sessions: [] };
+  const all = (typeof NewGenDB !== 'undefined' && NewGenDB.getSchedule) ? NewGenDB.getSchedule() : { courses: {} };
+  const own = all.courses && all.courses[course.id];
+  if (own && Array.isArray(own.sessions)) return { custom: true, hidden: own.hidden === true, sessions: own.sessions };
+  return { custom: false, sessions: autoScheduleSessions(course) };
+}
+
+if (typeof window !== 'undefined') {
+  window.parseScheduleTime = parseScheduleTime;
+  window.autoScheduleSessions = autoScheduleSessions;
+  window.getCourseScheduleView = getCourseScheduleView;
 }
 
 if (typeof window !== 'undefined') {
