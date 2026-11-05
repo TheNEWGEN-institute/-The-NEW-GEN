@@ -1,0 +1,725 @@
+/* ===================================================================
+   ตัวอย่างหน้า "ตารางเรียน" 5 แบบ — สีและหน้าตาตามธีม Royal Blue
+   =================================================================== */
+.sd-root {
+  --sd-navy: #0b1e3f;
+  --sd-royal: #2a54d6;
+  --sd-red: #e11d48;
+  --sd-line: #e2e8f0;
+  --sd-muted: #64748b;
+  padding-bottom: 40px;
+}
+
+/* สีตามวิชา / ระดับชั้น (เหมือนปกคอร์ส) */
+.sd-tone-math { --t1: #e11d48; --t2: #fb7185; --tbg: #fff1f3; --tink: #be123c; }
+.sd-tone-chem { --t1: #1d4ed8; --t2: #60a5fa; --tbg: #eff6ff; --tink: #1d4ed8; }
+.sd-tone-phys { --t1: #7c3aed; --t2: #a78bfa; --tbg: #f5f3ff; --tink: #6d28d9; }
+.sd-tone-eng { --t1: #059669; --t2: #34d399; --tbg: #ecfdf5; --tink: #047857; }
+.sd-tone-sky { --t1: #0284c7; --t2: #38bdf8; --tbg: #f0f9ff; --tink: #0369a1; }
+.sd-tone-royal { --t1: #1d3fae; --t2: #3b6cf0; --tbg: #eef2ff; --tink: #1d3fae; }
+.sd-tone-private { --t1: #9f1239; --t2: #4338ca; --tbg: #fdf2f8; --tink: #9f1239; }
+.sd-tone-none { --t1: #0b1e3f; --t2: #2a54d6; --tbg: #eef2f9; --tink: #0b1e3f; }
+
+/* สีประจำวัน (แบบไทย) */
+.sd-d0 { --d: #eab308; --dbg: #fefce8; --dink: #a16207; }
+.sd-d1 { --d: #ec4899; --dbg: #fdf2f8; --dink: #be185d; }
+.sd-d2 { --d: #16a34a; --dbg: #f0fdf4; --dink: #15803d; }
+.sd-d3 { --d: #f97316; --dbg: #fff7ed; --dink: #c2410c; }
+.sd-d4 { --d: #2563eb; --dbg: #eff6ff; --dink: #1d4ed8; }
+.sd-d5 { --d: #9333ea; --dbg: #faf5ff; --dink: #7e22ce; }
+.sd-d6 { --d: #dc2626; --dbg: #fef2f2; --dink: #b91c1c; }
+
+/* ---------- ตัวกรอง ---------- */
+.sd-toolbar {
+  position: sticky;
+  top: 92px;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 14px 30px rgba(11, 30, 63, 0.08);
+}
+
+.sd-chips {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+
+.sd-chips::-webkit-scrollbar { display: none; }
+
+.sd-chip {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 15px;
+  border-radius: 999px;
+  border: 1.5px solid var(--sd-line);
+  background: #ffffff;
+  color: var(--sd-navy);
+  font: 700 0.88rem/1.2 inherit;
+  font-family: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sd-chip b {
+  min-width: 22px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: #eef2f9;
+  font-size: 0.75rem;
+  text-align: center;
+}
+
+.sd-chip:hover { border-color: #b8c6e3; }
+
+.sd-chip.on {
+  background: linear-gradient(135deg, #0b1e3f, #2a54d6);
+  border-color: transparent;
+  color: #ffffff;
+  box-shadow: 0 8px 18px rgba(42, 84, 214, 0.3);
+}
+
+.sd-chip.on b { background: rgba(255, 255, 255, 0.2); }
+.sd-chip-sm { padding: 6px 13px; font-size: 0.8rem; }
+.sd-chip-sm i { color: var(--t1); }
+.sd-chip-sm.on { background: linear-gradient(135deg, var(--t1), var(--t2)); box-shadow: 0 8px 18px rgba(11, 30, 63, 0.18); }
+.sd-chip-sm.on i { color: #ffffff; }
+.sd-chip-sm.sd-tone-none.on { background: linear-gradient(135deg, #0b1e3f, #2a54d6); }
+
+.sd-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 0 4px 18px;
+  color: var(--sd-navy);
+  font-size: 0.92rem;
+}
+
+.sd-summary i { color: var(--sd-red); }
+.sd-summary span { color: var(--sd-muted); font-size: 0.8rem; margin-left: auto; }
+
+/* ---------- ชิ้นส่วนร่วม ---------- */
+.sd-seat {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.sd-seat-ok { background: #ecfdf5; color: #047857; }
+.sd-seat-hot { background: #fff7ed; color: #c2410c; }
+.sd-seat-online { background: #ecfeff; color: #0e7490; }
+.sd-seat-full { background: #f1f5f9; color: #64748b; }
+
+.sd-days { display: flex; flex-wrap: wrap; gap: 4px; }
+
+.sd-daypill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 30px;
+  height: 26px;
+  padding: 0 7px;
+  border-radius: 8px;
+  background: var(--dbg, #eef2f9);
+  color: var(--dink, var(--sd-navy));
+  border: 1px solid color-mix(in srgb, var(--d, #94a3b8) 35%, transparent);
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.sd-flex { background: #f1f5f9; color: #475569; border-style: dashed; }
+
+/* ช่วงวันติดกัน เช่น จ.–ศ. (สีไล่จากวันแรกถึงวันสุดท้าย) */
+.sd-root {
+  --c0: #eab308; --c1: #ec4899; --c2: #16a34a; --c3: #f97316; --c4: #2563eb; --c5: #9333ea; --c6: #dc2626;
+}
+
+.sd-daypill.sd-range {
+  padding: 0 10px;
+  border: none;
+  color: #ffffff;
+  background: linear-gradient(90deg, var(--da), var(--db));
+  white-space: nowrap;
+}
+
+.sd-avatars { display: inline-flex; flex-shrink: 0; }
+
+.sd-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid #ffffff;
+  background: linear-gradient(135deg, #0b1e3f, #2a54d6);
+  box-shadow: 0 2px 6px rgba(11, 30, 63, 0.2);
+}
+
+.sd-avatar + .sd-avatar { margin-left: -9px; }
+.sd-avatar img { width: 100%; height: 130%; object-fit: cover; object-position: top center; }
+
+.sd-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--sd-navy);
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.sd-link:hover { color: var(--sd-red); }
+
+.sd-apply {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: none;
+  background: linear-gradient(135deg, #f43f5e, #e11d48);
+  color: #ffffff;
+  font: 700 0.85rem/1 inherit;
+  font-family: inherit;
+  cursor: pointer;
+  box-shadow: 0 8px 18px rgba(225, 29, 72, 0.3);
+}
+
+.sd-empty {
+  padding: 48px 20px;
+  text-align: center;
+  color: var(--sd-muted);
+  background: #ffffff;
+  border-radius: 24px;
+}
+
+.sd-empty i { font-size: 2.4rem; color: #cbd5e1; margin-bottom: 10px; }
+
+/* ===================================================================
+   แบบที่ 1 — ปฏิทินรายสัปดาห์ (มือถือ: เลือกวันด้านล่าง)
+   =================================================================== */
+.sd-week {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 10px;
+  align-items: start;
+}
+
+.sd-wk-col {
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 12px 28px rgba(11, 30, 63, 0.07);
+  overflow: hidden;
+  min-height: 220px;
+}
+
+.sd-wk-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 12px 10px;
+  background: var(--dbg);
+  border-bottom: 3px solid var(--d);
+  color: var(--dink);
+  font-weight: 800;
+}
+
+.sd-wk-head em {
+  font-style: normal;
+  font-size: 0.65rem;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: var(--d);
+  color: #ffffff;
+}
+
+.sd-wk-head b {
+  margin-left: auto;
+  font-size: 0.75rem;
+  min-width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+}
+
+.sd-wk-list { display: flex; flex-direction: column; gap: 8px; padding: 10px; }
+.sd-wk-none { color: #94a3b8; font-size: 0.8rem; text-align: center; padding: 18px 0; }
+
+.sd-wk-item {
+  position: relative;
+  padding: 10px 10px 9px 13px;
+  border-radius: 14px;
+  background: var(--tbg);
+  overflow: hidden;
+}
+
+.sd-wk-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: linear-gradient(180deg, var(--t1), var(--t2));
+}
+
+.sd-wk-time { font-size: 0.75rem; font-weight: 800; color: var(--tink); }
+.sd-wk-name { font-weight: 800; color: var(--sd-navy); font-size: 0.9rem; line-height: 1.3; margin: 2px 0; }
+.sd-wk-meta { font-size: 0.72rem; color: var(--sd-muted); }
+.sd-wk-foot { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-top: 7px; flex-wrap: wrap; }
+.sd-wk-foot .sd-avatar { width: 24px; height: 24px; }
+.sd-wk-foot .sd-seat { font-size: 0.65rem; padding: 2px 7px; }
+
+.sd-daytabs { display: none; }
+
+/* ===================================================================
+   แบบที่ 2 — การ์ดรายคอร์ส
+   =================================================================== */
+.sd-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 18px;
+}
+
+.sd-card {
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 16px 34px rgba(11, 30, 63, 0.09);
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s ease;
+}
+
+.sd-card:hover { transform: translateY(-4px); box-shadow: 0 24px 46px rgba(11, 30, 63, 0.15); }
+
+.sd-card-head {
+  position: relative;
+  padding: 18px 20px 16px;
+  color: #ffffff;
+  background: linear-gradient(135deg, var(--t1), var(--t2));
+  overflow: hidden;
+}
+
+.sd-card-head::after {
+  content: '';
+  position: absolute;
+  right: -40px;
+  top: -60px;
+  width: 170px;
+  height: 170px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 0 0 26px rgba(255, 255, 255, 0.06);
+}
+
+.sd-card-icons { position: absolute; right: 18px; top: 16px; display: flex; gap: 6px; font-size: 1.05rem; opacity: 0.9; z-index: 1; }
+.sd-card-level { font-size: 0.75rem; font-weight: 700; opacity: 0.9; letter-spacing: 0.04em; }
+.sd-card-head h3 { margin: 2px 0 2px; font-size: 1.35rem; font-weight: 800; color: #ffffff; }
+.sd-card-head p { margin: 0; font-size: 0.85rem; opacity: 0.92; }
+
+.sd-card-rounds { list-style: none; margin: 0; padding: 8px 16px; flex: 1; }
+
+.sd-card-rounds li {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 4px;
+  border-bottom: 1px dashed var(--sd-line);
+}
+
+.sd-card-rounds li:last-child { border-bottom: none; }
+.sd-card-time b { display: block; color: var(--sd-navy); font-size: 0.98rem; }
+.sd-card-time small { color: var(--sd-muted); font-size: 0.74rem; }
+.sd-card-free { display: block !important; color: var(--sd-muted); font-size: 0.88rem; }
+
+.sd-card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 16px 16px;
+  background: #f8fafc;
+  flex-wrap: wrap;
+}
+
+.sd-card-tutors { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: #334155; font-weight: 600; }
+.sd-card-actions { display: flex; align-items: center; gap: 12px; }
+
+/* ===================================================================
+   แบบที่ 3 — ตารางสรุป (มือถือ: แถวเป็นการ์ด)
+   =================================================================== */
+.sd-tgroup {
+  background: #ffffff;
+  border-radius: 24px;
+  box-shadow: 0 14px 30px rgba(11, 30, 63, 0.07);
+  overflow: hidden;
+  margin-bottom: 18px;
+}
+
+.sd-tgroup-title {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 0;
+  padding: 14px 20px;
+  background: linear-gradient(115deg, #08122e 0%, #0f2563 55%, #2a54d6 100%);
+  color: #ffffff;
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+.sd-tgroup-title small { font-weight: 500; color: #c7d7fe; font-size: 0.8rem; }
+
+.sd-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; table-layout: fixed; }
+
+/* ความกว้างคอลัมน์เท่ากันทุกระดับชั้น */
+.sd-table th:nth-child(1) { width: 25%; }
+.sd-table th:nth-child(2) { width: 17%; }
+.sd-table th:nth-child(3) { width: 13%; }
+.sd-table th:nth-child(4) { width: 14%; }
+.sd-table th:nth-child(5) { width: 17%; }
+.sd-table th:nth-child(6) { width: 14%; }
+
+.sd-table th {
+  text-align: left;
+  padding: 11px 14px;
+  background: #f8fafc;
+  color: var(--sd-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid var(--sd-line);
+}
+
+.sd-table td { padding: 11px 14px; vertical-align: middle; color: #334155; border-bottom: 1px solid #f1f5f9; }
+.sd-table td small { display: block; color: var(--sd-muted); font-size: 0.74rem; margin-top: 2px; }
+.sd-table td b { color: var(--sd-navy); white-space: nowrap; }
+.sd-table tr.sd-first td { border-top: 1px solid var(--sd-line); }
+.sd-table tbody tr:hover td { background: #fafbff; }
+
+.sd-tname { display: inline-flex; align-items: center; gap: 8px; color: var(--sd-navy); font-weight: 800; }
+.sd-tname:hover { color: var(--sd-red); }
+.sd-tdot { width: 10px; height: 10px; border-radius: 3px; background: linear-gradient(135deg, var(--t1), var(--t2)); flex-shrink: 0; }
+.sd-tname-cont { color: transparent; font-size: 0.1px; }
+
+/* ===================================================================
+   แบบที่ 4 — ไทม์ไลน์รายวัน
+   =================================================================== */
+.sd-tl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; align-items: start; }
+
+.sd-tl-day {
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 16px 18px 6px;
+  box-shadow: 0 14px 30px rgba(11, 30, 63, 0.07);
+}
+
+.sd-tl-head { display: flex; align-items: center; gap: 10px; margin: 0 0 10px; color: var(--sd-navy); font-size: 1.1rem; font-weight: 800; }
+.sd-tl-head small { margin-left: auto; color: var(--sd-muted); font-weight: 600; font-size: 0.78rem; }
+
+.sd-tl-badge {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--d, #64748b);
+  color: #ffffff;
+  font-size: 0.85rem;
+  box-shadow: 0 6px 14px color-mix(in srgb, var(--d, #64748b) 40%, transparent);
+}
+
+.sd-tl-list { list-style: none; margin: 0; padding: 0; }
+
+.sd-tl-item {
+  display: grid;
+  grid-template-columns: 58px 18px 1fr;
+  gap: 8px;
+  padding-bottom: 12px;
+  position: relative;
+}
+
+.sd-tl-item:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: 74px;
+  top: 22px;
+  bottom: 0;
+  width: 2px;
+  background: #e2e8f0;
+}
+
+.sd-tl-time { text-align: right; padding-top: 6px; }
+.sd-tl-time b { display: block; color: var(--sd-navy); font-size: 0.95rem; }
+.sd-tl-time small { color: var(--sd-muted); font-size: 0.72rem; }
+
+.sd-tl-dot {
+  width: 14px;
+  height: 14px;
+  margin-top: 10px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--t1), var(--t2));
+  box-shadow: 0 0 0 4px var(--tbg);
+  z-index: 1;
+}
+
+.sd-tl-card { background: var(--tbg); border-radius: 16px; padding: 10px 12px; border-left: 4px solid var(--t1); }
+.sd-tl-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.sd-tl-name { font-weight: 800; color: var(--sd-navy); }
+.sd-tl-meta { display: flex; flex-wrap: wrap; gap: 4px 12px; margin: 4px 0 6px; font-size: 0.76rem; color: #475569; }
+.sd-tl-meta i { color: var(--tink); }
+.sd-tl-foot { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 0.76rem; color: #334155; font-weight: 600; }
+.sd-tl-foot .sd-avatar { width: 24px; height: 24px; }
+.sd-tl-term { color: var(--sd-muted); font-weight: 500; margin-left: auto; }
+.sd-flexhead .sd-tl-badge { background: #64748b; }
+
+/* ===================================================================
+   แบบที่ 5 — แดชบอร์ดระดับชั้น
+   =================================================================== */
+.sd-dash {
+  background: #ffffff;
+  border-radius: 28px;
+  box-shadow: 0 18px 40px rgba(11, 30, 63, 0.09);
+  overflow: hidden;
+  margin-bottom: 22px;
+}
+
+.sd-dash-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 20px 24px;
+  color: #ffffff;
+  background-color: #0b1a45;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(115deg, #08122e 0%, #0f2563 48%, #2a54d6 100%);
+  background-size: 40px 40px, 40px 40px, auto;
+}
+
+.sd-dash-kicker { font-size: 0.75rem; color: #ff8aa1; font-weight: 800; letter-spacing: 0.12em; }
+.sd-dash-head h3 { margin: 0; font-size: 1.5rem; font-weight: 800; color: #ffffff; }
+.sd-dash-stats { display: flex; gap: 10px; }
+
+.sd-dash-stats div {
+  min-width: 82px;
+  padding: 8px 12px;
+  border-radius: 16px;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.sd-dash-stats b { display: block; font-size: 1.35rem; line-height: 1.1; }
+.sd-dash-stats span { font-size: 0.72rem; color: #c7d7fe; }
+
+.sd-dash-week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; padding: 16px 24px 4px; }
+
+.sd-dash-day {
+  text-align: center;
+  padding: 8px 0;
+  border-radius: 14px;
+  background: #f8fafc;
+  color: #cbd5e1;
+  font-weight: 800;
+}
+
+.sd-dash-day span { display: block; font-size: 0.8rem; }
+.sd-dash-day b { font-size: 1rem; }
+.sd-dash-day.on { background: var(--dbg); color: var(--dink); box-shadow: inset 0 -3px 0 var(--d); }
+
+.sd-dash-cols {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 14px;
+  padding: 16px 24px;
+}
+
+.sd-dash-col { border-radius: 20px; background: var(--tbg); padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+.sd-dash-col-head { display: flex; align-items: center; gap: 10px; }
+.sd-dash-col-head b { display: block; color: var(--sd-navy); font-size: 1.02rem; }
+.sd-dash-col-head small { color: var(--sd-muted); font-size: 0.74rem; }
+
+.sd-dash-icons {
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  border-radius: 13px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  color: #ffffff;
+  font-size: 0.85rem;
+  background: linear-gradient(135deg, var(--t1), var(--t2));
+  box-shadow: 0 8px 16px color-mix(in srgb, var(--t1) 35%, transparent);
+}
+
+.sd-dash-round {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 8px;
+  align-items: center;
+  padding: 9px 10px;
+  border-radius: 14px;
+  background: #ffffff;
+}
+
+.sd-dash-round .sd-seat { grid-column: 1 / -1; justify-self: start; }
+.sd-dash-time { color: var(--sd-navy); font-weight: 800; font-size: 0.9rem; }
+.sd-dash-time small { display: block; color: var(--sd-muted); font-weight: 500; font-size: 0.72rem; }
+.sd-dash-col-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: auto; padding-top: 4px; }
+.sd-dash-col-foot .sd-apply { padding: 7px 13px; font-size: 0.8rem; }
+
+.sd-dash-tutors {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  padding: 12px 24px 18px;
+  border-top: 1px solid #f1f5f9;
+  color: var(--sd-muted);
+  font-size: 0.82rem;
+}
+
+.sd-dash-tutor { display: inline-flex; align-items: center; gap: 6px; color: var(--sd-navy); font-weight: 700; }
+
+/* ---------- แถบเลือกแบบ (เฉพาะหน้าตัวอย่าง) ---------- */
+.sd-switch {
+  position: fixed;
+  left: 50%;
+  bottom: 14px;
+  transform: translateX(-50%);
+  z-index: 99990;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  max-width: calc(100% - 16px);
+  overflow-x: auto;
+  padding: 6px;
+  border-radius: 999px;
+  background: rgba(8, 18, 46, 0.94);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+  scrollbar-width: none;
+}
+
+.sd-switch > span { color: #94a3b8; font-size: 0.72rem; padding: 0 8px; white-space: nowrap; }
+
+.sd-switch a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 5px 12px;
+  border-radius: 999px;
+  color: #e2e8f0;
+  font-weight: 800;
+  font-size: 0.85rem;
+  line-height: 1.15;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.sd-switch a small { font-size: 0.6rem; font-weight: 500; color: #94a3b8; }
+.sd-switch a.on { background: #f43f5e; color: #ffffff; }
+.sd-switch a.on small { color: #ffe4e6; }
+.floating-actions { bottom: 84px !important; }
+
+/* ===================================================================
+   แท็บเล็ต / มือถือ
+   =================================================================== */
+@media (max-width: 1100px) {
+  .sd-tl { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 900px) {
+  /* ตัวกรองเลื่อนไปกับหน้า (แถบเลือกวันของแบบที่ 1 ค้างไว้แทน) */
+  .sd-toolbar { position: static; }
+
+  /* แบบที่ 1: ทีละวัน + แถบเลือกวัน */
+  .sd-week { display: block; }
+  .sd-wk-col { display: none; min-height: 0; }
+  .sd-wk-col.is-active { display: block; }
+  .sd-wk-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+  .sd-daytabs {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    position: sticky;
+    top: 82px;
+    z-index: 15;
+    margin-bottom: 12px;
+    padding: 6px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 10px 24px rgba(11, 30, 63, 0.15);
+  }
+  .sd-daytab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 6px 0;
+    border: none;
+    border-radius: 12px;
+    background: transparent;
+    color: var(--dink);
+    font: 800 0.85rem/1.1 inherit;
+    font-family: inherit;
+  }
+  .sd-daytab small { font-size: 0.65rem; color: var(--sd-muted); font-weight: 600; }
+  .sd-daytab.on { background: var(--d); color: #ffffff; }
+  .sd-daytab.on small { color: rgba(255, 255, 255, 0.85); }
+
+  /* แบบที่ 3: แถวตารางเป็นการ์ด */
+  .sd-table thead { display: none; }
+  .sd-table, .sd-table tbody, .sd-table tr, .sd-table td { display: block; width: 100%; }
+  .sd-table tr { padding: 12px 16px; border-bottom: 1px solid var(--sd-line); }
+  .sd-table tr.sd-first td { border-top: none; }
+  .sd-table td { display: grid; grid-template-columns: 96px 1fr; gap: 8px; padding: 4px 0; border: none; }
+  .sd-table td::before { content: attr(data-label); color: var(--sd-muted); font-size: 0.75rem; font-weight: 600; padding-top: 2px; }
+  .sd-table tr.sd-cont td:first-child { display: none; }
+  .sd-table tr.sd-cont { background: #fafbff; }
+}
+
+@media (max-width: 640px) {
+  .sd-toolbar { top: 80px; padding: 10px; border-radius: 16px; margin-left: -4px; margin-right: -4px; }
+  .sd-summary span { margin-left: 0; width: 100%; }
+  .sd-cards { grid-template-columns: 1fr; }
+  .sd-card-rounds li { grid-template-columns: 1fr auto; }
+  .sd-card-rounds li .sd-days { grid-column: 1 / -1; }
+  .sd-tl-day { padding: 14px 12px 4px; }
+  .sd-tl-item { grid-template-columns: 48px 14px 1fr; gap: 6px; }
+  .sd-tl-item:not(:last-child)::after { left: 60px; }
+  .sd-tl-term { margin-left: 0; width: 100%; }
+  .sd-dash-head { padding: 16px; }
+  .sd-dash-stats { width: 100%; }
+  .sd-dash-stats div { flex: 1; min-width: 0; }
+  .sd-dash-week { padding: 12px 16px 2px; gap: 4px; }
+  .sd-dash-cols { padding: 12px 16px; grid-template-columns: 1fr; }
+  .sd-dash-tutors { padding: 10px 16px 16px; }
+  .sd-switch { bottom: 8px; }
+  .sd-switch > span, .sd-switch a small { display: none; }
+}
