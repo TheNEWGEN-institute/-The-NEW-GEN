@@ -26,6 +26,7 @@
 .sc-d4 { --d: #2563eb; }
 .sc-d5 { --d: #9333ea; }
 .sc-d6 { --d: #dc2626; }
+.sc-dx { --d: #2a54d6; }
 
 /* ---------- ตัวกรอง ---------- */
 .sf {
@@ -154,7 +155,8 @@
 /* 1 บรรทัด = เวลา | วิชา | ติวเตอร์ | ห้อง */
 .sc-item {
   display: grid;
-  grid-template-columns: 116px minmax(0, 1.25fr) minmax(0, 1fr) auto;
+  /* ห้องกว้างคงที่ → คอลัมน์ติวเตอร์ตรงกันทุกบรรทัด */
+  grid-template-columns: 116px minmax(0, 1.25fr) minmax(0, 1fr) 124px;
   align-items: center;
   gap: 8px 14px;
   padding: 10px 14px;
@@ -171,6 +173,16 @@
 .sc-room { justify-self: end; padding: 4px 12px; border-radius: 999px; font-size: 0.8rem; font-weight: 700; white-space: nowrap; color: #ffffff; background: linear-gradient(135deg, var(--t1), var(--t2)); }
 
 .sc-alt { display: inline-flex; align-items: center; gap: 6px; margin-left: 12px; font-size: 0.78rem; font-weight: 800; color: #b45309; }
+
+/* ---------- ตารางสรุปรวม (ทุกตารางกว้างเต็มการ์ด ขนาดเท่ากัน) ---------- */
+.sc-body.is-summary { grid-template-columns: 1fr; }
+.sc-summary .sc-sessions { gap: 18px; }
+.sc-summary-table { padding: 16px 18px 8px; border-top: 4px solid var(--d); }
+.sc-group-dark { background: var(--navy); color: #ffffff; font-size: 0.88rem; padding: 5px 13px; }
+.sc-count { font-size: 0.8rem; font-weight: 700; color: var(--muted); }
+.sc-dayline { list-style: none; padding: 8px 0 2px; }
+.sc-dayline span { display: inline-block; padding: 3px 12px; border-radius: 999px; background: color-mix(in srgb, var(--d) 14%, #ffffff); color: var(--d); font-weight: 800; font-size: 0.85rem; }
+.sc-summary-table .sc-dayline + .sc-row::before { top: 22px; }
 
 .sc-none { color: var(--muted); font-size: 0.92rem; padding: 6px 0; }
 .sc-free { margin: 0; padding: 22px; border-radius: 20px; background: #f8fafc; }
@@ -193,6 +205,7 @@
   .sc-head h2 { font-size: 1.4rem; padding-right: 0; }
   .sc-head-icons { top: 16px; right: 16px; transform: none; }
   .sc-head-icons i { width: 32px; height: 32px; font-size: 0.85rem; }
+  .sc-head-icons i:nth-child(n + 4) { display: none; }
   .sc-level { display: block; padding-right: 120px; }
   .sc-body { padding: 16px 14px 18px; gap: 18px; }
   .sc-side { grid-template-columns: 1fr; gap: 14px; }

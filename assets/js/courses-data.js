@@ -1116,6 +1116,7 @@ const NewGenDB = {
   // ตารางเรียน (หน้า schedule.html) — { courses: { [courseId]: { sessions: [...] } } }
   // คอร์สที่ยังไม่ได้แก้เอง ใช้วัน-เวลาจากรอบเรียนของคอร์สแทน (getCourseScheduleView)
   getSchedule: () => {
+    // { courses: { [courseId]: {...} }, summaries: { [levelId]: {...} } }
     const valid = d => d && typeof d === 'object' && d.courses && typeof d.courses === 'object';
     if (typeof window !== 'undefined' && valid(window.scheduleData)) return window.scheduleData;
     try {
@@ -1952,6 +1953,82 @@ function getCourseScheduleView(course) {
   const own = all.courses && all.courses[course.id];
   if (own && Array.isArray(own.sessions)) return { custom: true, hidden: own.hidden === true, sessions: own.sessions };
   return { custom: false, sessions: autoScheduleSessions(course) };
+}
+
+/**
+ * ตารางสรุปรวมของระดับชั้น (หลายคอร์สในตารางเดียว)
+ * ตั้งค่าในหลังบ้าน: schedule.summaries[levelId] = { enabled, tables: null | [{ title, refs: ['courseId|sessionIndex'] }] }
+ * tables = null → จัดกลุ่มอัตโนมัติ:
+ *   - เสาร์/อาทิตย์ แยกตาราง "วัน + กลุ่ม" / รอบที่ไม่ได้ใส่กลุ่ม รวมเข้าทุกกลุ่มของวันนั้น
+ *   - จันทร์–ศุกร์ และ "วันธรรมดา" รวมเป็นตาราง "วันธรรมดา" ตารางเดียว
+ * ค่าเริ่มต้น: เปิดเฉพาะ ม.ปลาย (หมวด highschool...)
+ */
+const SCHEDULE_DAY_RE = [/จันทร์/, /อังคาร/, /พุธ/, /พฤหัส/, /ศุกร์/, /เสาร์/, /อาทิตย์/];
+const SCHEDULE_DAY_NAMES = ['จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์', 'อาทิตย์'];
+
+// 0–6 = จันทร์–อาทิตย์, 7 = "วันธรรมดา" (ไม่ระบุวัน), 8 = อื่น ๆ
+function scheduleDayIndex(day) {
+  if (/ธรรมดา/.test(day || '')) return 7;
+  const i = SCHEDULE_DAY_RE.findIndex(re => re.test(day || ''));
+  return i < 0 ? 8 : i;
+}
+
+function scheduleSessionsOfLevel(level) {
+  const courses = (typeof NewGenDB !== 'undefined' ? NewGenDB.getCourses() : []).filter(c => !c.isHidden && c.category === level);
+  const out = [];
+  courses.forEach(c => {
+    const view = getCourseScheduleView(c);
+    if (view.hidden) return;
+    (view.sessions || []).forEach((s, si) => out.push({ ref: `${c.id}|${si}`, course: c, s, di: scheduleDayIndex(s.day) }));
+  });
+  return out;
+}
+
+function getScheduleSummaryConfig(level) {
+  const all = (typeof NewGenDB !== 'undefined' && NewGenDB.getSchedule) ? NewGenDB.getSchedule() : {};
+  const cfg = (all.summaries && all.summaries[level]) || {};
+  return {
+    enabled: typeof cfg.enabled === 'boolean' ? cfg.enabled : /^highschool/.test(level || ''),
+    tables: Array.isArray(cfg.tables) ? cfg.tables : null
+  };
+}
+
+function autoScheduleSummaryTables(sessions) {
+  const tables = [];
+  [5, 6].forEach(di => {
+    const day = sessions.filter(x => x.di === di);
+    if (!day.length) return;
+    const groups = [...new Set(day.map(x => x.s.group || '').filter(Boolean))];
+    const shared = day.filter(x => !x.s.group);
+    (groups.length ? groups : ['']).forEach(g => {
+      const list = day.filter(x => (x.s.group || '') === g).concat(groups.length ? shared : []);
+      tables.push({ title: g ? `วัน${SCHEDULE_DAY_NAMES[di]} ${g}` : `วัน${SCHEDULE_DAY_NAMES[di]}`, refs: list.map(x => x.ref) });
+    });
+  });
+  const weekday = sessions.filter(x => x.di <= 4 || x.di === 7);
+  if (weekday.length) tables.push({ title: 'วันธรรมดา (จันทร์–ศุกร์)', refs: weekday.map(x => x.ref) });
+  const other = sessions.filter(x => x.di === 8);
+  if (other.length) tables.push({ title: 'วันอื่น ๆ', refs: other.map(x => x.ref) });
+  return tables;
+}
+
+function getScheduleSummary(level) {
+  const cfg = getScheduleSummaryConfig(level);
+  const sessions = scheduleSessionsOfLevel(level);
+  const defs = cfg.tables || autoScheduleSummaryTables(sessions);
+  const tables = defs.map(t => ({
+    title: String(t.title || '').trim() || 'ตารางเรียน',
+    sessions: (t.refs || []).map(r => sessions.find(x => x.ref === r)).filter(Boolean)
+  })).filter(t => t.sessions.length);
+  return { enabled: cfg.enabled && sessions.length > 0, custom: Boolean(cfg.tables), tables, sessions };
+}
+
+if (typeof window !== 'undefined') {
+  window.scheduleDayIndex = scheduleDayIndex;
+  window.scheduleSessionsOfLevel = scheduleSessionsOfLevel;
+  window.getScheduleSummaryConfig = getScheduleSummaryConfig;
+  window.autoScheduleSummaryTables = autoScheduleSummaryTables;
+  window.getScheduleSummary = getScheduleSummary;
 }
 
 if (typeof window !== 'undefined') {
