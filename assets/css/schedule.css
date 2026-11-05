@@ -166,7 +166,8 @@
 
 .sc-time { color: var(--navy); font-weight: 800; font-size: 0.98rem; white-space: nowrap; }
 .sc-subj { font-weight: 800; color: var(--tink); }
-.sc-tutor { font-weight: 700; font-size: 0.92rem; color: #1e293b; }
+.sc-tutor { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; font-size: 0.92rem; color: #1e293b; }
+.sc-emoji { font-size: 1.05em; line-height: 1; }
 .sc-room { justify-self: end; padding: 4px 12px; border-radius: 999px; font-size: 0.8rem; font-weight: 700; white-space: nowrap; color: #ffffff; background: linear-gradient(135deg, var(--t1), var(--t2)); }
 
 .sc-alt { display: inline-flex; align-items: center; gap: 6px; margin-left: 12px; font-size: 0.78rem; font-weight: 800; color: #b45309; }

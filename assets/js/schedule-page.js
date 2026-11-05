@@ -79,7 +79,7 @@
       <div class="sc-item sc-s-${toneOfSubject(it.subject)}">
         <span class="sc-time">${esc(timeText(p))}</span>
         ${it.subject ? `<span class="sc-subj">วิชา : ${esc(it.subject)}</span>` : ''}
-        ${it.tutor ? `<span class="sc-tutor">ติวเตอร์ : ${esc(it.tutor)}</span>` : ''}
+        ${it.tutor ? `<span class="sc-tutor"><span class="sc-emoji" aria-hidden="true">🧑‍🏫</span>ติวเตอร์ : ${esc(it.tutor)}</span>` : ''}
         ${it.room ? `<span class="sc-room">${esc(it.room)}</span>` : ''}
       </div>`;
   }
