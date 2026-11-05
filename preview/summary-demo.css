@@ -1,0 +1,136 @@
+/* ตัวอย่าง "ตารางสรุปรวม" ม.ปลาย — ใช้ร่วมกับ assets/css/schedule.css */
+.sc-dx { --d: #2a54d6; }
+
+.sm-intro { margin: 4px 4px 18px; }
+.sm-intro h2 { margin: 0; font-size: 1.6rem; font-weight: 800; color: var(--navy); }
+.sm-intro p { margin: 2px 0 0; color: var(--muted); font-size: 0.9rem; }
+
+.sm-day { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 999px; font-weight: 800; font-size: 0.95rem; background: var(--d); color: #ffffff; box-shadow: 0 6px 14px color-mix(in srgb, var(--d) 35%, transparent); white-space: nowrap; }
+.sm-group { padding: 5px 13px; border-radius: 999px; background: #0b1e3f; color: #ffffff; font-weight: 800; font-size: 0.88rem; }
+.sm-count { font-size: 0.8rem; font-weight: 700; color: var(--muted); }
+.sm-note { margin-left: auto; font-size: 0.8rem; color: var(--muted); }
+
+/* ---------- แบบที่ 1: การ์ดต่อกลุ่ม วางคู่กัน ---------- */
+.sm-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 470px), 1fr)); gap: 18px; align-items: start; }
+
+.sm-card, .sm-tl-card, .sm-grid-card {
+  background: #ffffff;
+  border-radius: 24px;
+  box-shadow: 0 16px 36px rgba(11, 30, 63, 0.09);
+  overflow: hidden;
+}
+
+.sm-card { border-top: 5px solid #2a54d6; }
+.sm-card.is-weekday { grid-column: 1 / -1; border-top-color: #0b1e3f; }
+.sm-card-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 16px 18px 10px; }
+
+.sm-rows { list-style: none; margin: 0; padding: 4px 18px 18px; display: flex; flex-direction: column; gap: 7px; }
+.sm-rows .sc-item { grid-template-columns: 108px minmax(0, 1fr) auto; }
+.sm-rows .sc-tutor { grid-column: 2 / -1; grid-row: 2; }
+.sm-rows .sc-room { grid-column: 3; grid-row: 1; }
+.sm-card.is-weekday .sm-rows .sc-item { grid-template-columns: 116px minmax(0, 1.25fr) minmax(0, 1fr) auto; }
+.sm-card.is-weekday .sm-rows .sc-tutor { grid-column: auto; grid-row: auto; }
+.sm-card.is-weekday .sm-rows .sc-room { grid-column: auto; grid-row: auto; }
+
+.sm-dayline { margin-top: 6px; }
+.sm-dayline span { display: inline-block; padding: 3px 12px; border-radius: 999px; background: color-mix(in srgb, var(--d) 14%, #ffffff); color: var(--d); font-weight: 800; font-size: 0.85rem; }
+.sm-alt { margin-left: 12px; font-size: 0.78rem; font-weight: 800; color: #b45309; }
+.sm-list-plain { display: block; }
+.sm-list-plain .sm-card { box-shadow: none; border-top: none; border-radius: 0; }
+.sm-list-plain .sm-card-head { display: none; }
+
+/* ---------- แบบที่ 2: ตารางคาบเรียน ---------- */
+.sm-grid-card { margin-bottom: 18px; }
+.sm-grid-title { padding: 16px 18px 12px; }
+.sm-grid-scroll { overflow-x: auto; padding: 0 18px 18px; }
+.sm-grid { width: 100%; min-width: 640px; border-collapse: separate; border-spacing: 8px; table-layout: fixed; }
+.sm-grid thead th { font-size: 0.78rem; font-weight: 800; color: var(--muted); text-align: left; padding: 0 4px; }
+.sm-grid thead th:first-child { width: 120px; }
+.sm-grid tbody th { vertical-align: middle; text-align: left; }
+.sm-rowlabel { display: inline-block; padding: 6px 12px; border-radius: 12px; background: #0b1e3f; color: #ffffff; font-weight: 800; font-size: 0.88rem; }
+.sm-rowlabel[class*="sc-d"] { background: color-mix(in srgb, var(--d) 14%, #ffffff); color: var(--d); }
+.sm-grid td { vertical-align: top; }
+.sm-empty { color: #cbd5e1; text-align: center; vertical-align: middle !important; }
+
+.sm-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--t1) 9%, #ffffff);
+  border-top: 4px solid var(--t1);
+}
+
+.sm-cell-time { color: var(--navy); font-size: 0.92rem; }
+.sm-cell-subj { color: var(--tink); font-weight: 800; font-size: 1rem; }
+.sm-cell-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-size: 0.8rem; font-weight: 600; color: #334155; }
+.sm-cell-meta em { font-style: normal; padding: 1px 8px; border-radius: 999px; background: linear-gradient(135deg, var(--t1), var(--t2)); color: #ffffff; font-weight: 700; font-size: 0.72rem; }
+.sm-cell-alt { font-size: 0.72rem; font-weight: 800; color: #b45309; margin: 4px 0; }
+
+/* ---------- แบบที่ 3: ไทม์ไลน์แนวนอน ---------- */
+.sm-tl-wrap { display: flex; flex-direction: column; gap: 16px; }
+.sm-tl-axis { position: sticky; top: 86px; z-index: 5; display: grid; grid-template-columns: 130px 1fr; padding: 8px 18px; border-radius: 14px; background: rgba(255, 255, 255, 0.94); box-shadow: 0 8px 20px rgba(11, 30, 63, 0.08); }
+.sm-tl-hours { position: relative; height: 18px; }
+.sm-tl-hours i { position: absolute; transform: translateX(-50%); font-style: normal; font-size: 0.72rem; font-weight: 700; color: var(--muted); }
+.sm-tl-card { padding-bottom: 14px; }
+.sm-tl-row { display: grid; grid-template-columns: 130px 1fr; align-items: center; padding: 6px 18px; }
+.sm-tl-label { font-weight: 800; color: var(--navy); font-size: 0.9rem; padding-right: 10px; }
+.sm-tl-track { position: relative; height: 78px; border-radius: 14px; background: #f8fafc; }
+.sm-tl-gridline { position: absolute; top: 0; bottom: 0; width: 1px; background: #e2e8f0; }
+
+.sm-tl-block {
+  position: absolute;
+  top: 6px;
+  bottom: 6px;
+  margin-left: 2px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 4px 10px;
+  border-radius: 12px;
+  overflow: hidden;
+  color: #ffffff;
+  background: linear-gradient(135deg, var(--t1), var(--t2));
+  box-shadow: 0 6px 14px color-mix(in srgb, var(--t1) 30%, transparent);
+  line-height: 1.25;
+}
+
+.sm-tl-block b { font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sm-tl-block span { font-size: 0.75rem; font-weight: 700; opacity: 0.95; white-space: nowrap; }
+.sm-tl-block small { font-size: 0.68rem; opacity: 0.9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sm-tl-block.is-alt { background: repeating-linear-gradient(135deg, var(--t1) 0 12px, var(--t2) 12px 24px); }
+.sm-tl-mobile { display: none; }
+
+/* ---------- แถบเลือกแบบ (หน้าตัวอย่าง) ---------- */
+.sd-switch { position: fixed; left: 50%; bottom: 14px; transform: translateX(-50%); z-index: 99990; display: flex; align-items: center; gap: 4px; max-width: calc(100% - 16px); overflow-x: auto; padding: 6px; border-radius: 999px; background: rgba(8, 18, 46, 0.94); box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35); }
+.sd-switch > span { color: #94a3b8; font-size: 0.72rem; padding: 0 8px; white-space: nowrap; }
+.sd-switch a { display: flex; flex-direction: column; align-items: center; padding: 5px 14px; border-radius: 999px; color: #e2e8f0; font-weight: 800; font-size: 0.85rem; line-height: 1.15; white-space: nowrap; text-decoration: none; }
+.sd-switch a small { font-size: 0.6rem; font-weight: 500; color: #94a3b8; }
+.sd-switch a.on { background: #f43f5e; color: #ffffff; }
+.sd-switch a.on small { color: #ffe4e6; }
+.floating-actions { bottom: 84px !important; }
+
+@media (max-width: 760px) {
+  .sm-tl-axis { display: none; }
+  .sm-tl-row { display: none; }
+  .sm-tl-mobile { display: block; }
+}
+
+@media (max-width: 640px) {
+  .sm-intro h2 { font-size: 1.3rem; }
+  .sm-note { margin-left: 0; width: 100%; }
+  .sm-rows { padding: 2px 12px 14px; }
+  .sm-card-head { padding: 14px 12px 8px; }
+  .sm-rows .sc-item,
+  .sm-card.is-weekday .sm-rows .sc-item { grid-template-columns: 1fr auto; }
+  .sm-rows .sc-subj { grid-column: 1 / -1; }
+  .sm-rows .sc-tutor,
+  .sm-card.is-weekday .sm-rows .sc-tutor { grid-column: 1 / -1; grid-row: auto; }
+  .sm-rows .sc-room,
+  .sm-card.is-weekday .sm-rows .sc-room { grid-column: 2; grid-row: 1; }
+  .sm-grid-scroll { padding: 0 10px 14px; }
+  .sm-grid-title { padding: 14px 12px 10px; }
+  .sd-switch { bottom: 8px; }
+  .sd-switch > span, .sd-switch a small { display: none; }
+}
