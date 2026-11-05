@@ -13754,6 +13754,21 @@ button {
 .sched-add-item { align-self: flex-start; }
 .sched-sess > .btn-xs-action { margin-left: 40px; }
 
+.sched-summary-card { padding: 16px 18px; margin: 18px 0 8px; }
+.sched-summary-card h3 { margin: 0 0 4px; font-size: 1.05rem; color: #0b1e3f; }
+.sched-summary-card > p { margin: 0 0 12px; color: #64748b; font-size: 0.85rem; }
+.sched-sum-toggle { margin-bottom: 10px; font-weight: 700 !important; color: #0b1e3f !important; }
+.sched-sum-modes { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; padding: 10px 12px; border-radius: 12px; background: #f8fafc; }
+.sched-sum-empty { color: #64748b; font-size: 0.88rem; }
+.sched-sum-preview { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
+.sched-sum-preview > div { padding: 10px 12px; border-radius: 12px; background: #eef2ff; }
+.sched-sum-preview b { color: #1d3fae; font-size: 0.9rem; }
+.sched-sum-preview ul { margin: 6px 0 0; padding-left: 18px; font-size: 0.8rem; color: #334155; }
+.sched-sum-table { margin-bottom: 12px; padding: 12px; border-radius: 12px; background: #f8fafc; border-left: 4px solid #2a54d6; }
+.sched-sum-head { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: end; margin-bottom: 8px; }
+.sched-sum-refs { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 4px 14px; }
+.sched-sum-refs label { font-weight: 500 !important; }
+
 @media (max-width: 860px) {
   .sched-sess-head { grid-template-columns: 30px 1fr 1fr; }
   .sched-sess-head label:nth-of-type(3) { grid-column: 2 / -1; }

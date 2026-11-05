@@ -7844,11 +7844,12 @@ function schedCourses() {
 
 function loadAdminSchedule() {
   const data = window.NewGenDB.getSchedule();
-  _schedDraft = JSON.parse(JSON.stringify({ courses: data.courses || {} }));
+  _schedDraft = JSON.parse(JSON.stringify({ courses: data.courses || {}, summaries: data.summaries || {} }));
   const courses = schedCourses();
   if (!courses.some(c => c.id === _schedCourseId)) _schedCourseId = courses[0] ? courses[0].id : '';
   renderSchedCourseSelect();
   renderSchedEditor();
+  renderSchedSummary();
   markSchedDirty(false);
 }
 
@@ -7960,7 +7961,132 @@ function schedEdit(fn, rerender = true) {
   if (rerender) {
     renderSchedEditor();
     renderSchedCourseSelect();
+    renderSchedSummary();
   }
+}
+
+/* ---------- ตารางสรุปรวมของระดับชั้น ---------- */
+var _schedSumLevel = '';
+
+// รอบเรียนของทุกคอร์สในชั้นนี้ จากฉบับร่าง (รวมที่แก้แต่ยังไม่บันทึก)
+function schedDraftSessionsOfLevel(level) {
+  const dayIdx = window.scheduleDayIndex || (() => 8);
+  const out = [];
+  window.NewGenDB.getCourses().filter(c => !c.isHidden && c.category === level).forEach(c => {
+    const own = _schedDraft.courses[c.id];
+    if (own && own.hidden) return;
+    const sessions = own ? own.sessions : (window.autoScheduleSessions ? window.autoScheduleSessions(c) : []);
+    const name = (String(c.title || '').match(/\(([^)]*)\)/) || ['', c.title || ''])[1].trim();
+    (sessions || []).forEach((s, si) => {
+      const times = (s.periods || []).map(p => [p.start, p.end].filter(Boolean).join('–')).filter(Boolean).join(', ');
+      out.push({ ref: `${c.id}|${si}`, s, di: dayIdx(s.day), label: [name, s.day, s.group, times].filter(Boolean).join(' · ') });
+    });
+  });
+  return out;
+}
+
+function schedSumConfig(level) {
+  const cfg = _schedDraft.summaries[level] || {};
+  return {
+    enabled: typeof cfg.enabled === 'boolean' ? cfg.enabled : /^highschool/.test(level || ''),
+    tables: Array.isArray(cfg.tables) ? cfg.tables : null
+  };
+}
+
+function renderSchedSummary() {
+  const sel = document.getElementById('schedSumLevel');
+  const box = document.getElementById('schedSummaryEditor');
+  if (!sel || !box || !_schedDraft) return;
+  const cats = window.NewGenDB.getCategories();
+  if (!cats.some(c => c.id === _schedSumLevel)) _schedSumLevel = (cats.find(c => /^highschool/.test(c.id)) || cats[0] || {}).id || '';
+  sel.innerHTML = cats.map(c => `<option value="${escapeHtml(c.id)}" ${c.id === _schedSumLevel ? 'selected' : ''}>${escapeHtml(c.name)}${schedSumConfig(c.id).enabled ? ' ✅' : ''}</option>`).join('');
+
+  const cfg = schedSumConfig(_schedSumLevel);
+  const sessions = schedDraftSessionsOfLevel(_schedSumLevel);
+  const tables = cfg.tables || (window.autoScheduleSummaryTables ? window.autoScheduleSummaryTables(sessions) : []);
+  const label = ref => (sessions.find(x => x.ref === ref) || {}).label;
+
+  box.innerHTML = `
+    <label class="sched-hide sched-sum-toggle"><input type="checkbox" ${cfg.enabled ? 'checked' : ''} onchange="setSchedSummary('enabled', this.checked)"> แสดงตารางสรุปรวมของระดับชั้นนี้ในหน้าตารางเรียน</label>
+    ${cfg.enabled ? `
+      <div class="sched-sum-modes">
+        <label class="sched-hide"><input type="radio" name="schedSumMode" ${cfg.tables ? '' : 'checked'} onchange="setSchedSummary('auto')"> จัดกลุ่มอัตโนมัติ (แนะนำ) — เสาร์/อาทิตย์แยกตามชื่อกลุ่ม · รอบที่ไม่ใส่กลุ่มรวมทุกกลุ่ม · จันทร์–ศุกร์รวมเป็น "วันธรรมดา"</label>
+        <label class="sched-hide"><input type="radio" name="schedSumMode" ${cfg.tables ? 'checked' : ''} onchange="setSchedSummary('custom')"> ตั้งเอง — เลือกว่าตารางไหนรวมรอบเรียนใดบ้าง</label>
+      </div>
+      ${!sessions.length ? '<p class="sched-sum-empty">ระดับชั้นนี้ยังไม่มีรอบเรียน</p>' : (cfg.tables ? `
+        ${tables.map((t, ti) => `
+          <div class="sched-sum-table">
+            <div class="sched-sum-head">
+              <label>ชื่อตาราง<input type="text" value="${escapeHtml(t.title)}" placeholder="เช่น วันอาทิตย์ กลุ่มธค." oninput="setSchedSumTitle(${ti}, this.value)"></label>
+              <button type="button" class="sched-del" onclick="deleteSchedSumTable(${ti})"><i class="fa-solid fa-trash-can"></i> ลบตาราง</button>
+            </div>
+            <div class="sched-sum-refs">${sessions.map(x => `
+              <label class="sched-hide"><input type="checkbox" ${(t.refs || []).includes(x.ref) ? 'checked' : ''} onchange="toggleSchedSumRef(${ti}, '${escapeHtml(x.ref)}', this.checked)"> ${escapeHtml(x.label)}</label>`).join('')}
+            </div>
+          </div>`).join('')}
+        <button type="button" class="btn-xs-action" onclick="addSchedSumTable()"><i class="fa-solid fa-plus"></i> เพิ่มตารางสรุป</button>` : `
+        <div class="sched-sum-preview">${tables.map(t => `
+          <div><b>${escapeHtml(t.title)}</b><ul>${t.refs.map(r => `<li>${escapeHtml(label(r) || r)}</li>`).join('')}</ul></div>`).join('')}
+        </div>`)}` : ''}`;
+}
+
+function selectSchedSummaryLevel(level) {
+  _schedSumLevel = level;
+  renderSchedSummary();
+}
+
+function setSchedSummary(what, value) {
+  const cur = schedSumConfig(_schedSumLevel);
+  const next = { enabled: cur.enabled, tables: cur.tables };
+  if (what === 'enabled') next.enabled = value;
+  if (what === 'auto') next.tables = null;
+  // เริ่ม "ตั้งเอง" จากผลของแบบอัตโนมัติ แล้วค่อยปรับ
+  if (what === 'custom' && !next.tables) {
+    const auto = window.autoScheduleSummaryTables ? window.autoScheduleSummaryTables(schedDraftSessionsOfLevel(_schedSumLevel)) : [];
+    next.tables = auto.length ? auto : [{ title: '', refs: [] }];
+  }
+  _schedDraft.summaries[_schedSumLevel] = next;
+  markSchedDirty();
+  renderSchedSummary();
+}
+
+function schedSumTables() {
+  const cfg = schedSumConfig(_schedSumLevel);
+  if (!cfg.tables) return null;
+  _schedDraft.summaries[_schedSumLevel] = cfg;
+  return cfg.tables;
+}
+
+function setSchedSumTitle(ti, value) {
+  const tables = schedSumTables();
+  if (!tables || !tables[ti]) return;
+  tables[ti].title = value;
+  markSchedDirty();
+}
+
+function toggleSchedSumRef(ti, ref, on) {
+  const tables = schedSumTables();
+  if (!tables || !tables[ti]) return;
+  const refs = new Set(tables[ti].refs || []);
+  if (on) refs.add(ref); else refs.delete(ref);
+  tables[ti].refs = [...refs];
+  markSchedDirty();
+}
+
+function addSchedSumTable() {
+  const tables = schedSumTables();
+  if (!tables) return;
+  tables.push({ title: '', refs: [] });
+  markSchedDirty();
+  renderSchedSummary();
+}
+
+function deleteSchedSumTable(ti) {
+  const tables = schedSumTables();
+  if (!tables || !confirm(`ลบตาราง "${(tables[ti] && tables[ti].title) || 'นี้'}"?`)) return;
+  tables.splice(ti, 1);
+  markSchedDirty();
+  renderSchedSummary();
 }
 
 // พิมพ์ในช่อง: ไม่วาดฟอร์มใหม่ (ช่องที่กำลังพิมพ์จะไม่หลุด) แค่อัปเดตป้ายสถานะ
@@ -8004,11 +8130,26 @@ function addSchedSession() {
   schedEdit(e => e.sessions.push({ day: '', group: '', note: '', periods: [{ start: '', end: '', mode: 'single', items: [{ subject: '', tutor: '', room: '' }] }] }));
 }
 
+// ตารางสรุปแบบตั้งเองอ้างถึงรอบเรียนด้วย "คอร์ส|ลำดับวันเรียน" → เลื่อน/ลบวันเรียนแล้วต้องปรับลำดับตาม
+function remapSchedSumRefs(courseId, mapIndex) {
+  Object.values(_schedDraft.summaries || {}).forEach(cfg => {
+    (Array.isArray(cfg.tables) ? cfg.tables : []).forEach(t => {
+      t.refs = (t.refs || []).map(r => {
+        const [cid, idx] = r.split('|');
+        if (cid !== courseId) return r;
+        const to = mapIndex(Number(idx));
+        return to === null ? null : `${cid}|${to}`;
+      }).filter(Boolean);
+    });
+  });
+}
+
 function moveSchedSession(si, dir) {
   schedEdit(e => {
     const to = si + dir;
     if (to < 0 || to >= e.sessions.length) return;
     [e.sessions[si], e.sessions[to]] = [e.sessions[to], e.sessions[si]];
+    remapSchedSumRefs(_schedCourseId, i => (i === si ? to : (i === to ? si : i)));
   });
 }
 
@@ -8016,7 +8157,10 @@ function deleteSchedSession(si) {
   const entry = schedEntry(false);
   const s = entry ? entry.sessions[si] : null;
   if (!confirm(`ลบวันเรียน "${(s && s.day) || 'นี้'}" และทุกคาบในวันนี้?`)) return;
-  schedEdit(e => e.sessions.splice(si, 1));
+  schedEdit(e => {
+    e.sessions.splice(si, 1);
+    remapSchedSumRefs(_schedCourseId, i => (i === si ? null : (i > si ? i - 1 : i)));
+  });
 }
 
 function addSchedPeriod(si) {
@@ -8051,6 +8195,7 @@ function resetSchedFromCourse() {
   markSchedDirty();
   renderSchedEditor();
   renderSchedCourseSelect();
+  renderSchedSummary();
 }
 
 // เวลา "9.00" / "9:00" → "09.00" และเรียงคาบตามเวลาเริ่ม
@@ -8084,7 +8229,19 @@ async function saveScheduleSettings() {
   const btn = document.getElementById('btnSaveSchedule');
   const orig = btn ? btn.innerHTML : '';
   if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังบันทึก...'; }
-  const res = await window.NewGenDB.saveSchedule({ courses, updatedAt: new Date().toISOString() });
+  const summaries = {};
+  const levelIds = new Set(window.NewGenDB.getCategories().map(c => c.id));
+  Object.entries(_schedDraft.summaries || {}).forEach(([level, cfg]) => {
+    if (!levelIds.has(level) || !cfg) return;
+    summaries[level] = {
+      enabled: typeof cfg.enabled === 'boolean' ? cfg.enabled : /^highschool/.test(level),
+      tables: Array.isArray(cfg.tables)
+        ? cfg.tables.map(t => ({ title: String(t.title || '').trim(), refs: [...new Set(t.refs || [])] })).filter(t => t.title || t.refs.length)
+        : null
+    };
+  });
+
+  const res = await window.NewGenDB.saveSchedule({ courses, summaries, updatedAt: new Date().toISOString() });
   if (btn) { btn.disabled = false; btn.innerHTML = orig; }
   if (res && res.success) {
     loadAdminSchedule();
