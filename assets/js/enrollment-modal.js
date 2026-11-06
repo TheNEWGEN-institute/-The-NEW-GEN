@@ -817,6 +817,8 @@
    * Open Enrollment Modal for specific course or bundle
    */
   window.openEnrollmentModal = function (courseId, bundleDataFallback, campaignFallback) {
+    // สถิติผู้เข้าชม (site-stats.js): เปิดฟอร์มสมัครของคอร์ส/แพ็คนี้
+    try { document.dispatchEvent(new CustomEvent('newgen:enroll-open', { detail: { id: courseId } })); } catch (e) { /* ignore */ }
     ensureEnrollmentModalDom();
     if (typeof window.applyEnrollmentConfig === 'function') {
       window.applyEnrollmentConfig();
@@ -1915,6 +1917,8 @@ QR Code LINE: ${lastEnrollmentData.lineQrUrl ? 'แนบในระบบเ�
     ensureBundleDetailModalDom();
 
     const actualId = (typeof bundleId === 'object' && bundleId) ? bundleId.id : bundleId;
+    // สถิติผู้เข้าชม (site-stats.js): เปิดดูรายละเอียดแพ็คเกจนี้
+    try { document.dispatchEvent(new CustomEvent('newgen:item-view', { detail: { id: actualId } })); } catch (e) { /* ignore */ }
     const bundles = (window.NewGenDB ? window.NewGenDB.getBundles() : (window.bundlesData || []));
     let bundleObj = bundles.find(b => b.id === actualId);
 
