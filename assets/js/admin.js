@@ -4428,10 +4428,10 @@ const STANDARD_QUESTION_KEYS = [
   'grade',
   'school',
   'parentPhone',
-  'lineId',
   'studentPhone',
   'shippingAddress',
-  'notes'
+  'notes',
+  'lineQr'
 ];
 
 /**
@@ -5154,7 +5154,7 @@ async function exportCourseRoundsXlsx(courseId) {
       learningTypeText(en),
       en.parentPhone || '',
       en.studentPhone || '',
-      en.lineId || '',
+      (en.lineId || (isPrivateUploadRef(en.lineQrUrl) ? 'มี QR LINE (ดูในระบบหลังบ้าน)' : '')),
       getEnrollmentStatusLabel(en.status),
       en.createdAt ? new Date(en.createdAt).toLocaleDateString('th-TH') : '',
       en.isFromBundle ? (en.bundleName || 'แพ็คเกจ') : '-',
@@ -5268,7 +5268,7 @@ async function exportCampaignXlsx() {
     learningTypeText(en),
     en.parentPhone || '',
     en.studentPhone || '',
-    en.lineId || '',
+    (en.lineId || (isPrivateUploadRef(en.lineQrUrl) ? 'มี QR LINE (ดูในระบบหลังบ้าน)' : '')),
     getEnrollmentStatusLabel(en.status),
     en.createdAt ? new Date(en.createdAt).toLocaleDateString('th-TH') : '',
     ...customLabels.map(label => ((en.customAnswers || []).find(a => a.label === label) || {}).value || ''),
@@ -5645,11 +5645,16 @@ function renderEnrollmentsTable(enrollments, courseMap = null, options = {}) {
               ${en.customAnswers.map(a => `<div>• <b>${escapeHtml(a.label)}:</b> ${escapeHtml(a.value || '-')}</div>`).join('')}
             </div>
           ` : ''}
-          ${en.studentImageUrl ? `
-            <div style="margin-top: 6px;">
+          ${(en.studentImageUrl || isPrivateUploadRef(en.lineQrUrl)) ? `
+            <div style="margin-top: 6px; display: flex; flex-wrap: wrap; gap: 5px;">
+              ${en.studentImageUrl ? `
               <button type="button" class="btn-secondary" data-enroll-id="${escapeHtml(en.id)}" onclick="previewEnrollmentAttachment(this.dataset.enrollId)" style="display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; font-size: 0.78rem; font-weight: 700; color: #0284c7; background: #e0f2fe; border: 1px solid #7dd3fc; border-radius: 6px; cursor: pointer;">
                 <i class="fa-solid fa-image"></i> ตรวจสอบรูปที่แนบ
-              </button>
+              </button>` : ''}
+              ${isPrivateUploadRef(en.lineQrUrl) ? `
+              <button type="button" class="btn-secondary" data-enroll-id="${escapeHtml(en.id)}" onclick="previewEnrollmentLineQr(this.dataset.enrollId)" style="display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; font-size: 0.78rem; font-weight: 700; color: #15803d; background: #dcfce7; border: 1px solid #86efac; border-radius: 6px; cursor: pointer;">
+                <i class="fa-solid fa-qrcode"></i> QR LINE
+              </button>` : ''}
             </div>
           ` : ''}
         </td>
@@ -5700,9 +5705,13 @@ function renderEnrollmentsTable(enrollments, courseMap = null, options = {}) {
           ` : ''}
         </td>
         <td>
+          ${(!en.lineId && isPrivateUploadRef(en.lineQrUrl)) ? `
+          <button type="button" data-enroll-id="${escapeHtml(en.id)}" onclick="previewEnrollmentLineQr(this.dataset.enrollId)" title="เปิดรูป QR Code LINE" style="display: inline-flex; align-items: center; gap: 4px; color: #059669; font-weight: 700; font-size: 0.86rem; background: #ecfdf5; padding: 2px 8px; border-radius: 4px; border: none; cursor: pointer; font-family: inherit;">
+            <i class="fa-solid fa-qrcode" style="font-size: 0.95rem;"></i> ดู QR LINE
+          </button>` : `
           <span style="display: inline-flex; align-items: center; gap: 4px; color: #059669; font-weight: 700; font-size: 0.86rem; background: #ecfdf5; padding: 2px 8px; border-radius: 4px;">
             <i class="fa-brands fa-line" style="font-size: 0.95rem;"></i> ${escapeHtml(en.lineId || '-')}
-          </span>
+          </span>`}
         </td>
         ${campaignView ? '' : `
         <td style="max-width: 220px;">
@@ -5953,8 +5962,46 @@ function openEditEnrollmentModal(id) {
     }
   }
 
+  // QR LINE ที่นักเรียนแนบ (ไฟล์ส่วนตัว → ขอลิงก์ชั่วคราวก่อนแสดง)
+  const wrapQr = document.getElementById('wrapEnLineQr');
+  const qrPreview = document.getElementById('enLineQrPreview');
+  const qrLink = document.getElementById('enLineQrLink');
+  if (wrapQr) {
+    const hasQr = isPrivateUploadRef(en.lineQrUrl);
+    wrapQr.style.display = hasQr ? 'block' : 'none';
+    if (qrPreview) qrPreview.removeAttribute('src');
+    if (qrLink) qrLink.removeAttribute('href');
+    if (hasQr) {
+      getStudentAttachmentUrl(en.lineQrUrl).then(url => {
+        if (document.getElementById('enrollmentEditId').value !== en.id || !url) return;
+        if (qrPreview) qrPreview.src = url;
+        if (qrLink) qrLink.href = url;
+      });
+    }
+  }
+
   document.getElementById('modalEnrollment').classList.add('active');
 }
+
+// รูปที่นักเรียนแนบต้องอยู่ใน bucket ส่วนตัวเท่านั้น (กันลิงก์ภายนอกที่ถูกใส่มาในข้อมูล)
+function isPrivateUploadRef(ref) {
+  return /^private:student-uploads\/[A-Za-z0-9._-]+$/.test(String(ref || ''));
+}
+
+async function previewEnrollmentLineQr(enrollId) {
+  const en = (window.NewGenDB ? window.NewGenDB.getEnrollments() : []).find(x => x.id === enrollId);
+  if (!en || !isPrivateUploadRef(en.lineQrUrl)) return;
+  const url = await getStudentAttachmentUrl(en.lineQrUrl);
+  if (!url) {
+    showToast('⚠️ เปิดรูป QR ไม่สำเร็จ (สิทธิ์หมดอายุ กรุณาเข้าสู่ระบบใหม่)', 'warning');
+    return;
+  }
+  previewAttachmentModal(url, en.studentName || '');
+  const titleEl = document.getElementById('attachmentModalTitle');
+  if (titleEl) titleEl.innerHTML = `<i class="fa-solid fa-qrcode" style="color: #16a34a;"></i> QR Code LINE ${en.studentName ? `(${escapeHtml(en.studentName)})` : ''}`;
+}
+
+window.previewEnrollmentLineQr = previewEnrollmentLineQr;
 
 // อนุญาตเฉพาะลิงก์รูปที่ปลอดภัย (กัน javascript: หรือ URL แปลก ๆ ที่ถูกใส่มาในข้อมูล)
 function safeMediaUrl(url) {
@@ -6072,6 +6119,7 @@ async function handleSaveEnrollment(e) {
       ? { scheduleChoice: document.getElementById('enScheduleChoice').value }
       : {}),
     studentImageUrl: existingEn ? (existingEn.studentImageUrl || null) : null,
+    lineQrUrl: existingEn ? (existingEn.lineQrUrl || null) : null,
     customAnswers: existingEn ? (existingEn.customAnswers || []) : [],
     isBundle: Boolean(foundBundle),
     bundleId: foundBundle ? foundBundle.id : null,
@@ -6326,7 +6374,7 @@ function confirmExportEnrollments() {
     'รูปแบบการเรียน',
     fields.parentPhone?.label || 'เบอร์โทรผู้ปกครอง',
     fields.studentPhone?.label || 'เบอร์โทรนักเรียน',
-    fields.lineId?.label || 'Line ID',
+    'LINE (ID / QR)',
     fields.shippingAddress?.label || 'ที่อยู่จัดส่งเอกสาร',
     fields.notes?.label || 'หมายเหตุ'
   ];
@@ -6363,7 +6411,7 @@ function confirmExportEnrollments() {
       csvEscape(learningTypeLabel),
       csvEscape(en.parentPhone),
       csvEscape(en.studentPhone),
-      csvEscape(en.lineId),
+      csvEscape(en.lineId || (isPrivateUploadRef(en.lineQrUrl) ? 'มี QR LINE (ดูในระบบหลังบ้าน)' : '')),
       csvEscape(en.shippingAddress),
       csvEscape(en.notes)
     ];
@@ -7039,7 +7087,7 @@ const CLEANUP_CONTENT_TYPES = {
   tutors: { label: 'ติวเตอร์', get: () => window.NewGenDB.getTutors(), save: l => window.NewGenDB.saveTutors(l), name: t => `${t.name || '-'}${t.subjects ? ` — ${t.subjects}` : ''}` }
 };
 
-const CLEANUP_PERSONAL_FIELDS = ['studentName', 'fullName', 'nickname', 'parentPhone', 'studentPhone', 'lineId', 'shippingAddress', 'notes', 'customAnswers', 'studentImageUrl', 'consentText'];
+const CLEANUP_PERSONAL_FIELDS = ['studentName', 'fullName', 'nickname', 'parentPhone', 'studentPhone', 'lineId', 'shippingAddress', 'notes', 'customAnswers', 'studentImageUrl', 'lineQrUrl', 'consentText'];
 
 const cleanupVal = id => (document.getElementById(id)?.value || '').trim();
 
@@ -7199,17 +7247,26 @@ function updateCleanupCount() {
   }
 }
 
-function getEnrollmentImageObject(en) {
-  const ref = String(en.studentImageUrl || '');
+function storageObjectOfRef(value) {
+  const ref = String(value || '');
   let m = ref.match(/^private:([a-z0-9-]+)\/(.+)$/i);
   if (m) return { bucket: m[1], path: m[2] };
   m = ref.match(/\/storage\/v1\/object\/public\/([a-z0-9-]+)\/([^?#]+)/i);
   return m ? { bucket: m[1], path: decodeURIComponent(m[2]) } : null;
 }
 
+// ไฟล์ทั้งหมดของใบสมัคร: รูปแนบ + QR LINE
+function getEnrollmentImageObjects(en) {
+  return [en.studentImageUrl, en.lineQrUrl].map(storageObjectOfRef).filter(Boolean);
+}
+
+function getEnrollmentImageObject(en) {
+  return getEnrollmentImageObjects(en)[0] || null;
+}
+
 async function deleteEnrollmentImages(list) {
   const byBucket = {};
-  list.forEach(en => { const o = getEnrollmentImageObject(en); if (o) (byBucket[o.bucket] = byBucket[o.bucket] || []).push(o.path); });
+  list.forEach(en => getEnrollmentImageObjects(en).forEach(o => (byBucket[o.bucket] = byBucket[o.bucket] || []).push(o.path)));
   let deleted = 0;
   const errors = [];
   for (const [bucket, paths] of Object.entries(byBucket)) {
@@ -7509,7 +7566,8 @@ async function scanCleanupJunk() {
   // รูปนักเรียนในที่เก็บส่วนตัว ที่ไม่มีใบสมัครไหนอ้างถึง
   await window.NewGenDB.fetchEnrollments();
   const enrollments = window.NewGenDB.getEnrollments();
-  const usedStudent = new Set(enrollments.map(getEnrollmentImageObject).filter(o => o && o.bucket === 'student-uploads').map(o => o.path));
+  // ไฟล์ที่ใบสมัครยังใช้อยู่ (รูปแนบ + QR LINE) ไม่ใช่ขยะ
+  const usedStudent = new Set(enrollments.flatMap(getEnrollmentImageObjects).filter(o => o.bucket === 'student-uploads').map(o => o.path));
   try {
     const files = await window.NewGenDB.listStorageFiles('student-uploads');
     files.filter(f => !usedStudent.has(f.name)).forEach(f => items.push({

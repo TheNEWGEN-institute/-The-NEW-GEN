@@ -72,6 +72,69 @@
     if (previewWrap) previewWrap.style.display = 'none';
   };
 
+  // รูป QR Code LINE (บังคับตามค่าในหลังบ้าน) — อัปโหลดเข้า bucket ส่วนตัวเหมือนรูปแนบ
+  let currentLineQrBase64 = null;
+  let currentLineQrFileName = '';
+
+  function showLineQrPreview(base64, fileName) {
+    const img = document.getElementById('enrLineQrPreviewImg');
+    const name = document.getElementById('enrLineQrFileName');
+    const prompt = document.getElementById('enrLineQrPrompt');
+    const wrap = document.getElementById('enrLineQrPreviewWrap');
+    const zone = document.getElementById('enrLineQrZone');
+    if (img) img.src = base64 || '';
+    if (name) name.textContent = fileName || 'รูปที่เลือก';
+    if (prompt) prompt.style.display = base64 ? 'none' : 'flex';
+    if (wrap) wrap.style.display = base64 ? 'flex' : 'none';
+    if (zone) zone.classList.toggle('has-file', Boolean(base64));
+  }
+
+  window.handleLineQrSelect = function (e) {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    if (!/^image\//.test(file.type || '')) {
+      alert('กรุณาเลือกไฟล์รูปภาพ (JPG หรือ PNG) ครับ');
+      e.target.value = '';
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      alert('ขออภัยครับ ขนาดไฟล์รูปภาพเกิน 10MB กรุณาเลือกรูปภาพที่มีขนาดเล็กลง');
+      e.target.value = '';
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = evt => {
+      currentLineQrBase64 = evt.target.result;
+      currentLineQrFileName = file.name;
+      showLineQrPreview(currentLineQrBase64, file.name);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  window.removeLineQrImage = function (e) {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    currentLineQrBase64 = null;
+    currentLineQrFileName = '';
+    const input = document.getElementById('enrInputLineQr');
+    if (input) input.value = '';
+    showLineQrPreview(null, '');
+  };
+
+  // dataURL → Blob แล้วอัปโหลดเข้า bucket ส่วนตัว (คืนค่า "private:student-uploads/...")
+  async function uploadDataUrl(base64, fileName, fallbackName) {
+    const arr = base64.split(',');
+    const mime = (arr[0].match(/:(.*?);/) || [])[1] || 'image/jpeg';
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while (n--) u8arr[n] = bstr.charCodeAt(n);
+    const blob = new Blob([u8arr], { type: mime });
+    return (await window.NewGenDB.uploadStudentImage(blob, fileName || fallbackName)) || '';
+  }
+
   function ensureEnrollmentModalDom() {
     if (document.getElementById('modalStudentEnrollment')) return;
 
@@ -213,21 +276,39 @@
                     <label for="enrInputParentPhone"><span id="lblFieldParentPhone">เบอร์โทรศัพท์ผู้ปกครอง</span> <span class="req-star" id="starFieldParentPhone">*</span></label>
                     <input type="tel" id="enrInputParentPhone" placeholder="เช่น 089-123-4567" required autocomplete="tel">
                   </div>
-                  <div class="enr-form-field" id="wrapFieldLineId">
-                    <label for="enrInputLineId"><span id="lblFieldLineId">LINE ID (ผู้ปกครองหรือน้อง)</span> <span class="req-star" id="starFieldLineId">*</span></label>
-                    <input type="text" id="enrInputLineId" placeholder="เช่น newgen_student หรือ เบอร์โทรไลน์" required>
-                  </div>
-                </div>
-
-                <div class="enroll-form-grid-2">
                   <div class="enr-form-field" id="wrapFieldStudentPhone">
                     <label for="enrInputStudentPhone"><span id="lblFieldStudentPhone">เบอร์โทรศัพท์นักเรียน (ถ้ามี)</span> <span class="req-star" id="starFieldStudentPhone" style="display:none;">*</span></label>
                     <input type="tel" id="enrInputStudentPhone" placeholder="เช่น 095-xxx-xxxx (ไม่บังคับ)">
                   </div>
-                  <div class="enr-form-field" id="wrapFieldShippingAddress">
-                    <label for="enrInputAddress"><span id="lblFieldShippingAddress">ที่อยู่จัดส่งเอกสารและหนังสือเรียน</span> <span class="req-star" id="starFieldShippingAddress" style="display:none;">*</span></label>
-                    <input type="text" id="enrInputAddress" placeholder="บ้านเลขที่ ตำบล อำเภอ จังหวัด รหัสไปรษณีย์">
+                </div>
+
+                <!-- แนบรูป QR Code LINE (แทนการพิมพ์ LINE ID) — ข้อความแก้ได้ในหลังบ้าน -->
+                <div class="enr-form-field enr-lineqr-field" id="wrapFieldLineQr">
+                  <label for="enrInputLineQr"><i class="fa-brands fa-line" style="color: #06c755;"></i> <span id="lblFieldLineQr">แนบรูป QR Code LINE ของน้องหรือผู้ปกครอง</span> <span class="req-star" id="starFieldLineQr">*</span></label>
+                  <div class="enr-upload-zone enr-lineqr-zone" id="enrLineQrZone" role="button" tabindex="0" onclick="document.getElementById('enrInputLineQr').click()" onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); this.click(); }">
+                    <input type="file" id="enrInputLineQr" accept="image/*" style="display: none;" onchange="handleLineQrSelect(event)">
+                    <div id="enrLineQrPrompt" class="enr-upload-prompt">
+                      <i class="fa-solid fa-qrcode enr-upload-icon"></i>
+                      <div class="enr-upload-text">
+                        <span class="enr-upload-title">แตะเพื่อเลือกรูป QR Code LINE</span>
+                        <span class="enr-upload-help" id="helpFieldLineQr">เปิด LINE → หน้าเพื่อน → ไอคอนเพิ่มเพื่อน → QR Code → บันทึกรูป แล้วแนบที่นี่</span>
+                      </div>
+                    </div>
+                    <div id="enrLineQrPreviewWrap" class="enr-upload-preview-wrap" style="display: none;">
+                      <img id="enrLineQrPreviewImg" src="" alt="QR Code LINE ที่แนบ">
+                      <div class="enr-upload-preview-info">
+                        <span id="enrLineQrFileName" class="enr-upload-filename">รูปที่เลือก</span>
+                        <button type="button" class="btn-remove-upload" onclick="removeLineQrImage(event)" title="ลบรูปนี้">
+                          <i class="fa-solid fa-trash-can"></i> ลบรูป
+                        </button>
+                      </div>
+                    </div>
                   </div>
+                </div>
+
+                <div class="enr-form-field" id="wrapFieldShippingAddress" style="margin-top: 10px;">
+                  <label for="enrInputAddress"><span id="lblFieldShippingAddress">ที่อยู่จัดส่งเอกสารและหนังสือเรียน</span> <span class="req-star" id="starFieldShippingAddress" style="display:none;">*</span></label>
+                  <input type="text" id="enrInputAddress" placeholder="บ้านเลขที่ ตำบล อำเภอ จังหวัด รหัสไปรษณีย์">
                 </div>
 
                 <div class="enr-form-field" id="wrapFieldNotes" style="margin-top: 10px;">
@@ -503,7 +584,18 @@
     updateStdField('grade', 'enrInputGrade', 'lblFieldGrade', 'starFieldGrade', 'wrapFieldGrade');
     updateStdField('school', 'enrInputSchool', 'lblFieldSchool', 'starFieldSchool', 'wrapFieldSchool');
     updateStdField('parentPhone', 'enrInputParentPhone', 'lblFieldParentPhone', 'starFieldParentPhone', 'wrapFieldParentPhone');
-    updateStdField('lineId', 'enrInputLineId', 'lblFieldLineId', 'starFieldLineId', 'wrapFieldLineId');
+    // QR Code LINE: หัวข้อ / ข้อความอธิบาย / บังคับ / เปิด-ปิด (ค่าเริ่มต้น = เปิด + บังคับ)
+    const qr = stdFields.lineQr || {};
+    setTxt('lblFieldLineQr', qr.label);
+    setTxt('helpFieldLineQr', qr.placeholder);
+    const qrWrap = document.getElementById('wrapFieldLineQr');
+    const qrRequired = qr.required !== false;
+    if (qrWrap) {
+      qrWrap.style.display = qr.enabled === false ? 'none' : '';
+      qrWrap.dataset.required = qrRequired ? 'true' : 'false';
+    }
+    const qrStar = document.getElementById('starFieldLineQr');
+    if (qrStar) qrStar.style.display = qrRequired ? 'inline' : 'none';
     updateStdField('studentPhone', 'enrInputStudentPhone', 'lblFieldStudentPhone', 'starFieldStudentPhone', 'wrapFieldStudentPhone');
     updateStdField('shippingAddress', 'enrInputAddress', 'lblFieldShippingAddress', 'starFieldShippingAddress', 'wrapFieldShippingAddress');
     updateStdField('notes', 'enrInputNotes', 'lblFieldNotes', 'starFieldNotes', 'wrapFieldNotes');
@@ -953,6 +1045,8 @@
     if (typeof window.removeStudentUploadedImage === 'function') {
       window.removeStudentUploadedImage();
     }
+    // เปิดฟอร์มใหม่ = เริ่มแนบ QR LINE ใหม่
+    window.removeLineQrImage();
 
     const campObj = window.NewGenDB ? window.NewGenDB.getPopupCampaign() : null;
     const isCamp = Boolean(course.isCampaign || courseId === 'campaign');
@@ -1236,12 +1330,22 @@
     const school = document.getElementById('enrInputSchool').value.trim();
     const parentPhone = document.getElementById('enrInputParentPhone').value.trim();
     const studentPhone = document.getElementById('enrInputStudentPhone').value.trim();
-    const lineId = document.getElementById('enrInputLineId').value.trim();
     const shippingAddress = currentEnrollCourse.isCampaign ? '' : document.getElementById('enrInputAddress').value.trim();
     const notes = currentEnrollCourse.isCampaign ? '' : document.getElementById('enrInputNotes').value.trim();
 
-    if (!studentName || !nickname || !grade || !school || !parentPhone || !lineId) {
+    if (!studentName || !nickname || !grade || !school || !parentPhone) {
       alert('กรุณากรอกข้อมูลที่มีเครื่องหมาย (*) ให้ครบถ้วน');
+      return;
+    }
+
+    // QR Code LINE (บังคับตามค่าในหลังบ้าน)
+    const qrWrap = document.getElementById('wrapFieldLineQr');
+    const qrVisible = qrWrap && qrWrap.style.display !== 'none';
+    const qrRequired = qrVisible && qrWrap.dataset.required !== 'false';
+    if (qrRequired && !currentLineQrBase64) {
+      const lbl = document.getElementById('lblFieldLineQr')?.textContent || 'รูป QR Code LINE';
+      alert(`กรุณาแนบ "${lbl}" ก่อนกดยืนยันการสมัคร`);
+      document.getElementById('enrLineQrZone')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
     }
 
@@ -1413,19 +1517,27 @@
     };
 
     // รูปที่แนบ → อัปโหลดเข้า bucket ส่วนตัว (เปิดดูได้เฉพาะแอดมิน)
+    // QR Code LINE → bucket ส่วนตัว (บังคับ: อัปโหลดไม่สำเร็จ = ยังไม่ส่งใบสมัคร)
+    let lineQrUrl = '';
+    if (currentLineQrBase64 && qrVisible) {
+      submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังอัปโหลดรูป QR LINE...';
+      try {
+        lineQrUrl = await uploadDataUrl(currentLineQrBase64, currentLineQrFileName, `lineqr-${Date.now()}.jpg`);
+      } catch (upErr) {
+        console.warn('LINE QR upload error:', upErr);
+      }
+      if (!lineQrUrl && qrRequired) {
+        alert('อัปโหลดรูป QR Code LINE ไม่สำเร็จ กรุณาลองใหม่อีกครั้ง (รองรับไฟล์ JPG, PNG ขนาดไม่เกิน 10MB)');
+        restoreSubmitBtn();
+        return;
+      }
+    }
+
     let studentImageUrl = '';
     if (currentStudentImageBase64) {
       submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังอัปโหลดรูปภาพ...';
       try {
-        const arr = currentStudentImageBase64.split(',');
-        const mime = (arr[0].match(/:(.*?);/) || [])[1] || 'image/jpeg';
-        const bstr = atob(arr[1]);
-        let n = bstr.length;
-        const u8arr = new Uint8Array(n);
-        while (n--) u8arr[n] = bstr.charCodeAt(n);
-        const blob = new Blob([u8arr], { type: mime });
-        const fname = currentStudentImageFileName || `student-${Date.now()}.jpg`;
-        studentImageUrl = (await window.NewGenDB.uploadStudentImage(blob, fname)) || '';
+        studentImageUrl = await uploadDataUrl(currentStudentImageBase64, currentStudentImageFileName, `student-${Date.now()}.jpg`);
       } catch (upErr) {
         console.warn('Student image upload error:', upErr);
       }
@@ -1465,7 +1577,7 @@
       school: school,
       parentPhone: parentPhone,
       studentPhone: studentPhone,
-      lineId: lineId,
+      lineQrUrl: lineQrUrl,
       shippingAddress: shippingAddress,
       notes: (notes || '').trim(),
       customAnswers: customAnswers,
@@ -1559,7 +1671,7 @@
       confTypeEl.textContent = learningType === 'online' ? '💻 เรียนสด Online (Zoom)' : '🏫 เรียนสด Onsite (ที่สถาบัน The NEW GEN)';
     }
     document.getElementById('confStudentName').textContent = `${studentName} (น้อง${nickname}) ชั้น ${grade} - รร. ${school}`;
-    document.getElementById('confContact').textContent = `โทร: ${parentPhone} | LINE ID: ${lineId}`;
+    document.getElementById('confContact').textContent = `โทร: ${parentPhone}${lineQrUrl ? ' | QR Code LINE: แนบแล้ว ✓' : ''}`;
 
     const confAttRow = document.getElementById('confAttachmentRow');
     const confAttVal = document.getElementById('confAttachmentVal');
@@ -1663,7 +1775,7 @@
 ชื่อนักเรียน: ${lastEnrollmentData.studentName} (${lastEnrollmentData.nickname})
 ระดับชั้น: ${lastEnrollmentData.grade} | รร. ${lastEnrollmentData.school}
 เบอร์ผู้ปกครอง: ${lastEnrollmentData.parentPhone}
-LINE ID: ${lastEnrollmentData.lineId}${customText}${lastEnrollmentData.studentImageUrl ? '\nรูปภาพแนบ: แนบในระบบเรียบร้อยแล้ว' : ''}
+QR Code LINE: ${lastEnrollmentData.lineQrUrl ? 'แนบในระบบเรียบร้อยแล้ว' : '-'}${customText}${lastEnrollmentData.studentImageUrl ? '\nรูปภาพแนบ: แนบในระบบเรียบร้อยแล้ว' : ''}
 -------------------------
 หนู/ผมได้สมัครในระบบแล้ว ขอส่งข้อมูลเพื่อยืนยันที่นั่งครับ`;
 
@@ -2187,7 +2299,7 @@ LINE ID: ${lastEnrollmentData.lineId}${customText}${lastEnrollmentData.studentIm
     drawRow('👤', 'ชื่อ - สกุล นักเรียน', `${lastEnrollmentData.studentName} (น้อง${lastEnrollmentData.nickname || '-'})`, true);
     drawRow('📚', 'ระดับชั้น / โรงเรียน', `ชั้น ${lastEnrollmentData.grade || '-'} | รร. ${lastEnrollmentData.school || '-'}`);
     drawRow('📞', 'เบอร์ติดต่อผู้ปกครอง', lastEnrollmentData.parentPhone || '-');
-    drawRow('💬', 'LINE ID', lastEnrollmentData.lineId || '-');
+    drawRow('💬', 'QR Code LINE', lastEnrollmentData.lineQrUrl ? 'แนบในระบบเรียบร้อยแล้ว ✓' : '-');
 
     // If Campaign: Render Selected Subjects Highlight Box
     if (isCamp && Array.isArray(lastEnrollmentData.selectedSubjects) && lastEnrollmentData.selectedSubjects.length > 0) {
