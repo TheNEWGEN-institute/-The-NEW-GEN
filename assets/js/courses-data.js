@@ -619,6 +619,44 @@ const SUPABASE_KEY_MAPPING = {
   schedule: 'newgen_schedule'
 };
 
+// เรียกฟังก์ชันใน Supabase (RPC) ด้วยสิทธิ์ของคนที่ล็อกอินอยู่ (ไม่ล็อกอิน = สิทธิ์สาธารณะ)
+// ข้อผิดพลาดจากฐานข้อมูล เช่น NOT_STAFF / NO_ACCESS จะอยู่ใน err.code
+async function supabaseRpc(name, args = {}) {
+  const res = await fetch(`${SUPABASE_CONFIG.url}/rest/v1/rpc/${name}`, {
+    method: 'POST',
+    headers: await getSupabaseHeaders({ 'Content-Type': 'application/json' }),
+    body: JSON.stringify(args)
+  });
+  const text = await res.text();
+  let json = null;
+  try { json = text ? JSON.parse(text) : null; } catch (e) { json = null; }
+  if (!res.ok) {
+    const msg = (json && (json.message || json.hint)) || text || `HTTP ${res.status}`;
+    const err = new Error(msg);
+    err.status = res.status;
+    err.code = (String(msg).match(/\b(NOT_STAFF|NO_ACCESS|NOT_FOUND|NOT_IN_COURSE|BAD_[A-Z_]+|TOO_MANY_ITEMS)\b/) || [])[1] || '';
+    throw err;
+  }
+  return json;
+}
+
+// อ่าน/เขียนตารางใน Supabase โดยตรง (หลังบ้าน: RLS อนุญาตเฉพาะแอดมิน)
+async function supabaseTable(method, pathAndQuery, body) {
+  const res = await fetch(`${SUPABASE_CONFIG.url}/rest/v1/${pathAndQuery}`, {
+    method,
+    headers: await getSupabaseHeaders({ 'Content-Type': 'application/json', 'Prefer': method === 'GET' ? '' : 'return=representation,resolution=merge-duplicates' }),
+    body: body === undefined ? undefined : JSON.stringify(body)
+  });
+  const text = await res.text();
+  if (!res.ok) throw new Error(text || `HTTP ${res.status}`);
+  return text ? JSON.parse(text) : null;
+}
+
+if (typeof window !== 'undefined') {
+  window.supabaseRpc = supabaseRpc;
+  window.supabaseTable = supabaseTable;
+}
+
 // Global Store Helper with Integrated Supabase Cloud Sync
 const NewGenDB = {
   // Cloud Sync Helpers

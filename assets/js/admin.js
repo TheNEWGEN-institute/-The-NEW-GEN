@@ -234,6 +234,8 @@ function switchAdminTab(tabKey, btn) {
       loadAdminFaq();
     } else if (tabKey === 'schedule') {
       if (!_schedDirty) loadAdminSchedule();
+    } else if (tabKey === 'people') {
+      loadAdminPeople();
     } else if (tabKey === 'system') {
       loadSecuritySettings();
     }
@@ -8307,6 +8309,268 @@ async function saveScheduleSettings() {
   } else {
     showToast(`⚠️ บันทึกขึ้นระบบไม่สำเร็จ: ${(res && res.error) || 'ลองใหม่อีกครั้ง'}`, 'warning');
   }
+}
+
+/* ===================================================================
+   1.3 นักเรียน & บัญชีติวเตอร์ (ตาราง staff / students ใน Supabase — SQL 14)
+   =================================================================== */
+var _peopleStaff = [];
+var _peopleStudents = [];
+
+function peopleReportUrl(token) {
+  return `${location.origin}${location.pathname.replace(/[^/]*$/, '')}report.html#t=${token}`;
+}
+
+function peopleNotice(html) {
+  const el = document.getElementById('peopleNotice');
+  if (el) el.innerHTML = html ? `<div class="people-notice">${html}</div>` : '';
+}
+
+async function loadAdminPeople() {
+  peopleNotice('');
+  try {
+    const [staff, students] = await Promise.all([
+      window.supabaseTable('GET', 'staff?select=*&order=created_at.asc'),
+      window.supabaseTable('GET', 'students?select=id,name,nickname,grade,school,parent_token,student_enrollments(enrollment_id)&order=nickname.asc')
+    ]);
+    _peopleStaff = staff || [];
+    _peopleStudents = students || [];
+  } catch (e) {
+    const missing = /relation|does not exist|schema cache|PGRST2/i.test(e.message || '');
+    peopleNotice(missing
+      ? '⚠️ ยังไม่ได้รัน <b>supabase/14-students-attendance-evaluation.sql</b> ใน Supabase → SQL Editor (รันครั้งเดียว แล้วกด "โหลดใหม่")'
+      : '⚠️ โหลดข้อมูลไม่สำเร็จ (ลองออกจากระบบแล้วเข้าใหม่)');
+    _peopleStaff = [];
+    _peopleStudents = [];
+  }
+  renderStaffFormOptions();
+  renderStaffList();
+  renderStudentList();
+}
+
+function staffAutoCourses(tutorId) {
+  if (!tutorId) return [];
+  return window.NewGenDB.getCourses().filter(c => Array.isArray(c.tutorIds) && c.tutorIds.includes(tutorId));
+}
+
+function renderStaffFormOptions(selected) {
+  const sel = document.getElementById('staffTutor');
+  if (!sel) return;
+  const cur = selected !== undefined ? selected : sel.value;
+  sel.innerHTML = '<option value="">— ไม่ผูกโปรไฟล์ (เลือกคอร์สเองด้านล่าง) —</option>' +
+    window.NewGenDB.getTutors().map(t => `<option value="${escapeHtml(t.id)}" ${t.id === cur ? 'selected' : ''}>${escapeHtml(t.name)}</option>`).join('');
+  renderStaffCourseChecks();
+}
+
+function renderStaffCourseChecks(checked) {
+  const box = document.getElementById('staffCourses');
+  if (!box) return;
+  const keep = checked || [...box.querySelectorAll('input:checked')].map(i => i.value);
+  const auto = new Set(staffAutoCourses(document.getElementById('staffTutor').value).map(c => c.id));
+  box.innerHTML = window.NewGenDB.getCourses().filter(c => !c.isHidden).map(c => `
+    <label class="${auto.has(c.id) ? 'is-auto' : ''}">
+      <input type="checkbox" value="${escapeHtml(c.id)}" ${auto.has(c.id) || keep.includes(c.id) ? 'checked' : ''} ${auto.has(c.id) ? 'disabled' : ''}>
+      ${escapeHtml(c.title)}${auto.has(c.id) ? ' <em>(สอนอยู่)</em>' : ''}
+    </label>`).join('');
+}
+
+document.addEventListener('change', e => {
+  if (e.target && e.target.id === 'staffTutor') renderStaffCourseChecks();
+});
+
+function resetStaffForm() {
+  document.getElementById('staffForm').reset();
+  document.getElementById('staffEmail').readOnly = false;
+  renderStaffFormOptions('');
+  renderStaffCourseChecks([]);
+}
+
+function editStaffAccount(email) {
+  const s = _peopleStaff.find(x => x.email === email);
+  if (!s) return;
+  document.getElementById('staffEmail').value = s.email;
+  document.getElementById('staffEmail').readOnly = true;
+  document.getElementById('staffName').value = s.display_name || '';
+  document.getElementById('staffActive').checked = s.active !== false;
+  renderStaffFormOptions(s.tutor_id || '');
+  renderStaffCourseChecks(s.course_ids || []);
+  document.getElementById('staffForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+async function saveStaffAccount(e) {
+  e.preventDefault();
+  const email = document.getElementById('staffEmail').value.trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { alert('กรุณากรอกอีเมลให้ถูกต้อง'); return; }
+  const tutorId = document.getElementById('staffTutor').value || null;
+  const tutor = window.NewGenDB.getTutors().find(t => t.id === tutorId);
+  const courseIds = [...document.querySelectorAll('#staffCourses input:checked:not(:disabled)')].map(i => i.value);
+  const row = {
+    email,
+    display_name: document.getElementById('staffName').value.trim() || (tutor ? tutor.name : ''),
+    tutor_id: tutorId,
+    course_ids: courseIds,
+    active: document.getElementById('staffActive').checked,
+    updated_at: new Date().toISOString()
+  };
+  const btn = document.getElementById('btnSaveStaff');
+  btn.disabled = true;
+  try {
+    await window.supabaseTable('POST', 'staff?on_conflict=email', row);
+    showToast(`✅ บันทึกบัญชี ${email} แล้ว — อย่าลืมสร้างผู้ใช้อีเมลนี้ใน Supabase Authentication`, 'success');
+    resetStaffForm();
+    await loadAdminPeople();
+  } catch (err) {
+    showToast('⚠️ บันทึกไม่สำเร็จ: ' + (err.message || '').slice(0, 120), 'warning');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function deleteStaffAccount(email) {
+  if (!confirm(`ลบสิทธิ์ติวเตอร์ของ ${email}?\n(บัญชีล็อกอินใน Supabase ยังอยู่ แต่จะเข้าหน้าระบบติวเตอร์ไม่ได้อีก — ลบบัญชีได้ที่ Authentication → Users)`)) return;
+  try {
+    await window.supabaseTable('DELETE', `staff?email=eq.${encodeURIComponent(email)}`);
+    showToast('ลบสิทธิ์ติวเตอร์แล้ว', 'success');
+    await loadAdminPeople();
+  } catch (err) {
+    showToast('⚠️ ลบไม่สำเร็จ', 'warning');
+  }
+}
+
+function renderStaffList() {
+  const box = document.getElementById('staffList');
+  if (!box) return;
+  if (!_peopleStaff.length) { box.innerHTML = '<p class="people-empty">ยังไม่มีบัญชีติวเตอร์</p>'; return; }
+  const tutors = window.NewGenDB.getTutors();
+  const courses = window.NewGenDB.getCourses();
+  box.innerHTML = _peopleStaff.map(s => {
+    const t = tutors.find(x => x.id === s.tutor_id);
+    const ids = new Set(staffAutoCourses(s.tutor_id).map(c => c.id).concat(s.course_ids || []));
+    const titles = courses.filter(c => ids.has(c.id)).map(c => c.title);
+    return `
+      <div class="people-row ${s.active === false ? 'is-off' : ''}">
+        <div class="people-main">
+          <b>${escapeHtml(s.display_name || s.email)}</b> ${s.active === false ? '<span class="people-tag off">ปิดใช้งาน</span>' : ''}
+          <small>${escapeHtml(s.email)}${t ? ` · โปรไฟล์ ${escapeHtml(t.name)}` : ''}</small>
+          <small class="people-courses-text">${titles.length ? `${titles.length} คอร์ส: ${escapeHtml(titles.join(', '))}` : '⚠️ ยังไม่มีคอร์ส — ติวเตอร์จะยังไม่เห็นนักเรียน'}</small>
+        </div>
+        <div class="people-actions">
+          <button type="button" class="btn-secondary" onclick="editStaffAccount('${escapeHtml(s.email)}')"><i class="fa-solid fa-pen"></i> แก้ไข</button>
+          <button type="button" class="btn-secondary danger" onclick="deleteStaffAccount('${escapeHtml(s.email)}')"><i class="fa-solid fa-trash-can"></i></button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function studentCourseTitles(st) {
+  const ens = window.NewGenDB.getEnrollments();
+  const courses = window.NewGenDB.getCourses();
+  const ids = (st.student_enrollments || []).map(x => x.enrollment_id);
+  return [...new Set(ens.filter(e => ids.includes(e.id)).map(e => {
+    const c = courses.find(x => x.id === e.courseId);
+    return (c ? c.title : (e.courseTitle || e.courseId || '')) + (e.status === 'cancelled' ? ' (ยกเลิก)' : '');
+  }).filter(Boolean))];
+}
+
+function renderStudentList() {
+  const box = document.getElementById('studentList');
+  if (!box) return;
+  const q = (document.getElementById('studentSearch')?.value || '').trim().toLowerCase();
+  const list = _peopleStudents.filter(s => !q || `${s.nickname} ${s.name} ${s.school}`.toLowerCase().includes(q));
+  const count = document.getElementById('studentCount');
+  if (count) count.textContent = `${list.length} คน`;
+  if (!list.length) { box.innerHTML = `<p class="people-empty">${_peopleStudents.length ? 'ไม่พบนักเรียน' : 'ยังไม่มีนักเรียน (ระบบสร้างให้อัตโนมัติจากใบสมัคร)'}</p>`; return; }
+  box.innerHTML = list.map(s => {
+    const titles = studentCourseTitles(s);
+    const others = _peopleStudents.filter(o => o.id !== s.id);
+    return `
+      <div class="people-row">
+        <div class="people-main">
+          <b>${escapeHtml(s.nickname || '-')}</b> <span>${escapeHtml(s.name)}</span>
+          <small>${escapeHtml([s.grade && 'ชั้น ' + s.grade, s.school].filter(Boolean).join(' · '))}</small>
+          <small class="people-courses-text">${titles.length ? escapeHtml(titles.join(' · ')) : '-'}</small>
+        </div>
+        <div class="people-actions">
+          <button type="button" class="btn-primary" onclick="copyParentLink('${escapeHtml(s.id)}')"><i class="fa-solid fa-link"></i> คัดลอกลิงก์ผู้ปกครอง</button>
+          <a class="btn-secondary" href="${escapeHtml(peopleReportUrl(s.parent_token))}" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-eye"></i> ดู</a>
+          <details class="people-more">
+            <summary class="btn-secondary"><i class="fa-solid fa-ellipsis"></i></summary>
+            <div>
+              <button type="button" onclick="newParentLink('${escapeHtml(s.id)}')"><i class="fa-solid fa-rotate"></i> สร้างลิงก์ใหม่ (ลิงก์เดิมใช้ไม่ได้)</button>
+              <button type="button" onclick="editStudentInfo('${escapeHtml(s.id)}')"><i class="fa-solid fa-pen"></i> แก้ชื่อ / ชื่อเล่น</button>
+              <label>รวมนักเรียนคนอื่นเข้ามาที่คนนี้
+                <select onchange="mergeStudentInto('${escapeHtml(s.id)}', this.value); this.value = ''">
+                  <option value="">— เลือกคนที่ซ้ำ —</option>
+                  ${others.map(o => `<option value="${escapeHtml(o.id)}">${escapeHtml(o.nickname || '-')} · ${escapeHtml(o.name)}</option>`).join('')}
+                </select>
+              </label>
+              ${(s.student_enrollments || []).length > 1 ? `<label>แยกใบสมัครออกเป็นนักเรียนอีกคน
+                <select onchange="splitStudentEnrollment(this.value); this.value = ''">
+                  <option value="">— เลือกใบสมัคร —</option>
+                  ${(s.student_enrollments || []).map(x => { const en = window.NewGenDB.getEnrollments().find(e => e.id === x.enrollment_id); return `<option value="${escapeHtml(x.enrollment_id)}">${escapeHtml(en ? (en.courseTitle || en.courseId) : x.enrollment_id)}</option>`; }).join('')}
+                </select>
+              </label>` : ''}
+            </div>
+          </details>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+async function copyParentLink(id) {
+  const s = _peopleStudents.find(x => x.id === id);
+  if (!s) return;
+  const url = peopleReportUrl(s.parent_token);
+  const text = `ลิงก์ดูผลการเรียนของน้อง${String(s.nickname || '').replace(/^น้อง/, '')} (สถาบันกวดวิชา The NEW GEN)\n${url}\n* ลิงก์ส่วนตัว กรุณาอย่าส่งต่อ`;
+  try {
+    await navigator.clipboard.writeText(text);
+    showToast('📋 คัดลอกลิงก์แล้ว — วางส่งผู้ปกครองทาง LINE ได้เลย', 'success');
+  } catch (e) {
+    prompt('คัดลอกข้อความนี้ส่งผู้ปกครอง', text);
+  }
+}
+
+async function newParentLink(id) {
+  if (!confirm('สร้างลิงก์ใหม่? ลิงก์เดิมที่เคยส่งให้ผู้ปกครองจะใช้ไม่ได้ทันที (ใช้เมื่อลิงก์หลุดหรือส่งผิดคน)')) return;
+  try {
+    await window.supabaseRpc('admin_new_parent_token', { p_student: id });
+    await loadAdminPeople();
+    showToast('สร้างลิงก์ใหม่แล้ว กด "คัดลอกลิงก์ผู้ปกครอง" เพื่อส่งให้ผู้ปกครองอีกครั้ง', 'success');
+  } catch (e) { showToast('⚠️ ไม่สำเร็จ', 'warning'); }
+}
+
+async function editStudentInfo(id) {
+  const s = _peopleStudents.find(x => x.id === id);
+  if (!s) return;
+  const nickname = prompt('ชื่อเล่น', s.nickname || '');
+  if (nickname === null) return;
+  const name = prompt('ชื่อ - นามสกุล', s.name || '');
+  if (name === null) return;
+  try {
+    await window.supabaseTable('PATCH', `students?id=eq.${encodeURIComponent(id)}`, { nickname: nickname.trim(), name: name.trim(), updated_at: new Date().toISOString() });
+    await loadAdminPeople();
+  } catch (e) { showToast('⚠️ บันทึกไม่สำเร็จ', 'warning'); }
+}
+
+async function mergeStudentInto(targetId, sourceId) {
+  if (!sourceId) return;
+  const t = _peopleStudents.find(x => x.id === targetId);
+  const s = _peopleStudents.find(x => x.id === sourceId);
+  if (!t || !s || !confirm(`รวม "${s.nickname || s.name}" เข้ากับ "${t.nickname || t.name}"?\nใบสมัคร ประวัติเช็คชื่อ และผลประเมินจะย้ายมาอยู่ที่คนนี้ (ลิงก์ผู้ปกครองของคนที่ถูกรวมจะใช้ไม่ได้)`)) return;
+  try {
+    await window.supabaseRpc('admin_merge_students', { p_target: targetId, p_source: sourceId });
+    await loadAdminPeople();
+    showToast('รวมนักเรียนแล้ว', 'success');
+  } catch (e) { showToast('⚠️ รวมไม่สำเร็จ', 'warning'); }
+}
+
+async function splitStudentEnrollment(enrollmentId) {
+  if (!enrollmentId || !confirm('แยกใบสมัครนี้ออกเป็นนักเรียนอีกคน? (ใช้เมื่อระบบรวมพี่น้อง/คนละคนเข้าด้วยกันผิด)')) return;
+  try {
+    await window.supabaseRpc('admin_move_enrollment', { p_enrollment: enrollmentId, p_target: null });
+    await loadAdminPeople();
+    showToast('แยกออกเป็นนักเรียนอีกคนแล้ว', 'success');
+  } catch (e) { showToast('⚠️ แยกไม่สำเร็จ', 'warning'); }
 }
 
 // เตือนก่อนปิดหน้า ถ้าแก้คำถามหรือตารางเรียนแล้วยังไม่บันทึก
