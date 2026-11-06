@@ -46,6 +46,8 @@
   const dayClass = di => (di <= 6 ? 'sc-d' + di : 'sc-dx');
   const toMin = t => { const m = String(t || '').match(/(\d{1,2})[.:](\d{2})/); return m ? +m[1] * 60 + +m[2] : 9999; };
 
+  const kindRank = title => (/รายเทอม/.test(title || '') ? 0 : (/รายเดือน/.test(title || '') ? 1 : 2));
+
   function levelOf(c) {
     const cat = String(c.category || '');
     if (/private/i.test(cat)) return 'private';
@@ -61,7 +63,8 @@
     const courses = db().getCourses().filter(c => !c.isHidden)
       .map(c => ({ c, view: window.getCourseScheduleView ? window.getCourseScheduleView(c) : { sessions: [] } }))
       .filter(x => !x.view.hidden)
-      .sort((a, b) => order(a.c.category) - order(b.c.category))
+      // ในระดับชั้นเดียวกัน: คอร์สรายเทอมขึ้นก่อนรายเดือนเสมอ (เปิดหน้ามาเจอรายเทอมก่อน)
+      .sort((a, b) => order(a.c.category) - order(b.c.category) || kindRank(a.c.title) - kindRank(b.c.title))
       .map(({ c, view }) => {
         const subs = shortSubjects(c.subjects);
         const level = levelOf(c);
