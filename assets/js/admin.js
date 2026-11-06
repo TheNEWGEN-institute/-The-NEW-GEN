@@ -14,13 +14,91 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   _adminAuthed = true;
+  loadSiteStats();
   await window.NewGenDB.fetchEnrollments();
   initAdminDashboard();
 });
 
 document.addEventListener('newgen:synced', () => {
   initAdminDashboard();
+  rerenderSiteStats();
 });
+
+// ================= สถิติเว็บไซต์ (แถบน้ำเงินด้านบน + แผงละเอียด) =================
+// ข้อมูลจาก admin_site_stats() — supabase/15-site-stats.sql
+let _siteStats = null;        // 30 วัน (แถบด้านบน)
+let _siteStatsPanel = null;   // ช่วงที่เลือกในแผงละเอียด
+let _siteStatsDays = 30;
+let _siteStatsTimer = null;
+
+async function loadSiteStats() {
+  const strip = document.getElementById('siteStatsStrip');
+  if (!strip || !window.NGStats) return;
+  try {
+    _siteStats = await window.supabaseRpc('admin_site_stats', { p_days: 30 });
+    if (_siteStatsDays === 30) _siteStatsPanel = _siteStats;
+    renderSiteStatsStrip();
+    const panel = document.getElementById('siteStatsPanel');
+    if (panel && !panel.hidden && _siteStatsDays === 30) renderSiteStatsPanel();
+  } catch (err) {
+    if (_siteStats) return; // โหลดรอบใหม่ไม่สำเร็จ → คงตัวเลขเดิมไว้
+    const missing = err.status === 404 || /admin_site_stats|PGRST202|function/i.test(err.message || '');
+    strip.className = 'ngs-strip ngs-v3 ngs-error';
+    strip.innerHTML = missing
+      ? '<i class="fa-solid fa-circle-info"></i> สถิติเว็บไซต์ยังไม่เปิดใช้ — รันไฟล์ <code>supabase/15-site-stats.sql</code> ใน Supabase → SQL Editor ก่อน แล้วรีเฟรชหน้านี้'
+      : '<i class="fa-solid fa-triangle-exclamation"></i> โหลดสถิติเว็บไซต์ไม่สำเร็จ <button type="button" onclick="loadSiteStats()">ลองใหม่</button>';
+  }
+  // อัปเดตตัวเลขด้านบนทุก 1 นาที (เฉพาะตอนเปิดหน้านี้อยู่)
+  clearTimeout(_siteStatsTimer);
+  _siteStatsTimer = setTimeout(function tick() {
+    if (document.hidden) { _siteStatsTimer = setTimeout(tick, 60000); return; }
+    loadSiteStats();
+  }, 60000);
+}
+
+function renderSiteStatsStrip() {
+  const strip = document.getElementById('siteStatsStrip');
+  const panel = document.getElementById('siteStatsPanel');
+  if (!strip || !_siteStats) return;
+  window.NGStats.mountStrip(strip, _siteStats, 3, {
+    openLabel: 'ดูสถิติทั้งหมด',
+    onOpen: btn => {
+      panel.hidden = !panel.hidden;
+      btn.classList.toggle('is-open', !panel.hidden);
+      if (!panel.hidden) renderSiteStatsPanel();
+    }
+  });
+  const btn = strip.querySelector('[data-ngs-open]');
+  if (btn && panel && !panel.hidden) btn.classList.add('is-open');
+}
+
+function renderSiteStatsPanel() {
+  const panel = document.getElementById('siteStatsPanel');
+  if (!panel || !_siteStatsPanel) return;
+  window.NGStats.mountPanel(panel, _siteStatsPanel, {
+    onRange: async days => {
+      _siteStatsDays = days;
+      panel.style.opacity = '.55';
+      try {
+        _siteStatsPanel = await window.supabaseRpc('admin_site_stats', { p_days: days });
+        if (days === 30) { _siteStats = _siteStatsPanel; renderSiteStatsStrip(); }
+      } catch (err) {
+        showToast('⚠️ โหลดสถิติไม่สำเร็จ ลองใหม่อีกครั้ง', 'warning');
+      } finally {
+        panel.style.opacity = '';
+      }
+      renderSiteStatsPanel();
+    }
+  });
+}
+
+// ชื่อคอร์สโหลดเสร็จ → วาดใหม่ให้เห็นชื่อคอร์สแทนรหัส
+function rerenderSiteStats() {
+  if (!_siteStats) return;
+  renderSiteStatsStrip();
+  const panel = document.getElementById('siteStatsPanel');
+  if (panel && !panel.hidden) renderSiteStatsPanel();
+}
 
 function initAdminDashboard() {
   if (!_adminAuthed) return;

@@ -55,6 +55,7 @@
       if (c) return c.title;
       const b = (db.getBundles ? db.getBundles() : []).find(x => x.id === id);
       if (b) return b.name || b.title;
+      if (db.getCourses().length) return 'คอร์ส/แพ็คที่ลบไปแล้ว';
     }
     return id;
   }
