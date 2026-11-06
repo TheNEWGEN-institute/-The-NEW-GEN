@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="referrer" content="no-referrer">
+  <title>ระบบติวเตอร์ | เช็คชื่อ & ประเมินผล — The NEW GEN</title>
+  <link rel="icon" type="image/png" href="assets/images/tutor-au.jpg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link rel="stylesheet" href="assets/css/staff.css?v=20261106-people">
+</head>
+<body class="stf">
+
+  <header class="stf-top">
+    <div class="stf-brand">
+      <span class="stf-logo">The <b>NEW</b> GEN</span>
+      <span class="stf-sub">ระบบติวเตอร์</span>
+    </div>
+    <div class="stf-user" id="stfUser" hidden>
+      <span id="stfUserName"></span>
+      <button type="button" class="stf-btn-ghost" id="stfLogout"><i class="fa-solid fa-right-from-bracket"></i> ออกจากระบบ</button>
+    </div>
+  </header>
+
+  <!-- เข้าสู่ระบบ -->
+  <main class="stf-login" id="stfLogin" hidden>
+    <form class="stf-login-card" id="stfLoginForm" autocomplete="on">
+      <div class="stf-login-icon"><i class="fa-solid fa-chalkboard-user"></i></div>
+      <h1>เข้าสู่ระบบติวเตอร์</h1>
+      <p>เช็คชื่อนักเรียนและบันทึกผลประเมินรายครั้ง</p>
+      <label>อีเมล<input type="email" id="stfEmail" required autocomplete="username"></label>
+      <label>รหัสผ่าน<input type="password" id="stfPassword" required autocomplete="current-password"></label>
+      <p class="stf-login-error" id="stfLoginError" role="alert"></p>
+      <button type="submit" class="stf-btn-primary" id="stfLoginBtn"><i class="fa-solid fa-right-to-bracket"></i> เข้าสู่ระบบ</button>
+    </form>
+  </main>
+
+  <!-- หน้าหลัก -->
+  <main class="stf-app" id="stfApp" hidden>
+    <nav class="stf-tabs" role="tablist">
+      <button type="button" class="stf-tab on" data-view="checkin" role="tab"><i class="fa-solid fa-user-check"></i> เช็คชื่อ</button>
+      <button type="button" class="stf-tab" data-view="eval" role="tab"><i class="fa-solid fa-clipboard-check"></i> ประเมินผล</button>
+    </nav>
+
+    <section class="stf-filters">
+      <label class="stf-field"><span>คอร์ส</span><select id="stfCourse"></select></label>
+      <label class="stf-field stf-only-checkin"><span>วันที่</span><input type="date" id="stfDate"></label>
+      <label class="stf-field stf-only-checkin"><span>รอบเรียน</span><select id="stfRound"></select></label>
+    </section>
+
+    <!-- เช็คชื่อ -->
+    <section class="stf-view" id="viewCheckin">
+      <div class="stf-stats" id="stfStats"></div>
+      <div class="stf-search"><i class="fa-solid fa-magnifying-glass"></i><input type="search" id="stfSearch" placeholder="ค้นหาชื่อ / ชื่อเล่น"></div>
+      <p class="stf-hint">แตะชื่อนักเรียนเมื่อมาถึง = <b>มาแล้ว</b> (บันทึกเวลาอัตโนมัติ · ถ้าเลยเวลาเริ่มเรียนเกิน <span id="stfLateMin">15</span> นาที จะเป็น <b>สาย</b>) · แก้สถานะได้ที่ปุ่มด้านขวา</p>
+      <div class="stf-list" id="stfRoster" aria-live="polite"></div>
+    </section>
+
+    <!-- ประเมินผล -->
+    <section class="stf-view" id="viewEval" hidden>
+      <div class="stf-sessions" id="stfSessions"></div>
+      <div id="stfSessionBody"></div>
+    </section>
+  </main>
+
+  <!-- หน้าต่างเพิ่ม/แก้ครั้งประเมิน -->
+  <div class="stf-modal" id="stfSessionModal" hidden>
+    <form class="stf-modal-card" id="stfSessionForm">
+      <h2 id="stfSessionModalTitle">เพิ่มครั้งประเมิน</h2>
+      <div class="stf-row2">
+        <label class="stf-field"><span>วันที่</span><input type="date" id="stfSessDate" required></label>
+        <label class="stf-field"><span>หัวข้อ / เรื่องที่เรียน</span><input type="text" id="stfSessTitle" maxlength="200" placeholder="เช่น ฟังก์ชันเอกซ์โพเนนเชียล"></label>
+      </div>
+      <div class="stf-items-head">
+        <b>หัวข้อที่ให้คะแนนครั้งนี้</b>
+        <small>ความประพฤติ / รายละเอียด มีให้ทุกครั้งอยู่แล้ว</small>
+      </div>
+      <div id="stfSessItems" class="stf-items"></div>
+      <div class="stf-item-add">
+        <button type="button" data-add="score"><i class="fa-solid fa-pen-ruler"></i> คะแนนแบบทดสอบ</button>
+        <button type="button" data-add="check"><i class="fa-solid fa-book"></i> การบ้าน (ส่ง/ไม่ส่ง)</button>
+        <button type="button" data-add="rating"><i class="fa-solid fa-star"></i> ให้ดาว 1–5</button>
+        <button type="button" data-add="text"><i class="fa-solid fa-align-left"></i> ข้อความ</button>
+      </div>
+      <div class="stf-modal-actions">
+        <button type="button" class="stf-btn-ghost" id="stfSessCancel">ยกเลิก</button>
+        <button type="submit" class="stf-btn-primary"><i class="fa-solid fa-floppy-disk"></i> บันทึก</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="stf-toast" id="stfToast" role="status" hidden></div>
+
+  <script src="assets/js/courses-data.js?v=20261106-people"></script>
+  <script src="assets/js/staff.js?v=20261106-people"></script>
+</body>
+</html>

@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Prompt:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
-  <link rel="stylesheet" href="assets/css/style.css?v=20261106-lineqr">
+  <link rel="stylesheet" href="assets/css/style.css?v=20261106-people">
 </head>
 <body class="page-admin-body">
 
@@ -70,6 +70,9 @@
         </button>
         <button type="button" class="admin-nav-item" onclick="switchAdminTab('schedule', this)" id="navTabSchedule">
           <i class="fa-solid fa-calendar-days" style="color: #7c3aed;"></i> 1.2 ตารางเรียน (วิชา / ติวเตอร์ / ห้อง)
+        </button>
+        <button type="button" class="admin-nav-item" onclick="switchAdminTab('people', this)" id="navTabPeople">
+          <i class="fa-solid fa-id-card-clip" style="color: #0891b2;"></i> 1.3 นักเรียน &amp; บัญชีติวเตอร์ (เช็คชื่อ/ประเมิน)
         </button>
         <button type="button" class="admin-nav-item" onclick="switchAdminTab('enrollments', this)" id="navTabEnrollments">
           <i class="fa-solid fa-users-rectangle"></i> 2. รายชื่อผู้สมัครเรียน
@@ -1808,6 +1811,57 @@
         </div>
       </section>
 
+      <!-- ================= 1.3 PEOPLE TAB (นักเรียน / บัญชีติวเตอร์) ================= -->
+      <section id="tab-people" class="admin-tab-pane">
+        <div class="admin-pane-header">
+          <div>
+            <h2><i class="fa-solid fa-id-card-clip" style="color: #0891b2;"></i> นักเรียน &amp; บัญชีติวเตอร์</h2>
+            <p>ติวเตอร์เช็คชื่อและบันทึกผลประเมินที่หน้า <b>ระบบติวเตอร์</b> · ผู้ปกครองดูผลของลูกผ่าน <b>ลิงก์ส่วนตัว</b> (ข้อมูลนักเรียนไม่แสดงบนหน้าเว็บสาธารณะ)</p>
+          </div>
+          <a href="staff.html" target="_blank" rel="noopener" class="btn-primary"><i class="fa-solid fa-user-check"></i> เปิดหน้าเช็คชื่อ / ประเมิน</a>
+        </div>
+        <div id="peopleNotice"></div>
+
+        <div class="admin-table-card people-card">
+          <h3><i class="fa-solid fa-chalkboard-user"></i> บัญชีติวเตอร์</h3>
+          <details class="people-howto">
+            <summary>วิธีเพิ่มบัญชีติวเตอร์ (ทำครั้งเดียวต่อคน)</summary>
+            <ol>
+              <li>Supabase → <b>Authentication</b> → <b>Users</b> → <b>Add user</b> → <b>Create new user</b> → ใส่อีเมลและรหัสผ่านของติวเตอร์ → ติ๊ก <b>Auto Confirm User</b> → Create</li>
+              <li>กลับมาที่นี่ กรอกอีเมลเดียวกันด้านล่าง เลือกโปรไฟล์ติวเตอร์ แล้วกดบันทึก</li>
+              <li>ส่งลิงก์ <b>หน้าระบบติวเตอร์ (staff.html)</b> + อีเมล/รหัสผ่านให้ติวเตอร์ทาง LINE ส่วนตัว</li>
+            </ol>
+            <p>ติวเตอร์เห็นเฉพาะคอร์สที่มีชื่อตัวเองเป็นผู้สอน (ตั้งในหน้าแก้ไขคอร์ส) + คอร์สที่ติ๊กเพิ่มด้านล่าง · ไม่เห็นเบอร์โทร ค่าเรียน หรือเมนูหลังบ้าน</p>
+          </details>
+          <form class="people-form" id="staffForm" onsubmit="saveStaffAccount(event)">
+            <label>อีเมลที่ใช้ล็อกอิน<input type="email" id="staffEmail" required placeholder="tutor@example.com"></label>
+            <label>ชื่อที่แสดง<input type="text" id="staffName" maxlength="60" placeholder="เช่น พี่แม็ค"></label>
+            <label>โปรไฟล์ติวเตอร์ (ผูกคอร์สที่สอนอัตโนมัติ)<select id="staffTutor"></select></label>
+            <label class="people-check"><input type="checkbox" id="staffActive" checked> เปิดใช้งานบัญชีนี้</label>
+            <div class="people-courses">
+              <span>คอร์สเพิ่มเติม (นอกจากคอร์สที่สอนอยู่แล้ว)</span>
+              <div id="staffCourses"></div>
+            </div>
+            <div class="people-form-actions">
+              <button type="button" class="btn-secondary" onclick="resetStaffForm()">ล้างฟอร์ม</button>
+              <button type="submit" class="btn-primary" id="btnSaveStaff"><i class="fa-solid fa-floppy-disk"></i> บันทึกบัญชีติวเตอร์</button>
+            </div>
+          </form>
+          <div id="staffList" class="people-list"></div>
+        </div>
+
+        <div class="admin-table-card people-card">
+          <h3><i class="fa-solid fa-children"></i> นักเรียน &amp; ลิงก์ผู้ปกครอง</h3>
+          <p class="people-desc">ระบบรวมใบสมัครที่ชื่อและเบอร์ผู้ปกครองตรงกันเป็นนักเรียนคนเดียวให้อัตโนมัติ (ลงหลายคอร์สก็เห็นในหน้าเดียว) · ถ้าจับคู่ผิด ใช้ปุ่ม "รวมกับ…" หรือ "แยกออก"</p>
+          <div class="people-toolbar">
+            <input type="search" id="studentSearch" placeholder="ค้นหาชื่อ / ชื่อเล่น / โรงเรียน" oninput="renderStudentList()">
+            <span id="studentCount"></span>
+            <button type="button" class="btn-secondary" onclick="loadAdminPeople()"><i class="fa-solid fa-rotate"></i> โหลดใหม่</button>
+          </div>
+          <div id="studentList" class="people-list"></div>
+        </div>
+      </section>
+
       <!-- ================= 1.2 SCHEDULE TAB ================= -->
       <section id="tab-schedule" class="admin-tab-pane">
         <div class="admin-pane-header">
@@ -3367,7 +3421,7 @@
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-  <script src="assets/js/courses-data.js?v=20261106-lineqr"></script>
-  <script src="assets/js/admin.js?v=20261106-lineqr"></script>
+  <script src="assets/js/courses-data.js?v=20261106-people"></script>
+  <script src="assets/js/admin.js?v=20261106-people"></script>
 </body>
 </html>
