@@ -10608,6 +10608,15 @@ button {
   border: 1px solid #e2e8f0;
 }
 
+/* แนบรูป QR Code LINE (ใต้เบอร์โทร) */
+.enr-lineqr-field { margin-top: 10px; }
+.enr-lineqr-zone { border-color: #86efac; background: #f0fdf4; padding: 14px 14px; }
+.enr-lineqr-zone:hover,
+.enr-lineqr-zone:focus-visible { border-color: #06c755; background: #ecfdf5; outline: none; }
+.enr-lineqr-zone .enr-upload-icon { color: #06c755; }
+.enr-lineqr-zone.has-file { border-style: solid; }
+.enr-lineqr-zone .enr-upload-preview-wrap img { width: 84px; height: 84px; object-fit: contain; background: #ffffff; }
+
 .enr-upload-preview-info {
   display: flex;
   flex-direction: column;
