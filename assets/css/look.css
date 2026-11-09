@@ -199,3 +199,10 @@ html[data-look="3"] body.ng-theme .menu-toggle { color: #fff; background: rgba(2
 html[data-look="3"] body.ng-theme .mobile-menu { background: rgba(7, 21, 48, .94); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(147, 180, 255, .18); }
 html[data-look="3"] body.ng-theme .mobile-nav-link { color: rgba(255, 255, 255, .9); border-color: rgba(255, 255, 255, .08); }
 html[data-look="3"] body.ng-theme .mobile-nav-link.active { color: #ff6b85; }
+/* ===================================================================
+   เอฟเฟกต์: การ์ด/กล่องค่อย ๆ ลอยขึ้นทีละใบตอนเลื่อนหน้า (ทุกหน้า)
+   หลังแสดงครบจะเอา class ออก เพื่อไม่ให้กวนเอฟเฟกต์ตอนชี้เมาส์ของเดิม
+   =================================================================== */
+html[data-look] .lk-rv { transition: opacity .85s cubic-bezier(.2, .7, .2, 1), transform .85s cubic-bezier(.2, .7, .2, 1), filter .85s ease; transition-delay: var(--lk-d, 0ms); }
+html[data-look] .lk-rv:not(.lk-in) { opacity: 0; transform: translateY(34px) scale(.97); filter: blur(4px); }
+@media (prefers-reduced-motion: reduce) { html[data-look] .lk-rv:not(.lk-in) { opacity: 1; transform: none; filter: none; } }

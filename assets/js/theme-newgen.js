@@ -841,4 +841,34 @@
   const onScroll = () => document.documentElement.classList.toggle('lk-scrolled', window.scrollY > 30);
   window.addEventListener('scroll', onScroll, { passive: true });
   onScroll();
+
+  // การ์ด/กล่องค่อย ๆ ลอยขึ้นทีละใบตอนเลื่อนหน้า
+  if ('IntersectionObserver' in window && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const RV_SEL = '.course-card, .feature-box, .review-real-card, .tutor-profile-card, .trial-video-item-card, .video-container, '
+      + '.achievement-poster-card, .about-pillar-item, .about-gallery-item, .faq-item, .contact-box-card, .contact-map-card, '
+      + '.social-pill-card, .cd-card, .faq-cta-card, .luxury-cta-card, .about-inspiration-card, .tutor-online-empty-card, #privilegeBannerBox';
+    const io = new IntersectionObserver(entries => entries.forEach(en => {
+      if (!en.isIntersecting) return;
+      const el = en.target;
+      io.unobserve(el);
+      el.classList.add('lk-in');
+      // แสดงครบแล้ว → คืนค่าเดิม (เอฟเฟกต์ชี้เมาส์ของการ์ดทำงานตามปกติ)
+      setTimeout(() => { el.classList.remove('lk-rv', 'lk-in'); el.style.removeProperty('--lk-d'); }, 1400);
+    }), { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+    const scan = () => {
+      document.querySelectorAll(RV_SEL).forEach(el => {
+        if (el.dataset.lkRv) return;
+        el.dataset.lkRv = '1';
+        if (el.closest('.lk-hero, .site-header, .site-footer')) return;
+        const sibs = el.parentElement ? Array.from(el.parentElement.children).filter(c => c.matches(RV_SEL)) : [el];
+        el.style.setProperty('--lk-d', (sibs.indexOf(el) % 4) * 110 + 'ms');
+        el.classList.add('lk-rv');
+        io.observe(el);
+      });
+    };
+    scan();
+    let t = null;
+    new MutationObserver(() => { clearTimeout(t); t = setTimeout(scan, 120); }).observe(document.body, { childList: true, subtree: true });
+    document.addEventListener('newgen:synced', () => setTimeout(scan, 50));
+  }
 })();
