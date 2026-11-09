@@ -1,6 +1,6 @@
 /* ===================================================================
    สไลด์หน้าแรก (hero) — ใช้คู่กับ assets/css/hero-slider.css
-   window.NGHero.mount(element, { s2: 1|2|3 })
+   window.NGHero.mount(element, { s1: 'glow'|'cine', s2: 1|2|3 })
    รูปที่ 1: ชื่อสถาบัน + สโลแกน + ติวเตอร์ 4 คน | รูปภาพเด็ก 2 รูป (แบบ Glow Panels)
    รูปที่ 2: เปิดรับสมัคร (รูปนักเรียนเฟดทับกัน 3 สไตล์) | รูปที่ 3: ผลงานรุ่นพี่
    =================================================================== */
@@ -33,20 +33,23 @@
     return pick.length === 3 ? pick : FALLBACK_REVIEWS;
   }
 
-  const slide1 = () => `
+  // s1: 'glow' = Glow Panels (2 แผงรูป) | 'cine' = Cinematic Light (รูปเต็มฝั่งขวา เฟดแนวเฉียง แสงวิ่งผ่าน)
+  const slide1 = s1 => `
     <div class="hx-grid"></div>
+    ${s1 === 'cine' ? '<div class="hx-water">NEW GEN</div>' : `
     <div class="hx-ring" style="width:620px;height:620px;right:-120px;top:60px"></div>
     <div class="hx-ring" style="width:420px;height:420px;right:-20px;top:160px;border-style:dashed"></div>
     <i class="fa-solid fa-star hx-spark" style="right:9%;top:16%;font-size:1rem"></i>
     <i class="fa-solid fa-star hx-spark" style="right:47%;top:46%;font-size:.7rem;animation-delay:.8s"></i>
-    <i class="fa-solid fa-star hx-spark" style="right:4%;bottom:14%;font-size:.85rem;animation-delay:1.5s"></i>
-    <div class="hx-photos">
+    <i class="fa-solid fa-star hx-spark" style="right:4%;bottom:14%;font-size:.85rem;animation-delay:1.5s"></i>`}
+    <div class="hx-photos${s1 === 'cine' ? ' hx-cine' : ''}">
       <figure class="hx-ph hx-ph-1 hx-kb" data-pop style="--d:0"><img src="${IMG}hero/kids-1.jpg" alt="น้อง ๆ The NEW GEN" fetchpriority="high"></figure>
       <figure class="hx-ph hx-ph-2 hx-kb" data-pop style="--d:1"><img src="${IMG}hero/kids-2.jpg" alt="บรรยากาศห้องเรียน The NEW GEN"></figure>
+      ${s1 === 'cine' ? '<div class="hx-seam"></div>' : ''}
     </div>
     <div class="hx-wrap"><div class="hx-left">
       <p class="hx-inst" data-in style="--d:0">สถาบันกวดวิชา</p>
-      <h1 class="hx-brand" data-in style="--d:1">The NEW <span class="gen">GEN</span></h1>
+      <h1 class="hx-brand" data-in style="--d:1"><span class="new">The NEW</span> <span class="gen${s1 === 'cine' ? ' hx-shine' : ''}">GEN</span></h1>
       <p class="hx-slogan" data-in style="--d:2">กวดวิชาของเด็ก <span class="hx-grad">GEN ใหม่</span></p>
       <div class="hx-team">${TEAM.map((t, k) => `
         <figure class="hx-tt hx-tt-${k + 1}" style="--i:${t[2]}"><img src="${IMG + t[1]}" alt="${t[0]}"><figcaption>${t[0]}</figcaption></figure>`).join('')}
@@ -98,13 +101,14 @@
   function mount(root, opts) {
     if (!root) return;
     const s2 = SLIDE2[(opts && opts.s2) || 1] ? (opts && opts.s2) || 1 : 1;
+    const s1 = opts && opts.s1 === 'cine' ? 'cine' : 'glow';
     let idx = 0, timer = null;
     root.classList.add('hx');
     root.setAttribute('aria-roledescription', 'carousel');
     root.setAttribute('aria-label', 'ไฮไลต์ The NEW GEN');
     root.style.setProperty('--hx-ms', MS + 'ms');
     root.innerHTML = `
-      <article class="hx-slide hx-s1" aria-roledescription="slide" aria-label="1 / 3">${slide1()}</article>
+      <article class="hx-slide hx-s1${s1 === 'cine' ? ' hx-s1-cine' : ''}" aria-roledescription="slide" aria-label="1 / 3">${slide1(s1)}</article>
       <article class="hx-slide hx-s2 hx-s2${'abc'[s2 - 1]}" aria-roledescription="slide" aria-label="2 / 3">${SLIDE2[s2]()}</article>
       <article class="hx-slide hx-s3" aria-roledescription="slide" aria-label="3 / 3">${slide3()}</article>
       <div class="hx-nav">

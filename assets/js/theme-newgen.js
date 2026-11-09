@@ -795,37 +795,38 @@
   const css = href => { const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = href + '?v=' + ver; document.head.appendChild(l); };
   css('assets/css/look.css');
 
-  // หน้าแรก: สไลด์ใหม่ + แถบแนะนำสถาบัน (ส่วนเสนอใหม่)
+  // หน้าแรก: สไลด์ใหม่แทนส่วนบนเดิม
   const oldHero = document.getElementById('hero');
   if (oldHero) {
     css('assets/css/hero-slider.css');
-    const lead = (document.getElementById('heroLeadText') || {}).textContent || '';
     oldHero.style.display = 'none';
     const hero = document.createElement('section');
     hero.className = 'lk-hero';
     oldHero.parentNode.insertBefore(hero, oldHero);
-    const intro = document.createElement('section');
-    intro.className = 'lk-intro';
-    intro.innerHTML = `<div class="container">
-        <div><span class="lk-new">ส่วนเสนอใหม่</span><p>${lead.replace(/\s+/g, ' ').trim().replace(/[<>&]/g, '')}</p></div>
-        <div class="lk-stats">
-          <div class="lk-stat"><b>ป.4 – ม.6</b><span>เปิดสอนครบทุกระดับชั้น</span></div>
-          <div class="lk-stat"><b>กลุ่ม<em>เล็ก</em></b><span>ดูแลใกล้ชิด ทั่วถึงทุกคน</span></div>
-          <div class="lk-stat"><b>Onsite <em>&amp;</em> Online</b><span>เลือกเรียนได้ตามสะดวก</span></div>
-          <div class="lk-stat"><b>10<em>+</em> ปี</b><span>ประสบการณ์สอนของทีมติวเตอร์</span></div>
-        </div></div>`;
-    oldHero.parentNode.insertBefore(intro, oldHero.nextSibling);
+    let seam = false;
+    try { seam = sessionStorage.getItem('ngSeam') === '1'; } catch (e) { /* ignore */ }
+    if (seam) hero.classList.add('hx-seam-on');
     const s = document.createElement('script');
     s.src = 'assets/js/hero-slider.js?v=' + ver;
-    s.onload = () => { if (window.NGHero) window.NGHero.mount(hero, { s2: Number(look) }); };
+    // ธีม 3 (ที่เลือก): รูปแรกแบบ Cinematic Light + รูปที่ 2 สไตล์ 1
+    s.onload = () => { if (window.NGHero) window.NGHero.mount(hero, look === '3' ? { s1: 'cine', s2: 1 } : { s2: Number(look) }); };
     document.body.appendChild(s);
   }
 
   // ตัวสลับธีม
   const bar = document.createElement('div');
   bar.className = 'lk-switch';
-  bar.innerHTML = '<b>ธีมใหม่ (ตัวอย่าง)</b>' + [1, 2, 3].map(n => `<button type="button" data-lk="${n}" class="${String(n) === look ? 'on' : ''}">${n}</button>`).join('') + '<button type="button" data-lk="0" class="off">ปิด</button>';
+  bar.innerHTML = '<b>ธีมใหม่ (ตัวอย่าง)</b>' + [1, 2, 3].map(n => `<button type="button" data-lk="${n}" class="${String(n) === look ? 'on' : ''}">${n}</button>`).join('') +
+    (oldHero ? '<button type="button" data-seam class="off">เส้นแดง</button>' : '') + '<button type="button" data-lk="0" class="off">ปิด</button>';
   bar.addEventListener('click', e => {
+    const sm = e.target.closest('[data-seam]');
+    if (sm) {
+      const h = document.querySelector('.lk-hero');
+      const on = h && h.classList.toggle('hx-seam-on');
+      sm.classList.toggle('on', !!on);
+      try { sessionStorage.setItem('ngSeam', on ? '1' : '0'); } catch (err) { /* ignore */ }
+      return;
+    }
     const b = e.target.closest('[data-lk]');
     if (!b) return;
     const u = new URL(location.href);
@@ -833,4 +834,11 @@
     location.href = u.toString();
   });
   document.body.appendChild(bar);
+  const sb = bar.querySelector('[data-seam]');
+  if (sb && document.querySelector('.lk-hero.hx-seam-on')) sb.classList.add('on');
+
+  // แถบเมนู: บนสุดโปร่งใส / เลื่อนลงเป็นแคปซูลกระจก
+  const onScroll = () => document.documentElement.classList.toggle('lk-scrolled', window.scrollY > 30);
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
 })();
