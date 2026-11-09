@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>ตัวอย่างสไลด์หน้าแรก 5 แบบ | The NEW GEN</title>
+  <link rel="icon" type="image/png" href="../assets/images/tutor-au.jpg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Prompt:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link rel="stylesheet" href="../assets/css/style.css?v=20261109-hero">
+  <link rel="stylesheet" href="../assets/css/theme-newgen.css?v=20261109-hero">
+  <link rel="stylesheet" href="hero.css?v=20261109-hero">
+  <style>
+    .pv-switch { position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); z-index: 500; background: #0b1e3f; color: #fff; border-radius: 999px; padding: 6px; display: flex; gap: 3px; box-shadow: 0 12px 30px rgba(11,30,63,.4); align-items: center; max-width: calc(100vw - 20px); }
+    .pv-switch b { font-size: .78rem; padding: 0 8px; opacity: .8; font-weight: 500; white-space: nowrap; }
+    .pv-switch button { border: 0; background: transparent; color: #fff; font: inherit; font-size: .86rem; font-weight: 700; padding: 8px 14px; border-radius: 999px; cursor: pointer; white-space: nowrap; }
+    .pv-switch button.on { background: #fff; color: #0b1e3f; }
+    .pv-name { position: fixed; left: 16px; top: 96px; z-index: 40; background: #fef9c3; color: #713f12; font-size: .8rem; padding: 6px 12px; border-radius: 10px; box-shadow: 0 6px 16px rgba(0,0,0,.15); max-width: calc(100vw - 32px); }
+    .pv-rest { max-width: 1280px; margin: 0 auto; padding: 40px 40px 140px; color: #64748b; font-size: .9rem; }
+    .pv-rest .pv-box { background: #fff; border-radius: 18px; padding: 26px; border: 1px dashed #cbd5e1; }
+    @media (max-width: 640px) { .pv-switch b { display: none; } .pv-switch button { padding: 8px 11px; font-size: .8rem; } .pv-name { top: 84px; left: 10px; font-size: .74rem; } .pv-rest { padding: 24px 16px 120px; } }
+  </style>
+</head>
+<body class="ng-theme pv-hero">
+  <svg aria-hidden="true" width="0" height="0" style="position:absolute"><defs><linearGradient id="ngLogoGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a78ff"/><stop offset="0.5" stop-color="#2152e6"/><stop offset="1" stop-color="#1235b8"/></linearGradient></defs></svg>
+
+  <header class="site-header navbar-white scrolled" id="topHeader">
+    <div class="container navbar">
+      <a href="../index.html" class="brand-logo" aria-label="หน้าแรก The NEW GEN">
+        <div>
+          <div class="brand-logo-text logo-v2">
+            <span>The</span> <span class="new"><svg class="logo-glyph logo-glyph-n" viewBox="0 0 74 75" aria-hidden="true"><path d="M7 0h15v44H7zM52 0h16v75H52zM7 0h19l42 75H49z"/></svg><svg class="logo-glyph logo-glyph-e" viewBox="0 0 59 75" aria-hidden="true"><path d="M7 0h50v14H7zM7 24h15v51H7zM22 31h31v13H22zM22 61h35v14H22z"/></svg>W</span> <span class="gen">G<svg class="logo-glyph logo-glyph-e" viewBox="0 0 59 75" aria-hidden="true"><path d="M7 0h50v14H7zM7 24h15v51H7zM22 31h31v13H22zM22 61h35v14H22z"/></svg><svg class="logo-glyph logo-glyph-n" viewBox="0 0 74 75" aria-hidden="true"><path d="M7 0h15v44H7zM52 0h16v75H52zM7 0h19l42 75H49z"/></svg></span>
+          </div>
+          <span class="brand-subtext">กวดวิชาของเด็ก <span class="highlight-gen">GEN</span> ใหม่</span>
+        </div>
+      </a>
+      <nav class="nav-links">
+        <a href="#" class="nav-link active">หน้าแรก</a>
+        <a href="#" class="nav-link">ทีมติวเตอร์</a>
+        <a href="#" class="nav-link">คอร์สเรียนทั้งหมด</a>
+        <a href="#" class="nav-link">ตารางเรียน</a>
+        <a href="#" class="nav-link">ความสำเร็จของรุ่นพี่</a>
+        <a href="#" class="nav-link">ทดลองเรียนฟรี</a>
+        <a href="#" class="nav-link">คำถามที่พบบ่อย</a>
+        <a href="#" class="nav-link">เกี่ยวกับเรา</a>
+      </nav>
+      <button type="button" class="menu-toggle" aria-label="เปิดเมนูหลัก"><i class="fa-solid fa-bars-staggered"></i></button>
+    </div>
+  </header>
+
+  <div class="pv-name" id="pvName"></div>
+
+  <section class="hs" id="hs" aria-roledescription="carousel" aria-label="ไฮไลต์ The NEW GEN"></section>
+
+  <!-- ปุ่มย้ายมาไว้ใต้สไลด์ -->
+  <div class="hs-cta">
+    <div class="hs-cta-in">
+      <div class="hs-btns">
+        <a href="#" class="hs-btn primary"><i class="fa-solid fa-graduation-cap"></i> ดูคอร์สเรียนทั้งหมด</a>
+        <a href="#" class="hs-btn secondary"><i class="fa-brands fa-youtube"></i> ทดลองเรียนฟรี</a>
+        <a href="#" class="hs-btn ghost"><i class="fa-solid fa-calendar-days"></i> ตารางเรียน</a>
+      </div>
+      <div class="hs-trust">
+        <span><i class="fa-solid fa-circle-check"></i> ทีมติวเตอร์มืออาชีพ</span>
+        <span><i class="fa-solid fa-circle-check"></i> Onsite &amp; Online กลุ่มเล็ก ดูแลทั่วถึง</span>
+        <span><i class="fa-solid fa-circle-check"></i> แบ่งชำระค่าเรียนได้</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="pv-rest"><div class="pv-box">(ส่วนอื่นของหน้าแรกเหมือนเดิม — คอร์สแนะนำ, รีวิว ฯลฯ)</div></div>
+
+  <div class="pv-switch" role="group" aria-label="เลือกแบบ">
+    <b>เลือกแบบ</b>
+    <button type="button" data-v="1">1</button>
+    <button type="button" data-v="2">2</button>
+    <button type="button" data-v="3">3</button>
+    <button type="button" data-v="4">4</button>
+    <button type="button" data-v="5">5</button>
+  </div>
+
+  <script>
+  (function () {
+    const IMG = '../assets/images/';
+    const TUTORS = [
+      { name: 'พี่อู๋', img: IMG + 'tutors-cutout/tutor-au.webp' },
+      { name: 'พี่นนท์', img: IMG + 'tutors-cutout/tutor-non.webp' },
+      { name: 'พี่แม็ค', img: IMG + 'tutors-cutout/tutor-mac.webp' },
+      { name: 'พี่อานนท์', img: IMG + 'tutors-cutout/tutor-anont.webp' }
+    ];
+    const NAMES = {
+      1: 'แบบ 1 · Cinematic — ภาพเต็มจอ ไล่เฉดน้ำเงิน ติวเตอร์ยืนเรียงขวา',
+      2: 'แบบ 2 · Split Poster — ซ้ายพื้นน้ำเงิน ขวาภาพเด็กตัดเฉียง',
+      3: 'แบบ 3 · Team Poster — ภาพโทนน้ำเงิน หัวเรื่องกลาง ทีมติวเตอร์กลางล่าง',
+      4: 'แบบ 4 · Glass Card — การ์ดกระจกฝ้า ติวเตอร์บนวงแหวนแสง',
+      5: 'แบบ 5 · Collage — ภาพโพลารอยด์ ตัวอักษร GEN Z แถบคำวิ่ง'
+    };
+
+    const tutors = (wrap) => {
+      const figs = TUTORS.map((t, i) => `<figure class="tt tt-${i + 1}" style="--i:${i}"><img src="${t.img}" alt="${t.name}"><figcaption>${t.name}</figcaption></figure>`).join('');
+      return wrap ? `<div class="tt-stage"><div class="tt-row">${figs}</div></div>` : `<div class="tt-stage">${figs}</div>`;
+    };
+    const copy = (extra = '') => `
+      <span class="hs-kicker" data-in style="--d:0"><i></i> สถาบันกวดวิชา</span>
+      <h1 class="hs-brand" data-in style="--d:1"><span class="new">The NEW</span> <span class="gen">GEN</span></h1>
+      ${extra}
+      <p class="hs-slogan" data-in style="--d:2">กวดวิชาของเด็ก <b>GEN Z</b></p>
+      <p class="hs-lead" data-in style="--d:3">เรามีความตั้งใจที่อยากให้น้อง ๆ ทุกคน เข้าถึงโอกาสทางการศึกษาได้อย่างเท่าเทียม</p>`;
+
+    const MAIN = {
+      1: () => `<div class="hs-bg"></div><div class="hs-inner"><div class="hs-copy">${copy()}</div></div>${tutors(false)}`,
+      2: () => `<div class="hs-bg"></div><div class="hs-inner"><div class="hs-copy">${copy()}<div class="hs-line" data-in style="--d:4"></div></div></div>${tutors(true)}`,
+      3: () => `<div class="hs-bg"></div><div class="hs-glow"></div><div class="hs-inner"><div class="hs-copy">${copy()}</div></div>${tutors(true)}`,
+      4: () => `<div class="hs-bg"></div><div class="hs-ring"></div>
+                <span class="hs-sym" style="right:44%;top:24%">∫ f(x) dx</span><span class="hs-sym" style="right:6%;top:20%">Σ</span><span class="hs-sym" style="right:30%;top:16%">π</span>
+                <div class="hs-inner"><div class="hs-card">${copy()}</div></div>${tutors(false)}`,
+      5: () => `<div class="hs-water">GEN Z</div>
+                <div class="pol pol-1"><span style="background-image:url(${IMG}hero/girls-peace.jpg)"></span></div>
+                <div class="pol pol-2"><span style="background-image:url(${IMG}hero/class-wide.jpg)"></span></div>
+                <div class="pol pol-3"><span style="background-image:url(${IMG}hero/boys-smile.jpg)"></span></div>
+                <div class="hs-inner"><div class="hs-copy">${copy()}</div></div>${tutors(false)}
+                <div class="hs-marquee" aria-hidden="true"><div>${'<span>ป.4 – ม.6</span><span>ห้องเรียนกลุ่มเล็ก ดูแลทั่วถึง</span><span>Onsite &amp; Online</span><span>ติวสอบเข้า ม.1 / ม.4</span><span>แบ่งชำระค่าเรียนได้</span>'.repeat(4)}</div></div>`
+    };
+
+    // รูปที่ 2–3: ข้อความที่แนะนำ (แก้ได้จากหลังบ้านเมื่อทำจริง)
+    const SLIDES = [
+      { bg: 'class-row.jpg', kicker: 'เปิดรับสมัครแล้ว', title: 'คอร์สรายเทอม <em>2/69</em><br>ป.4 – ม.6', text: 'เรียนล่วงหน้า เสริมความเข้าใจ และติวเข้มสอบเข้า ม.1 / ม.4 ที่นั่งมีจำกัดในแต่ละรอบ', chips: ['ห้องเรียนกลุ่มเล็ก', 'Onsite & Online', 'แบ่งชำระได้'], link: 'ดูคอร์สและตารางเรียน →' },
+      { bg: 'girls-peace.jpg', kicker: 'ไม่แน่ใจ? ลองก่อนได้', title: 'ทดลองเรียนฟรี<br><em>กับทีมติวเตอร์ตัวจริง</em>', text: 'ดูคลิปการสอนจริงของพี่ ๆ ก่อนตัดสินใจ แล้วทัก LINE สอบถามรอบเรียนที่ใช่สำหรับน้อง', chips: ['เรียนสนุก เข้าใจง่าย', 'ครบทุกเนื้อหา'], link: 'ดูคลิปทดลองเรียน →' }
+    ];
+    const photoSlide = s => `<div class="hs-bg" style="background-image:url(${IMG}hero/${s.bg})"></div>
+      <div class="hs-inner"><div class="hs-copy">
+        <span class="hs-kicker" data-in style="--d:0"><i></i> ${s.kicker}</span>
+        <h2 data-in style="--d:1">${s.title}</h2>
+        <p data-in style="--d:2">${s.text}</p>
+        <div class="hs-chips" data-in style="--d:3">${s.chips.map(c => `<span>${c}</span>`).join('')}</div>
+        <a href="#" class="hs-link" data-in style="--d:4">${s.link}</a>
+      </div></div>`;
+
+    const root = document.getElementById('hs');
+    const MS = 6500;
+    let idx = 0, timer = null, variant = Number(new URLSearchParams(location.search).get('v')) || 1;
+
+    function build() {
+      root.className = 'hs v' + variant;
+      root.style.setProperty('--hs-ms', MS + 'ms');
+      root.innerHTML = `
+        <article class="hs-slide s-main" aria-roledescription="slide" aria-label="1 / 3">${MAIN[variant]()}</article>
+        ${SLIDES.map((s, i) => `<article class="hs-slide s-photo" aria-roledescription="slide" aria-label="${i + 2} / 3">${photoSlide(s)}</article>`).join('')}
+        <div class="hs-nav">
+          <div class="hs-dots">${[0, 1, 2].map(i => `<button type="button" aria-label="ไปสไลด์ ${i + 1}"><i></i></button>`).join('')}</div>
+          <button type="button" class="hs-arrow hs-prev" aria-label="สไลด์ก่อนหน้า"><i class="fa-solid fa-chevron-left"></i></button>
+          <button type="button" class="hs-arrow hs-next" aria-label="สไลด์ถัดไป"><i class="fa-solid fa-chevron-right"></i></button>
+        </div>`;
+      root.querySelector('.hs-prev').onclick = () => go(idx - 1, true);
+      root.querySelector('.hs-next').onclick = () => go(idx + 1, true);
+      root.querySelectorAll('.hs-dots button').forEach((b, i) => { b.onclick = () => go(i, true); });
+      document.getElementById('pvName').textContent = NAMES[variant] + ' (ตัวอย่าง)';
+      document.querySelectorAll('.pv-switch button').forEach(b => b.classList.toggle('on', Number(b.dataset.v) === variant));
+      history.replaceState(null, '', '?v=' + variant);
+      go(0);
+    }
+
+    function go(n, user) {
+      const slides = root.querySelectorAll('.hs-slide');
+      idx = (n + slides.length) % slides.length;
+      slides.forEach((s, i) => s.classList.toggle('is-active', i === idx));
+      root.querySelectorAll('.hs-dots button').forEach((b, i) => {
+        b.classList.remove('on'); b.classList.toggle('done', i < idx);
+        const bar = b.querySelector('i'); bar.style.animation = 'none'; void bar.offsetWidth; bar.style.animation = '';
+        if (i === idx) b.classList.add('on');
+      });
+      clearTimeout(timer);
+      if (!root.classList.contains('is-paused')) timer = setTimeout(() => go(idx + 1), MS);
+    }
+
+    // หยุดชั่วคราวเมื่อเอาเมาส์ชี้ / สลับแท็บ
+    root.addEventListener('mouseenter', () => { root.classList.add('is-paused'); clearTimeout(timer); });
+    root.addEventListener('mouseleave', () => { root.classList.remove('is-paused'); go(idx); });
+    document.addEventListener('visibilitychange', () => { if (document.hidden) clearTimeout(timer); else go(idx); });
+    // ปัดซ้าย/ขวาบนมือถือ
+    let x0 = null;
+    root.addEventListener('touchstart', e => { x0 = e.touches[0].clientX; }, { passive: true });
+    root.addEventListener('touchend', e => {
+      if (x0 === null) return;
+      const dx = e.changedTouches[0].clientX - x0; x0 = null;
+      if (Math.abs(dx) > 40) go(idx + (dx < 0 ? 1 : -1), true);
+    });
+
+    document.querySelectorAll('.pv-switch button').forEach(b => b.addEventListener('click', () => { variant = Number(b.dataset.v); build(); }));
+    build();
+  })();
+  </script>
+</body>
+</html>

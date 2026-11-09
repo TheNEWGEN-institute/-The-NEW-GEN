@@ -1,0 +1,238 @@
+/* ===================================================================
+   หน้าตัวอย่าง: สไลด์หน้าแรก 5 แบบ (preview/hero.html)
+   =================================================================== */
+:root {
+  --hs-navy: #0b1e3f;
+  --hs-navy-2: #10295a;
+  --hs-royal: #1d3fae;
+  --hs-bright: #2a54d6;
+  --hs-rose: #f43f5e;
+  --hs-rose-deep: #e11d48;
+  --hs-ink: #0b1e3f;
+  --hs-font-en: 'Plus Jakarta Sans', 'Prompt', sans-serif;
+  --hs-font-th: 'Prompt', 'IBM Plex Sans Thai', sans-serif;
+}
+body.pv-hero { margin: 0; background: #eef2f9; font-family: var(--hs-font-th); }
+body.pv-hero .site-header { position: absolute; left: 0; right: 0; top: 0; z-index: 30; }
+
+/* ---------- slider core ---------- */
+.hs { position: relative; height: clamp(600px, 88vh, 760px); overflow: hidden; background: var(--hs-navy); color: #fff; isolation: isolate; }
+.hs-slide { position: absolute; inset: 0; opacity: 0; visibility: hidden; transition: opacity .9s ease, visibility 0s linear .9s; }
+.hs-slide.is-active { opacity: 1; visibility: visible; transition: opacity .9s ease, visibility 0s; z-index: 1; }
+.hs-bg { position: absolute; inset: 0; background-size: cover; background-position: center; transform: scale(1.08); }
+.hs-slide.is-active .hs-bg { animation: hsKen 9s ease-out forwards; }
+@keyframes hsKen { from { transform: scale(1.1); } to { transform: scale(1); } }
+.hs-inner { position: relative; z-index: 2; height: 100%; max-width: 1280px; margin: 0 auto; padding: 120px 40px 70px; box-sizing: border-box; }
+
+/* text appear */
+.hs-slide [data-in] { opacity: 0; transform: translateY(18px); }
+.hs-slide.is-active [data-in] { animation: hsIn .8s cubic-bezier(.2, .7, .2, 1) forwards; animation-delay: calc(var(--d, 0) * 120ms + 250ms); }
+@keyframes hsIn { to { opacity: 1; transform: none; } }
+.hs-slide .tt { opacity: 0; transform: translateY(40px); }
+.hs-slide.is-active .tt { animation: hsUp .9s cubic-bezier(.2, .7, .2, 1) forwards; animation-delay: calc(var(--i, 0) * 110ms + 350ms); }
+@keyframes hsUp { to { opacity: 1; transform: none; } }
+
+/* controls: ด้านล่างซ้าย แนวเดียวกับข้อความ (ไม่ทับป้ายชื่อติวเตอร์) */
+.hs-nav { position: absolute; z-index: 5; bottom: 26px; left: max(40px, calc(50% - 600px)); display: flex; align-items: center; gap: 10px; }
+.hs-arrow {
+  width: 40px; height: 40px; border-radius: 50%; border: 1px solid rgba(255, 255, 255, .35); background: rgba(11, 30, 63, .35); color: #fff; cursor: pointer;
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); transition: background .2s, transform .2s; font-size: .9rem;
+}
+.hs-arrow:hover { background: rgba(255, 255, 255, .2); transform: scale(1.06); }
+.hs-dots { display: flex; gap: 8px; margin-right: 8px; }
+.hs-dots button { width: 46px; height: 5px; border: 0; padding: 0; border-radius: 99px; background: rgba(255, 255, 255, .3); overflow: hidden; cursor: pointer; }
+.hs-dots button i { display: block; height: 100%; width: 0; background: #fff; border-radius: 99px; }
+.hs-dots button.on i { animation: hsBar var(--hs-ms, 6500ms) linear forwards; }
+.hs.is-paused .hs-dots button.on i { animation-play-state: paused; }
+.hs-dots button.done i { width: 100%; }
+@keyframes hsBar { to { width: 100%; } }
+
+/* shared text pieces */
+.hs-kicker { display: inline-flex; align-items: center; gap: 8px; font-size: .95rem; font-weight: 600; letter-spacing: .5px; padding: 7px 16px; border-radius: 99px; background: rgba(255, 255, 255, .1); border: 1px solid rgba(255, 255, 255, .22); backdrop-filter: blur(6px); }
+.hs-kicker i { width: 7px; height: 7px; border-radius: 50%; background: var(--hs-rose); box-shadow: 0 0 0 4px rgba(244, 63, 94, .25); }
+.hs-brand { font-family: var(--hs-font-en); font-weight: 800; line-height: 1; letter-spacing: -1.5px; margin: 14px 0 0; font-size: clamp(2.6rem, 5vw, 4.6rem); white-space: nowrap; }
+.hs-brand .gen { color: var(--hs-rose); }
+.hs-slogan { font-size: clamp(1.25rem, 2.2vw, 1.9rem); font-weight: 700; margin: 16px 0 0; }
+.hs-slogan b { color: #fff; background: linear-gradient(90deg, var(--hs-rose), #fb7185); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.hs-lead { font-size: clamp(.98rem, 1.25vw, 1.12rem); line-height: 1.75; color: rgba(255, 255, 255, .88); max-width: 520px; margin: 16px 0 0; font-weight: 400; }
+
+/* tutors */
+.tt-stage { position: absolute; top: 0; bottom: 0; left: 0; right: 0; margin: 0 auto; max-width: 1360px; z-index: 3; pointer-events: none; }
+.tt { position: absolute; bottom: 0; margin: 0; }
+.tt img { display: block; height: 100%; width: auto; filter: drop-shadow(0 18px 30px rgba(3, 10, 30, .45)); -webkit-mask-image: linear-gradient(to bottom, #000 82%, transparent 100%); mask-image: linear-gradient(to bottom, #000 82%, transparent 100%); }
+.tt figcaption { position: absolute; left: 50%; transform: translateX(-50%); white-space: nowrap; font-weight: 700; }
+
+/* ---------- CTA bar under the slider ---------- */
+.hs-cta { background: #fff; box-shadow: 0 10px 30px rgba(11, 30, 63, .08); position: relative; z-index: 3; }
+.hs-cta-in { max-width: 1280px; margin: 0 auto; padding: 22px 40px; display: flex; align-items: center; justify-content: space-between; gap: 18px; flex-wrap: wrap; box-sizing: border-box; }
+.hs-btns { display: flex; gap: 12px; flex-wrap: wrap; }
+.hs-btn { display: inline-flex; align-items: center; gap: 9px; padding: 14px 26px; border-radius: 99px; font-weight: 700; font-size: 1rem; text-decoration: none; transition: transform .2s, box-shadow .2s; font-family: var(--hs-font-th); }
+.hs-btn:hover { transform: translateY(-2px); }
+.hs-btn.primary { background: linear-gradient(135deg, var(--hs-rose), var(--hs-rose-deep)); color: #fff; box-shadow: 0 10px 22px rgba(225, 29, 72, .3); }
+.hs-btn.secondary { background: var(--hs-navy); color: #fff; }
+.hs-btn.secondary i { color: #ff4d4d; }
+.hs-btn.ghost { background: #eef2fb; color: var(--hs-royal); }
+.hs-trust { display: flex; gap: 22px; flex-wrap: wrap; color: #334155; font-size: .92rem; font-weight: 600; }
+.hs-trust span { display: inline-flex; align-items: center; gap: 7px; }
+.hs-trust i { color: #16a34a; }
+
+/* ---------- slides 2–3 (shared layout, tinted per version) ---------- */
+.s-photo .hs-bg::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(11, 30, 63, .92) 0%, rgba(11, 30, 63, .7) 42%, rgba(11, 30, 63, .1) 80%); }
+.s-photo .hs-inner { display: flex; flex-direction: column; justify-content: center; }
+.s-photo h2 { font-size: clamp(2rem, 4.2vw, 3.6rem); line-height: 1.15; margin: 14px 0 0; font-weight: 800; max-width: 640px; }
+.s-photo h2 em { font-style: normal; color: #fda4af; }
+.s-photo p { font-size: clamp(1rem, 1.4vw, 1.2rem); color: rgba(255, 255, 255, .88); max-width: 540px; line-height: 1.7; margin: 14px 0 0; }
+.s-photo .hs-chips { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
+.s-photo .hs-chips span { padding: 8px 15px; border-radius: 99px; background: rgba(255, 255, 255, .12); border: 1px solid rgba(255, 255, 255, .25); font-size: .92rem; font-weight: 600; }
+.s-photo .hs-link { margin-top: 26px; align-self: flex-start; color: #fff; font-weight: 700; text-decoration: none; border-bottom: 2px solid var(--hs-rose); padding-bottom: 3px; }
+
+/* ===================================================================
+   แบบ 1 — Cinematic: ภาพเต็มจอ ไล่เฉดน้ำเงินจากซ้าย, ติวเตอร์ 4 คนยืนเรียงด้านขวา
+   =================================================================== */
+.v1 .s-main .hs-bg { background-image: url('../assets/images/hero/class-wide.jpg'); }
+.v1 .s-main .hs-bg::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(11, 30, 63, .96) 0%, rgba(11, 30, 63, .88) 34%, rgba(16, 41, 90, .45) 62%, rgba(29, 63, 174, .2) 100%), linear-gradient(0deg, rgba(11, 30, 63, .85) 0%, transparent 35%); }
+.v1 .s-main .hs-copy { position: relative; z-index: 3; max-width: 560px; padding-top: 40px; }
+.v1 .tt { height: 74%; }
+.v1 .tt figcaption { bottom: 18px; padding: 7px 16px; border-radius: 99px; background: rgba(255, 255, 255, .95); color: var(--hs-ink); font-size: .95rem; box-shadow: 0 8px 20px rgba(0, 0, 0, .25); }
+.v1 .tt-1 { right: 36%; height: 66%; z-index: 1; }
+.v1 .tt-2 { right: 23%; height: 72%; z-index: 2; }
+.v1 .tt-3 { right: 9%; height: 76%; z-index: 3; }
+.v1 .tt-4 { right: -1%; height: 68%; z-index: 1; }
+
+/* ===================================================================
+   แบบ 2 — Split Poster: ซ้ายพื้นน้ำเงินลายกริด, ขวาภาพเด็กตัดเฉียง, ติวเตอร์ยืนคร่อมรอยต่อ
+   =================================================================== */
+.v2 .s-main { background: radial-gradient(circle at 20% 30%, #183a8c 0%, var(--hs-navy) 60%); }
+.v2 .s-main::before { content: ''; position: absolute; inset: 0; background-image: linear-gradient(rgba(255, 255, 255, .05) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, .05) 1px, transparent 1px); background-size: 44px 44px; }
+.v2 .s-main .hs-bg { left: 44%; background-image: url('../assets/images/hero/friends-peace.jpg'); clip-path: polygon(14% 0, 100% 0, 100% 100%, 0 100%); }
+.v2 .s-main .hs-bg::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(11, 30, 63, .55), rgba(29, 63, 174, .15) 50%, rgba(11, 30, 63, .35)), linear-gradient(0deg, rgba(11, 30, 63, .9) 0%, transparent 45%); }
+.v2 .hs-copy { position: relative; z-index: 3; max-width: 450px; padding-top: 30px; }
+
+.v2 .hs-line { width: 70px; height: 5px; border-radius: 9px; background: var(--hs-rose); margin-top: 22px; }
+.v2 .tt-row { position: absolute; right: 1%; bottom: 0; width: 56%; height: 80%; z-index: 3; }
+.v2 .tt { height: 86%; }
+.v2 .tt-1 { left: 0; } .v2 .tt-2 { left: 23%; height: 92%; } .v2 .tt-3 { left: 46%; height: 96%; } .v2 .tt-4 { left: 72%; height: 88%; }
+.v2 .tt figcaption { bottom: 14px; font-size: 1.05rem; padding: 6px 16px 6px 12px; background: var(--hs-rose); color: #fff; border-radius: 8px; box-shadow: 0 8px 18px rgba(225, 29, 72, .35); }
+.v2 .tt figcaption::before { content: ''; display: inline-block; width: 6px; height: 6px; background: #fff; border-radius: 50%; margin-right: 8px; vertical-align: middle; }
+
+/* ===================================================================
+   แบบ 3 — Team Poster: ภาพเด็กโทนน้ำเงิน (duotone), หัวเรื่องกลางจอ, ติวเตอร์ 4 คนเรียงกลางล่าง
+   =================================================================== */
+.v3 .s-main .hs-bg { background-image: url('../assets/images/hero/class-board.jpg'); background-color: #1d3fae; background-blend-mode: luminosity; }
+.v3 .s-main .hs-bg::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(11, 30, 63, .85) 0%, rgba(29, 63, 174, .45) 55%, rgba(11, 30, 63, .95) 100%); }
+.v3 .hs-nav { left: 50%; transform: translateX(-50%); bottom: 12px; }
+.v3 .s-main .hs-inner { text-align: center; padding-top: 112px; }
+.v3 .hs-copy { position: relative; z-index: 4; }
+.v3 .hs-brand { font-size: clamp(2.8rem, 6vw, 5.4rem); margin-top: 10px; }
+.v3 .hs-slogan { margin-top: 10px; }
+.v3 .hs-lead { margin: 12px auto 0; max-width: 640px; }
+.v3 .tt-row { position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); width: min(980px, 92%); height: 48%; z-index: 3; }
+.v3 .tt { height: 100%; }
+.v3 .tt-1 { left: 2%; height: 88%; } .v3 .tt-2 { left: 25%; height: 96%; } .v3 .tt-3 { left: 49%; } .v3 .tt-4 { left: 75%; height: 90%; }
+.v3 .tt figcaption { bottom: 54px; font-size: 1.05rem; color: #fff; padding: 6px 18px; border-radius: 99px; background: rgba(11, 30, 63, .55); border: 1px solid rgba(255, 255, 255, .35); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+.v3 .hs-glow { position: absolute; left: 50%; bottom: -10%; transform: translateX(-50%); width: 900px; height: 420px; background: radial-gradient(ellipse at center, rgba(42, 84, 214, .75), transparent 65%); z-index: 2; }
+
+/* ===================================================================
+   แบบ 4 — Glass Card: ภาพเต็มจอเบลอเล็กน้อย, การ์ดกระจกฝ้าด้านซ้าย, ติวเตอร์ขวาบนวงแหวนแสง
+   =================================================================== */
+.v4 .s-main .hs-bg { background-image: url('../assets/images/hero/class-timer.jpg'); filter: blur(3px) saturate(1.1); }
+.v4 .s-main .hs-bg::after { content: ''; position: absolute; inset: 0; background: linear-gradient(120deg, rgba(11, 30, 63, .78), rgba(29, 63, 174, .55) 60%, rgba(11, 30, 63, .7)); }
+.v4 .hs-card { position: relative; z-index: 4; max-width: 500px; margin-top: 26px; padding: 34px 36px 32px; border-radius: 28px; background: linear-gradient(145deg, rgba(255, 255, 255, .16), rgba(255, 255, 255, .06)); border: 1px solid rgba(255, 255, 255, .28); box-shadow: 0 30px 60px rgba(3, 10, 30, .35); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
+.v4 .hs-brand { font-size: clamp(2.4rem, 3.9vw, 3.6rem); }
+.v4 .hs-ring { position: absolute; z-index: 2; right: 9%; bottom: -26%; width: 640px; height: 640px; border-radius: 50%; border: 1px solid rgba(255, 255, 255, .25); box-shadow: inset 0 0 120px rgba(42, 84, 214, .5), 0 0 80px rgba(42, 84, 214, .35); background: radial-gradient(circle, rgba(42, 84, 214, .55), rgba(11, 30, 63, .1) 70%); }
+.v4 .hs-ring::after { content: ''; position: absolute; inset: 60px; border-radius: 50%; border: 1px dashed rgba(255, 255, 255, .25); }
+.v4 .hs-sym { position: absolute; z-index: 2; font-family: 'Times New Roman', serif; font-style: italic; color: rgba(255, 255, 255, .28); font-size: 2.2rem; }
+.v4 .tt { z-index: 3; }
+.v4 .tt-1 { right: 40%; height: 58%; } .v4 .tt-2 { right: 27%; height: 70%; } .v4 .tt-3 { right: 12%; height: 74%; } .v4 .tt-4 { right: 1%; height: 60%; }
+.v4 .tt figcaption { bottom: 20px; font-size: .98rem; padding: 6px 14px; border-radius: 12px; background: #fff; color: var(--hs-ink); box-shadow: 0 10px 24px rgba(0, 0, 0, .3); }
+.v4 .tt figcaption::after { content: ''; position: absolute; left: 50%; top: -5px; width: 10px; height: 10px; background: #fff; transform: translateX(-50%) rotate(45deg); }
+
+/* ===================================================================
+   แบบ 5 — Collage: พื้นน้ำเงินเข้ม, ภาพเด็กแบบโพลารอยด์เอียงหลังติวเตอร์, ตัวหนังสือ GEN Z จาง ๆ, แถบคำวิ่ง
+   =================================================================== */
+.v5 .s-main { background: linear-gradient(135deg, #0b1e3f 0%, #132f72 55%, #1d3fae 100%); }
+.v5 .hs-water { position: absolute; z-index: 1; right: -2%; top: 14%; font-family: var(--hs-font-en); font-weight: 800; font-size: 19vw; line-height: .8; color: transparent; -webkit-text-stroke: 2px rgba(255, 255, 255, .08); letter-spacing: -6px; }
+.v5 .pol { position: absolute; z-index: 1; background: #fff; padding: 10px 10px 34px; border-radius: 6px; box-shadow: 0 25px 50px rgba(0, 0, 0, .35); }
+.v5 .pol span { display: block; width: 100%; height: 100%; background-size: cover; background-position: center; border-radius: 3px; }
+.v5 .pol-1 { width: 300px; height: 230px; right: 30%; top: 17%; transform: rotate(-8deg); }
+.v5 .pol-2 { width: 320px; height: 240px; right: 5%; top: 12%; transform: rotate(6deg); }
+.v5 .pol-3 { width: 270px; height: 200px; right: 17%; top: 44%; transform: rotate(-2deg); }
+.v5 .hs-copy { position: relative; z-index: 4; max-width: 520px; padding-top: 34px; }
+.v5 .hs-brand .new { background: linear-gradient(90deg, #fff, #c7d6ff); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.v5 .tt { z-index: 3; }
+.v5 .tt-1 { right: 37%; height: 60%; } .v5 .tt-2 { right: 24%; height: 68%; } .v5 .tt-3 { right: 10%; height: 72%; } .v5 .tt-4 { right: 0; height: 62%; }
+.v5 .tt figcaption { bottom: 64px; font-size: 1rem; padding: 6px 16px; border-radius: 99px; background: linear-gradient(135deg, var(--hs-rose), var(--hs-rose-deep)); color: #fff; box-shadow: 0 8px 18px rgba(225, 29, 72, .4); }
+.v5 .hs-marquee { position: absolute; z-index: 4; left: 0; right: 0; bottom: 0; height: 48px; background: var(--hs-rose); overflow: hidden; display: flex; align-items: center; }
+.v5 .hs-marquee div { display: flex; gap: 36px; white-space: nowrap; animation: hsMarq 26s linear infinite; font-weight: 700; font-size: 1rem; padding-left: 36px; }
+.v5 .hs-marquee div span::after { content: '✦'; margin-left: 36px; opacity: .7; }
+@keyframes hsMarq { to { transform: translateX(-50%); } }
+.v5 .hs-nav { bottom: 64px; }
+
+/* ---------- per-version tint for slides 2–3 ---------- */
+.v2 .s-photo .hs-bg::after { background: linear-gradient(90deg, rgba(11, 30, 63, .95) 0%, rgba(11, 30, 63, .78) 45%, rgba(29, 63, 174, .25) 85%); }
+.v3 .s-photo .hs-inner { align-items: center; text-align: center; }
+.v3 .s-photo .hs-bg { background-color: #1d3fae; background-blend-mode: luminosity; }
+.v3 .s-photo .hs-bg::after { background: linear-gradient(180deg, rgba(11, 30, 63, .78), rgba(29, 63, 174, .7)); }
+.v3 .s-photo .hs-chips { justify-content: center; }
+.v3 .s-photo .hs-link { align-self: center; }
+.v3 .s-photo p { margin-left: auto; margin-right: auto; }
+.v4 .s-photo .hs-copy { padding: 34px 36px; border-radius: 28px; max-width: 600px; background: rgba(255, 255, 255, .1); border: 1px solid rgba(255, 255, 255, .25); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
+.v4 .s-photo .hs-bg::after { background: linear-gradient(120deg, rgba(11, 30, 63, .7), rgba(29, 63, 174, .45)); }
+.v5 .s-photo .hs-bg::after { background: linear-gradient(90deg, rgba(11, 30, 63, .95) 0%, rgba(19, 47, 114, .75) 50%, rgba(29, 63, 174, .2) 90%); }
+.v5 .s-photo .hs-inner { padding-bottom: 90px; }
+
+/* ===================================================================
+   Tablet / mobile
+   =================================================================== */
+@media (max-width: 1024px) {
+  .hs { height: 760px; }
+  .hs-inner { padding: 110px 28px 60px; }
+  .v1 .tt-1 { right: 50%; height: 50%; } .v1 .tt-2 { right: 34%; height: 55%; } .v1 .tt-3 { right: 16%; height: 58%; } .v1 .tt-4 { right: 0; height: 52%; }
+  .v1 .s-main .hs-bg::after { background: linear-gradient(180deg, rgba(11, 30, 63, .95) 0%, rgba(11, 30, 63, .75) 45%, rgba(29, 63, 174, .3) 75%, rgba(11, 30, 63, .9) 100%); }
+  .v2 .s-main .hs-bg { left: 0; top: 46%; clip-path: polygon(0 12%, 100% 0, 100% 100%, 0 100%); }
+  .v2 .tt-row { width: 92%; height: 50%; right: 4%; }
+  .v4 .tt-1 { right: 54%; height: 42%; } .v4 .tt-2 { right: 37%; height: 48%; } .v4 .tt-3 { right: 18%; height: 50%; } .v4 .tt-4 { right: 1%; height: 44%; }
+  .v4 .hs-ring { right: 10%; bottom: -40%; }
+  .v5 .pol-1, .v5 .pol-3 { display: none; }
+  .v5 .pol-2 { top: auto; bottom: 22%; right: 30%; }
+  .v5 .tt-1 { right: 54%; height: 44%; } .v5 .tt-2 { right: 37%; height: 50%; } .v5 .tt-3 { right: 18%; height: 52%; } .v5 .tt-4 { right: 0; height: 46%; }
+}
+@media (max-width: 640px) {
+  .hs { height: 720px; }
+  .hs-inner { padding: 96px 18px 54px; }
+  .hs-arrow { display: none; }
+  .hs-nav { left: 50%; transform: translateX(-50%); bottom: 8px; }
+  .hs-dots button { width: 34px; }
+  .hs-brand { font-size: 2.9rem !important; letter-spacing: -1px; }
+  .hs-slogan { font-size: 1.2rem; margin-top: 10px; }
+  .hs-lead { font-size: .95rem; line-height: 1.65; margin-top: 10px; }
+  .hs-kicker { font-size: .82rem; padding: 6px 13px; }
+  .tt figcaption { font-size: .78rem !important; padding: 4px 10px !important; bottom: 24px !important; }
+  .v1 .tt-1 { right: 64%; height: 36%; } .v1 .tt-2 { right: 42%; height: 40%; } .v1 .tt-3 { right: 20%; height: 42%; } .v1 .tt-4 { right: -2%; height: 37%; }
+  .v2 .s-main .hs-bg { top: 50%; }
+  .v2 .tt-row { width: 100%; right: 0; height: 40%; }
+  .v2 .hs-copy { padding-top: 10px; }
+  .v3 .s-main .hs-inner { padding-top: 96px; }
+  .v3 .tt-row { width: 100%; height: 36%; }
+  .v3 .hs-glow { width: 520px; height: 300px; }
+  .v4 .hs-card { padding: 22px 20px; border-radius: 22px; margin-top: 6px; }
+  .v4 .hs-ring { width: 420px; height: 420px; right: -10%; bottom: -30%; }
+  .v4 .tt-1 { right: 64%; height: 33%; } .v4 .tt-2 { right: 42%; height: 37%; } .v4 .tt-3 { right: 20%; height: 39%; } .v4 .tt-4 { right: -2%; height: 34%; }
+  .v4 .hs-sym { display: none; }
+  .v5 .hs-water { font-size: 34vw; top: 52%; }
+  .v5 .pol-2 { width: 200px; height: 150px; right: 6%; bottom: 30%; }
+  .v5 .tt-1 { right: 64%; height: 32%; } .v5 .tt-2 { right: 42%; height: 36%; } .v5 .tt-3 { right: 20%; height: 38%; } .v5 .tt-4 { right: -2%; height: 33%; }
+  .v5 .tt figcaption { bottom: 66px !important; }
+  .v5 .hs-marquee { height: 40px; }
+  .v5 .hs-marquee div { font-size: .85rem; }
+  .v5 .hs-nav { bottom: 46px; }
+  .s-photo h2 { font-size: 2rem; }
+  .hs-cta-in { padding: 18px; }
+  .hs-btns { width: 100%; display: grid; grid-template-columns: 1fr 1fr; }
+  .hs-btn { justify-content: center; padding: 13px 14px; font-size: .92rem; }
+  .hs-btn.primary { grid-column: 1 / -1; }
+  .hs-trust { gap: 8px 16px; font-size: .84rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hs-slide.is-active .hs-bg, .hs-slide.is-active [data-in], .hs-slide.is-active .tt, .v5 .hs-marquee div { animation: none !important; opacity: 1; transform: none; }
+}

@@ -479,7 +479,23 @@ function previewUploadImage(event, previewId, inputTargetId, statusId) {
       const ctx = canvas.getContext('2d');
       ctx.drawImage(img, 0, 0, width, height);
 
-      const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.82);
+      // รูปพื้นหลังโปร่งใส (PNG/WebP ตัดพื้นหลังแล้ว) → เก็บความโปร่งใสไว้ (WebP หรือ PNG)
+      // ถ้าแปลงเป็น JPEG ส่วนโปร่งใสจะกลายเป็นสีดำ
+      const transparent = imageHasTransparency(file, ctx, width, height);
+      let outType = 'image/jpeg';
+      let compressedDataUrl;
+      if (transparent) {
+        compressedDataUrl = canvas.toDataURL('image/webp', 0.9);
+        outType = 'image/webp';
+        if (!compressedDataUrl.startsWith('data:image/webp')) { // เบราว์เซอร์ที่สร้าง WebP ไม่ได้ (เช่น Safari)
+          compressedDataUrl = canvas.toDataURL('image/png');
+          outType = 'image/png';
+        }
+      } else {
+        compressedDataUrl = canvas.toDataURL('image/jpeg', 0.82);
+      }
+      // ชื่อไฟล์ลงท้าย "-cutout" = รูปตัดพื้นหลัง หน้าเว็บจะวางบนพื้นสีน้ำเงินของธีมให้อัตโนมัติ
+      const uploadName = transparent ? `cutout.${outType === 'image/webp' ? 'webp' : 'png'}` : file.name;
 
       // ตั้งค่ารูปในฟอร์มทันทีเพื่อความรวดเร็ว
       if (preview) preview.src = compressedDataUrl;
@@ -495,7 +511,7 @@ function previewUploadImage(event, previewId, inputTargetId, statusId) {
         fetch(uploadApi, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ base64Data: compressedDataUrl, filename: file.name })
+          body: JSON.stringify({ base64Data: compressedDataUrl, filename: uploadName })
         })
         .then(res => res.json())
         .then(data => {
@@ -527,20 +543,22 @@ function previewUploadImage(event, previewId, inputTargetId, statusId) {
         canvas.toBlob(async (blob) => {
           if (!blob) { tryLocalUpload(); return; }
           try {
-            const publicUrl = await window.NewGenDB.uploadImageToSupabase(blob, file.name);
+            const publicUrl = await window.NewGenDB.uploadImageToSupabase(blob, uploadName);
             if (publicUrl) {
               if (targetInput) targetInput.value = publicUrl;
               if (preview) preview.src = publicUrl;
               if (statusEl) {
                 statusEl.style.color = '#16a34a';
-                statusEl.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> อัปโหลดขึ้น Supabase Storage สำเร็จ';
+                statusEl.innerHTML = transparent
+                  ? '<i class="fa-solid fa-wand-magic-sparkles"></i> อัปโหลดสำเร็จ — รูปพื้นหลังโปร่งใส จะแสดงบนพื้นสีน้ำเงินของเว็บ'
+                  : '<i class="fa-solid fa-cloud-arrow-up"></i> อัปโหลดขึ้น Supabase Storage สำเร็จ';
                 setTimeout(() => { if (statusEl) statusEl.style.display = 'none'; }, 4000);
               }
               return;
             }
           } catch (e) {}
           tryLocalUpload();
-        }, 'image/jpeg', 0.85);
+        }, outType, transparent ? 0.9 : 0.85);
       } else {
         tryLocalUpload();
       }
@@ -548,6 +566,20 @@ function previewUploadImage(event, previewId, inputTargetId, statusId) {
     img.src = rawDataUrl;
   };
   reader.readAsDataURL(file);
+}
+
+// มีพิกเซลโปร่งใสไหม (เฉพาะไฟล์ที่เก็บความโปร่งใสได้: PNG / WebP / GIF)
+function imageHasTransparency(file, ctx, width, height) {
+  if (!/image\/(png|webp|gif)/i.test(file.type || '') && !/\.(png|webp|gif)$/i.test(file.name || '')) return false;
+  try {
+    const data = ctx.getImageData(0, 0, width, height).data;
+    const step = Math.max(1, Math.floor((width * height) / 200000)) * 4; // ตรวจไม่เกิน ~200,000 จุด
+    let clear = 0;
+    for (let i = 3; i < data.length; i += step) {
+      if (data[i] < 250 && ++clear > 50) return true;
+    }
+  } catch (e) { /* ignore */ }
+  return false;
 }
 
 /* ===================================================================

@@ -814,7 +814,9 @@ const NewGenDB = {
   uploadImageToSupabase: async (blob, filename) => {
     try {
       const ext = String(filename || 'image.jpg').split('.').pop().replace(/[^a-z0-9]/gi, '').slice(0, 5) || 'jpg';
-      const safeName = `img-${Date.now()}-${Math.random().toString(36).substring(2, 6)}.${ext}`;
+      // รูปตัดพื้นหลัง (โปร่งใส) ลงท้าย "-cutout" → หน้าเว็บรู้ว่าต้องวางบนพื้นสีน้ำเงินของธีม
+      const tag = /^cutout\./i.test(String(filename || '')) ? '-cutout' : '';
+      const safeName = `img-${Date.now()}-${Math.random().toString(36).substring(2, 6)}${tag}.${ext}`;
       const res = await fetch(`${SUPABASE_CONFIG.url}/storage/v1/object/${SUPABASE_CONFIG.bucket}/${safeName}`, {
         method: 'POST',
         headers: await getSupabaseHeaders({ 'Content-Type': blob.type || 'image/jpeg' }),

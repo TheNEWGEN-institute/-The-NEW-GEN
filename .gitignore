@@ -35,3 +35,6 @@ desktop.ini
 *.secret
 .env
 .env.*
+
+# รูปต้นฉบับขนาดใหญ่ (683MB) — ใช้เฉพาะรูปที่ย่อแล้วใน assets/images/hero
+รูปเด็กอัพเดท/

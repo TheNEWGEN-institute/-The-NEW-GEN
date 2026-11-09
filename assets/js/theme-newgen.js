@@ -28,7 +28,14 @@
   const esc = s => String(s === undefined || s === null ? '' : s)
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   const db = () => window.NewGenDB;
-  const cutoutOf = t => (t && (t.cutout || CUTOUTS[t.id])) || '';
+  // รูปตัดพื้นหลัง: ไฟล์ในเว็บ (CUTOUTS) หรือรูปที่อัปโหลดแบบโปร่งใสจากหลังบ้าน (ชื่อไฟล์ลงท้าย -cutout.webp/.png)
+  const isCutoutUrl = u => /-cutout\.(webp|png)(\?|#|$)/i.test(String(u || ''));
+  const cutoutOf = t => {
+    if (!t) return '';
+    if (t.cutout) return t.cutout;
+    if (isCutoutUrl(t.image)) return window.resolveMediaUrl ? window.resolveMediaUrl(t.image) : t.image;
+    return CUTOUTS[t.id] || '';
+  };
   const priceNum = v => (window.priceNumberText ? window.priceNumberText(v) : String(v || '').replace(/\s*บ.*$/, '')).trim();
   const toNum = v => parseInt(String(v || '').replace(/[^0-9]/g, ''), 10) || 0;
   const fx = key => document.body.dataset[key === 'reviews' ? 'fxReviews' : 'fxSave'] || FX_DEFAULTS[key];
