@@ -1,0 +1,183 @@
+/* ===================================================================
+   ลองธีมใหม่ทั้งเว็บ (ตัวอย่าง) — โหลดเฉพาะเมื่อเปิดลิงก์ ?look=1|2|3
+   (ผู้เข้าชมทั่วไปไม่เห็น) — ตัวสลับอยู่ใน assets/js/theme-newgen.js
+   1 Midnight Premium · 2 Ivory Luxe · 3 Aurora Glass
+   =================================================================== */
+html[data-look] {
+  --lk-deep: #071530; --lk-navy: #0b1e3f; --lk-royal: #1d3fae; --lk-bright: #2a54d6; --lk-sky: #93b4ff;
+  --lk-rose: #f43f5e; --lk-rose-deep: #e11d48; --lk-en: 'Plus Jakarta Sans', 'Prompt', sans-serif;
+}
+
+/* ---------- ตัวสลับธีม (มุมล่างซ้าย) ---------- */
+.lk-switch { position: fixed; left: 14px; bottom: 14px; z-index: 3000; display: flex; align-items: center; gap: 3px; padding: 5px; border-radius: 99px; background: #0b1e3f; color: #fff; box-shadow: 0 12px 30px rgba(11, 30, 63, .45); border: 1px solid rgba(255, 255, 255, .18); font-family: 'Prompt', sans-serif; }
+.lk-switch b { font-size: .74rem; font-weight: 500; opacity: .85; padding: 0 8px 0 6px; white-space: nowrap; }
+.lk-switch button { border: 0; background: transparent; color: #fff; font: inherit; font-size: .82rem; font-weight: 700; padding: 6px 12px; border-radius: 99px; cursor: pointer; }
+.lk-switch button.on { background: #fff; color: #0b1e3f; }
+.lk-switch button.off { opacity: .7; font-weight: 500; }
+@media (max-width: 600px) { .lk-switch { left: 8px; bottom: 8px; } .lk-switch b { display: none; } .lk-switch button { padding: 6px 9px; font-size: .76rem; } }
+
+/* ---------- หน้าแรก: ใช้สไลด์ใหม่แทนส่วนบนเดิม ---------- */
+html[data-look] body.ng-theme #hero { display: none !important; }
+html[data-look] .lk-hero { display: block; }
+
+/* แถบแนะนำสถาบัน (ส่วนเสนอใหม่ — ย้ายข้อความแนะนำจากส่วนบนเดิมมาไว้ที่นี่) */
+.lk-intro { position: relative; padding: 56px 0 50px; }
+.lk-intro .container { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 40px; align-items: center; }
+.lk-intro p { margin: 0; font-size: 1.05rem; line-height: 1.85; }
+.lk-intro .lk-new { display: inline-block; font-size: .72rem; font-weight: 700; padding: 3px 10px; border-radius: 99px; background: #fef3c7; color: #92400e; margin-bottom: 12px; }
+.lk-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.lk-stat { border-radius: 20px; padding: 18px 20px; }
+.lk-stat b { display: block; font-family: var(--lk-en); font-size: 1.7rem; font-weight: 800; line-height: 1.1; }
+.lk-stat span { font-size: .9rem; }
+@media (max-width: 860px) { .lk-intro .container { grid-template-columns: 1fr; gap: 24px; } .lk-intro { padding: 40px 0; } }
+
+/* ---------- หัวข้อของแต่ละส่วน (ทุกธีม) ---------- */
+html[data-look] body.ng-theme .section-title { font-weight: 800; letter-spacing: -.3px; }
+html[data-look] body.ng-theme .subpage-hero { position: relative; overflow: hidden; }
+html[data-look] body.ng-theme .subpage-hero .container { position: relative; z-index: 2; }
+html[data-look] body.ng-theme .subpage-hero-title { font-weight: 800; letter-spacing: -.5px; }
+
+/* ===================================================================
+   ธีม 1 · Midnight Premium — ทั้งเว็บโทนน้ำเงินเข้ม การ์ดขาวลอยเด่น แสงเรืองนุ่ม ๆ
+   =================================================================== */
+html[data-look="1"] body.ng-theme { background: var(--lk-deep); }
+html[data-look="1"] body.ng-theme .page-content-wrapper,
+html[data-look="1"] body.ng-theme .courses-section,
+html[data-look="1"] body.ng-theme .why-section,
+html[data-look="1"] body.ng-theme .tutor-group-section,
+html[data-look="1"] body.ng-theme .cd-related-section { background: transparent !important; }
+html[data-look="1"] body.ng-theme main, html[data-look="1"] body.ng-theme .page-content-wrapper { color: #e6edff; }
+html[data-look="1"] body.ng-theme .courses-section,
+html[data-look="1"] body.ng-theme .why-section { background: radial-gradient(70% 60% at 50% 0%, rgba(42, 84, 214, .22), transparent 70%) !important; }
+html[data-look="1"] body.ng-theme .reviews-section,
+html[data-look="1"] body.ng-theme .video-section { background: linear-gradient(180deg, #0b1e3f, #071530) !important; }
+html[data-look="1"] body.ng-theme .section-title,
+html[data-look="1"] body.ng-theme .section-heading-box h2,
+html[data-look="1"] body.ng-theme .section-heading-box h3,
+html[data-look="1"] body.ng-theme .tutor-group-section h2,
+html[data-look="1"] body.ng-theme .tutor-group-section h3,
+html[data-look="1"] body.ng-theme .video-info-title { color: #fff !important; }
+html[data-look="1"] body.ng-theme .section-desc,
+html[data-look="1"] body.ng-theme .section-heading-box p,
+html[data-look="1"] body.ng-theme .tutor-group-section > .container > p { color: rgba(230, 237, 255, .78) !important; }
+html[data-look="1"] body.ng-theme .section-subtitle { background: rgba(244, 63, 94, .14); color: #ff8fa3; border: 1px solid rgba(244, 63, 94, .35); }
+html[data-look="1"] body.ng-theme .text-gradient-cyan { background: linear-gradient(90deg, #ff6b85, var(--lk-rose)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+html[data-look="1"] body.ng-theme .subpage-hero { background: radial-gradient(90% 120% at 15% 0%, #1b3f96 0%, #0d2558 45%, var(--lk-deep) 85%) !important; padding-bottom: 70px; }
+html[data-look="1"] body.ng-theme .subpage-hero::before { content: ''; position: absolute; inset: 0; background-image: linear-gradient(rgba(255, 255, 255, .045) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, .045) 1px, transparent 1px); background-size: 46px 46px; -webkit-mask-image: radial-gradient(70% 90% at 50% 20%, #000 20%, transparent 100%); mask-image: radial-gradient(70% 90% at 50% 20%, #000 20%, transparent 100%); }
+html[data-look="1"] body.ng-theme .subpage-hero::after { content: ''; position: absolute; left: 50%; bottom: -160px; width: 900px; height: 320px; transform: translateX(-50%); background: radial-gradient(closest-side, rgba(42, 84, 214, .55), transparent); }
+html[data-look="1"] body.ng-theme .subpage-hero-title { font-size: clamp(2.4rem, 4.6vw, 3.8rem) !important; }
+html[data-look="1"] body.ng-theme .course-card,
+html[data-look="1"] body.ng-theme .tutor-profile-card,
+html[data-look="1"] body.ng-theme .feature-box,
+html[data-look="1"] body.ng-theme .review-real-card,
+html[data-look="1"] body.ng-theme .trial-video-item-card { box-shadow: 0 24px 50px rgba(0, 0, 0, .35), 0 0 0 1px rgba(147, 180, 255, .12) !important; }
+html[data-look="1"] body.ng-theme .feature-box { background: rgba(255, 255, 255, .06) !important; border: 1px solid rgba(147, 180, 255, .2) !important; backdrop-filter: blur(10px); }
+html[data-look="1"] body.ng-theme .feature-box-title { color: #fff !important; }
+html[data-look="1"] body.ng-theme .feature-box-desc { color: rgba(230, 237, 255, .75) !important; }
+html[data-look="1"] body.ng-theme .site-footer { background: #050d1f !important; border-top: 1px solid rgba(147, 180, 255, .15); box-shadow: 0 -1px 0 rgba(244, 63, 94, .25); }
+html[data-look="1"] .lk-intro { background: linear-gradient(180deg, #071530, #0b1e3f); color: #e6edff; }
+html[data-look="1"] .lk-intro p { color: rgba(230, 237, 255, .85); }
+html[data-look="1"] .lk-stat { background: rgba(255, 255, 255, .06); border: 1px solid rgba(147, 180, 255, .22); }
+html[data-look="1"] .lk-stat b { color: #fff; }
+html[data-look="1"] .lk-stat b em { font-style: normal; color: var(--lk-rose); }
+html[data-look="1"] .lk-stat span { color: rgba(230, 237, 255, .75); }
+
+/* ===================================================================
+   ธีม 2 · Ivory Luxe — พื้นงาช้างอบอุ่น แบนเนอร์น้ำเงินขอบโค้ง ตัวหนังสือน้ำเงินเข้มหนา การ์ดมนนุ่ม
+   =================================================================== */
+html[data-look="2"] body.ng-theme { background: #f7f5f0; }
+html[data-look="2"] body.ng-theme .page-content-wrapper,
+html[data-look="2"] body.ng-theme .courses-section,
+html[data-look="2"] body.ng-theme .why-section,
+html[data-look="2"] body.ng-theme .tutor-group-section,
+html[data-look="2"] body.ng-theme .cd-related-section { background: transparent !important; }
+html[data-look="2"] body.ng-theme .reviews-section,
+html[data-look="2"] body.ng-theme .video-section { background: var(--lk-navy) !important; border-radius: 48px; margin: 0 16px; }
+html[data-look="2"] body.ng-theme .section-title { color: var(--lk-navy) !important; font-size: clamp(2rem, 3.4vw, 2.9rem) !important; }
+html[data-look="2"] body.ng-theme .reviews-section .section-title,
+html[data-look="2"] body.ng-theme .video-section .video-info-title { color: #fff !important; }
+html[data-look="2"] body.ng-theme .reviews-section .section-desc { color: rgba(230, 237, 255, .8) !important; }
+html[data-look="2"] body.ng-theme .section-subtitle { background: transparent !important; border: 0 !important; color: var(--lk-rose-deep) !important; letter-spacing: 3px; font-weight: 700; display: inline-flex; align-items: center; gap: 10px; }
+html[data-look="2"] body.ng-theme .section-subtitle::before, html[data-look="2"] body.ng-theme .section-subtitle::after { content: ''; width: 26px; height: 2px; background: currentColor; border-radius: 2px; }
+html[data-look="2"] body.ng-theme .text-gradient-cyan { background: linear-gradient(90deg, var(--lk-royal), var(--lk-bright)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+html[data-look="2"] body.ng-theme .reviews-section .text-gradient-cyan, html[data-look="2"] body.ng-theme .video-section .text-gradient-cyan { background: linear-gradient(90deg, #ff6b85, var(--lk-rose)); -webkit-background-clip: text; background-clip: text; }
+html[data-look="2"] body.ng-theme .subpage-hero { background: radial-gradient(90% 140% at 10% 0%, #1b3f96 0%, var(--lk-navy) 55%, var(--lk-deep) 100%) !important; margin: 0 14px; border-radius: 0 0 44px 44px; padding-bottom: 64px; }
+html[data-look="2"] body.ng-theme .subpage-hero::after { content: ''; position: absolute; top: 0; right: 0; bottom: 0; width: 46%; background: url('../images/hero/class-wide.jpg') center / cover; -webkit-mask-image: linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, .55) 60%, rgba(0, 0, 0, .7) 100%); mask-image: linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, .55) 60%, rgba(0, 0, 0, .7) 100%); opacity: .55; }
+html[data-look="2"] body.ng-theme .course-card,
+html[data-look="2"] body.ng-theme .tutor-profile-card,
+html[data-look="2"] body.ng-theme .review-real-card,
+html[data-look="2"] body.ng-theme .trial-video-item-card,
+html[data-look="2"] body.ng-theme .faq-cta-card { border-radius: 26px !important; box-shadow: 0 18px 44px rgba(11, 30, 63, .09) !important; border: 1px solid rgba(11, 30, 63, .06) !important; }
+html[data-look="2"] body.ng-theme .feature-box { background: #fff !important; border-radius: 26px !important; box-shadow: 0 18px 44px rgba(11, 30, 63, .08) !important; border: 1px solid rgba(11, 30, 63, .05) !important; }
+html[data-look="2"] body.ng-theme .feature-icon-wrap { background: linear-gradient(135deg, var(--lk-navy), var(--lk-royal)) !important; color: #fff !important; border-radius: 18px !important; }
+html[data-look="2"] body.ng-theme .site-footer { background: var(--lk-navy) !important; border-radius: 48px 48px 0 0; margin-top: 40px; }
+html[data-look="2"] .lk-intro { background: transparent; }
+html[data-look="2"] .lk-intro p { color: #334155; }
+html[data-look="2"] .lk-stat { background: #fff; border: 1px solid rgba(11, 30, 63, .06); box-shadow: 0 16px 36px rgba(11, 30, 63, .08); }
+html[data-look="2"] .lk-stat b { color: var(--lk-navy); }
+html[data-look="2"] .lk-stat b em { font-style: normal; color: var(--lk-rose-deep); }
+html[data-look="2"] .lk-stat span { color: #64748b; }
+
+/* ===================================================================
+   ธีม 3 · Aurora Glass — พื้นฟ้าอ่อนมีแสงออโรรา การ์ดกระจกฝ้า หัวข้อไล่สีน้ำเงิน
+   =================================================================== */
+html[data-look="3"] body.ng-theme { background: #eef3ff; }
+html[data-look="3"] body.ng-theme::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: radial-gradient(40% 35% at 8% 20%, rgba(42, 84, 214, .22), transparent 70%), radial-gradient(35% 30% at 92% 30%, rgba(244, 63, 94, .14), transparent 70%), radial-gradient(45% 40% at 60% 95%, rgba(147, 180, 255, .35), transparent 70%); }
+html[data-look="3"] body.ng-theme .page-content-wrapper,
+html[data-look="3"] body.ng-theme .courses-section,
+html[data-look="3"] body.ng-theme .why-section,
+html[data-look="3"] body.ng-theme .tutor-group-section,
+html[data-look="3"] body.ng-theme .cd-related-section { background: transparent !important; }
+html[data-look="3"] body.ng-theme .reviews-section,
+html[data-look="3"] body.ng-theme .video-section { background: linear-gradient(135deg, var(--lk-navy) 0%, var(--lk-royal) 60%, var(--lk-bright) 100%) !important; }
+html[data-look="3"] body.ng-theme .section-title { background: linear-gradient(90deg, var(--lk-navy), var(--lk-royal) 60%, var(--lk-bright)); -webkit-background-clip: text; background-clip: text; color: transparent !important; font-size: clamp(2rem, 3.4vw, 2.8rem) !important; }
+html[data-look="3"] body.ng-theme .section-title .text-gradient-cyan { background: linear-gradient(90deg, var(--lk-rose-deep), #ff6b85); -webkit-background-clip: text; background-clip: text; }
+html[data-look="3"] body.ng-theme .reviews-section .section-title { background: none; color: #fff !important; }
+html[data-look="3"] body.ng-theme .reviews-section .section-desc { color: rgba(230, 237, 255, .85) !important; }
+html[data-look="3"] body.ng-theme .section-subtitle { background: rgba(255, 255, 255, .7) !important; color: var(--lk-royal) !important; border: 1px solid rgba(42, 84, 214, .25) !important; backdrop-filter: blur(8px); }
+html[data-look="3"] body.ng-theme .subpage-hero { background: linear-gradient(135deg, var(--lk-navy) 0%, var(--lk-royal) 55%, var(--lk-bright) 100%) !important; padding-bottom: 80px; clip-path: ellipse(120% 100% at 50% 0%); }
+html[data-look="3"] body.ng-theme .subpage-hero::after { content: 'The NEW GEN'; position: absolute; right: -10px; bottom: -14px; font-family: var(--lk-en); font-weight: 800; font-size: clamp(5rem, 11vw, 10rem); line-height: .8; letter-spacing: -4px; color: transparent; -webkit-text-stroke: 1.5px rgba(255, 255, 255, .09); white-space: nowrap; pointer-events: none; }
+html[data-look="3"] body.ng-theme .course-card,
+html[data-look="3"] body.ng-theme .tutor-profile-card,
+html[data-look="3"] body.ng-theme .review-real-card,
+html[data-look="3"] body.ng-theme .trial-video-item-card,
+html[data-look="3"] body.ng-theme .faq-cta-card { border-radius: 24px !important; box-shadow: 0 20px 50px rgba(29, 63, 174, .14) !important; border: 1px solid rgba(255, 255, 255, .9) !important; }
+html[data-look="3"] body.ng-theme .feature-box { background: rgba(255, 255, 255, .62) !important; border: 1px solid rgba(255, 255, 255, .9) !important; border-radius: 24px !important; backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); box-shadow: 0 20px 50px rgba(29, 63, 174, .12) !important; }
+html[data-look="3"] body.ng-theme .site-footer { background: linear-gradient(135deg, var(--lk-deep), var(--lk-navy) 60%, var(--lk-royal)) !important; }
+html[data-look="3"] .lk-intro { background: transparent; }
+html[data-look="3"] .lk-intro p { color: #1e293b; }
+html[data-look="3"] .lk-stat { background: rgba(255, 255, 255, .62); border: 1px solid rgba(255, 255, 255, .95); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); box-shadow: 0 18px 40px rgba(29, 63, 174, .12); }
+html[data-look="3"] .lk-stat b { background: linear-gradient(90deg, var(--lk-navy), var(--lk-bright)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+html[data-look="3"] .lk-stat b em { font-style: normal; }
+html[data-look="3"] .lk-stat span { color: #475569; }
+
+/* ---------- เกลาเพิ่ม ---------- */
+html[data-look="1"] body.ng-theme .section-title span:not(.text-gradient-cyan) { color: #fff !important; -webkit-text-fill-color: #fff; }
+html[data-look="1"] body.ng-theme #privilegeBannerBox { background: rgba(255, 255, 255, .06) !important; border: 1px solid rgba(147, 180, 255, .25) !important; }
+html[data-look="1"] body.ng-theme #privilegeNoteText { color: #e6edff !important; }
+
+/* ธีม 3: แถบตัดเฉียง + แสงออโรราชัดขึ้น */
+html[data-look="3"] body.ng-theme::before { background: radial-gradient(42% 38% at 6% 18%, rgba(42, 84, 214, .32), transparent 70%), radial-gradient(36% 32% at 94% 28%, rgba(244, 63, 94, .22), transparent 70%), radial-gradient(48% 42% at 55% 100%, rgba(147, 180, 255, .45), transparent 70%), radial-gradient(30% 30% at 40% 50%, rgba(167, 139, 250, .16), transparent 70%); }
+html[data-look="3"] body.ng-theme .video-section,
+html[data-look="3"] body.ng-theme .reviews-section { clip-path: polygon(0 5%, 100% 0, 100% 95%, 0 100%); padding-top: 110px !important; padding-bottom: 110px !important; }
+html[data-look="3"] body.ng-theme .reviews-section { margin-top: -40px; }
+html[data-look="3"] body.ng-theme .site-footer { clip-path: polygon(0 40px, 100% 0, 100% 100%, 0 100%); padding-top: 90px !important; }
+html[data-look="3"] body.ng-theme .section-title { font-size: clamp(2.2rem, 3.8vw, 3.1rem) !important; }
+html[data-look="3"] body.ng-theme .course-card { background: rgba(255, 255, 255, .85) !important; backdrop-filter: blur(10px); }
+html[data-look="3"] body.ng-theme .feature-icon-wrap { background: linear-gradient(135deg, var(--lk-bright), #7c9bff) !important; color: #fff !important; border-radius: 50% !important; box-shadow: 0 10px 24px rgba(42, 84, 214, .35); }
+
+/* ธีม 2: เส้นทองบาง ๆ ใต้หัวข้อ */
+html[data-look="2"] body.ng-theme .section-header::after { content: ''; display: block; width: 64px; height: 3px; margin: 18px auto 0; border-radius: 3px; background: linear-gradient(90deg, #c8a24a, #f2d58a); }
+html[data-look="2"] body.ng-theme .subpage-hero-title { font-size: clamp(2.3rem, 4.2vw, 3.5rem) !important; }
+/* ธีม 1: หัวข้อที่วางบนพื้นโดยตรง → ตัวอักษรสว่าง */
+html[data-look="1"] body.ng-theme .reviews-section-title,
+html[data-look="1"] body.ng-theme .about-gallery-title,
+html[data-look="1"] body.ng-theme .tutor-group-section h2,
+html[data-look="1"] body.ng-theme .cd-title { color: #fff !important; }
+html[data-look="1"] body.ng-theme .reviews-section-header p,
+html[data-look="1"] body.ng-theme .tutor-group-section .container > div > p,
+html[data-look="1"] body.ng-theme .cd-subtitle,
+html[data-look="1"] body.ng-theme .cd-breadcrumbs,
+html[data-look="1"] body.ng-theme .cd-breadcrumbs a { color: rgba(230, 237, 255, .8) !important; }
+html[data-look="1"] body.ng-theme .cd-hero-section { background: radial-gradient(90% 120% at 15% 0%, #1b3f96 0%, #0d2558 45%, var(--lk-deep) 85%) !important; }html[data-look] body.ng-theme .cd-main-section { background: transparent !important; }
+html[data-look="1"] body.ng-theme .cd-related-section h2, html[data-look="1"] body.ng-theme .cd-related-section .section-title { color: #fff !important; }

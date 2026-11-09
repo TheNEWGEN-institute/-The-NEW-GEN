@@ -773,3 +773,64 @@
     };
   })());
 })();
+
+/* ===================================================================
+   ลองธีมใหม่ทั้งเว็บ (ตัวอย่าง) — ทำงานเฉพาะเมื่อเปิดลิงก์ ?look=1|2|3
+   จำไว้ในแท็บนั้น (sessionStorage) เพื่อกดดูหน้าอื่นต่อได้ · ?look=0 = ปิด
+   ผู้เข้าชมทั่วไปไม่เห็นอะไรเปลี่ยน
+   =================================================================== */
+(function () {
+  'use strict';
+  const me = document.currentScript;
+  const ver = me && /[?&]v=([^&]+)/.test(me.src) ? me.src.match(/[?&]v=([^&]+)/)[1] : 'look';
+  const q = new URLSearchParams(location.search).get('look');
+  let look = null;
+  try {
+    if (q !== null) { if (/^[123]$/.test(q)) sessionStorage.setItem('ngLook', q); else sessionStorage.removeItem('ngLook'); }
+    look = sessionStorage.getItem('ngLook');
+  } catch (e) { look = /^[123]$/.test(q || '') ? q : null; }
+  if (!look || !/^[123]$/.test(look)) return;
+
+  document.documentElement.dataset.look = look;
+  const css = href => { const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = href + '?v=' + ver; document.head.appendChild(l); };
+  css('assets/css/look.css');
+
+  // หน้าแรก: สไลด์ใหม่ + แถบแนะนำสถาบัน (ส่วนเสนอใหม่)
+  const oldHero = document.getElementById('hero');
+  if (oldHero) {
+    css('assets/css/hero-slider.css');
+    const lead = (document.getElementById('heroLeadText') || {}).textContent || '';
+    oldHero.style.display = 'none';
+    const hero = document.createElement('section');
+    hero.className = 'lk-hero';
+    oldHero.parentNode.insertBefore(hero, oldHero);
+    const intro = document.createElement('section');
+    intro.className = 'lk-intro';
+    intro.innerHTML = `<div class="container">
+        <div><span class="lk-new">ส่วนเสนอใหม่</span><p>${lead.replace(/\s+/g, ' ').trim().replace(/[<>&]/g, '')}</p></div>
+        <div class="lk-stats">
+          <div class="lk-stat"><b>ป.4 – ม.6</b><span>เปิดสอนครบทุกระดับชั้น</span></div>
+          <div class="lk-stat"><b>กลุ่ม<em>เล็ก</em></b><span>ดูแลใกล้ชิด ทั่วถึงทุกคน</span></div>
+          <div class="lk-stat"><b>Onsite <em>&amp;</em> Online</b><span>เลือกเรียนได้ตามสะดวก</span></div>
+          <div class="lk-stat"><b>10<em>+</em> ปี</b><span>ประสบการณ์สอนของทีมติวเตอร์</span></div>
+        </div></div>`;
+    oldHero.parentNode.insertBefore(intro, oldHero.nextSibling);
+    const s = document.createElement('script');
+    s.src = 'assets/js/hero-slider.js?v=' + ver;
+    s.onload = () => { if (window.NGHero) window.NGHero.mount(hero, { s2: Number(look) }); };
+    document.body.appendChild(s);
+  }
+
+  // ตัวสลับธีม
+  const bar = document.createElement('div');
+  bar.className = 'lk-switch';
+  bar.innerHTML = '<b>ธีมใหม่ (ตัวอย่าง)</b>' + [1, 2, 3].map(n => `<button type="button" data-lk="${n}" class="${String(n) === look ? 'on' : ''}">${n}</button>`).join('') + '<button type="button" data-lk="0" class="off">ปิด</button>';
+  bar.addEventListener('click', e => {
+    const b = e.target.closest('[data-lk]');
+    if (!b) return;
+    const u = new URL(location.href);
+    u.searchParams.set('look', b.dataset.lk);
+    location.href = u.toString();
+  });
+  document.body.appendChild(bar);
+})();
