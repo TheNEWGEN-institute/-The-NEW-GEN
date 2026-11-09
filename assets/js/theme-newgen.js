@@ -793,8 +793,8 @@
   window.addEventListener('scroll', onScroll, { passive: true });
   onScroll();
 
-  // การ์ด/กล่องค่อย ๆ ลอยขึ้นทีละใบตอนเลื่อนหน้า
-  if ('IntersectionObserver' in window && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  // การ์ด/กล่องค่อย ๆ ลอยขึ้นทีละใบตอนเลื่อนหน้า — เฉพาะหน้าแรก (หน้าอื่นเลื่อนอ่านยาว ๆ แล้วลายตา)
+  if (host && 'IntersectionObserver' in window && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     const RV_SEL = '.course-card, .feature-box, .review-real-card, .tutor-profile-card, .trial-video-item-card, .video-container, '
       + '.achievement-poster-card, .about-pillar-item, .about-gallery-item, .faq-item, .contact-box-card, .contact-map-card, '
       + '.social-pill-card, .cd-card, .faq-cta-card, .luxury-cta-card, .about-inspiration-card, .tutor-online-empty-card, #privilegeBannerBox';
