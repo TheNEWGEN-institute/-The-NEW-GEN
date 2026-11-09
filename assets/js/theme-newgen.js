@@ -775,70 +775,21 @@
 })();
 
 /* ===================================================================
-   ลองธีมใหม่ทั้งเว็บ (ตัวอย่าง) — ทำงานเฉพาะเมื่อเปิดลิงก์ ?look=1|2|3
-   จำไว้ในแท็บนั้น (sessionStorage) เพื่อกดดูหน้าอื่นต่อได้ · ?look=0 = ปิด
-   ผู้เข้าชมทั่วไปไม่เห็นอะไรเปลี่ยน
+   ธีมใหม่ (Aurora Glass) — ใช้กับหน้าที่ใส่ <html data-look="3"> และโหลด assets/css/look.css
+   หน้าแรก: สไลด์ใน #heroSlider (assets/js/hero-slider.js)
+   + แถบเมนูโปร่งใส (เลื่อนลงเป็นแคปซูลกระจก) + การ์ดค่อย ๆ ลอยขึ้นตอนเลื่อนหน้า
    =================================================================== */
 (function () {
   'use strict';
-  const me = document.currentScript;
-  const ver = me && /[?&]v=([^&]+)/.test(me.src) ? me.src.match(/[?&]v=([^&]+)/)[1] : 'look';
-  const q = new URLSearchParams(location.search).get('look');
-  let look = null;
-  try {
-    if (q !== null) { if (/^[123]$/.test(q)) sessionStorage.setItem('ngLook', q); else sessionStorage.removeItem('ngLook'); }
-    look = sessionStorage.getItem('ngLook');
-  } catch (e) { look = /^[123]$/.test(q || '') ? q : null; }
-  if (!look || !/^[123]$/.test(look)) return;
+  const root = document.documentElement;
+  if (!root.dataset.look) return;
 
-  document.documentElement.dataset.look = look;
-  const css = href => { const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = href + '?v=' + ver; document.head.appendChild(l); };
-  css('assets/css/look.css');
-
-  // หน้าแรก: สไลด์ใหม่แทนส่วนบนเดิม
-  const oldHero = document.getElementById('hero');
-  if (oldHero) {
-    css('assets/css/hero-slider.css');
-    oldHero.style.display = 'none';
-    const hero = document.createElement('section');
-    hero.className = 'lk-hero';
-    oldHero.parentNode.insertBefore(hero, oldHero);
-    let seam = false;
-    try { seam = sessionStorage.getItem('ngSeam') === '1'; } catch (e) { /* ignore */ }
-    if (seam) hero.classList.add('hx-seam-on');
-    const s = document.createElement('script');
-    s.src = 'assets/js/hero-slider.js?v=' + ver;
-    // ธีม 3 (ที่เลือก): รูปแรกแบบ Cinematic Light + รูปที่ 2 สไตล์ 1
-    s.onload = () => { if (window.NGHero) window.NGHero.mount(hero, look === '3' ? { s1: 'cine', s2: 1 } : { s2: Number(look) }); };
-    document.body.appendChild(s);
-  }
-
-  // ตัวสลับธีม
-  const bar = document.createElement('div');
-  bar.className = 'lk-switch';
-  bar.innerHTML = '<b>ธีมใหม่ (ตัวอย่าง)</b>' + [1, 2, 3].map(n => `<button type="button" data-lk="${n}" class="${String(n) === look ? 'on' : ''}">${n}</button>`).join('') +
-    (oldHero ? '<button type="button" data-seam class="off">เส้นแดง</button>' : '') + '<button type="button" data-lk="0" class="off">ปิด</button>';
-  bar.addEventListener('click', e => {
-    const sm = e.target.closest('[data-seam]');
-    if (sm) {
-      const h = document.querySelector('.lk-hero');
-      const on = h && h.classList.toggle('hx-seam-on');
-      sm.classList.toggle('on', !!on);
-      try { sessionStorage.setItem('ngSeam', on ? '1' : '0'); } catch (err) { /* ignore */ }
-      return;
-    }
-    const b = e.target.closest('[data-lk]');
-    if (!b) return;
-    const u = new URL(location.href);
-    u.searchParams.set('look', b.dataset.lk);
-    location.href = u.toString();
-  });
-  document.body.appendChild(bar);
-  const sb = bar.querySelector('[data-seam]');
-  if (sb && document.querySelector('.lk-hero.hx-seam-on')) sb.classList.add('on');
+  // หน้าแรก: สไลด์
+  const host = document.getElementById('heroSlider');
+  if (host && window.NGHero) window.NGHero.mount(host, { s1: 'cine', s2: 1 });
 
   // แถบเมนู: บนสุดโปร่งใส / เลื่อนลงเป็นแคปซูลกระจก
-  const onScroll = () => document.documentElement.classList.toggle('lk-scrolled', window.scrollY > 30);
+  const onScroll = () => root.classList.toggle('lk-scrolled', window.scrollY > 30);
   window.addEventListener('scroll', onScroll, { passive: true });
   onScroll();
 
@@ -860,6 +811,8 @@
         if (el.dataset.lkRv) return;
         el.dataset.lkRv = '1';
         if (el.closest('.lk-hero, .site-header, .site-footer')) return;
+        // โหลดมาทีหลังและอยู่เหนือหน้าจอไปแล้ว → แสดงเลย ไม่ต้องรอเลื่อนกลับ
+        if (el.getBoundingClientRect().bottom < 0) return;
         const sibs = el.parentElement ? Array.from(el.parentElement.children).filter(c => c.matches(RV_SEL)) : [el];
         el.style.setProperty('--lk-d', (sibs.indexOf(el) % 4) * 110 + 'ms');
         el.classList.add('lk-rv');

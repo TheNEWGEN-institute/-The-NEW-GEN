@@ -224,3 +224,7 @@
 @media (prefers-reduced-motion: reduce) { .hx-cine::before, .hx-brand .hx-shine { animation: none; } }
 /* เงาจาง ๆ ขอบบน ให้แถบเมนูโปร่งใสอ่านชัดบนทุกรูป */
 .hx::after { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 170px; z-index: 5; pointer-events: none; background: linear-gradient(180deg, rgba(7, 21, 48, .82) 0%, rgba(7, 21, 48, .45) 50%, transparent 100%); }
+/* จองพื้นที่สไลด์ไว้ก่อนโหลดเสร็จ (หน้าไม่กระตุก) */
+.lk-hero { min-height: clamp(660px, 92vh, 800px); background: #071530; }
+@media (max-width: 900px) { .lk-hero { min-height: 860px; } }
+@media (min-width: 601px) and (max-width: 900px) { .lk-hero { min-height: 900px; } }

@@ -28,7 +28,10 @@
 
   function reviewImages() {
     const db = window.NewGenDB;
-    const list = db && db.getReviews ? db.getReviews().filter(r => r && r.image && r.isHidden !== true) : [];
+    let real = Boolean(window._supabaseReviewsSynced);
+    try { real = real || Boolean(localStorage.getItem('newgen_reviews')); } catch (e) { /* ignore */ }
+    // ยังไม่มีข้อมูลจริง (เปิดครั้งแรก) → ใช้โปสเตอร์ชุดหลักไปก่อน ไม่ใช้รูปตัวอย่างของระบบ
+    const list = real && db && db.getReviews ? db.getReviews().filter(r => r && r.image && r.isHidden !== true) : [];
     const pick = list.slice(0, 3).map(r => (window.resolveMediaUrl ? window.resolveMediaUrl(r.image) : r.image));
     return pick.length === 3 ? pick : FALLBACK_REVIEWS;
   }
@@ -141,6 +144,11 @@
       if (x0 === null) return;
       const dx = e.changedTouches[0].clientX - x0; x0 = null;
       if (Math.abs(dx) > 40) go(idx + (dx < 0 ? 1 : -1));
+    });
+    // ข้อมูลรีวิวล่าสุดโหลดเสร็จ → อัปเดตโปสเตอร์รุ่นพี่ในรูปที่ 3
+    document.addEventListener('newgen:synced', () => {
+      const imgs = reviewImages();
+      root.querySelectorAll('.hx-rv img').forEach((im, i) => { if (imgs[i] && im.getAttribute('src') !== imgs[i]) im.src = imgs[i]; });
     });
     root.hxGo = go;
     go(0);
