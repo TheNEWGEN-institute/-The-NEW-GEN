@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
-  <title>ตัวอย่างสไลด์หน้าแรก 5 แบบ | The NEW GEN</title>
+  <title>ตัวอย่างสไลด์หน้าแรก (รอบ 2) | The NEW GEN</title>
   <link rel="icon" type="image/png" href="../assets/images/tutor-au.jpg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,16 +13,24 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   <link rel="stylesheet" href="../assets/css/style.css?v=20261109-hero">
   <link rel="stylesheet" href="../assets/css/theme-newgen.css?v=20261109-hero">
-  <link rel="stylesheet" href="hero.css?v=20261109-hero">
+  <link rel="stylesheet" href="hero.css?v=20261109-hero2">
   <style>
-    .pv-switch { position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); z-index: 500; background: #0b1e3f; color: #fff; border-radius: 999px; padding: 6px; display: flex; gap: 3px; box-shadow: 0 12px 30px rgba(11,30,63,.4); align-items: center; max-width: calc(100vw - 20px); }
-    .pv-switch b { font-size: .78rem; padding: 0 8px; opacity: .8; font-weight: 500; white-space: nowrap; }
-    .pv-switch button { border: 0; background: transparent; color: #fff; font: inherit; font-size: .86rem; font-weight: 700; padding: 8px 14px; border-radius: 999px; cursor: pointer; white-space: nowrap; }
-    .pv-switch button.on { background: #fff; color: #0b1e3f; }
+    .pv-bar { position: fixed; left: 50%; bottom: 14px; transform: translateX(-50%); z-index: 500; display: flex; gap: 8px; max-width: calc(100vw - 16px); flex-wrap: wrap; justify-content: center; }
+    .pv-grp { background: #0b1e3f; color: #fff; border-radius: 999px; padding: 5px; display: flex; gap: 3px; align-items: center; box-shadow: 0 12px 30px rgba(11,30,63,.4); }
+    .pv-grp b { font-size: .76rem; padding: 0 8px; opacity: .8; font-weight: 500; white-space: nowrap; }
+    .pv-grp button { border: 0; background: transparent; color: #fff; font: inherit; font-size: .85rem; font-weight: 700; padding: 7px 13px; border-radius: 999px; cursor: pointer; white-space: nowrap; }
+    .pv-grp button.on { background: #fff; color: #0b1e3f; }
     .pv-name { position: fixed; left: 16px; top: 96px; z-index: 40; background: #fef9c3; color: #713f12; font-size: .8rem; padding: 6px 12px; border-radius: 10px; box-shadow: 0 6px 16px rgba(0,0,0,.15); max-width: calc(100vw - 32px); }
-    .pv-rest { max-width: 1280px; margin: 0 auto; padding: 40px 40px 140px; color: #64748b; font-size: .9rem; }
+    .pv-rest { max-width: 1280px; margin: 0 auto; padding: 40px 40px 160px; color: #64748b; font-size: .9rem; }
     .pv-rest .pv-box { background: #fff; border-radius: 18px; padding: 26px; border: 1px dashed #cbd5e1; }
-    @media (max-width: 640px) { .pv-switch b { display: none; } .pv-switch button { padding: 8px 11px; font-size: .8rem; } .pv-name { top: 84px; left: 10px; font-size: .74rem; } .pv-rest { padding: 24px 16px 120px; } }
+    @media (max-width: 760px) {
+      .pv-bar { flex-wrap: nowrap; gap: 4px; bottom: 8px; }
+      .pv-grp { padding: 3px; gap: 1px; }
+      .pv-grp b { display: none; }
+      .pv-grp button { padding: 6px 8px; font-size: .74rem; }
+      .pv-name { display: none; }
+      .pv-rest { padding: 24px 16px 110px; }
+    }
   </style>
 </head>
 <body class="ng-theme pv-hero">
@@ -56,7 +64,6 @@
 
   <section class="hs" id="hs" aria-roledescription="carousel" aria-label="ไฮไลต์ The NEW GEN"></section>
 
-  <!-- ปุ่มย้ายมาไว้ใต้สไลด์ -->
   <div class="hs-cta">
     <div class="hs-cta-in">
       <div class="hs-btns">
@@ -74,97 +81,125 @@
 
   <div class="pv-rest"><div class="pv-box">(ส่วนอื่นของหน้าแรกเหมือนเดิม — คอร์สแนะนำ, รีวิว ฯลฯ)</div></div>
 
-  <div class="pv-switch" role="group" aria-label="เลือกแบบ">
-    <b>เลือกแบบ</b>
-    <button type="button" data-v="1">1</button>
-    <button type="button" data-v="2">2</button>
-    <button type="button" data-v="3">3</button>
-    <button type="button" data-v="4">4</button>
-    <button type="button" data-v="5">5</button>
+  <div class="pv-bar">
+    <div class="pv-grp" role="group" aria-label="เลือกแบบ"><b>แบบ</b><button type="button" data-v="A">A</button><button type="button" data-v="B">B</button><button type="button" data-v="C">C</button></div>
+    <div class="pv-grp" role="group" aria-label="ท่ายืน"><b>ท่ายืน</b><button type="button" data-p="a">ท่า A</button><button type="button" data-p="b">ท่า B</button></div>
+    <div class="pv-grp" role="group" aria-label="รูปที่"><b>รูปที่</b><button type="button" data-s="0">1</button><button type="button" data-s="1">2</button><button type="button" data-s="2">3</button></div>
   </div>
 
   <script>
   (function () {
     const IMG = '../assets/images/';
-    const TUTORS = [
-      { name: 'พี่อู๋', img: IMG + 'tutors-cutout/tutor-au.webp' },
-      { name: 'พี่นนท์', img: IMG + 'tutors-cutout/tutor-non.webp' },
-      { name: 'พี่แม็ค', img: IMG + 'tutors-cutout/tutor-mac.webp' },
-      { name: 'พี่อานนท์', img: IMG + 'tutors-cutout/tutor-anont.webp' }
+    const CUT = IMG + 'tutors-cutout/';
+    // ผลงานรุ่นพี่ (โปสเตอร์จริงจากหน้ารีวิว)
+    const REVIEWS = [
+      'https://wdazilhmlttnurpfewlk.supabase.co/storage/v1/object/public/uploads/img-1792003643929-i955.jpg',
+      'https://wdazilhmlttnurpfewlk.supabase.co/storage/v1/object/public/uploads/img-1792003652213-7qqw.jpg',
+      'https://wdazilhmlttnurpfewlk.supabase.co/storage/v1/object/public/uploads/img-1792003657406-v97s.jpg'
     ];
     const NAMES = {
-      1: 'แบบ 1 · Cinematic — ภาพเต็มจอ ไล่เฉดน้ำเงิน ติวเตอร์ยืนเรียงขวา',
-      2: 'แบบ 2 · Split Poster — ซ้ายพื้นน้ำเงิน ขวาภาพเด็กตัดเฉียง',
-      3: 'แบบ 3 · Team Poster — ภาพโทนน้ำเงิน หัวเรื่องกลาง ทีมติวเตอร์กลางล่าง',
-      4: 'แบบ 4 · Glass Card — การ์ดกระจกฝ้า ติวเตอร์บนวงแหวนแสง',
-      5: 'แบบ 5 · Collage — ภาพโพลารอยด์ ตัวอักษร GEN Z แถบคำวิ่ง'
+      A: 'แบบ A · Diagonal Duo — รูปเด็ก 2 รูปตัดเฉียงต่อกัน มีเส้นแดงคั่น',
+      B: 'แบบ B · Floating Frames — กรอบรูปขาว 2 ใบลอยซ้อนกัน',
+      C: 'แบบ C · Arches — หน้าต่างโค้งสูง 2 บาน วางเหลื่อมกัน'
     };
+    const POSES = { a: 'ท่า A: พี่อู๋–พี่นนท์ หันหลังชนกัน', b: 'ท่า B: พี่อู๋–พี่นนท์ หันเข้าหากัน' };
 
-    const tutors = (wrap) => {
-      const figs = TUTORS.map((t, i) => `<figure class="tt tt-${i + 1}" style="--i:${i}"><img src="${t.img}" alt="${t.name}"><figcaption>${t.name}</figcaption></figure>`).join('');
-      return wrap ? `<div class="tt-stage"><div class="tt-row">${figs}</div></div>` : `<div class="tt-stage">${figs}</div>`;
+    function team(pose) {
+      // ท่า A: นนท์กลับด้าน + อู๋ปกติ / ท่า B: นนท์ปกติ + อู๋กลับด้าน (โลโก้เสื้ออ่านถูกด้าน)
+      const list = [
+        ['mac', 'พี่แม็ค', 'tutor-mac.webp'],
+        ['non', 'พี่นนท์', pose === 'a' ? 'tutor-non-flip.webp' : 'tutor-non.webp'],
+        ['au', 'พี่อู๋', pose === 'a' ? 'tutor-au.webp' : 'tutor-au-flip.webp'],
+        ['anont', 'พี่อานนท์', 'tutor-anont.webp']
+      ];
+      const order = [0, 3, 1, 2]; // ลำดับขึ้นจอ: ข้าง ๆ ก่อน พี่อู๋ขึ้นท้ายสุด
+      return `<div class="team pose-${pose}">${list.map((t, k) => `
+        <figure class="tt tt-${t[0]} ${t[0] === 'au' ? 'front' : ''}" style="--i:${order.indexOf(k)}">
+          <img src="${CUT + t[2]}" alt="${t[1]}"><figcaption>${t[1]}</figcaption>
+        </figure>`).join('')}</div>`;
+    }
+
+    function slide1(v, pose) {
+      const photos = `
+        <figure class="ph ph-1" data-pop style="--d:0"><img src="${IMG}hero/kids-1.jpg" alt="น้อง ๆ The NEW GEN"></figure>
+        <figure class="ph ph-2" data-pop style="--d:1"><img src="${IMG}hero/kids-2.jpg" alt="บรรยากาศห้องเรียน The NEW GEN"></figure>`;
+      const extra = v === 'B' ? '<div class="deco-ring"></div><div class="deco"></div>'
+        : v === 'C' ? '<div class="glow"></div><i class="fa-solid fa-star star" style="left:4%;top:20%"></i><i class="fa-solid fa-star star" style="right:3%;top:38%;font-size:1.1rem"></i>' : '';
+      return `
+        <div class="s1-photos">${extra}${photos}</div>
+        <div class="hs-wrap"><div class="s1-left">
+          <span class="hs-kicker" data-in style="--d:0"><i></i> สถาบันกวดวิชา</span>
+          <h1 class="hs-brand" data-in style="--d:1">The NEW <span class="gen">GEN</span></h1>
+          <p class="hs-slogan" data-in style="--d:2">กวดวิชาของเด็ก <b>GEN Z</b></p>
+          ${team(pose)}
+        </div></div>`;
+    }
+
+    const LEVELS = `<div class="lv" data-in style="--d:3"><div><b>ป.4 – ป.6</b><span>เรียนล่วงหน้า · ติวสอบเข้า ม.1</span></div><div><b>ม.1 – ม.3</b><span>เสริมเกรด · ติวสอบเข้า ม.4</span></div><div><b>ม.4 – ม.6</b><span>คณิต · ฟิสิกส์ · เคมี · อังกฤษ</span></div></div>`;
+    const SLIDE2 = {
+      A: () => `<div class="bg"></div><div class="hs-wrap">
+          <span class="hs-kicker" data-in style="--d:0"><i></i> เปิดรับสมัครแล้ว</span>
+          <h2 data-in style="--d:1;margin-top:14px">คอร์สรายเทอม <em>2/69</em></h2>
+          <p data-in style="--d:2">ห้องเรียนกลุ่มเล็ก ดูแลทั่วถึง เรียนได้ทั้ง Onsite และ Online · ที่นั่งมีจำกัดในแต่ละรอบ</p>
+          ${LEVELS}<a href="#" class="hs-more" data-in style="--d:4">ดูคอร์สและตารางเรียน <i class="fa-solid fa-arrow-right"></i></a></div>`,
+      B: () => `<div class="pic"></div><div class="red"></div><div class="hs-wrap">
+          <div class="big" data-in style="--d:0">2/69</div>
+          <h2 data-in style="--d:1">เปิดรับสมัครคอร์สรายเทอมแล้ว!</h2>
+          <p data-in style="--d:2">ห้องเรียนกลุ่มเล็ก · Onsite &amp; Online · แบ่งชำระได้</p>
+          ${LEVELS}<a href="#" class="hs-more" data-in style="--d:4">ดูคอร์สทั้งหมด <i class="fa-solid fa-arrow-right"></i></a></div>`,
+      C: () => `<div class="circle" data-pop style="--d:0;--tf:translateY(-46%)"></div><div class="tag" data-in style="--d:3">ที่นั่งจำกัด!</div><div class="hs-wrap">
+          <span class="hs-kicker" data-in style="--d:0"><i></i> เปิดรับสมัครแล้ว</span>
+          <h2 data-in style="--d:1;margin-top:14px">คอร์สรายเทอม <em>2/69</em><br>ป.4 – ม.6</h2>
+          <p data-in style="--d:2">เรียนสนุก ครบทุกเนื้อหา ห้องเรียนกลุ่มเล็ก ดูแลทั่วถึงทุกคน</p>
+          ${LEVELS}<a href="#" class="hs-more" data-in style="--d:4">ดูคอร์สและตารางเรียน <i class="fa-solid fa-arrow-right"></i></a></div>`
     };
-    const copy = (extra = '') => `
-      <span class="hs-kicker" data-in style="--d:0"><i></i> สถาบันกวดวิชา</span>
-      <h1 class="hs-brand" data-in style="--d:1"><span class="new">The NEW</span> <span class="gen">GEN</span></h1>
-      ${extra}
-      <p class="hs-slogan" data-in style="--d:2">กวดวิชาของเด็ก <b>GEN Z</b></p>
-      <p class="hs-lead" data-in style="--d:3">เรามีความตั้งใจที่อยากให้น้อง ๆ ทุกคน เข้าถึงโอกาสทางการศึกษาได้อย่างเท่าเทียม</p>`;
-
-    const MAIN = {
-      1: () => `<div class="hs-bg"></div><div class="hs-inner"><div class="hs-copy">${copy()}</div></div>${tutors(false)}`,
-      2: () => `<div class="hs-bg"></div><div class="hs-inner"><div class="hs-copy">${copy()}<div class="hs-line" data-in style="--d:4"></div></div></div>${tutors(true)}`,
-      3: () => `<div class="hs-bg"></div><div class="hs-glow"></div><div class="hs-inner"><div class="hs-copy">${copy()}</div></div>${tutors(true)}`,
-      4: () => `<div class="hs-bg"></div><div class="hs-ring"></div>
-                <span class="hs-sym" style="right:44%;top:24%">∫ f(x) dx</span><span class="hs-sym" style="right:6%;top:20%">Σ</span><span class="hs-sym" style="right:30%;top:16%">π</span>
-                <div class="hs-inner"><div class="hs-card">${copy()}</div></div>${tutors(false)}`,
-      5: () => `<div class="hs-water">GEN Z</div>
-                <div class="pol pol-1"><span style="background-image:url(${IMG}hero/girls-peace.jpg)"></span></div>
-                <div class="pol pol-2"><span style="background-image:url(${IMG}hero/class-wide.jpg)"></span></div>
-                <div class="pol pol-3"><span style="background-image:url(${IMG}hero/boys-smile.jpg)"></span></div>
-                <div class="hs-inner"><div class="hs-copy">${copy()}</div></div>${tutors(false)}
-                <div class="hs-marquee" aria-hidden="true"><div>${'<span>ป.4 – ม.6</span><span>ห้องเรียนกลุ่มเล็ก ดูแลทั่วถึง</span><span>Onsite &amp; Online</span><span>ติวสอบเข้า ม.1 / ม.4</span><span>แบ่งชำระค่าเรียนได้</span>'.repeat(4)}</div></div>`
+    const rv = (u, d) => `<div class="rv" data-pop style="--d:${d}"><img src="${u}" alt="ความสำเร็จของรุ่นพี่ The NEW GEN" loading="lazy"></div>`;
+    const SLIDE3 = {
+      A: () => `<div class="fan">${REVIEWS.map((u, i) => rv(u, i)).join('')}</div><div class="hs-wrap"><div class="txt">
+          <span class="hs-kicker" data-in style="--d:0"><i></i> ความสำเร็จของรุ่นพี่</span>
+          <h2 data-in style="--d:1;margin-top:14px">รุ่นพี่ <span style="white-space:nowrap">The NEW GEN</span><br><em>สอบติดคณะในฝัน</em></h2>
+          <p data-in style="--d:2">วิศวะ คอม จุฬาฯ · นิติศาสตร์ มธ. · บริหารธุรกิจ มศว และอีกมากมาย</p>
+          <a href="#" class="hs-more" data-in style="--d:3">ดูความสำเร็จทั้งหมด <i class="fa-solid fa-arrow-right"></i></a></div></div>`,
+      B: () => `<div class="hs-wrap">
+          <h2 data-in style="--d:0">ความสำเร็จของ<em>รุ่นพี่</em> The NEW GEN</h2>
+          <p data-in style="--d:1">จากห้องเรียนกลุ่มเล็ก สู่คณะในฝัน</p></div>
+          <div class="belt"><div class="belt-in">${REVIEWS.concat(REVIEWS, REVIEWS, REVIEWS).map(u => `<div class="rv"><img src="${u}" alt="ความสำเร็จของรุ่นพี่" loading="lazy"></div>`).join('')}</div></div>`,
+      C: () => `<div class="hs-wrap">
+          <span class="hs-kicker" data-in style="--d:0"><i></i> Success Stories</span>
+          <h2 data-in style="--d:1;margin-top:14px">รุ่นพี่ของเรา <em>สอบติดแล้ว!</em></h2>
+          <div class="row">${REVIEWS.map((u, i) => rv(u, i + 1)).join('')}</div></div>`
     };
-
-    // รูปที่ 2–3: ข้อความที่แนะนำ (แก้ได้จากหลังบ้านเมื่อทำจริง)
-    const SLIDES = [
-      { bg: 'class-row.jpg', kicker: 'เปิดรับสมัครแล้ว', title: 'คอร์สรายเทอม <em>2/69</em><br>ป.4 – ม.6', text: 'เรียนล่วงหน้า เสริมความเข้าใจ และติวเข้มสอบเข้า ม.1 / ม.4 ที่นั่งมีจำกัดในแต่ละรอบ', chips: ['ห้องเรียนกลุ่มเล็ก', 'Onsite & Online', 'แบ่งชำระได้'], link: 'ดูคอร์สและตารางเรียน →' },
-      { bg: 'girls-peace.jpg', kicker: 'ไม่แน่ใจ? ลองก่อนได้', title: 'ทดลองเรียนฟรี<br><em>กับทีมติวเตอร์ตัวจริง</em>', text: 'ดูคลิปการสอนจริงของพี่ ๆ ก่อนตัดสินใจ แล้วทัก LINE สอบถามรอบเรียนที่ใช่สำหรับน้อง', chips: ['เรียนสนุก เข้าใจง่าย', 'ครบทุกเนื้อหา'], link: 'ดูคลิปทดลองเรียน →' }
-    ];
-    const photoSlide = s => `<div class="hs-bg" style="background-image:url(${IMG}hero/${s.bg})"></div>
-      <div class="hs-inner"><div class="hs-copy">
-        <span class="hs-kicker" data-in style="--d:0"><i></i> ${s.kicker}</span>
-        <h2 data-in style="--d:1">${s.title}</h2>
-        <p data-in style="--d:2">${s.text}</p>
-        <div class="hs-chips" data-in style="--d:3">${s.chips.map(c => `<span>${c}</span>`).join('')}</div>
-        <a href="#" class="hs-link" data-in style="--d:4">${s.link}</a>
-      </div></div>`;
 
     const root = document.getElementById('hs');
     const MS = 6500;
-    let idx = 0, timer = null, variant = Number(new URLSearchParams(location.search).get('v')) || 1;
+    const q = new URLSearchParams(location.search);
+    let v = (q.get('v') || 'A').toUpperCase(); if (!NAMES[v]) v = 'A';
+    let pose = q.get('p') === 'b' ? 'b' : 'a';
+    let idx = 0, timer = null;
 
-    function build() {
-      root.className = 'hs v' + variant;
+    function build(startAt) {
+      root.className = 'hs v' + v;
       root.style.setProperty('--hs-ms', MS + 'ms');
       root.innerHTML = `
-        <article class="hs-slide s-main" aria-roledescription="slide" aria-label="1 / 3">${MAIN[variant]()}</article>
-        ${SLIDES.map((s, i) => `<article class="hs-slide s-photo" aria-roledescription="slide" aria-label="${i + 2} / 3">${photoSlide(s)}</article>`).join('')}
+        <article class="hs-slide s1" aria-roledescription="slide" aria-label="1 / 3">${slide1(v, pose)}</article>
+        <article class="hs-slide s2" aria-roledescription="slide" aria-label="2 / 3">${SLIDE2[v]()}</article>
+        <article class="hs-slide s3" aria-roledescription="slide" aria-label="3 / 3">${SLIDE3[v]()}</article>
         <div class="hs-nav">
           <div class="hs-dots">${[0, 1, 2].map(i => `<button type="button" aria-label="ไปสไลด์ ${i + 1}"><i></i></button>`).join('')}</div>
           <button type="button" class="hs-arrow hs-prev" aria-label="สไลด์ก่อนหน้า"><i class="fa-solid fa-chevron-left"></i></button>
           <button type="button" class="hs-arrow hs-next" aria-label="สไลด์ถัดไป"><i class="fa-solid fa-chevron-right"></i></button>
         </div>`;
-      root.querySelector('.hs-prev').onclick = () => go(idx - 1, true);
-      root.querySelector('.hs-next').onclick = () => go(idx + 1, true);
-      root.querySelectorAll('.hs-dots button').forEach((b, i) => { b.onclick = () => go(i, true); });
-      document.getElementById('pvName').textContent = NAMES[variant] + ' (ตัวอย่าง)';
-      document.querySelectorAll('.pv-switch button').forEach(b => b.classList.toggle('on', Number(b.dataset.v) === variant));
-      history.replaceState(null, '', '?v=' + variant);
-      go(0);
+      root.querySelector('.hs-prev').onclick = () => go(idx - 1);
+      root.querySelector('.hs-next').onclick = () => go(idx + 1);
+      root.querySelectorAll('.hs-dots button').forEach((b, i) => { b.onclick = () => go(i); });
+      document.getElementById('pvName').textContent = `${NAMES[v]} · ${POSES[pose]} (ตัวอย่าง)`;
+      document.querySelectorAll('[data-v]').forEach(b => b.classList.toggle('on', b.dataset.v === v));
+      document.querySelectorAll('[data-p]').forEach(b => b.classList.toggle('on', b.dataset.p === pose));
+      history.replaceState(null, '', `?v=${v}&p=${pose}`);
+      go(startAt || 0);
     }
 
-    function go(n, user) {
+    function go(n) {
       const slides = root.querySelectorAll('.hs-slide');
       idx = (n + slides.length) % slides.length;
       slides.forEach((s, i) => s.classList.toggle('is-active', i === idx));
@@ -173,25 +208,27 @@
         const bar = b.querySelector('i'); bar.style.animation = 'none'; void bar.offsetWidth; bar.style.animation = '';
         if (i === idx) b.classList.add('on');
       });
+      document.querySelectorAll('[data-s]').forEach(b => b.classList.toggle('on', Number(b.dataset.s) === idx));
       clearTimeout(timer);
       if (!root.classList.contains('is-paused')) timer = setTimeout(() => go(idx + 1), MS);
     }
 
-    // หยุดชั่วคราวเมื่อเอาเมาส์ชี้ / สลับแท็บ
     root.addEventListener('mouseenter', () => { root.classList.add('is-paused'); clearTimeout(timer); });
     root.addEventListener('mouseleave', () => { root.classList.remove('is-paused'); go(idx); });
     document.addEventListener('visibilitychange', () => { if (document.hidden) clearTimeout(timer); else go(idx); });
-    // ปัดซ้าย/ขวาบนมือถือ
     let x0 = null;
     root.addEventListener('touchstart', e => { x0 = e.touches[0].clientX; }, { passive: true });
     root.addEventListener('touchend', e => {
       if (x0 === null) return;
       const dx = e.changedTouches[0].clientX - x0; x0 = null;
-      if (Math.abs(dx) > 40) go(idx + (dx < 0 ? 1 : -1), true);
+      if (Math.abs(dx) > 40) go(idx + (dx < 0 ? 1 : -1));
     });
 
-    document.querySelectorAll('.pv-switch button').forEach(b => b.addEventListener('click', () => { variant = Number(b.dataset.v); build(); }));
-    build();
+    document.querySelectorAll('[data-v]').forEach(b => b.addEventListener('click', () => { v = b.dataset.v; build(idx); }));
+    document.querySelectorAll('[data-p]').forEach(b => b.addEventListener('click', () => { pose = b.dataset.p; build(0); }));
+    document.querySelectorAll('[data-s]').forEach(b => b.addEventListener('click', () => go(Number(b.dataset.s))));
+    window.hsGo = go;
+    build(0);
   })();
   </script>
 </body>
