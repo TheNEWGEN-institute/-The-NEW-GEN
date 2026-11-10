@@ -108,9 +108,10 @@
     const s1 = opts && opts.s1 === 'cine' ? 'cine' : 'glow';
     let idx = 0, timer = null;
     root.classList.add('hx');
-    // ตัวอย่างการจัดวางบนมือถือ (?hm=1..4) — ยังไม่ได้ใช้จริง รอเจ้าของเลือก
+    // การจัดวางรูปแรกบนมือถือ: ใช้จริงแบบ 1 (รูปเด็กจางเป็นฉากหลัง ติวเตอร์ใหญ่ ป้ายชื่อแถวแยก)
+    // ดูแบบอื่นได้ด้วย ?hm=2..4
     const hm = (new URLSearchParams(location.search).get('hm') || '').match(/^[1-4]$/);
-    if (hm) root.classList.add('hx-m' + hm[0]);
+    root.classList.add('hx-m' + (hm ? hm[0] : '1'));
     root.setAttribute('aria-roledescription', 'carousel');
     root.setAttribute('aria-label', 'ไฮไลต์ The NEW GEN');
     root.style.setProperty('--hx-ms', MS + 'ms');
