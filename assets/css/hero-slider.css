@@ -82,11 +82,13 @@
 .hx-x { position: absolute; inset: 0; margin: 0; overflow: hidden; }
 .hx-x img { width: 100%; height: 100%; object-fit: cover; display: block; max-width: none; }
 /* ภาพสลับแบบค่อย ๆ จางทับกัน (3 ภาพ วนรอบละ 9 วินาที) */
-.hx-cross .hx-x { opacity: 0; animation: hxCross 9s ease-in-out infinite; }
+.hx-cross .hx-x { opacity: 0; animation: hxCross 12s ease-in-out infinite; }
 .hx-cross .hx-x:nth-child(1) { animation-delay: 0s; }
 .hx-cross .hx-x:nth-child(2) { animation-delay: 3s; }
 .hx-cross .hx-x:nth-child(3) { animation-delay: 6s; }
-@keyframes hxCross { 0% { opacity: 0; transform: scale(1.08); } 8%, 33% { opacity: 1; } 45% { opacity: 0; } 100% { opacity: 0; transform: scale(1); } }
+.hx-cross .hx-x:nth-child(4) { animation-delay: 9s; }
+.hx-layer .hx-x:nth-child(n+4) { display: none; }
+@keyframes hxCross { 0% { opacity: 0; transform: scale(1.08); } 6%, 25% { opacity: 1; } 34% { opacity: 0; } 100% { opacity: 0; transform: scale(1); } }
 .hx-s2 h2 { margin: 16px 0 0; font-weight: 800; line-height: 1.08; color: #fff; }
 .hx-lv { display: flex; gap: 12px; flex-wrap: wrap; }
 .hx-lv div { border-radius: 18px; padding: 15px 20px; min-width: 150px; background: linear-gradient(145deg, rgba(255, 255, 255, .16), rgba(255, 255, 255, .05)); border: 1px solid rgba(255, 255, 255, .25); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); box-shadow: 0 14px 30px rgba(0, 0, 0, .25); }

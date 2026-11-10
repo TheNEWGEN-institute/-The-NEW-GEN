@@ -24,7 +24,8 @@
     'https://wdazilhmlttnurpfewlk.supabase.co/storage/v1/object/public/uploads/img-1792003652213-7qqw.jpg',
     'https://wdazilhmlttnurpfewlk.supabase.co/storage/v1/object/public/uploads/img-1792003657406-v97s.jpg'
   ];
-  const S2_PHOTOS = ['class-row.jpg', 'boys-smile.jpg', 'class-wide.jpg'];
+  // รูปที่ 2: 4 รูปจางสลับกัน (รูปน้อง 2 คนย้ายมาจากรูปแรก)
+const S2_PHOTOS = ['kids-1.jpg', 'class-row.jpg', 'boys-smile.jpg', 'class-wide.jpg'];
 
   function reviewImages() {
     const db = window.NewGenDB;
@@ -46,7 +47,7 @@
     <i class="fa-solid fa-star hx-spark" style="right:47%;top:46%;font-size:.7rem;animation-delay:.8s"></i>
     <i class="fa-solid fa-star hx-spark" style="right:4%;bottom:14%;font-size:.85rem;animation-delay:1.5s"></i>`}
     <div class="hx-photos${s1 === 'cine' ? ' hx-cine' : ''}">
-      <figure class="hx-ph hx-ph-1 hx-kb" data-pop style="--d:0"><img src="${IMG}hero/kids-1.jpg" alt="น้อง ๆ The NEW GEN" fetchpriority="high"></figure>
+      <figure class="hx-ph hx-ph-1 hx-kb" data-pop style="--d:0"><img src="${IMG}hero/kids-3.jpg" alt="น้อง ๆ ในห้องเรียน The NEW GEN" fetchpriority="high"></figure>
       <figure class="hx-ph hx-ph-2 hx-kb" data-pop style="--d:1"><img src="${IMG}hero/kids-2.jpg" alt="บรรยากาศห้องเรียน The NEW GEN"></figure>
       ${s1 === 'cine' ? '<div class="hx-seam"></div>' : ''}
     </div>
