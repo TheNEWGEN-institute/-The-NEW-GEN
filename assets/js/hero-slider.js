@@ -56,6 +56,7 @@
       <p class="hx-slogan" data-in style="--d:2">กวดวิชาของเด็ก <span class="hx-grad">GEN ใหม่</span></p>
       <div class="hx-team">${TEAM.map((t, k) => `
         <figure class="hx-tt hx-tt-${k + 1}" style="--i:${t[2]}"><img src="${IMG + t[1]}" alt="${t[0]}"><figcaption>${t[0]}</figcaption></figure>`).join('')}
+        <div class="hx-names" aria-hidden="true">${TEAM.map((t, k) => `<span class="hx-nm-${k + 1}">${t[0]}</span>`).join('')}</div>
       </div>
     </div></div>`;
 
@@ -107,6 +108,9 @@
     const s1 = opts && opts.s1 === 'cine' ? 'cine' : 'glow';
     let idx = 0, timer = null;
     root.classList.add('hx');
+    // ตัวอย่างการจัดวางบนมือถือ (?hm=1..4) — ยังไม่ได้ใช้จริง รอเจ้าของเลือก
+    const hm = (new URLSearchParams(location.search).get('hm') || '').match(/^[1-4]$/);
+    if (hm) root.classList.add('hx-m' + hm[0]);
     root.setAttribute('aria-roledescription', 'carousel');
     root.setAttribute('aria-label', 'ไฮไลต์ The NEW GEN');
     root.style.setProperty('--hx-ms', MS + 'ms');

@@ -228,3 +228,58 @@
 .lk-hero { min-height: clamp(660px, 92vh, 800px); background: #071530; }
 @media (max-width: 900px) { .lk-hero { min-height: 860px; } }
 @media (min-width: 601px) and (max-width: 900px) { .lk-hero { min-height: 900px; } }
+/* ===================================================================
+   ตัวอย่างการจัดวางรูปแรกบนมือถือ (?hm=1..4) — ติวเตอร์เด่นขึ้น รูปเด็กเด่นน้อยลง
+   =================================================================== */
+@media (max-width: 900px) {
+  .hx-m1 .hx-team, .hx-m2 .hx-team, .hx-m3 .hx-team, .hx-m4 .hx-team { max-width: 560px; }
+  .hx-m1 .hx-tt-1, .hx-m2 .hx-tt-1, .hx-m3 .hx-tt-1, .hx-m4 .hx-tt-1 { left: -4%; }
+  .hx-m1 .hx-tt-2, .hx-m2 .hx-tt-2, .hx-m3 .hx-tt-2, .hx-m4 .hx-tt-2 { left: 17%; }
+  .hx-m1 .hx-tt-3, .hx-m2 .hx-tt-3, .hx-m3 .hx-tt-3, .hx-m4 .hx-tt-3 { left: 35%; }
+  .hx-m1 .hx-tt-4, .hx-m2 .hx-tt-4, .hx-m3 .hx-tt-4, .hx-m4 .hx-tt-4 { left: 66%; }
+  .hx-m1 .hx-tt figcaption, .hx-m2 .hx-tt figcaption, .hx-m3 .hx-tt figcaption, .hx-m4 .hx-tt figcaption { font-size: .9rem; padding: 5px 13px; bottom: 46px; }
+  .hx-m1 .hx-team::before, .hx-m2 .hx-team::before, .hx-m3 .hx-team::before, .hx-m4 .hx-team::before { background: radial-gradient(55% 60% at 50% 70%, rgba(42, 84, 214, .75), transparent 72%); }
+
+  /* แบบ 1: รูปเด็กจางลงเป็นฉากหลังด้านบน ติวเตอร์ใหญ่ขึ้น */
+  .hx-m1 .hx-photos { top: 230px; height: 300px; opacity: .38; filter: saturate(.75); }
+  .hx-m1 .hx-team { height: 420px; bottom: -20px; }
+
+  /* แบบ 2: รูปเด็กเป็นภาพเล็ก 2 ใบเรียงคู่ใต้สโลแกน ติวเตอร์ใหญ่เต็มด้านล่าง */
+  .hx-m2 .hx-photos { top: 252px; height: 104px; left: 18px; right: 18px; width: auto; transform: none; max-width: none; }
+  .hx-m2 .hx-photos::before, .hx-m2 .hx-photos::after { display: none; }
+  .hx-m2 .hx-cine .hx-ph { top: 0; bottom: 0; height: 100%; border-radius: 16px; -webkit-mask-image: none; mask-image: none; box-shadow: 0 12px 26px rgba(0, 0, 0, .35); border: 2px solid rgba(255, 255, 255, .85); }
+  .hx-m2 .hx-cine .hx-ph-1 { left: 0; right: 51%; }
+  .hx-m2 .hx-cine .hx-ph-2 { left: 51%; right: 0; }
+  .hx-m2 .hx-team { height: 440px; bottom: -24px; }
+  .hx-m2 .hx-water { display: none; }
+
+  /* แบบ 3: รูปเด็กเป็นพื้นหลังทั้งสไลด์แบบจางมาก ติวเตอร์ใหญ่ที่สุด */
+  .hx-m3 .hx-photos { top: 0; height: 100%; opacity: .2; filter: saturate(.6); }
+  .hx-m3 .hx-cine .hx-ph-1 { height: 100%; -webkit-mask-image: linear-gradient(to bottom, #000 40%, transparent 95%); mask-image: linear-gradient(to bottom, #000 40%, transparent 95%); }
+  .hx-m3 .hx-cine .hx-ph-1 img { object-position: 35% 40%; }
+  .hx-m3 .hx-cine .hx-ph-2 { display: none; }
+  .hx-m3 .hx-team { height: 480px; bottom: -36px; }
+
+  /* แบบ 4: ไม่มีรูปเด็กในรูปแรก (รูปเด็กยังอยู่ในรูปที่ 2) ติวเตอร์เต็มเวที */
+  .hx-m4 .hx-photos { display: none; }
+  .hx-m4 .hx-team { height: 490px; bottom: -36px; }
+  .hx-m4 .hx-water { bottom: 46%; font-size: 34vw; -webkit-text-stroke: 1.5px rgba(147, 180, 255, .16); }
+}
+/* มือถือ (ตัวอย่าง ?hm): ขนาด 4 คนสมดุล + ป้ายชื่อเป็นแถวแยก อยู่บนสุดเสมอ ไม่ถูกบัง */
+.hx-names { display: none; }
+@media (max-width: 900px) {
+  .hx-m1 .hx-tt-1, .hx-m2 .hx-tt-1, .hx-m3 .hx-tt-1, .hx-m4 .hx-tt-1 { height: 80%; }
+  .hx-m1 .hx-tt-2, .hx-m2 .hx-tt-2, .hx-m3 .hx-tt-2, .hx-m4 .hx-tt-2 { height: 86%; }
+  .hx-m1 .hx-tt-3, .hx-m2 .hx-tt-3, .hx-m3 .hx-tt-3, .hx-m4 .hx-tt-3 { height: 92%; left: 37%; }
+  .hx-m1 .hx-tt-4, .hx-m2 .hx-tt-4, .hx-m3 .hx-tt-4, .hx-m4 .hx-tt-4 { height: 82%; left: 67%; }
+  .hx-m1 .hx-tt figcaption, .hx-m2 .hx-tt figcaption, .hx-m3 .hx-tt figcaption, .hx-m4 .hx-tt figcaption { display: none; }
+  .hx-m1 .hx-team { height: 390px; bottom: -14px; }
+  .hx-m2 .hx-team { height: 400px; bottom: -16px; }
+  .hx-m3 .hx-team { height: 420px; bottom: -22px; }
+  .hx-m4 .hx-team { height: 430px; bottom: -24px; }
+  .hx-m1 .hx-names, .hx-m2 .hx-names, .hx-m3 .hx-names, .hx-m4 .hx-names { display: block; position: absolute; z-index: 10; left: 0; right: 0; bottom: 56px; height: 34px; }
+  .hx-names span { position: absolute; transform: translateX(-50%); white-space: nowrap; font-weight: 700; font-size: .88rem; padding: 5px 13px; border-radius: 99px; background: rgba(255, 255, 255, .96); color: #0b1e3f; box-shadow: 0 8px 20px rgba(0, 0, 0, .35); }
+  .hx-names .hx-nm-1 { left: 17%; } .hx-names .hx-nm-2 { left: 41%; } .hx-names .hx-nm-3 { left: 64%; } .hx-names .hx-nm-4 { left: 87%; }
+  .hx-slide .hx-names { opacity: 0; }
+  .hx-slide.is-active .hx-names { animation: hxIn .8s ease forwards; animation-delay: 1s; }
+}
