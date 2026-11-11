@@ -10,8 +10,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Prompt:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
-  <link rel="stylesheet" href="assets/css/style.css?v=20261111-atm">
-  <link rel="stylesheet" href="assets/css/admin-stats.css?v=20261111-atm">
+  <link rel="stylesheet" href="assets/css/style.css?v=20261111-atm3b">
+  <link rel="stylesheet" href="assets/css/admin-stats.css?v=20261111-atm3b">
 </head>
 <body class="page-admin-body">
 
@@ -715,6 +715,69 @@
               <i class="fa-solid fa-arrow-up-right-from-square"></i> ไปที่ "1. จัดการคอร์สเรียน" เพื่อเลือกลำดับ
             </button>
           </div>
+        </div>
+
+        <!-- ส่วน "บรรยากาศการเรียน" บนหน้าแรก (assets/js/atmosphere.js) -->
+        <div class="admin-editor-card" style="margin-top: 24px;" id="atmEditorCard">
+          <style>
+            .atm-admin-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; margin-top: 14px; }
+            .atm-admin-item { position: relative; border-radius: 12px; overflow: hidden; background: #e2e8f0; aspect-ratio: 3 / 2; box-shadow: 0 4px 12px rgba(11,30,63,.1); }
+            .atm-admin-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+            .atm-admin-no { position: absolute; left: 6px; top: 6px; background: rgba(11,30,63,.85); color: #fff; font-size: .72rem; font-weight: 700; padding: 2px 8px; border-radius: 99px; }
+            .atm-admin-tools { position: absolute; left: 0; right: 0; bottom: 0; display: flex; justify-content: space-between; padding: 6px; background: linear-gradient(0deg, rgba(11,30,63,.75), transparent); }
+            .atm-admin-tools button { border: 0; width: 28px; height: 28px; border-radius: 8px; background: rgba(255,255,255,.92); color: #0b1e3f; cursor: pointer; font-size: .8rem; }
+            .atm-admin-tools button.del { background: #e11d48; color: #fff; }
+            .atm-admin-tools button:disabled { opacity: .35; cursor: default; }
+            .atm-admin-bar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 16px; padding: 12px 14px; border-radius: 12px; background: #f8fafc; border: 1px dashed #cbd5e1; }
+            .atm-admin-bar label.btn-secondary { cursor: pointer; margin: 0; }
+            #atmUploadStatus { font-size: .85rem; font-weight: 600; color: #0284c7; }
+            #atmDirtyNote { display: none; font-size: .82rem; font-weight: 700; color: #b45309; }
+          </style>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+            <div>
+              <h3 class="editor-section-title" style="margin: 0;">
+                <i class="fa-solid fa-camera-retro" style="color: var(--color-red-brand);"></i> ส่วน "บรรยากาศการเรียน" บนหน้าแรก (รูปภาพสไลด์)
+              </h3>
+              <p style="font-size: 0.85rem; color: var(--text-muted); margin: 4px 0 0 0;">
+                อยู่ก่อนส่วนทดลองเรียนฟรี · เพิ่มรูปได้ครั้งละหลายรูป จัดลำดับด้วยปุ่มลูกศร (รูปที่ 1 ขึ้นก่อน) · กด "บันทึก" ทุกครั้งหลังแก้ไข
+              </p>
+            </div>
+            <button type="button" class="btn-primary" onclick="saveAtmosphereSettings()">
+              <i class="fa-solid fa-floppy-disk"></i> บันทึกส่วนบรรยากาศ
+            </button>
+          </div>
+          <label class="people-check" style="display: flex; align-items: center; gap: 8px; font-weight: 600; margin-bottom: 12px;">
+            <input type="checkbox" id="atmEnabled" onchange="markAtmDirty()"> แสดงส่วนนี้บนหน้าแรก
+          </label>
+          <div class="form-row-2col">
+            <div class="form-group-luxury">
+              <label>ป้ายเล็กด้านบน</label>
+              <input type="text" id="atmKicker" maxlength="80" oninput="markAtmDirty()" placeholder="เช่น บรรยากาศการเรียนที่ The NEW GEN">
+            </div>
+            <div class="form-group-luxury">
+              <label>หัวข้อ (ส่วนสีขาว)</label>
+              <input type="text" id="atmTitle" maxlength="80" oninput="markAtmDirty()" placeholder="เช่น ที่นี่…">
+            </div>
+          </div>
+          <div class="form-row-2col">
+            <div class="form-group-luxury">
+              <label>หัวข้อ (ส่วนเน้นสีชมพู)</label>
+              <input type="text" id="atmHighlight" maxlength="80" oninput="markAtmDirty()" placeholder="เช่น เหมือนบ้านหลังที่สอง">
+            </div>
+            <div class="form-group-luxury">
+              <label>คำบรรยาย</label>
+              <input type="text" id="atmDesc" maxlength="240" oninput="markAtmDirty()" placeholder="เช่น เพื่อนใหม่ พี่ติวเตอร์ที่เข้าใจ ...">
+            </div>
+          </div>
+          <div class="atm-admin-bar">
+            <label class="btn-secondary"><i class="fa-solid fa-cloud-arrow-up"></i> เพิ่มรูป (เลือกได้หลายรูป)
+              <input type="file" id="atmFileInput" accept="image/*" multiple hidden onchange="handleAtmUpload(event)">
+            </label>
+            <span id="atmCount" style="font-size: .88rem; color: var(--text-muted);"></span>
+            <span id="atmUploadStatus"></span>
+            <span id="atmDirtyNote"><i class="fa-solid fa-triangle-exclamation"></i> มีการแก้ไขที่ยังไม่บันทึก</span>
+          </div>
+          <div id="atmImageGrid" class="atm-admin-grid"></div>
         </div>
         </div>
 
@@ -3426,8 +3489,8 @@
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-  <script src="assets/js/courses-data.js?v=20261111-atm"></script>
-  <script src="assets/js/admin-stats.js?v=20261111-atm"></script>
-  <script src="assets/js/admin.js?v=20261111-atm"></script>
+  <script src="assets/js/courses-data.js?v=20261111-atm3b"></script>
+  <script src="assets/js/admin-stats.js?v=20261111-atm3b"></script>
+  <script src="assets/js/admin.js?v=20261111-atm3b"></script>
 </body>
 </html>

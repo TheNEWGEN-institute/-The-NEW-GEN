@@ -1,14 +1,14 @@
 /* ===================================================================
    หน้าแรก: ส่วน "บรรยากาศการเรียนที่ The NEW GEN" (ก่อนส่วนทดลองเรียนฟรี)
    ใช้คู่กับ assets/css/atmosphere.css
-   ตอนนี้เป็นตัวอย่าง: แสดงเฉพาะเมื่อเปิด ?atm=1..5 (&cp=1..3 = แนวข้อความ)
+   ใช้จริง: ดีไซน์ 3 (Coverflow) · รูปและข้อความแก้ได้ในหลังบ้าน เมนู 3 (เก็บใน home.atmosphere)
+   ดูดีไซน์อื่นเพื่อเทียบ: ?atm=1..5 (&cp=1..3 = แนวข้อความตัวอย่าง)
    =================================================================== */
 (function () {
   'use strict';
 
   const q = new URLSearchParams(location.search);
   const PREVIEW = (q.get('atm') || '').match(/^[1-5]$/);
-  if (!PREVIEW) return;
 
   const IMG = 'assets/images/atmos/';
   const DEFAULT_PHOTOS = Array.from({ length: 20 }, (_, i) => IMG + 'a' + String(i + 1).padStart(2, '0') + '.jpg');
@@ -24,15 +24,36 @@
   ];
   const NAMES = { 1: 'Marquee Wall', 2: 'Bento Mosaic', 3: 'Coverflow', 4: 'Polaroid Board', 5: 'Split Story' };
 
-  let design = Number(PREVIEW[0]);
-  let copy = Number((q.get('cp') || '').match(/^[1-3]$/) || [((design - 1) % 3) + 1]);
+  let design = PREVIEW ? Number(PREVIEW[0]) : 3;
+  // copy 0 = ข้อความจากหลังบ้าน (ค่าเริ่มต้น = แนว C) · 1..3 = ข้อความตัวอย่าง (เฉพาะโหมดเทียบ)
+  let copy = PREVIEW ? Number((q.get('cp') || '').match(/^[1-3]$/) || [((design - 1) % 3) + 1]) : 0;
   let timers = [];
-  const photos = () => DEFAULT_PHOTOS.slice();
+  const settings = () => {
+    const h = window.NewGenDB && window.NewGenDB.getHome ? window.NewGenDB.getHome() : {};
+    return (h && h.atmosphere) || {};
+  };
+  const resolve = u => (window.resolveMediaUrl ? window.resolveMediaUrl(u) : u);
+  const photos = () => {
+    const list = settings().images;
+    const urls = Array.isArray(list) ? list.map(x => (typeof x === 'string' ? x : x && x.url)).filter(Boolean) : [];
+    return (urls.length ? urls : DEFAULT_PHOTOS).map(resolve);
+  };
+  const copyOf = () => {
+    if (copy) return COPY[copy];
+    const a = settings();
+    const t = (a.title !== undefined ? a.title : 'ที่นี่…');
+    const hl = (a.highlight !== undefined ? a.highlight : 'เหมือนบ้านหลังที่สอง');
+    return {
+      kicker: esc(a.kicker !== undefined ? a.kicker : 'บรรยากาศการเรียนที่ The NEW GEN'),
+      title: esc(t) + (hl ? ` <span class="at-hl">${esc(hl)}</span>` : ''),
+      desc: esc(a.desc !== undefined ? a.desc : 'เพื่อนใหม่ พี่ติวเตอร์ที่เข้าใจ และห้องเรียนที่น้อง ๆ อยากมาทุกสัปดาห์')
+    };
+  };
   const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
   const img = (src, i, cls = '') => `<img src="${esc(src)}" alt="บรรยากาศการเรียน The NEW GEN ${i + 1}" loading="lazy" decoding="async" class="${cls}" data-at-i="${i}">`;
 
   function head(extra = '') {
-    const c = COPY[copy];
+    const c = copyOf();
     return `<div class="at-head">
       <span class="at-kicker"><i class="fa-solid fa-camera-retro"></i> ${c.kicker}</span>
       <h2 class="at-title">${c.title}</h2>
@@ -40,7 +61,8 @@
     </div>`;
   }
   const chips = () => `<div class="at-chips">${HIGHLIGHTS.map(h => `<span><i class="fa-solid ${h[0]}"></i> ${h[1]}</span>`).join('')}</div>`;
-  const allBtn = n => `<button type="button" class="at-all" data-at-open="0"><i class="fa-solid fa-images"></i> ดูรูปทั้งหมด (${n})</button>`;
+  // เจ้าของขอไม่ใช้ปุ่ม "ดูรูปทั้งหมด" — ดูรูปผ่านสไลด์อย่างเดียว
+  const allBtn = () => '';
 
   /* ---------- 5 ดีไซน์ ---------- */
   const DESIGNS = {
@@ -150,19 +172,27 @@
     show(i);
   }
 
-  /* ---------- วาดส่วน + ตัวสลับตัวอย่าง ---------- */
+  /* ---------- วาดส่วน (+ ตัวสลับเฉพาะโหมดเทียบ ?atm=) ---------- */
   let section = null;
-  function render() {
-    timers.forEach(clearInterval); timers = [];
+  let lastSig = '';
+  function render(force) {
     const P = photos();
+    const enabled = PREVIEW || settings().enabled !== false;
+    const sig = JSON.stringify([design, copy, P, copyOf(), enabled]);
+    if (!force && sig === lastSig) return; // ข้อมูลไม่เปลี่ยน → ไม่วาดใหม่ (สไลด์ไม่สะดุด)
+    lastSig = sig;
+    timers.forEach(clearInterval); timers = [];
     if (!section) {
-      section = document.createElement('section');
-      section.id = 'atmosphere';
       const anchor = document.getElementById('free-trial');
       if (!anchor) return;
+      section = document.createElement('section');
+      section.id = 'atmosphere';
       anchor.parentNode.insertBefore(section, anchor);
     }
+    section.hidden = !enabled || !P.length;
+    if (section.hidden) { section.innerHTML = ''; return; }
     section.className = `at-section at-d${design}`;
+    section.setAttribute('aria-label', 'บรรยากาศการเรียนที่ The NEW GEN');
     section.innerHTML = DESIGNS[design](P);
     section.querySelectorAll('[data-at-i]').forEach(el => el.addEventListener('click', () => {
       if (el.closest('.at-cf-item') && el.closest('.at-cf-item').dataset.d !== '0') return;
@@ -176,9 +206,9 @@
       bar.querySelectorAll('[data-d]').forEach(b => b.classList.toggle('on', Number(b.dataset.d) === design));
       bar.querySelectorAll('[data-c]').forEach(b => b.classList.toggle('on', Number(b.dataset.c) === copy));
       bar.querySelector('.at-sw-name').textContent = NAMES[design];
+      const u = new URL(location.href); u.searchParams.set('atm', design); u.searchParams.set('cp', copy);
+      history.replaceState(null, '', u);
     }
-    const u = new URL(location.href); u.searchParams.set('atm', design); u.searchParams.set('cp', copy);
-    history.replaceState(null, '', u);
   }
 
   function switcher() {
@@ -191,16 +221,18 @@
       const d = e.target.closest('[data-d]'), c = e.target.closest('[data-c]');
       if (d) design = Number(d.dataset.d);
       if (c) copy = Number(c.dataset.c);
-      if (d || c) { render(); section.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+      if (d || c) { render(true); section.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
     });
     document.body.appendChild(bar);
   }
 
   function boot() {
-    switcher();
-    render();
-    setTimeout(() => section && section.scrollIntoView({ behavior: 'smooth', block: 'start' }), 900);
+    if (PREVIEW) switcher();
+    render(true);
+    if (PREVIEW) setTimeout(() => section && section.scrollIntoView({ behavior: 'smooth', block: 'start' }), 900);
   }
+  // ข้อมูลล่าสุดจากหลังบ้านโหลดเสร็จ → วาดใหม่ถ้ารูป/ข้อความเปลี่ยน
+  document.addEventListener('newgen:synced', () => render(false));
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
 })();

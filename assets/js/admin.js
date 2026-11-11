@@ -2260,7 +2260,150 @@ function loadHomeSettings() {
   if (coursesHighlightInput) coursesHighlightInput.value = home.coursesHighlight || 'เปิดเทอม 2/69';
 
   populateHeroTutorDropdowns();
+  loadAtmosphereEditor();
 }
+
+/* ---------- ส่วน "บรรยากาศการเรียน" บนหน้าแรก (เก็บใน home.atmosphere) ---------- */
+const ATM_DEFAULTS = {
+  enabled: true,
+  kicker: 'บรรยากาศการเรียนที่ The NEW GEN',
+  title: 'ที่นี่…',
+  highlight: 'เหมือนบ้านหลังที่สอง',
+  desc: 'เพื่อนใหม่ พี่ติวเตอร์ที่เข้าใจ และห้องเรียนที่น้อง ๆ อยากมาทุกสัปดาห์',
+  images: Array.from({ length: 20 }, (_, i) => `assets/images/atmos/a${String(i + 1).padStart(2, '0')}.jpg`)
+};
+let _atmImages = [];
+let _atmDirty = false;
+
+function loadAtmosphereEditor() {
+  if (!document.getElementById('atmEditorCard')) return;
+  if (_atmDirty) return; // มีการแก้ไขค้างอยู่ — ไม่ทับด้วยข้อมูลที่ซิงค์มา
+  const a = { ...ATM_DEFAULTS, ...((window.NewGenDB.getHome() || {}).atmosphere || {}) };
+  document.getElementById('atmEnabled').checked = a.enabled !== false;
+  document.getElementById('atmKicker').value = a.kicker || '';
+  document.getElementById('atmTitle').value = a.title || '';
+  document.getElementById('atmHighlight').value = a.highlight || '';
+  document.getElementById('atmDesc').value = a.desc || '';
+  _atmImages = (Array.isArray(a.images) && a.images.length ? a.images : ATM_DEFAULTS.images).map(x => (typeof x === 'string' ? x : x && x.url)).filter(Boolean);
+  renderAtmGrid();
+}
+
+function markAtmDirty() {
+  _atmDirty = true;
+  const n = document.getElementById('atmDirtyNote');
+  if (n) n.style.display = 'inline';
+}
+
+function renderAtmGrid() {
+  const grid = document.getElementById('atmImageGrid');
+  if (!grid) return;
+  const count = document.getElementById('atmCount');
+  if (count) count.textContent = `${_atmImages.length} รูป`;
+  grid.innerHTML = _atmImages.length ? _atmImages.map((u, i) => `
+    <div class="atm-admin-item">
+      <img src="${escapeHtml(window.resolveMediaUrl ? window.resolveMediaUrl(u) : u)}" alt="รูปที่ ${i + 1}" loading="lazy">
+      <span class="atm-admin-no">${i + 1}</span>
+      <div class="atm-admin-tools">
+        <span>
+          <button type="button" title="เลื่อนไปก่อน" onclick="moveAtmImage(${i}, -1)" ${i === 0 ? 'disabled' : ''}><i class="fa-solid fa-arrow-left"></i></button>
+          <button type="button" title="เลื่อนไปหลัง" onclick="moveAtmImage(${i}, 1)" ${i === _atmImages.length - 1 ? 'disabled' : ''}><i class="fa-solid fa-arrow-right"></i></button>
+        </span>
+        <button type="button" class="del" title="ลบรูปนี้" onclick="removeAtmImage(${i})"><i class="fa-solid fa-trash-can"></i></button>
+      </div>
+    </div>`).join('') : '<p style="color: var(--text-muted); font-size: .9rem;">ยังไม่มีรูป — กด "เพิ่มรูป"</p>';
+}
+
+function moveAtmImage(i, dir) {
+  const j = i + dir;
+  if (j < 0 || j >= _atmImages.length) return;
+  [_atmImages[i], _atmImages[j]] = [_atmImages[j], _atmImages[i]];
+  markAtmDirty();
+  renderAtmGrid();
+}
+
+function removeAtmImage(i) {
+  if (!confirm(`ลบรูปที่ ${i + 1} ออกจากส่วนบรรยากาศ?`)) return;
+  _atmImages.splice(i, 1);
+  markAtmDirty();
+  renderAtmGrid();
+}
+
+// ย่อรูปเป็นด้านยาวไม่เกิน 1600px (JPEG) แล้วอัปโหลดขึ้น Supabase Storage
+function atmCompress(file) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      const max = 1600;
+      const k = Math.min(1, max / Math.max(img.width, img.height));
+      const c = document.createElement('canvas');
+      c.width = Math.round(img.width * k);
+      c.height = Math.round(img.height * k);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url);
+      c.toBlob(b => (b ? resolve(b) : reject(new Error('แปลงรูปไม่สำเร็จ'))), 'image/jpeg', 0.8);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('เปิดไฟล์รูปไม่ได้')); };
+    img.src = url;
+  });
+}
+
+async function handleAtmUpload(event) {
+  const input = event.target;
+  const files = Array.from(input.files || []).filter(f => /^image\//.test(f.type));
+  input.value = '';
+  if (!files.length) return;
+  const status = document.getElementById('atmUploadStatus');
+  let ok = 0, fail = 0;
+  for (let i = 0; i < files.length; i++) {
+    if (status) status.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> กำลังอัปโหลด ${i + 1}/${files.length}...`;
+    try {
+      const blob = await atmCompress(files[i]);
+      const url = await window.NewGenDB.uploadImageToSupabase(blob, 'atmos.jpg');
+      if (!url) throw new Error('upload failed');
+      _atmImages.push(url);
+      ok++;
+      markAtmDirty();
+      renderAtmGrid();
+    } catch (e) {
+      fail++;
+    }
+  }
+  if (status) {
+    status.style.color = fail ? '#b45309' : '#16a34a';
+    status.innerHTML = fail
+      ? `<i class="fa-solid fa-triangle-exclamation"></i> อัปโหลดสำเร็จ ${ok} รูป ไม่สำเร็จ ${fail} รูป — กดบันทึกเพื่อใช้รูปที่สำเร็จ`
+      : `<i class="fa-solid fa-circle-check"></i> อัปโหลด ${ok} รูปแล้ว — อย่าลืมกด "บันทึกส่วนบรรยากาศ"`;
+  }
+}
+
+async function saveAtmosphereSettings() {
+  const home = window.NewGenDB.getHome();
+  home.atmosphere = {
+    enabled: document.getElementById('atmEnabled').checked,
+    kicker: document.getElementById('atmKicker').value.trim(),
+    title: document.getElementById('atmTitle').value.trim(),
+    highlight: document.getElementById('atmHighlight').value.trim(),
+    desc: document.getElementById('atmDesc').value.trim(),
+    images: _atmImages.slice(),
+    updatedAt: new Date().toISOString()
+  };
+  const res = await window.NewGenDB.saveHome(home);
+  if (res && res.success) {
+    _atmDirty = false;
+    const n = document.getElementById('atmDirtyNote');
+    if (n) n.style.display = 'none';
+    showToast(`✅ บันทึกส่วนบรรยากาศแล้ว (${_atmImages.length} รูป)`, 'success');
+  } else {
+    showToast(`⚠️ บันทึกไม่สำเร็จ: ${(res && res.error) || 'ลองใหม่อีกครั้ง'}`, 'warning');
+  }
+}
+
+window.saveAtmosphereSettings = saveAtmosphereSettings;
+window.handleAtmUpload = handleAtmUpload;
+window.moveAtmImage = moveAtmImage;
+window.removeAtmImage = removeAtmImage;
+window.markAtmDirty = markAtmDirty;
 
 function populateHeroTutorDropdowns() {
   const tutors = window.NewGenDB.getTutors();
