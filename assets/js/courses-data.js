@@ -694,7 +694,9 @@ const NewGenDB = {
   syncFromSupabase: async () => {
     try {
       // ดึงเฉพาะข้อมูลหน้าเว็บ (ไม่ดึงรายชื่อนักเรียน/ข้อมูลระบบ)
-      const publicKeys = Object.keys(SUPABASE_KEY_MAPPING).join(',');
+      // "ผลงานรุ่นพี่" ข้อมูลใหญ่ (~0.8 MB) ใช้แค่หน้ารีวิวกับหลังบ้าน → หน้าอื่นไม่ต้องโหลด (ประหยัดโควต้า Supabase egress)
+      const needsAchievements = typeof location === 'undefined' || /(^|\/)(reviews|admin)\.html$/i.test(location.pathname);
+      const publicKeys = Object.keys(SUPABASE_KEY_MAPPING).filter(k => k !== 'achievements' || needsAchievements).join(',');
       const endpoint = `${SUPABASE_CONFIG.url}/rest/v1/app_data?select=key,data&key=in.(${publicKeys})`;
       const res = await fetch(endpoint, { headers: await getSupabaseHeaders() });
       if (!res.ok) return false;
