@@ -206,3 +206,8 @@ html[data-look="3"] body.ng-theme .mobile-nav-link.active { color: #ff6b85; }
 html[data-look] .lk-rv { transition: opacity .85s cubic-bezier(.2, .7, .2, 1), transform .85s cubic-bezier(.2, .7, .2, 1), filter .85s ease; transition-delay: var(--lk-d, 0ms); }
 html[data-look] .lk-rv:not(.lk-in) { opacity: 0; transform: translateY(34px) scale(.97); filter: blur(4px); }
 @media (prefers-reduced-motion: reduce) { html[data-look] .lk-rv:not(.lk-in) { opacity: 1; transform: none; filter: none; } }
+/* แถบเมนู: ห้ามตัดคำเป็น 2 บรรทัด (ทุกหน้า) */
+html[data-look] body.ng-theme .nav-link,
+html[data-look] body.ng-theme .brand-logo-text,
+html[data-look] body.ng-theme .brand-subtext { white-space: nowrap; }
+html[data-look] body.ng-theme .site-header .navbar { flex-wrap: nowrap; }
